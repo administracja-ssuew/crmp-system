@@ -7,7 +7,7 @@ const AuthContext = createContext();
 // === TUTAJ WPISZ MAILE, KTÓRE MAJĄ MIEĆ DOSTĘP ===
 const ALLOWED_EMAILS = [
   "administracja@samorzad.ue.wroc.pl", 
-  "inny.admin@ue.wroc.pl",
+  "magdalena.skoczylas@samorzad.ue.wroc.pl",
   // Dodaj tu siebie, bo zaraz stracisz dostęp!
 ];
 
