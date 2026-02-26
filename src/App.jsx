@@ -11,6 +11,7 @@ import StandsPage from './pages/StandsPage';
 import CalendarSelectionPage from './pages/CalendarSelectionPage';
 // ZMIANA: Importujemy teraz ten uniwersalny kalendarz
 import UniversalCalendarPage from './pages/UniversalCalendarPage'; 
+import DocumentsPage from './pages/DocumentsPage';
 
 // === KOMPONENT POWROTU ===
 function BackButton() {
@@ -126,7 +127,7 @@ export default function App() {
             } 
           />
           
-          <Route path="/dokumenty" element={<ProtectedRoute><PlaceholderPage title="Baza Dokumentów" /></ProtectedRoute>} />
+          <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
