@@ -1,5 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  signInWithPopup,  // <--- ZMIANA: BYŁO signInWithRedirect
+  signOut 
+} from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 // Dane znajdziesz w Firebase Console -> Project Settings
 const firebaseConfig = {
@@ -13,8 +19,23 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const provider = new GoogleAuthProvider();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
-export const loginWithGoogle = () => signInWithPopup(auth, provider);
-export const logout = () => signOut(auth);
+// === TUTAJ JEST KLUCZOWA ZMIANA ===
+const loginWithGoogle = async () => {
+  try {
+    // Używamy Popup zamiast Redirect - to naprawia błąd na telefonach
+    await signInWithPopup(auth, googleProvider);
+  } catch (error) {
+    console.error("Błąd logowania:", error);
+    alert("Wystąpił błąd podczas logowania: " + error.message);
+  }
+};
+
+const logout = () => {
+  signOut(auth);
+};
+
+export { auth, db, loginWithGoogle, logout };
