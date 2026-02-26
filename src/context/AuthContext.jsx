@@ -8,6 +8,7 @@ const AuthContext = createContext();
 const ALLOWED_EMAILS = [
   "administracja@samorzad.ue.wroc.pl", 
   "magdalena.skoczylas@samorzad.ue.wroc.pl",
+    "bartosz.buczkowski@samorzad.ue.wroc.pl",  
   // Dodaj tu siebie, bo zaraz stracisz dostęp!
 ];
 
