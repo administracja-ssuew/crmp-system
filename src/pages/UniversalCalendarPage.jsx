@@ -8,7 +8,7 @@ const HOURS = Array.from({ length: 15 }, (_, i) => i + 8); // 08:00 - 22:00
 export default function UniversalCalendarPage({ variant = 'full' }) {
   const isOrgMode = variant === 'orgs';
   const [filterRoom, setFilterRoom] = useState(isOrgMode ? '28J' : 'ALL');
-  const [currentDate, setCurrentDate] = useState(new Date('2026-02-17')); 
+const [currentDate, setCurrentDate] = useState(new Date());
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // ZMIANA: Przechowujemy dwa rodzaje danych!
