@@ -4,6 +4,16 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  
+  // === NOWOŚĆ: OCHRONA KOLORÓW Z EXCELA ===
+  safelist: [
+    {
+      // Ten wzór chroni przed usunięciem WSZYSTKIE najpopularniejsze kolory tła z Tailwinda.
+      // Od teraz możesz wpisać w Excelu np. bg-fuchsia-500, bg-lime-500, bg-cyan-600 itd.!
+      pattern: /bg-(slate|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(400|500|600|700)/,
+    }
+  ],
+
   theme: {
     extend: {
       fontFamily: {
