@@ -249,14 +249,14 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
              </div>
              <h2 className="text-2xl font-black text-slate-900 mb-2">Złóż wniosek o rezerwację</h2>
              <div className="text-sm text-slate-500 mb-6 space-y-3 leading-relaxed">
-               <p>
-                 Wypełnij formularz rezerwacyjny, aby zgłosić chęć skorzystania z wybranej przestrzeni. 
-               </p>
-               <ul className="list-disc pl-5 space-y-1 text-slate-600 font-medium">
-                 <li>Rezerwacja wyznaczonych sal uczelnianych (bud. A, Z) możliwa tylko w godz. 18:00 - 22:00.</li>
-                 <li>Wnioski są weryfikowane przez Administrację SSUEW.</li>
-                 <li>Po akceptacji, Twoja rezerwacja automatycznie pojawi się w kalendarzu.</li>
-               </ul>
+              <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+               Wypełnij formularz rezerwacyjny, aby zgłosić chęć skorzystania z&nbsp;wybranej przestrzeni. 
+             </p>
+             <ul className="list-disc pl-5 space-y-1 text-slate-600 font-medium">
+               <li>Rezerwacja wyznaczonych sal uczelnianych (bud.&nbsp;A,&nbsp;Z) możliwa tylko w&nbsp;godz. 18:00&nbsp;-&nbsp;22:00.</li>
+               <li>Wnioski są weryfikowane przez Administrację&nbsp;SSUEW.</li>
+               <li>Po akceptacji, Twoja rezerwacja automatycznie pojawi się w&nbsp;kalendarzu.</li>
+             </ul>
              </div>
              <div className="flex flex-col gap-3">
                 <a 

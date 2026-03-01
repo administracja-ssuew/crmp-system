@@ -16,7 +16,9 @@ export default function CalendarSelectionPage() {
           <Link to="/kalendarz/samorzad" className="group bg-white border border-slate-200 p-10 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all text-center flex flex-col items-center">
             <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">👑</div>
             <h2 className="text-2xl font-black text-slate-800 mb-2">Dla Samorządu Studentów</h2>
-            <p className="text-sm text-slate-500 mb-6">Dostęp do wszystkich przestrzeni samorządowych (9J, 16J, 28J) i wyznaczonych sal uczelnianych (bud. A, Z).</p>
+            <p className="text-sm text-slate-500 mb-6">
+            Dostęp do wszystkich przestrzeni samorządowych (9J,&nbsp;16J,&nbsp;28J) i&nbsp;wyznaczonych sal uczelnianych (bud.&nbsp;A,&nbsp;Z).
+            </p>
             <span className="text-emerald-600 font-bold uppercase text-xs tracking-widest group-hover:translate-x-2 transition-transform">Otwórz pełny kalendarz →</span>
           </Link>
 
@@ -24,7 +26,9 @@ export default function CalendarSelectionPage() {
           <Link to="/kalendarz/organizacje" className="group bg-white border border-slate-200 p-10 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:border-blue-400 transition-all text-center flex flex-col items-center">
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">🎓</div>
             <h2 className="text-2xl font-black text-slate-800 mb-2">Dla Organizacji Studenckich</h2>
-            <p className="text-sm text-slate-500 mb-6">Rezerwacja sali 28J oraz wyznaczonych sal dydaktycznych w budynkach A i Z (w godzinach wieczornych).</p>
+            <p className="text-sm text-slate-500 mb-6">
+            Rezerwacja sali 28J oraz wyznaczonych sal dydaktycznych w&nbsp;budynkach A&nbsp;i&nbsp;Z (w&nbsp;godzinach wieczornych).
+            </p>
             <span className="text-blue-600 font-bold uppercase text-xs tracking-widest group-hover:translate-x-2 transition-transform">Otwórz kalendarz →</span>
           </Link>
 
