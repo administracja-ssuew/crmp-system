@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// === TUTAJ WKLEJ LINK DO SKRYPTU KALENDARZA (Z KROKU 1) ===
+// TWÓJ DZIAŁAJĄCY LINK DO SKRYPTU KALENDARZA:
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 
-// 24 godziny: od 00:00 do 23:00
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
-// Definicja sal specjalnych (dni: 0=Niedz, 1=Pon, 2=Wt, 3=Śr, 4=Czw, 5=Pt, 6=Sob)
 const CAMPUS_ROOMS = {
-  '10 A': { days: [2, 3], start: 18, end: 22 }, // Wtorek, Środa
-  '213 Z': { days: [4, 5], start: 18, end: 22 }, // Czwartek, Piątek
-  '214 Z': { days: [1, 5], start: 18, end: 22 }  // Poniedziałek, Piątek
+  '10 A': { days: [2, 3], start: 18, end: 22 }, 
+  '213 Z': { days: [4, 5], start: 18, end: 22 }, 
+  '214 Z': { days: [1, 5], start: 18, end: 22 }  
 };
 
 export default function UniversalCalendarPage({ variant = 'full' }) {
@@ -31,10 +29,16 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
       try {
         const response = await fetch(GOOGLE_SHEETS_URL);
         const data = await response.json();
-        setCalendarData(data);
+        
+        // Zabezpieczenie przed błędem HTML z Google
+        if (data.error) {
+           setFetchError('Błąd Arkusza: ' + data.error);
+        } else {
+           setCalendarData(data);
+        }
       } catch (error) {
         console.error("Błąd pobierania kalendarza:", error);
-        setFetchError('Nie udało się połączyć z arkuszem Google. Sprawdź link do skryptu.');
+        setFetchError('Nie udało się połączyć. Upewnij się, że link prowadzi do skryptu Kalendarza i został wdrożony jako "Nowa wersja".');
       } finally {
         setIsLoading(false);
       }
@@ -48,8 +52,6 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
   const daysToShow = [0, 1, 2].map(offset => {
     const d = new Date(currentDate);
     d.setDate(currentDate.getDate() + offset);
-    
-    // Formatowanie daty do YYYY-MM-DD (odporne na strefy czasowe)
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -102,11 +104,13 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
         </div>
 
         <div className="md:hidden flex items-center justify-center gap-2 text-xs text-slate-400 bg-white py-2 rounded-xl border border-slate-100 shadow-sm animate-pulse">
-          <span>↔️</span><span>Przesuń w bok, aby zobaczyć wszystkie 24h</span>
+          <span>↔️</span><span>Przesuń w bok, aby zobaczyć 24h</span>
         </div>
 
         {fetchError && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl font-bold border border-red-200 text-center">{fetchError}</div>
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl font-bold border border-red-200 text-center animate-fadeIn">
+            {fetchError}
+          </div>
         )}
 
         {isLoading ? (
@@ -116,12 +120,10 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
           </div>
         ) : (
           daysToShow.map(dayDate => {
-            // Obliczamy jaki to dzień tygodnia (0-6)
             const [y, m, d] = dayDate.split('-');
             const dateObj = new Date(y, m - 1, d);
             const dayOfWeek = dateObj.getDay();
 
-            // Budujemy listę sal dostępnych w TEN konkretny dzień
             let dailyRooms = ['9J', '16J', '28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => {
               if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) {
@@ -129,7 +131,6 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
               }
             });
 
-            // Filtrujemy sale pod kątem tego, co kliknął użytkownik na górze
             const roomsToRender = isOrgMode 
               ? ['28J'] 
               : dailyRooms.filter(r => filterRoom === 'ALL' || filterRoom === r);
@@ -140,7 +141,7 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
             });
 
             return (
-              <div key={dayDate} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+              <div key={dayDate} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden mb-6">
                 <div className="bg-slate-50 p-3 border-b border-slate-100 flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col items-center bg-white border border-slate-200 rounded-xl p-1.5 w-12 shadow-sm">
@@ -150,7 +151,7 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
                     <div>
                       <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
                       {extension && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 animate-pulse mt-1">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 mt-1">
                           🌙 {extension.note} (do {extension.until})
                         </span>
                       )}
@@ -159,26 +160,26 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
                 </div>
 
                 <div className="overflow-x-auto scrollbar-hide">
-                  <div className="min-w-[1200px] p-4"> {/* Rozszerzone dla 24h */}
+                  <div className="min-w-[1200px] p-4">
                     <div className="flex mb-2 pl-14">
                       {HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l border-slate-100">{String(h).padStart(2, '0')}:00</div>)}
                     </div>
 
                     {roomsToRender.map(room => {
                       const campusRules = CAMPUS_ROOMS[room];
+                      const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek); // Od poniedziałku do piątku
 
                       return (
                         <div key={room} className="flex items-center mb-2 relative h-12">
-                          <div className="w-14 shrink-0 flex flex-col items-center justify-center font-black text-slate-500 bg-slate-50 rounded-l-xl border border-slate-100 h-full text-xs sticky left-0 z-10">
+                          <div className="w-14 shrink-0 flex flex-col items-center justify-center font-black text-slate-500 bg-slate-50 rounded-l-xl border border-slate-100 h-full text-xs sticky left-0 z-20">
                             {room}
                             {campusRules && <span className="text-[7px] text-slate-400 leading-none">{campusRules.start}-{campusRules.end}</span>}
                           </div>
                           
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border border-slate-100 h-full relative flex overflow-hidden">
-                            {/* Pionowe linie siatki */}
                             {HOURS.map(h => <div key={h} className="flex-1 border-l border-slate-100/50 h-full"></div>)}
                             
-                            {/* WYSZARZENIE NIEDOSTĘPNYCH GODZIN DLA SAL UCZELNIANYCH */}
+                            {/* WYSZARZENIE DLA SAL UCZELNIANYCH */}
                             {campusRules && (
                               <>
                                 <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
@@ -188,8 +189,16 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
                                 </div>
                               </>
                             )}
+
+                            {/* === WOLNY DOSTĘP DLA 9J (Pon-Pt, 08:00 - 17:00) === */}
+                            {room === '9J' && isWorkingDay && (
+                              <div className="absolute top-1 bottom-1 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-lg z-0 flex items-center justify-center pointer-events-none" 
+                                   style={{ left: `${(8 / 24) * 100}%`, width: `${(9 / 24) * 100}%` }}>
+                                <span className="text-[10px] font-black text-emerald-600/70 tracking-widest uppercase px-2 bg-emerald-50 rounded-full">Wolny Dostęp</span>
+                              </div>
+                            )}
                             
-                            {/* RYSOWANIE REZERWACJI */}
+                            {/* REZERWACJE Z EXCELA */}
                             {calendarData.sale
                               ?.filter(ev => {
                                 const evDate = ev.date ? ev.date.toString().substring(0, 10) : '';
@@ -199,7 +208,6 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
                                 
-                                // Oś ma teraz 24 godziny, a nie 15
                                 const left = (startH / 24) * 100;
                                 const width = ((endH - startH) / 24) * 100;
 
