@@ -27,7 +27,7 @@ export default function CalendarSelectionPage() {
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-4xl mb-6 group-hover:scale-110 transition-transform">🎓</div>
             <h2 className="text-2xl font-black text-slate-800 mb-2">Dla Organizacji Studenckich</h2>
             <p className="text-sm text-slate-500 mb-6">
-            Rezerwacja sali 28J oraz wyznaczonych sal dydaktycznych w&nbsp;budynkach A&nbsp;i&nbsp;Z (w&nbsp;godzinach wieczornych).
+            Rezerwacja sali 28J oraz wyznaczonych sal dydaktycznych w&nbsp;budynkach A&nbsp;i&nbsp;Z <br>(w&nbsp;godzinach wieczornych)</br>.
             </p>
             <span className="text-blue-600 font-bold uppercase text-xs tracking-widest group-hover:translate-x-2 transition-transform">Otwórz kalendarz →</span>
           </Link>
