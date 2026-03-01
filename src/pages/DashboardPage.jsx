@@ -172,7 +172,7 @@ export default function DashboardPage() {
             to="/kalendarz-wybor" 
             icon="📅" 
             title="Kalendarz Przestrzeni" 
-            subtitle="Sale i Aula (28J)" 
+            subtitle="Pomieszczenia Samorządu oraz sale uczelniane" 
             colorFrom="from-emerald-500" 
             colorTo="to-teal-700" 
             buttonText="Wybierz Tryb" 
