@@ -67,9 +67,14 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
           <Link to="/kalendarz-wybor" className="text-xs font-bold text-slate-400 hover:text-indigo-600 mb-2 block">← Wróć do wyboru</Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             Kalendarz <span className={isOrgMode ? "text-blue-600" : "text-emerald-600"}>
-              {isOrgMode ? "Sali 28J" : "Przestrzeni"}
+              {isOrgMode ? "Organizacji" : "Przestrzeni"}
             </span>
           </h1>
+          <p className="text-sm font-medium text-slate-500 mt-1">
+            {isOrgMode 
+              ? "Rezerwacja sali 28J oraz wyznaczonych sal uczelnianych (bud. A, Z)." 
+              : "Panel administracyjny rezerwacji wszystkich sal."}
+          </p>
         </div>
 
         <div className="flex gap-4">
@@ -242,10 +247,17 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
              <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
                <span className="text-2xl">📝</span>
              </div>
-             <h2 className="text-2xl font-black text-slate-900 mb-2">Rezerwacja Przestrzeni</h2>
-             <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-               Zgłoszenia obsługujemy przez dedykowany formularz. Po wypełnieniu, powiadomienie automatycznie trafi do administracji SSUEW.
-             </p>
+             <h2 className="text-2xl font-black text-slate-900 mb-2">Złóż wniosek o rezerwację</h2>
+             <div className="text-sm text-slate-500 mb-6 space-y-3 leading-relaxed">
+               <p>
+                 Wypełnij formularz rezerwacyjny, aby zgłosić chęć skorzystania z wybranej przestrzeni. 
+               </p>
+               <ul className="list-disc pl-5 space-y-1 text-slate-600 font-medium">
+                 <li>Rezerwacja wyznaczonych sal uczelnianych (bud. A, Z) możliwa tylko w godz. 18:00 - 22:00.</li>
+                 <li>Wnioski są weryfikowane przez Administrację SSUEW.</li>
+                 <li>Po akceptacji, Twoja rezerwacja automatycznie pojawi się w kalendarzu.</li>
+               </ul>
+             </div>
              <div className="flex flex-col gap-3">
                 <a 
                   href="https://forms.gle/TWÓJ_LINK_DO_FORMULARZA" 
