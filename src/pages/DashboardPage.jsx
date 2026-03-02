@@ -59,7 +59,7 @@ export default function DashboardPage() {
         
         {/* TYTUŁY */}
         <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight leading-tight">{title}</h2>
-        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6">{subtitle}</p>
+        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2 break-words max-w-full">{subtitle}</p>
         
         {/* PRZYCISK */}
         <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
@@ -83,8 +83,9 @@ export default function DashboardPage() {
           <div className="inline-block px-4 py-1 mb-4 rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur-sm">
             <span className="text-xs font-black tracking-[0.2em] text-blue-600 uppercase">Witaj, {firstName} 👋</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-none">
-            Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">Materiałów Promocyjnych</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 mb-4 leading-tight break-words">
+            Centralny Rejestr <br className="hidden sm:block" />
+            <span className="text-blue-600 inline-block">Materiałów Promocyjnych</span>
           </h1>
           <p className="mt-4 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
             Wybierz moduł poniżej, aby zarządzać zasobami UEW.
@@ -121,26 +122,32 @@ export default function DashboardPage() {
           
           {/* Wynik wyszukiwania */}
           {searchResult && (
-            <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 border-b border-emerald-200/50 pb-3">
+            <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn relative overflow-hidden">
+               {/* Pasek statusu - poprawiony układ */}
+               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-emerald-200">
+                  <div className="flex flex-col">
+                     <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Znaleziono dokument</span>
+                     <h3 className="font-black text-slate-800 text-lg sm:text-xl leading-tight break-all">{searchResult.znak}</h3>
+                  </div>
+                  {/* Status Badge */}
+                  <div className="shrink-0">
+                     <span className="inline-block px-3 py-1 bg-emerald-600 text-white text-[10px] sm:text-xs font-black rounded-xl shadow-sm uppercase tracking-wider">
+                       {searchResult.status}
+                     </span>
+                  </div>
+               </div>
+               
+               {/* Daty */}
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div>
-                   <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Znaleziono dokument</span>
-                   <h3 className="font-black text-slate-800 text-lg md:text-xl">{searchResult.znak}</h3>
+                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Data wpłynięcia</span>
+                   <span className="font-bold text-slate-700 text-sm sm:text-base">{searchResult.data_zlozenia || 'Brak'}</span>
                  </div>
-                 <span className="px-4 py-2 bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm uppercase">
-                   {searchResult.status}
-                 </span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 pt-1">
-                <div>
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase">Data wpłynięcia</span>
-                  <span className="font-bold text-slate-700 text-sm">{searchResult.data_zlozenia || 'Brak'}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase">Planowane zakończenie</span>
-                  <span className="font-bold text-slate-700 text-sm">{searchResult.planowane_zakonczenie || 'Brak'}</span>
-                </div>
-              </div>
+                 <div>
+                   <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Planowane zakończenie</span>
+                   <span className="font-bold text-slate-700 text-sm sm:text-base">{searchResult.planowane_zakonczenie || 'Brak'}</span>
+                 </div>
+               </div>
             </div>
           )}
         </div>
@@ -162,7 +169,7 @@ export default function DashboardPage() {
             to="/rejestr" 
             icon="📋" 
             title="Rejestr Stoisk Promocyjnych" 
-            subtitle="Harmonogram stoisk promocyjnych w budynkach uczelnianych" 
+            subtitle="Harmonogram stoisk w budynkach uczelnianych" 
             colorFrom="from-indigo-600" 
             colorTo="to-purple-800" 
             buttonText="Sprawdź Terminy" 
@@ -172,7 +179,7 @@ export default function DashboardPage() {
             to="/kalendarz-wybor" 
             icon="📅" 
             title="Kalendarz Przestrzeni" 
-            subtitle="Pomieszczenia Samorządu oraz sale uczelniane" 
+            subtitle="Sale samorządowe i uczelniane" 
             colorFrom="from-emerald-500" 
             colorTo="to-teal-700" 
             buttonText="Wybierz Tryb" 
