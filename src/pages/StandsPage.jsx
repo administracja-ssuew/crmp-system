@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 // === KONFIGURACJA ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbwNtQx8na9KJnx6RvdwgzcmPM07Vym5dqgjrGJCXTxOMxdv2Q2kGqquME3uqpgSTBs/exec";
-const ITEMS_PER_PAGE = 6; // Mniej elementów, ale ładniejsze karty
+const ITEMS_PER_PAGE = 6; 
 
 const BUILDING_INFO = {
   'Z': { name: 'Budynek Z', capacity: 2, color: 'bg-blue-100 text-blue-700' },
@@ -43,11 +43,10 @@ export default function StandsPage() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
-  // === LOGIKA FILTROWANIA (POPRAWIONA) ===
+  // === LOGIKA FILTROWANIA ===
   const getProcessedData = () => {
     const today = new Date().toISOString().split('T')[0];
     
-    // 1. Filtr wyszukiwarki
     let filtered = data.filter(item => {
       const search = searchTerm.toLowerCase();
       const org = (item.org || '').toLowerCase();
@@ -55,14 +54,11 @@ export default function StandsPage() {
       return org.includes(search) || building.includes(search);
     });
 
-    // 2. Filtr zakładek (POPRAWIONA LOGIKA STATUSÓW)
     if (activeTab === 'upcoming') {
-      // Przyszłe daty
       filtered = filtered.filter(item => item.date >= today);
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } 
     else if (activeTab === 'pending') {
-      // Szukamy: "Zaopiniowane", "Zgłoszone" (wszystko co nie jest jeszcze Potwierdzone ani Odrzucone)
       filtered = filtered.filter(item => {
         const s = (item.status || '').toLowerCase();
         return s.includes('zaopiniowane') || s.includes('zgłoszone');
@@ -70,7 +66,6 @@ export default function StandsPage() {
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } 
     else if (activeTab === 'history') {
-      // Przeszłe daty
       filtered = filtered.filter(item => item.date < today);
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
@@ -94,7 +89,6 @@ export default function StandsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden">
-      {/* Dekoracyjne tło */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-100/40 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2"></div>
 
@@ -123,9 +117,8 @@ export default function StandsPage() {
           </button>
         </div>
 
-        {/* PASEK NARZĘDZI (Zakładki + Szukajka) */}
+        {/* PASEK NARZĘDZI */}
         <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp">
-          
           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto shrink-0">
             <TabButton active={activeTab === 'upcoming'} onClick={() => setActiveTab('upcoming')} label="Nadchodzące" />
             <TabButton active={activeTab === 'pending'} onClick={() => setActiveTab('pending')} label="W toku" count={data.filter(i => (i.status||'').toLowerCase().includes('zaopiniowane') || (i.status||'').toLowerCase().includes('zgłoszone')).length} />
@@ -144,7 +137,7 @@ export default function StandsPage() {
           </div>
         </div>
 
-        {/* LISTA KART REZERWACJI (Zamiast nudnej tabeli) */}
+        {/* LISTA KART REZERWACJI */}
         <div className="space-y-4 animate-slideUp min-h-[400px]">
           {paginatedData.map((row, index) => {
             const building = BUILDING_INFO[row.building] || { name: row.building, capacity: '?', color: 'bg-slate-100 text-slate-600' };
@@ -155,7 +148,7 @@ export default function StandsPage() {
             return (
               <div key={index} className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col md:flex-row items-start md:items-center gap-6">
                 
-                {/* 1. KALENDARZYK (Data) */}
+                {/* 1. KALENDARZYK */}
                 <div className="shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-slate-50 rounded-xl border border-slate-200 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-colors">
                   <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-indigo-400">{month}</span>
                   <span className="text-2xl font-black text-slate-800 group-hover:text-indigo-700">{day}</span>
@@ -175,7 +168,7 @@ export default function StandsPage() {
                   <p className="text-sm text-slate-500 font-medium">{row.title || 'Wydarzenie promocyjne'}</p>
                 </div>
 
-                {/* 3. STATUS (Po prawej) */}
+                {/* 3. STATUS */}
                 <div className="shrink-0 w-full md:w-auto flex justify-end">
                    <StatusBadge status={row.status} />
                 </div>
@@ -217,15 +210,15 @@ export default function StandsPage() {
         )}
       </div>
 
-      {/* === NOWY MODAL: PROCEDURA MAILOWA === */}
+      {/* === MODAL: PROCEDURA MAILOWA === */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
           
-          <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-bounceIn">
+          <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-bounceIn flex flex-col max-h-[90vh]">
             
             {/* Header Modala */}
-            <div className="bg-slate-900 p-8 text-center">
+            <div className="bg-slate-900 p-8 text-center shrink-0">
               <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl backdrop-blur-sm border border-white/10">
                 🚀
               </div>
@@ -233,8 +226,8 @@ export default function StandsPage() {
               <p className="text-slate-400 text-sm font-medium">To system poglądowy. Właściwa procedura odbywa się za sprawą wniosków - drogą mailową.</p>
             </div>
             
-            {/* Kroki Procedury */}
-            <div className="p-8 md:p-10 space-y-8">
+            {/* Kroki Procedury (Przewijana zawartość) */}
+            <div className="p-8 md:p-10 space-y-8 overflow-y-auto">
               
               <Step 
                 num="1" 
@@ -242,7 +235,7 @@ export default function StandsPage() {
                 desc="Sprawdź w tym Rejestrze, czy wybrana data i budynek są wolne (nie ma statusu 'Potwierdzone')." 
               />
               
-<Step 
+              <Step 
                 num="2" 
                 title="Wyślij podanie (EOD)" 
                 desc={
@@ -269,11 +262,13 @@ export default function StandsPage() {
                   </span>
                 } 
                 status="Potwierdzone"
+                isLast={true}
               />
 
             </div>
 
-            <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
+            {/* Footer Modala */}
+            <div className="p-6 bg-slate-50 border-t border-slate-100 text-center shrink-0">
               <button 
                 onClick={() => setIsModalOpen(false)}
                 className="w-full md:w-auto px-12 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg"
@@ -308,20 +303,24 @@ const TabButton = ({ active, onClick, label, count }) => (
   </button>
 );
 
-const Step = ({ num, title, desc, status }) => (
+const Step = ({ num, title, desc, status, isLast }) => (
   <div className="flex gap-5">
     <div className="flex flex-col items-center">
       <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black text-sm border-2 border-indigo-100 shadow-sm shrink-0">
         {num}
       </div>
-      {num !== "4" && <div className="w-0.5 h-full bg-slate-100 my-2 rounded-full"></div>}
+      {!isLast && <div className="w-0.5 h-full bg-slate-100 my-2 rounded-full min-h-[40px]"></div>}
     </div>
-    <div className="pb-2">
-      <h3 className="font-bold text-slate-900 text-lg flex items-center gap-3">
-        {title}
-        {status && <StatusBadge status={status} mini />}
-      </h3>
-      <div className="text-slate-500 text-sm leading-relaxed mt-1">{desc}</div>
+    <div className="pb-2 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-1">
+        <h3 className="font-bold text-slate-900 text-lg leading-tight">{title}</h3>
+        {status && (
+          <div className="shrink-0 w-fit">
+            <StatusBadge status={status} mini />
+          </div>
+        )}
+      </div>
+      <div className="text-slate-500 text-sm leading-relaxed mt-2">{desc}</div>
     </div>
   </div>
 );
@@ -334,41 +333,35 @@ function StatusBadge({ status, mini }) {
   let icon = '•';
   let label = status;
 
-  // 1. POTWIERDZONE (Finał - Zielony)
   if (s.includes('potwierdzone')) { 
     style = 'bg-emerald-100 text-emerald-700 border-emerald-200'; 
     icon = '✅'; 
     label = 'Potwierdzone';
   }
-  // 2. ZAOPINIOWANE (Środek drogi - Pomarańczowy/Ostrzegawczy)
   else if (s.includes('zaopiniowane')) { 
     style = 'bg-amber-100 text-amber-700 border-amber-200'; 
-    icon = '⚖️'; // Waga (symbol opinii/sądu)
+    icon = '⚖️'; 
     label = 'Zaopiniowane';
   }
-  // 3. ZGŁOSZONE (Początek - Niebieski/Neutralny)
   else if (s.includes('zgłoszone')) { 
     style = 'bg-blue-100 text-blue-700 border-blue-200'; 
     icon = '📩'; 
     label = 'Zgłoszone';
   }
-  // 4. ODRZUCONE (Koniec - Czerwony)
   else if (s.includes('odrzucone')) { 
     style = 'bg-red-100 text-red-700 border-red-200'; 
     icon = '⛔'; 
     label = 'Odrzucone';
   }
 
-  // Wersja mini (np. do listy mobilnej lub kalendarza)
   if (mini) {
     return (
-      <span className={`text-[10px] px-2 py-0.5 rounded border ${style} font-bold uppercase truncate max-w-[100px]`}>
+      <span className={`text-[10px] px-2 py-1 rounded border ${style} font-bold uppercase truncate inline-block`}>
         {label}
       </span>
     );
   }
 
-  // Wersja pełna (na karty)
   return (
     <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${style}`}>
       <span className="text-base leading-none">{icon}</span> 
