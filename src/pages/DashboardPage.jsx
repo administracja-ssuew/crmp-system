@@ -59,7 +59,7 @@ export default function DashboardPage() {
         
         {/* TYTUŁY */}
         <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight leading-tight">{title}</h2>
-        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6">{subtitle}</p>
+        <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">{subtitle}</p>
         
         {/* PRZYCISK */}
         <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
@@ -84,7 +84,7 @@ export default function DashboardPage() {
             <span className="text-xs font-black tracking-[0.2em] text-blue-600 uppercase">Witaj, {firstName} 👋</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-tight">
-            Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 break-words whitespace-normal">Materiałów Promocyjnych</span>
+            Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Materiałów Promocyjnych</span>
           </h1>
           <p className="mt-4 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
             Wybierz moduł poniżej, aby zarządzać zasobami UEW.
@@ -162,7 +162,7 @@ export default function DashboardPage() {
             to="/rejestr" 
             icon="📋" 
             title="Rejestr Stoisk Promocyjnych" 
-            subtitle="Harmonogram stoisk promocyjnych w budynkach uczelnianych" 
+            subtitle="Harmonogram stoisk w budynkach uczelnianych" 
             colorFrom="from-indigo-600" 
             colorTo="to-purple-800" 
             buttonText="Sprawdź Terminy" 
@@ -172,7 +172,7 @@ export default function DashboardPage() {
             to="/kalendarz-wybor" 
             icon="📅" 
             title="Kalendarz Przestrzeni" 
-            subtitle="Pomieszczenia Samorządu oraz sale uczelniane" 
+            subtitle="Sale samorządowe i uczelniane" 
             colorFrom="from-emerald-500" 
             colorTo="to-teal-700" 
             buttonText="Wybierz Tryb" 
