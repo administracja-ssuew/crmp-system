@@ -258,7 +258,7 @@ export default function StandsPage() {
                 title="Zgoda Zastępcy Kanclerza ds.&nbsp;Technicznych" 
                 desc={
                   <span>
-                    Prześlij zaopiniowane podanie do Zastępcy Kanclerza ds.&nbsp;Technicznych (<a href="mailto:wieslaw.witter@ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">wieslaw.witter@ue.wroc.pl</a>). Po jego zgodzie status zmieni się na 'POTWIERDZONE'.
+                    Prześlij zaopiniowane podanie do Zastępcy Kanclerza ds.&nbsp;Technicznych (<a href="mailto:wieslaw.witter@ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">wieslaw.witter@ue.wroc.pl</a>). Pamiętaj, aby w DW koreponencji zawrzeć adres: <a href="mailto:administracja@samorzad.ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">administracja@samorzad.ue.wroc.pl</a>. Po jego zgodzie status zmieni się na 'POTWIERDZONE'.
                   </span>
                 } 
                 status="Potwierdzone"
