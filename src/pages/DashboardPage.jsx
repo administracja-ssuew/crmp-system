@@ -161,8 +161,8 @@ export default function DashboardPage() {
           <Card 
             to="/rejestr" 
             icon="📋" 
-            title="Rejestr Stoisk" 
-            subtitle="Rezerwacje A, B, C, CKU" 
+            title="Rejestr Stoisk Promocyjnych" 
+            subtitle="Harmonogram stoisk promocyjnych w budynkach uczelnianych" 
             colorFrom="from-indigo-600" 
             colorTo="to-purple-800" 
             buttonText="Sprawdź Terminy" 

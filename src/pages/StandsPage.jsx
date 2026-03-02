@@ -105,10 +105,10 @@ export default function StandsPage() {
           <div>
             <div className="flex items-center gap-3">
               <span className="text-4xl">🗓️</span>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Rejestr Stoisk</h1>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Rejestr Stoisk Promocyjnych</h1>
             </div>
             <p className="text-slate-500 font-medium mt-2 max-w-lg">
-              Oficjalny harmonogram przestrzeni promocyjnej Samorządu Studentów UEW.
+              Oficjalny harmonogram stoisk promocyjnych na terenie kampusu UEW.
             </p>
           </div>
           <button 
@@ -117,8 +117,8 @@ export default function StandsPage() {
           >
             <div className="bg-white/20 rounded-lg p-1 group-hover:bg-white/30 transition">➕</div>
             <div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Chcesz stoisko?</div>
-              <div className="text-sm">Procedura Rezerwacji</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Zarezerwuj przestrzeń</div>
+              <div className="text-sm">Procedura krok po kroku</div>
             </div>
           </button>
         </div>
@@ -230,7 +230,7 @@ export default function StandsPage() {
                 🚀
               </div>
               <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Jak zarezerwować stoisko?</h2>
-              <p className="text-slate-400 text-sm font-medium">To system poglądowy. Właściwa procedura odbywa się drogą mailową.</p>
+              <p className="text-slate-400 text-sm font-medium">To system poglądowy. Właściwa procedura odbywa się za sprawą wniosków - drogą mailową.</p>
             </div>
             
             {/* Kroki Procedury */}
@@ -242,7 +242,7 @@ export default function StandsPage() {
                 desc="Sprawdź w tym Rejestrze, czy wybrana data i budynek są wolne (nie ma statusu 'Potwierdzone')." 
               />
               
-              <Step 
+<Step 
                 num="2" 
                 title="Wyślij podanie (EOD)" 
                 desc={
@@ -256,14 +256,18 @@ export default function StandsPage() {
               <Step 
                 num="3" 
                 title="Czekaj na opinię" 
-                desc="Zarząd (Członek ds. Administracji) zaopiniuje Twoje podanie. Wtedy w tym systemie pojawi się status: 'ZAOPINIOWANE'." 
+                desc="Członek ds. Administracji SSUEW zaopiniuje Twoje podanie. Wtedy w tym systemie pojawi się status: 'ZAOPINIOWANE'." 
                 status="Zaopiniowane"
               />
 
               <Step 
                 num="4" 
-                title="Zgoda Kanclerza" 
-                desc="Prześlij zaopiniowane podanie do Zastępcy Kanclerza. Po jego zgodzie status zmieni się na 'POTWIERDZONE'." 
+                title="Zgoda Zastępcy Kanclerza ds.&nbsp;Technicznych" 
+                desc={
+                  <span>
+                    Prześlij zaopiniowane podanie do Zastępcy Kanclerza ds.&nbsp;Technicznych (<a href="mailto:wieslaw.witter@ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">wieslaw.witter@ue.wroc.pl</a>). Po jego zgodzie status zmieni się na 'POTWIERDZONE'.
+                  </span>
+                } 
                 status="Potwierdzone"
               />
 
