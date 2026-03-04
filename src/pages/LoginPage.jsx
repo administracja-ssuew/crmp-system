@@ -61,9 +61,8 @@ export default function LoginPage() {
               {/* PRZYCISK LOGOWANIA */}
               <button 
                 onClick={loginWithGoogle}
-                className="w-full group relative flex items-center justify-center gap-4 bg-slate-900 text-white px-8 py-5 rounded-2xl font-black transition-all hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-500/30 active:scale-95"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/hf/google.svg" alt="Google" className="w-6 h-6 bg-white rounded-full p-0.5" />
+               className="w-full group relative flex items-center justify-center gap-4 bg-slate-900 text-white px-8 py-5 rounded-2xl font-black transition-all hover:bg-blue-600 hover:shadow-2xl hover:shadow-blue-500/30 active:scale-95">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" className="w-6 h-6 bg-white rounded-full p-0.5" />
                 Zaloguj przez Google UEW
               </button>
               
