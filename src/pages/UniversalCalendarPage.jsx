@@ -260,7 +260,7 @@ export default function UniversalCalendarPage({ variant = 'full' }) {
              </div>
              <div className="flex flex-col gap-3">
                 <a 
-                  href="https://forms.gle/TWÓJ_LINK_DO_FORMULARZA" 
+                  href="https://tally.so/r/Y5Z6y5" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   onClick={() => setIsModalOpen(false)}
