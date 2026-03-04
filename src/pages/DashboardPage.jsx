@@ -84,7 +84,7 @@ export default function DashboardPage() {
             <span className="text-xs font-black tracking-[0.2em] text-blue-600 uppercase">Witaj, {firstName} 👋</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-tight">
-            Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Materiałów Promocyjnych</span>
+            Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Administracyjny</span>
           </h1>
           <p className="mt-4 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
             Wybierz moduł poniżej, aby zarządzać zasobami UEW.
