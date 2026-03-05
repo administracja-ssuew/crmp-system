@@ -11,8 +11,15 @@ import StandsPage from './pages/StandsPage';
 import CalendarSelectionPage from './pages/CalendarSelectionPage';
 import UniversalCalendarPage from './pages/UniversalCalendarPage'; 
 import DocumentsPage from './pages/DocumentsPage';
-// ZMIANA: Importujemy nową stronę ze sprzętem
 import EquipmentPage from './pages/EquipmentPage'; 
+// ZMIANA: Importujemy nowy Panel Administratora
+import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
+
+// === LISTA ADMINISTRATORÓW ===
+// Wpisz tutaj maile osób, które mają mieć dostęp do Panelu Wydawania
+export const ADMIN_EMAILS = [
+  'administracja@samorzad.uew.edu.pl'
+];
 
 // === KOMPONENT POWROTU ===
 function BackButton() {
@@ -45,11 +52,26 @@ function UserProfile() {
   );
 }
 
-// === KOMPONENT OCHRONY ===
+// === KOMPONENT OCHRONY (DLA WSZYSTKICH ZALOGOWANYCH) ===
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" />;
+  return children;
+};
+
+// === KOMPONENT OCHRONY (TYLKO DLA ADMINISTRATORÓW) ===
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  
+  if (!user) return <Navigate to="/login" />;
+  
+  // Jeśli mail użytkownika NIE JEST na liście administratorów, wyrzuć na stronę główną
+  if (!ADMIN_EMAILS.includes(user.email)) {
+    return <Navigate to="/" />;
+  }
+  
   return children;
 };
 
@@ -87,7 +109,6 @@ export default function App() {
              <img src="/logo.png" className="w-16 h-16 object-contain" onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/1087/1087815.png" }} />
           </div>
         </div>
-        {/* ZMIANA: Zaktualizowana nazwa na CRA SYSTEM */}
         <h1 className="text-2xl font-black text-slate-800 italic">CRA <span className="text-blue-600 font-normal">SYSTEM</span></h1>
       </div>
     );
@@ -111,8 +132,10 @@ export default function App() {
           
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
 
-          {/* ZMIANA: Dodany nowy moduł Bazy Sprzętu */}
           <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
+          
+          {/* ZMIANA: Dodana ścieżka do panelu wydawania, chroniona przez AdminRoute */}
+          <Route path="/wydawanie" element={<AdminRoute><AdminEquipmentPanel /></AdminRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
