@@ -76,7 +76,7 @@ export default function DashboardPage() {
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-blue-100/30 pointer-events-none z-0"></div>
 
-      <div className="relative z-10 w-full max-w-5xl flex flex-col items-center pt-16">
+      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center pt-16">
         
         {/* === NAGŁÓWEK === */}
         <header className="text-center mb-10 animate-fadeIn">
@@ -145,9 +145,21 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* === SIATKA 4 KAFELKÓW === */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
+        {/* === SIATKA 5 KAFELKÓW === */}
+        {/* ZMIANA: lg:grid-cols-3 ładnie ułoży 5 kafelków */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
           
+          {/* NOWY KAFELEK - SPRZĘT */}
+          <Card 
+            to="/sprzet" 
+            icon="📦" 
+            title="Baza Sprzętu" 
+            subtitle="Paszporty i Wypożyczalnia" 
+            colorFrom="from-orange-500" 
+            colorTo="to-red-600" 
+            buttonText="Otwórz Magazyn" 
+          />
+
           <Card 
             to="/mapa" 
             icon="🗺️" 

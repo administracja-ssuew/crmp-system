@@ -9,9 +9,10 @@ import DashboardPage from './pages/DashboardPage';
 import MapPage from './pages/MapPage';
 import StandsPage from './pages/StandsPage';
 import CalendarSelectionPage from './pages/CalendarSelectionPage';
-// ZMIANA: Importujemy teraz ten uniwersalny kalendarz
 import UniversalCalendarPage from './pages/UniversalCalendarPage'; 
 import DocumentsPage from './pages/DocumentsPage';
+// ZMIANA: Importujemy nową stronę ze sprzętem
+import EquipmentPage from './pages/EquipmentPage'; 
 
 // === KOMPONENT POWROTU ===
 function BackButton() {
@@ -86,7 +87,8 @@ export default function App() {
              <img src="/logo.png" className="w-16 h-16 object-contain" onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/1087/1087815.png" }} />
           </div>
         </div>
-        <h1 className="text-2xl font-black text-slate-800 italic">CRMP <span className="text-blue-600 font-normal">SYSTEM</span></h1>
+        {/* ZMIANA: Zaktualizowana nazwa na CRA SYSTEM */}
+        <h1 className="text-2xl font-black text-slate-800 italic">CRA <span className="text-blue-600 font-normal">SYSTEM</span></h1>
       </div>
     );
   }
@@ -102,32 +104,15 @@ export default function App() {
           <Route path="/mapa" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
           <Route path="/rejestr" element={<ProtectedRoute><StandsPage /></ProtectedRoute>} />
           
-          {/* Wybór Kalendarza */}
           <Route path="/kalendarz-wybor" element={<ProtectedRoute><CalendarSelectionPage /></ProtectedRoute>} />
           
-          {/* === NOWA KONFIGURACJA KALENDARZY === */}
-          
-          {/* 1. SAMORZĄD (Pełny dostęp) */}
-          <Route 
-            path="/kalendarz/samorzad" 
-            element={
-              <ProtectedRoute>
-                <UniversalCalendarPage variant="full" />
-              </ProtectedRoute>
-            } 
-          />
-
-          {/* 2. ORGANIZACJE (Tylko 28J) */}
-          <Route 
-            path="/kalendarz/organizacje" 
-            element={
-              <ProtectedRoute>
-                <UniversalCalendarPage variant="orgs" />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/kalendarz/samorzad" element={<ProtectedRoute><UniversalCalendarPage variant="full" /></ProtectedRoute>} />
+          <Route path="/kalendarz/organizacje" element={<ProtectedRoute><UniversalCalendarPage variant="orgs" /></ProtectedRoute>} />
           
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
+
+          {/* ZMIANA: Dodany nowy moduł Bazy Sprzętu */}
+          <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
