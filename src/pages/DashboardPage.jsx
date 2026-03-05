@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 // IMPORTUJEMY LISTĘ ADMINÓW Z PLIKU APP.JSX
-import { ADMIN_EMAILS } from '../App';
+import { ADMIN_EMAILS } from '../config';
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -10,7 +10,7 @@ export default function DashboardPage() {
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
 
   // === SPRAWDZAMY CZY ZALOGOWANY UŻYTKOWNIK JEST ADMINISTRATOREM ===
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
+  const isAdmin = user && user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
 
   // === STANY DLA WYSZUKIWARKI CRED ===
   const [searchQuery, setSearchQuery] = useState('');

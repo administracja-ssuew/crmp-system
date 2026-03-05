@@ -17,9 +17,7 @@ import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
 
 // === LISTA ADMINISTRATORÓW ===
 // Wpisz tutaj maile osób, które mają mieć dostęp do Panelu Wydawania
-export const ADMIN_EMAILS = [
-  'administracja@samorzad.uew.edu.pl'
-];
+import { ADMIN_EMAILS } from './config';
 
 // === KOMPONENT POWROTU ===
 function BackButton() {
