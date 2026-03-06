@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-// IMPORTUJEMY NASZĄ GIGANTYCZNĄ BAZĘ WIEDZY Z NOWEGO PLIKU
 import { KNOWLEDGE_BASE } from './knowledge';
 
 export default function AIBot() {
@@ -7,13 +6,12 @@ export default function AIBot() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { text: "Cześć! Jestem Twoim wirtualnym asystetnem po CRA SSUEW. Znam na pamięć najnowszą wersję Regulaminu Gospodarowania Składnikami Majątku Ruchomego SSUEW oraz Regulaminu Samorządu. W czym mogę Ci doradzić?", sender: 'bot' }
+    { text: "Cześć! Jestem Twoim wirtualnym asystenetm CRA SSUEW. Znam na pamięć najnowszą wersję Regulaminu Gospodarowania Składnikami Majątku Ruchomego SSUEW  oraz Regulaminu Samorządu. W czym mogę Ci doradzić?", sender: 'bot' }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // === PRZEKAZUJEMY BAZĘ WIEDZY DO GEMINI ===
   const systemInstruction = KNOWLEDGE_BASE;
 
   useEffect(() => {
