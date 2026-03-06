@@ -1,3 +1,5 @@
+// Wymuszenie odświeżenia Vercela
+
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import { logout } from "./firebase";
