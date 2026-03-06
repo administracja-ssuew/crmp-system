@@ -12,7 +12,7 @@ export default function EquipmentPage() {
   const [error, setError] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Wszystko'); // NOWOŚĆ: Stan kategorii
+  const [selectedCategory, setSelectedCategory] = useState('Wszystko');
   
   const [selectedItem, setSelectedItem] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
@@ -21,6 +21,16 @@ export default function EquipmentPage() {
   
   const [reservationData, setReservationData] = useState({
     dateFrom: '', dateTo: '', purpose: '', contactInfo: ''
+  });
+
+  // === NOWOŚĆ: STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
+  const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
+  const [damageData, setDamageData] = useState({
+    perpetrator: '',
+    albumId: '',
+    type: 'Mechaniczne', // Mechaniczne, Zalanie, Zagubienie/Kradzież, Inne
+    description: '',
+    photoUrl: null
   });
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
@@ -61,10 +71,8 @@ export default function EquipmentPage() {
       });
   }, []);
 
-  // === NOWOŚĆ: Wyciąganie unikalnych kategorii z bazy ===
   const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
 
-  // === NOWOŚĆ: Filtrowanie po tekście ORAZ po kategorii ===
   const filteredEquipment = equipmentData.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.id.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'Wszystko' || item.category === selectedCategory;
@@ -94,13 +102,28 @@ export default function EquipmentPage() {
     }
   };
 
-  // Funkcja pomocnicza do Osi Czasu (generuje 7 dni)
   const getNext7Days = () => {
     return Array.from({length: 7}).map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
       return d;
     });
+  };
+
+  // === NOWOŚĆ: OBSŁUGA APARATU ===
+  const handlePhotoCapture = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Tworzymy tymczasowy URL do podglądu zdjęcia w przeglądarce
+      const imageUrl = URL.createObjectURL(file);
+      setDamageData({ ...damageData, photoUrl: imageUrl });
+    }
+  };
+
+  const submitDamageReport = () => {
+    alert("Protokół Szkody został wygenerowany. W przyszłości system wyśle to zdjęcie i formularz bezpośrednio do bazy CRW i Zarządu!");
+    setIsDamageReportOpen(false);
+    setDamageData({ perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null });
   };
 
   if (isLoading) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6"><div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div><h2 className="text-xl font-black text-slate-800">Łączenie z bazą CRW...</h2></div>;
@@ -130,7 +153,6 @@ export default function EquipmentPage() {
           <input type="text" placeholder="Szukaj po nazwie lub sygnaturze..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 py-3 px-2 outline-none"/>
         </div>
 
-        {/* NOWOŚĆ: Pigułki Kategorii */}
         <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-3xl mx-auto">
           {allCategories.map(cat => (
             <button 
@@ -209,7 +231,7 @@ export default function EquipmentPage() {
       )}
 
       {/* MODAL PASZPORTU */}
-      {selectedItem && (
+      {selectedItem && !isDamageReportOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
           <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp border border-white/20">
             <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors font-bold">✕</button>
@@ -242,13 +264,11 @@ export default function EquipmentPage() {
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stan Fizyczny (Uwagi)</span><span className="font-black text-slate-700 text-sm block">{selectedItem.condition}</span></div>
                 </div>
               )}
-              {/* NOWOŚĆ: ZAKŁADKA TERMINARZ (Oś Czasu) */}
               {activeTab === 'terminarz' && (
                 <div className="space-y-4 animate-fadeIn">
                   <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Dostępność (Najbliższe 7 dni)</span>
                   <div className="flex gap-2 overflow-x-auto pb-2">
                     {getNext7Days().map((date, i) => {
-                      // Symulacja: np. losowe sprzęty są zajęte w 3 i 4 dniu, żeby pokazać jak to wygląda
                       const isMockBooked = (selectedItem.id.length % 2 === 0) && (i === 2 || i === 3); 
                       return (
                         <div key={i} className={`flex-1 min-w-[60px] flex flex-col items-center justify-center p-3 rounded-2xl border ${isMockBooked ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
@@ -259,7 +279,7 @@ export default function EquipmentPage() {
                     })}
                   </div>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs font-medium text-slate-600 text-center">
-                    Czerwone pola oznaczają aktywną rezerwację lub serwis w danym dniu. Docelowo moduł pobierze dane bezpośrednio z zakładki REJESTR.
+                    Czerwone pola oznaczają aktywną rezerwację lub serwis w danym dniu.
                   </div>
                 </div>
               )}
@@ -269,13 +289,102 @@ export default function EquipmentPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość Księgowa</span><span className="font-black text-slate-700 text-sm">{selectedItem.value}</span></div>
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja do</span><span className="font-black text-slate-700 text-sm">{selectedItem.warranty}</span></div>
                   </div>
-                  <a href={`mailto:biuro@samorzad.uew.edu.pl?subject=Zgłoszenie Usterki - ${selectedItem.id}`} className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2"><span>⚠️</span> Zgłoś uszkodzenie (Załącznik nr 4)</a>
+                  
+                  {/* NOWOŚĆ: Zmiana działania przycisku na otwarcie Modułu Szkody */}
+                  <button 
+                    onClick={() => setIsDamageReportOpen(true)} 
+                    className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  >
+                    <span>⚠️</span> Zgłoś uszkodzenie (Załącznik nr 8)
+                  </button>
                 </div>
               )}
             </div>
           </div>
         </div>
       )}
+
+      {/* === NOWOŚĆ: MODAL PROTOKOŁU SZKODY (ZAŁĄCZNIK 8) === */}
+      {isDamageReportOpen && selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp max-h-[90vh] overflow-y-auto">
+            <button onClick={() => setIsDamageReportOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold text-xl">✕</button>
+            
+            <div className="flex items-center gap-3 mb-6">
+              <span className="text-3xl">🚨</span>
+              <div>
+                <h2 className="text-2xl font-black text-red-600 leading-tight">Protokół Szkody</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Załącznik nr 8 do Regulaminu SSUEW</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
+              <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Przedmiot Szkody</span>
+              <p className="font-black text-slate-800 text-sm">{selectedItem.name}</p>
+              <p className="font-mono text-slate-500 text-[10px] mt-1">{selectedItem.id}</p>
+            </div>
+
+            <div className="space-y-4 mb-8">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sprawca / Ostatni Wypożyczający</label>
+                <input type="text" placeholder="Imię, Nazwisko, Organizacja..." value={damageData.perpetrator} onChange={e => setDamageData({...damageData, perpetrator: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none" />
+              </div>
+              
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nr Albumu Sprawcy</label>
+                <input type="text" placeholder="Wymagane do postępowania regresowego" value={damageData.albumId} onChange={e => setDamageData({...damageData, albumId: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none" />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Rodzaj Zdarzenia</label>
+                <select value={damageData.type} onChange={e => setDamageData({...damageData, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
+                  <option value="Mechaniczne">Uszkodzenie Mechaniczne (np. uderzenie, pęknięcie)</option>
+                  <option value="Zalanie">Zalanie cieczą</option>
+                  <option value="Kradzież">Zagubienie / Kradzież</option>
+                  <option value="Braki">Brak okablowania / akcesoriów</option>
+                  <option value="Inne">Inne uszkodzenie</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Szczegółowy Opis Szkody</label>
+                <textarea rows="3" placeholder="Opisz dokładnie co zostało zniszczone i w jakich okolicznościach..." value={damageData.description} onChange={e => setDamageData({...damageData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none resize-none"></textarea>
+              </div>
+
+              {/* INTEGRACJA Z APARATEM (DOKUMENTACJA FOTOGRAFICZNA) */}
+              <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
+                <span className="block text-[10px] font-bold text-red-600 uppercase mb-2">Dokumentacja Fotograficzna</span>
+                
+                {!damageData.photoUrl ? (
+                  <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-red-200 border-dashed rounded-lg cursor-pointer bg-white hover:bg-red-50 transition-colors">
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <span className="text-2xl mb-1">📷</span>
+                      <p className="text-xs font-bold text-red-500">Zrób zdjęcie usterki</p>
+                    </div>
+                    {/* Ten input wywołuje aparat na urządzeniach mobilnych! */}
+                    <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoCapture} />
+                  </label>
+                ) : (
+                  <div className="relative">
+                    <img src={damageData.photoUrl} alt="Podgląd usterki" className="w-full h-40 object-cover rounded-lg border border-red-200 shadow-sm" />
+                    <button onClick={() => setDamageData({...damageData, photoUrl: null})} className="absolute top-2 right-2 bg-slate-900/70 text-white w-8 h-8 rounded-full flex items-center justify-center text-xs hover:bg-slate-900">✕</button>
+                    <p className="text-[9px] font-bold text-red-500 uppercase mt-2 text-center">Zdjęcie załączone do protokołu</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button 
+              onClick={submitDamageReport} 
+              disabled={!damageData.perpetrator || !damageData.description}
+              className="block text-center w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-200 transition-all"
+            >
+              Zatwierdź Protokół Szkody
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
