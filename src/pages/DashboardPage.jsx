@@ -1,16 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-// IMPORTUJEMY LISTĘ ADMINÓW Z PLIKU APP.JSX
-import { ADMIN_EMAILS } from '../config';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   // Wyciągamy imię (lub fallback)
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
-
-  // === SPRAWDZAMY CZY ZALOGOWANY UŻYTKOWNIK JEST ADMINISTRATOREM ===
-  const isAdmin = user && user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
 
   // === STANY DLA WYSZUKIWARKI CRED ===
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,31 +145,17 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* === SIATKA KAFELKÓW === */}
+        {/* === SIATKA 5 KAFELKÓW (CZYSTY WIDOK) === */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
           
-          {/* === KAFELEK TYLKO DLA ADMINA === */}
-          {isAdmin && (
-            <Card 
-              to="/wydawanie" 
-              icon="🔐" 
-              title="Panel Wydawania" 
-              subtitle="Procedura E-Protokołu" 
-              colorFrom="from-slate-800" 
-              colorTo="to-black" 
-              buttonText="Otwórz Panel (Admin)" 
-            />
-          )}
-
-          {/* NOWY KAFELEK - SPRZĘT (Dla wszystkich) */}
           <Card 
             to="/sprzet" 
             icon="📦" 
             title="Baza Sprzętu" 
-            subtitle="Paszporty i Rezerwacje" 
+            subtitle="Katalog i Rezerwacje" 
             colorFrom="from-orange-500" 
             colorTo="to-red-600" 
-            buttonText="Złóż wniosek" 
+            buttonText="Otwórz Magazyn" 
           />
 
           <Card 
