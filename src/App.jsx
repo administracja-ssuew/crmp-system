@@ -14,8 +14,8 @@ import DocumentsPage from './pages/DocumentsPage';
 import EquipmentPage from './pages/EquipmentPage'; 
 import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
 
-// === IMPORT BOTA AI ===
-import AIBot from './components/AIBot'; // UPEWNIJ SIĘ, ŻE MASZ FOLDER components W src/
+// === IMPORT BOTA AI (POPRAWIONA ŚCIEŻKA) ===
+import AIBot from './AIBot'; 
 
 // === LISTA ADMINISTRATORÓW ===
 import { ADMIN_EMAILS } from './config';
