@@ -18,8 +18,8 @@ export default function AIBot() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const fetchGeminiResponse = async (userText, currentMessages) => {
-    if (!API_KEY) return "BŁĄD: Nie skonfigurowałeś klucza API w panelu Vercel (zmienna VITE_GEMINI_API_KEY).";
+const fetchGeminiResponse = async (userText, currentMessages) => {
+    if (!API_KEY) return "BŁĄD: Brak klucza API w konfiguracji Vercel.";
 
     try {
       const formattedHistory = currentMessages.map(msg => ({
@@ -29,26 +29,27 @@ export default function AIBot() {
       formattedHistory.push({ role: 'user', parts: [{ text: userText }] });
       const apiContents = formattedHistory.slice(1); 
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      // ZMIANA: v1beta -> v1
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          contents: apiContents
+          contents: apiContents,
+          systemInstruction: { parts: [{ text: systemInstruction }] }
         })
       });
 
       const data = await response.json();
       
       if (data.error) {
-        console.error("Błąd API:", data.error);
-        return `Błąd serwera Google: ${data.error.message}`;
+        console.error("Szczegóły błędu:", data.error);
+        return `Błąd Google AI: ${data.error.message}`;
       }
       
       return data.candidates[0].content.parts[0].text;
       
     } catch (error) {
-      return "Błąd połączenia. Upewnij się, że masz dostęp do internetu.";
+      return "Błąd połączenia. Sprawdź sieć.";
     }
   };
 
