@@ -29,8 +29,8 @@ const fetchGeminiResponse = async (userText, currentMessages) => {
       formattedHistory.push({ role: 'user', parts: [{ text: userText }] });
       const apiContents = formattedHistory.slice(1); 
 
-      // Używamy v1beta, która najlepiej obsługuje instrukcje systemowe
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      // KLUCZOWA ZMIANA: Zmieniony model z gemini-1.5-flash na gemini-1.5-pro-latest
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
