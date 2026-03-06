@@ -35,8 +35,8 @@ export default function AIBot() {
          apiContents[0].parts[0].text = `[BAZA WIEDZY SSUEW]:\n${systemInstruction}\n\n[PYTANIE STUDENTA]:\n${apiContents[0].parts[0].text}`;
       }
 
-      // Wracamy do absolutnie podstawowego modelu flash na v1beta
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+// Zmieniamy z gemini-1.5-flash na niezawodny, starszy model gemini-pro
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
