@@ -1,3 +1,5 @@
+// Wymuszenie zmiany 
+
 import { useState, useRef, useEffect } from 'react';
 import { KNOWLEDGE_BASE } from './knowledge';
 
@@ -172,7 +174,7 @@ export default function AIBot() {
           </form>
         </div>
       )}
-
+s
       {/* Floating Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
