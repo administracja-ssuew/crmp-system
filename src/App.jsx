@@ -12,11 +12,12 @@ import CalendarSelectionPage from './pages/CalendarSelectionPage';
 import UniversalCalendarPage from './pages/UniversalCalendarPage'; 
 import DocumentsPage from './pages/DocumentsPage';
 import EquipmentPage from './pages/EquipmentPage'; 
-// ZMIANA: Importujemy nowy Panel Administratora
 import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
 
+// === IMPORT BOTA AI ===
+import AIBot from './components/AIBot'; // UPEWNIJ SIĘ, ŻE MASZ FOLDER components W src/
+
 // === LISTA ADMINISTRATORÓW ===
-// Wpisz tutaj maile osób, które mają mieć dostęp do Panelu Wydawania
 import { ADMIN_EMAILS } from './config';
 
 // === KOMPONENT POWROTU ===
@@ -65,7 +66,6 @@ const AdminRoute = ({ children }) => {
   
   if (!user) return <Navigate to="/login" />;
   
-  // Jeśli mail użytkownika NIE JEST na liście administratorów, wyrzuć na stronę główną
   if (!ADMIN_EMAILS.includes(user.email)) {
     return <Navigate to="/" />;
   }
@@ -114,9 +114,13 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-200">
+      {/* Dodana klasa relative dla widżetu bota */}
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-200 relative">
         <BackButton />
         <UserProfile />
+        
+        {/* === TUTAJ WSTAWIAMY BOTA, ŻEBY PŁYWAŁ WSZĘDZIE === */}
+        <AIBot />
         
         <Routes>
           <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
@@ -132,7 +136,6 @@ export default function App() {
 
           <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
           
-          {/* ZMIANA: Dodana ścieżka do panelu wydawania, chroniona przez AdminRoute */}
           <Route path="/wydawanie" element={<AdminRoute><AdminEquipmentPanel /></AdminRoute>} />
           
           <Route path="*" element={<Navigate to="/" />} />
