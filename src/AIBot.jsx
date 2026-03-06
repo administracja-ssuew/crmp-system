@@ -29,29 +29,34 @@ const fetchGeminiResponse = async (userText, currentMessages) => {
       formattedHistory.push({ role: 'user', parts: [{ text: userText }] });
       const apiContents = formattedHistory.slice(1); 
 
-      // KLUCZOWA ZMIANA: Zmieniony model z gemini-1.5-flash na gemini-1.5-pro-latest
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${API_KEY}`, {
+      // === KULOODPORNY HACK (System Prompt Injection) ===
+      // Doklejamy całą bazę wiedzy niewidzialnie do pierwszego pytania użytkownika.
+      // Dzięki temu API nie ma prawa wyrzucić błędu o braku obsługi "systemInstruction".
+      if (apiContents.length > 0 && currentMessages.length === 1) {
+         apiContents[0].parts[0].text = `[TWOJA BAZA WIEDZY - REGULAMINY SSUEW]:\n${systemInstruction}\n\n[KONIEC BAZY WIEDZY. ODPOWIEDZ TYLKO NA PONIŻSZE PYTANIE STUDENTA]:\n${apiContents[0].parts[0].text}`;
+      }
+
+      // Wracamy do absolutnie najbardziej stabilnego adresu v1
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: apiContents,
-          systemInstruction: { 
-            parts: [{ text: systemInstruction }] 
-          }
+          contents: apiContents
+          // Całkowicie usunęliśmy problematyczne pole systemInstruction!
         })
       });
 
       const data = await response.json();
       
       if (data.error) {
-        console.error("Szczegóły błędu:", data.error);
+        console.error("Szczegóły błędu API:", data.error);
         return `Błąd Google AI: ${data.error.message}`;
       }
       
       return data.candidates[0].content.parts[0].text;
       
     } catch (error) {
-      return "Błąd połączenia. Sprawdź sieć.";
+      return "Błąd połączenia. Sprawdź dostęp do sieci internetowej.";
     }
   };
 
