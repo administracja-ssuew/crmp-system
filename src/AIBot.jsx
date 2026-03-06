@@ -18,7 +18,7 @@ export default function AIBot() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-const fetchGeminiResponse = async (userText, currentMessages) => {
+  const fetchGeminiResponse = async (userText, currentMessages) => {
     if (!API_KEY) return "BŁĄD: Brak klucza API w konfiguracji Vercel.";
 
     try {
@@ -29,20 +29,18 @@ const fetchGeminiResponse = async (userText, currentMessages) => {
       formattedHistory.push({ role: 'user', parts: [{ text: userText }] });
       const apiContents = formattedHistory.slice(1); 
 
-      // === KULOODPORNY HACK (System Prompt Injection) ===
-      // Doklejamy całą bazę wiedzy niewidzialnie do pierwszego pytania użytkownika.
-      // Dzięki temu API nie ma prawa wyrzucić błędu o braku obsługi "systemInstruction".
+      // === WSTRZYKNIĘCIE WIEDZY ===
+      // Doklejamy regulamin do pierwszego pytania, omijając blokady Google'a
       if (apiContents.length > 0 && currentMessages.length === 1) {
-         apiContents[0].parts[0].text = `[TWOJA BAZA WIEDZY - REGULAMINY SSUEW]:\n${systemInstruction}\n\n[KONIEC BAZY WIEDZY. ODPOWIEDZ TYLKO NA PONIŻSZE PYTANIE STUDENTA]:\n${apiContents[0].parts[0].text}`;
+         apiContents[0].parts[0].text = `[BAZA WIEDZY SSUEW]:\n${systemInstruction}\n\n[PYTANIE STUDENTA]:\n${apiContents[0].parts[0].text}`;
       }
 
-      // Wracamy do absolutnie najbardziej stabilnego adresu v1
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+      // Wracamy do absolutnie podstawowego modelu flash na v1beta
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: apiContents
-          // Całkowicie usunęliśmy problematyczne pole systemInstruction!
         })
       });
 
@@ -50,13 +48,13 @@ const fetchGeminiResponse = async (userText, currentMessages) => {
       
       if (data.error) {
         console.error("Szczegóły błędu API:", data.error);
-        return `Błąd Google AI: ${data.error.message}`;
+        return `Błąd Google API: ${data.error.message}`;
       }
       
       return data.candidates[0].content.parts[0].text;
       
     } catch (error) {
-      return "Błąd połączenia. Sprawdź dostęp do sieci internetowej.";
+      return "Błąd sieci. Sprawdź połączenie z internetem.";
     }
   };
 
