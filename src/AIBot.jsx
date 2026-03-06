@@ -7,7 +7,7 @@ export default function AIBot() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-   text: "Cześć! Jestem Asystentem AI systemu CRA. Znam na pamięć Regulamin Gospodarowania Sprzętem SSUEW. W czym mogę pomóc?", sender: 'bot' }
+    { text: "Cześć! Jestem Twoim wirtualnym asystetnem po CRA SSUEW. Znam na pamięć najnowszą wersję Regulaminu Gospodarowania Składnikami Majątku Ruchomego SSUEW oraz Regulaminu Samorządu. W czym mogę Ci doradzić?", sender: 'bot' }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
