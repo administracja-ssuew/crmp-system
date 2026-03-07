@@ -46,16 +46,14 @@ export default function AIBot() {
       formattedHistory.push({ role: 'user', parts: [{ text: userText }] });
       const apiContents = formattedHistory.slice(1); 
 
-      // === KULOODPORNE WSTRZYKNIĘCIE WIEDZY ===
-      if (apiContents.length > 0 && currentMessages.length === 1) {
-         apiContents[0].parts[0].text = `[BAZA WIEDZY SSUEW]:\n${systemInstruction}\n\n[PYTANIE STUDENTA]:\n${apiContents[0].parts[0].text}`;
-      }
-
-      // === MODEL GEMINI 2.5 FLASH ===
+      // === UŻYWANIE MODELU GEMINI 2.5 FLASH Z SYSTEM INSTRUCTION ===
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: systemInstruction }]
+          },
           contents: apiContents
         })
       });
