@@ -79,3 +79,39 @@
 .animate-scanLaser {
   animation: scanLaser 2s ease-in-out infinite;
 }
+
+/* ========================================== */
+/* TRYB DRUKOWANIA (CZYSTA KARTKA A4)         */
+/* ========================================== */
+@media print {
+  /* 1. Ukrywamy absolutnie wszystko na stronie (menu, bąbelki, nawigację) */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* 2. Odkrywamy TYLKO nasz dokument i jego wnętrze */
+  #printable-document, #printable-document * {
+    visibility: visible;
+  }
+  
+  /* 3. Przesuwamy dokument w lewy górny róg, żeby nie było białej dziury po ukrytym menu */
+  #printable-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 4. Bezwzględnie usuwamy kolorowe tła i obrazki z tła */
+  body, html {
+    background: white !important;
+    background-image: none !important;
+  }
+
+  /* 5. Upewniamy się, że przyciski "Zatwierdź" na dole dokumentu też znikną */
+  .print\:hidden {
+    display: none !important;
+  }
+}

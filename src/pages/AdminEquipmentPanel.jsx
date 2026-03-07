@@ -283,7 +283,8 @@ export default function AdminEquipmentPanel() {
 
             {/* KROK 3: A4 ZGODNE Z PDF */}
             {step === 3 && (
-              <div className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
+              <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
+                {/* NAGŁÓWEK ZGODNY Z PDF */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -439,7 +440,7 @@ export default function AdminEquipmentPanel() {
               </button>
             </div>
           ) : (
-            <div className="animate-fadeIn text-black font-serif text-[12px] leading-relaxed">
+            <div id="printable-document" className="animate-fadeIn text-black font-serif text-[12px] leading-relaxed">
               <div className="text-right mb-12"><p>Wrocław, dnia {today} r.</p></div>
               <div className="text-center mb-16">
                 <h1 className="text-2xl font-black underline mb-2">OSTATECZNE PRZEDSĄDOWE WEZWANIE</h1>
