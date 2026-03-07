@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { KNOWLEDGE_BASE } from './knowledge';
+import { KNOWLEDGE_BASE } from './knowledge.js';
 
 export default function AIBot() {
   const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
