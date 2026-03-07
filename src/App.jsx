@@ -15,6 +15,7 @@ import UniversalCalendarPage from './pages/UniversalCalendarPage';
 import DocumentsPage from './pages/DocumentsPage';
 import EquipmentPage from './pages/EquipmentPage'; 
 import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
+import ScannerPage from './pages/ScannerPage';
 
 // === IMPORT BOTA AI (POPRAWIONA ŚCIEŻKA) ===
 import AIBot from './AIBot'; 
@@ -142,6 +143,8 @@ export default function App() {
           
           <Route path="/wydawanie" element={<AdminRoute><AdminEquipmentPanel /></AdminRoute>} />
           
+          <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>

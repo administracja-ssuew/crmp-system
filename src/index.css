@@ -71,3 +71,11 @@
   background-image: radial-gradient(circle, #3b82f6 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+@keyframes scanLaser {
+  0%, 100% { top: 0; }
+  50% { top: 100%; }
+}
+.animate-scanLaser {
+  animation: scanLaser 2s ease-in-out infinite;
+}
