@@ -43,15 +43,15 @@ export default function DashboardPage() {
   const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
     <Link 
       to={to} 
-      // DODANO: transform-gpu oraz [transform:translateZ(0)] - to naprawia błąd ostrych rogów!
-      className="group relative h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 transform-gpu [transform:translateZ(0)]"
+      // OPCJA ATOMOWA: mask-image i isolate wymuszają perfekcyjne docięcie tła!
+      className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]"
     >
       
       {/* TŁO GRADIENTOWE */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700`}></div>
+      <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700 -z-10`}></div>
       
       {/* DEKORACJA (Plama światła) */}
-      <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors"></div>
+      <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10"></div>
       
       {/* TREŚĆ KARTY */}
       <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
