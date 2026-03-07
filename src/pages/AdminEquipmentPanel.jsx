@@ -12,7 +12,6 @@ export default function AdminEquipmentPanel() {
   const [selectedItems, setSelectedItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // ZAKTUALIZOWANE DANE KORZYSTAJĄCEGO
   const [borrower, setBorrower] = useState({
     name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''
   });
@@ -24,8 +23,11 @@ export default function AdminEquipmentPanel() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
 
+  // === STAN NUMERU DOKUMENTU ===
+  const [docNumber, setDocNumber] = useState('POBIERANIE...');
+
   // ==========================================
-  // STANY DLA TRYBU: WINDYKACJA (WEZWANIA)
+  // STANY DLA TRYBU: WINDYKACJA
   // ==========================================
   const [summonsData, setSummonsData] = useState({
     perpetrator: '', address: '', protocolNumber: '', equipmentName: '', brand: '', model: ''
@@ -34,9 +36,12 @@ export default function AdminEquipmentPanel() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
+  // POBIERANIE BAZY SPRZĘTU
   useEffect(() => {
-    fetch(API_URL).then(res => res.json()).then(data => {
-        if (!data.error) {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error && Array.isArray(data)) {
           const formatted = data.map(item => ({
             id: item.KOD_QR || `BRAK-ID-${Math.floor(Math.random()*1000)}`,
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
@@ -46,8 +51,23 @@ export default function AdminEquipmentPanel() {
           }));
           setEquipmentData(formatted);
         }
-    });
+      })
+      .catch(err => console.error("Błąd ładowania sprzętu:", err));
   }, []);
+
+  // POBIERANIE NOWEGO NUMERU POROZUMIENIA
+  useEffect(() => {
+    if (step === 2) {
+      setDocNumber('Pobieranie...');
+      fetch(`${API_URL}?action=getNextNumber`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.docNumber) setDocNumber(data.docNumber);
+          else setDocNumber(`AWARYJNY/SSUEW/${new Date().getMonth()+1}/2026`);
+        })
+        .catch(() => setDocNumber(`BŁĄD/SSUEW/${new Date().getMonth()+1}/2026`));
+    }
+  }, [step]);
 
   const toggleItem = (item) => {
     if (selectedItems.find(i => i.id === item.id)) setSelectedItems(selectedItems.filter(i => i.id !== item.id));
@@ -67,7 +87,7 @@ export default function AdminEquipmentPanel() {
         alert("Wypełnij poprawnie podstawowe pola (Imię, Nazwisko, Nr albumu).");
       }
       setIsVerifying(false);
-    }, 1200);
+    }, 800);
   };
 
   const startDrawing = (e) => {
@@ -110,19 +130,43 @@ export default function AdminEquipmentPanel() {
     setSignatureData(null);
   };
 
-  const finalizeProtocol = () => {
-    alert("Protokół prawnie wiążący został wygenerowany i zabezpieczony E-Podpisem!");
-    setStep(1);
-    setSelectedItems([]);
-    setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''});
-    setVerificationStatus(null);
-    setSignatureData(null);
+  // FINALIZACJA - WYSŁANIE DO GOOGLE SHEETS
+  const finalizeProtocol = async () => {
+    setIsVerifying(true);
+    
+    const equipmentList = selectedItems.map(item => item.id).join(', ');
+    const payload = {
+      action: "zapiszWydanie",
+      nrPorozumienia: docNumber,
+      osoba: borrower.name,
+      organizacja: borrower.organization,
+      sprzet: equipmentList
+    };
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      
+      alert(`Sukces! Porozumienie ${docNumber} zostało zapisane w Bazie CRW! Pamiętaj wydrukować PDF!`);
+      
+      setStep(1);
+      setSelectedItems([]);
+      setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''});
+      setVerificationStatus(null);
+      setSignatureData(null);
+      setDocNumber('GENEROWANIE...');
+      
+    } catch (error) {
+      alert("Błąd zapisu. Prawdopodobnie skrypt Google zwrócił CORS, ale wniosek mógł się zapisać.");
+      console.error(error);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
   const today = new Date().toLocaleDateString('pl-PL');
-  const docNumber = `${Math.floor(Math.random() * 900) + 100}/SSUEW/${new Date().getMonth()+1}/2026`;
-
-  // Pomocnicza funkcja do formatowania daty z inputa datetime-local
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return { date: '....................', time: '........' };
     const [date, time] = dateTimeString.split('T');
@@ -240,7 +284,6 @@ export default function AdminEquipmentPanel() {
             {/* KROK 3: A4 ZGODNE Z PDF */}
             {step === 3 && (
               <div className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
-                {/* NAGŁÓWEK ZGODNY Z PDF */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -280,7 +323,6 @@ export default function AdminEquipmentPanel() {
                   <p className="mt-2">zwanym dalej <strong>„KORZYSTAJĄCYM"</strong>.</p>
                 </div>
                 
-                {/* PARAGRAFY 1:1 Z PDF */}
                 <div className="text-justify space-y-3">
                   <p className="font-bold">§ 1. PRZEDMIOT UMOWY I OŚWIADCZENIA</p>
                   <p>1. Wydający oddaje Korzystającemu w bezpłatne używanie na czas oznaczony Sprzęt określony szczegółowo w Protokole Zdawczo-Odbiorczym (Załącznik nr 2), stanowiącym integralną część niniejszej umowy.</p>
@@ -314,7 +356,6 @@ export default function AdminEquipmentPanel() {
                   <p>3. Sądem właściwym do rozstrzygania sporów jest Sąd powszechny właściwy miejscowo dla siedziby Wydającego.</p>
                 </div>
 
-                {/* ZAŁĄCZNIK NR 2 - TABELA SPRZĘTU */}
                 <div className="mt-6 page-break-inside-avoid">
                   <h2 className="font-bold mb-2">ZAŁĄCZNIK NR 2: PROTOKÓŁ ZDAWCZO-ODBIORCZY</h2>
                   <table className="w-full border-collapse border border-black text-[9px] text-left">
@@ -331,7 +372,6 @@ export default function AdminEquipmentPanel() {
                   </table>
                 </div>
 
-                {/* PODPISY (ZGODNE Z PDF) */}
                 <div className="mt-12 flex justify-between items-end pt-4 page-break-inside-avoid">
                   <div className="w-1/3 text-center border-t border-black pt-2"><p>(Podpis WYDAJĄCEGO)</p></div>
                   <div className="w-1/2 flex flex-col items-center">
@@ -343,16 +383,16 @@ export default function AdminEquipmentPanel() {
                   </div>
                 </div>
                 
-                {/* STOPKA DOKUMENTU */}
                 <div className="mt-8 text-[7px] text-gray-400 text-center border-t border-gray-200 pt-2">
                    Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu | ul. Kamienna 43, 53-307 Wrocław | e-mail: kontakt@samorzad.ue.wroc.pl | samorzad.ue.wroc.pl
                 </div>
 
-                {/* PRZYCISKI AKCJI (UKRYTE W DRUKU) */}
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
                   <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors">Wyczyść Podpis</button>
                   <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] flex-1 shadow-lg">🖨️ Zapisz jako PDF</button>
-                  <button onClick={finalizeProtocol} disabled={!signatureData} className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg transition-all">Zatwierdź Umowę</button>
+                  <button onClick={finalizeProtocol} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg transition-all">
+                    {isVerifying ? 'Zapisywanie...' : 'Zatwierdź Umowę'}
+                  </button>
                 </div>
               </div>
             )}
