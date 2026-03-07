@@ -136,6 +136,8 @@ export default function App() {
           
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
 
+          <Route path="/zaplecze-prawne" element={<ProtectedRoute><PlaceholderPage title="Zaplecze Prawne Projektów" /></ProtectedRoute>} />
+
           <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
           
           <Route path="/wydawanie" element={<AdminRoute><AdminEquipmentPanel /></AdminRoute>} />

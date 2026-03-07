@@ -39,9 +39,13 @@ export default function DashboardPage() {
     }
   };
 
-  // === KOMPONENT POMOCNICZY KAFELKA ===
+// === KOMPONENT POMOCNICZY KAFELKA ===
   const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
-    <Link to={to} className="group relative h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20">
+    <Link 
+      to={to} 
+      // DODANO: transform-gpu oraz [transform:translateZ(0)] - to naprawia błąd ostrych rogów!
+      className="group relative h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 transform-gpu [transform:translateZ(0)]"
+    >
       
       {/* TŁO GRADIENTOWE */}
       <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700`}></div>
@@ -145,7 +149,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* === SIATKA 5 KAFELKÓW (CZYSTY WIDOK) === */}
+        {/* === SIATKA 6 KAFELKÓW (PERFEKCYJNY GRID 3x2) === */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
           
           <Card 
@@ -196,6 +200,17 @@ export default function DashboardPage() {
             colorFrom="from-slate-600" 
             colorTo="to-slate-800" 
             buttonText="Przeglądaj Pliki" 
+          />
+
+          {/* NOWY 6 KAFELEK */}
+          <Card 
+            to="/zaplecze-prawne" 
+            icon="⚖️" 
+            title="Zaplecze Prawne" 
+            subtitle="Wzory regulaminów i edukacja" 
+            colorFrom="from-amber-500" 
+            colorTo="to-orange-500" 
+            buttonText="Otwórz Akademię" 
           />
 
         </div>
