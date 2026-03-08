@@ -25,7 +25,7 @@ export default function LoginPage() {
               Centralny Rejestr <br/> Administracyjny
             </h1>
             <p className="text-slate-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">
-              System administracyjny UEW
+              System administracyjny SSUEW
             </p>
           </div>
 
