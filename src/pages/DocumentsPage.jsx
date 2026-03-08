@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 
 // !!! TUTAJ WKLEJ LINK DO NOWEGO SKRYPTU BAZY DOKUMENTÓW !!!
 const DOCS_API_URL = 'https://script.google.com/macros/s/AKfycby06P_0sI4H0PMMrBQgTwp9fF_ftGrNFUMpEdYcWOrQMqPqdsT9-CmbE1Ir-2a1DlldiQ/exec';
@@ -12,10 +11,8 @@ export default function DocumentsPage() {
   const [activeCategory, setActiveCategory] = useState('Wszystkie');
   const [selectedDoc, setSelectedDoc] = useState(null);
   
-  // Bajer: Stan na powiadomienie o skopiowaniu linku
   const [copiedAlert, setCopiedAlert] = useState(false);
 
-  // Pobieranie danych z Google Sheets
   useEffect(() => {
     const fetchDocs = async () => {
       setIsLoading(true);
@@ -34,10 +31,8 @@ export default function DocumentsPage() {
     fetchDocs();
   }, []);
 
-  // Bajer: Dynamiczne wyciąganie kategorii z Excela (brak hardkodowania!)
   const categories = ['Wszystkie', ...new Set(documents.map(doc => doc.category).filter(Boolean))];
 
-  // Bajer: Sprawdzanie, czy dokument jest młodszy niż 30 dni
   const isNew = (dateStr) => {
     const docDate = new Date(dateStr);
     const now = new Date();
@@ -46,14 +41,12 @@ export default function DocumentsPage() {
     return diffDays <= 30;
   };
 
-  // Kopiowanie do schowka
   const handleCopyLink = (link) => {
     navigator.clipboard.writeText(link);
     setCopiedAlert(true);
     setTimeout(() => setCopiedAlert(false), 2000);
   };
 
-  // Sortowanie i filtrowanie
   const filteredDocs = [...documents]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .filter(doc => {
@@ -66,14 +59,12 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-20 pt-24 relative overflow-x-hidden">
       
-      <div className="max-w-5xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-end gap-4 animate-fadeIn">
-        <div>
-          <Link to="/" className="text-xs font-bold text-slate-400 hover:text-blue-600 mb-2 block">← Wróć do Menu</Link>
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-            Lex <span className="text-blue-600">SSUEW</span>
-          </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Uczelniany System Aktów Prawnych zsynchronizowany z chmurą.</p>
-        </div>
+      {/* NAGŁÓWEK - Usunięto dublujący się przycisk "Wróć do Menu" */}
+      <div className="max-w-5xl mx-auto mb-8 animate-fadeIn">
+        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+          Lex <span className="text-blue-600">SSUEW</span>
+        </h1>
+        <p className="text-sm font-medium text-slate-500 mt-1">Uczelniany System Aktów Prawnych zsynchronizowany z chmurą.</p>
       </div>
 
       <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden animate-slideUp">
@@ -115,7 +106,6 @@ export default function DocumentsPage() {
         {/* LISTA DOKUMENTÓW LUB ŁADOWANIE */}
         <div className="p-4 min-h-[400px]">
           {isLoading ? (
-            // BAJER: SKELETON LOADERS
             <div className="flex flex-col gap-3">
               {[1, 2, 3, 4].map(i => (
                 <div key={i} className="flex flex-col md:flex-row gap-4 p-5 rounded-2xl border border-slate-100 bg-slate-50 animate-pulse">
@@ -152,7 +142,6 @@ export default function DocumentsPage() {
                       isObowiazujacy ? 'bg-white border-slate-200 hover:border-blue-300' : 'bg-slate-50 border-slate-200 opacity-75'
                     }`}
                   >
-                    {/* Wstążka Nowości na lewym brzegu */}
                     {nowosc && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>}
 
                     <div className="shrink-0 md:w-48 pl-2">
@@ -189,7 +178,6 @@ export default function DocumentsPage() {
            
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] animate-bounceIn overflow-hidden border border-slate-200">
              
-             {/* Alert skopiowania (Absolute na górze modala) */}
              {copiedAlert && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg z-50 animate-slideDown">
                   ✅ Skopiowano link do schowka!
@@ -207,7 +195,6 @@ export default function DocumentsPage() {
              <div className="p-6 overflow-y-auto bg-white">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 bg-slate-50 p-4 rounded-2xl border border-slate-100 relative">
                   
-                  {/* Przycisk Kopiuj Link */}
                   <button 
                     onClick={() => handleCopyLink(selectedDoc.link)}
                     className="absolute -top-3 -right-3 w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition shadow-sm"
