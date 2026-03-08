@@ -204,7 +204,7 @@ export default function DashboardPage() {
 
           {/* NOWY 6 KAFELEK */}
           <Card 
-            to="/zaplecze-prawne" 
+            to="/legal-hub" 
             icon="⚖️" 
             title="Zaplecze Prawne" 
             subtitle="Wzory regulaminów i edukacja" 
