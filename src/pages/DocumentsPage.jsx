@@ -10,7 +10,6 @@ const Icons = {
   External: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
   Brain: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>,
-  QR: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" /></svg>,
   Timer: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
   Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
 };
@@ -32,10 +31,9 @@ export default function DocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [copiedAlert, setCopiedAlert] = useState('');
   
-  const [showQR, setShowQR] = useState(false);
-  
-  // Stany dla modułu Lex AI
+  // Lex AI States
   const [isAiActive, setIsAiActive] = useState(false);
+  const [aiProgress, setAiProgress] = useState(0);
   const [aiStage, setAiStage] = useState(0);
 
   useEffect(() => {
@@ -68,28 +66,42 @@ export default function DocumentsPage() {
     setTimeout(() => setCopiedAlert(''), 2500);
   };
 
-  const handleCopyLink = (link) => {
-    navigator.clipboard.writeText(link);
-    showAlert('Link skopiowany!');
+  const handleCopyCitation = (doc) => {
+    const citation = `Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`;
+    navigator.clipboard.writeText(citation);
+    showAlert('Kopiowanie przypisu...');
   };
 
   const openModal = (doc) => {
     setSelectedDoc(doc);
-    setShowQR(false);
     setIsAiActive(false);
+    setAiProgress(0);
     setAiStage(0);
   };
 
-  // Symulacja skanowania AI
+  // NAPRAWIONY EFEKT ŁADOWANIA AI (Procentowy ProgressBar)
   const runAiAnalysis = () => {
     setIsAiActive(true);
-    setAiStage(0);
-    setTimeout(() => setAiStage(1), 800);
-    setTimeout(() => setAiStage(2), 1800);
-    setTimeout(() => setAiStage(3), 3000);
+    setAiProgress(0);
+    setAiStage(1);
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 15) + 5; // Skoki od 5 do 20%
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        setTimeout(() => setAiStage(4), 400); // Finał po ułamku sekundy
+      } else if (progress > 60 && progress < 80) {
+        setAiStage(2);
+      } else if (progress >= 80) {
+        setAiStage(3);
+      }
+      setAiProgress(progress);
+    }, 300); // Aktualizacja co 300ms dla realistycznego skakania cyferek
   };
 
-  // Algorytm analityczny "Lex AI" wyciągający dane z tekstu
+  // NAPRAWIONA LOGIKA OBLICZANIA CZASU (Heurystyka i kolumna 'pages')
   const generateAiReport = (doc) => {
     const text = `${doc.title} ${doc.category} ${doc.desc}`.toLowerCase();
     
@@ -102,7 +114,17 @@ export default function DocumentsPage() {
     if (text.includes('regulamin') || text.includes('uchwała')) { rigor = "Bardzo Wysoki"; rigorColor = "text-rose-500"; }
     else if (text.includes('zarządzenie')) { rigor = "Średni"; rigorColor = "text-amber-400"; }
 
-    const readTime = Math.max(1, Math.ceil((doc.desc.length + doc.title.length) / 60));
+    // Szacowanie czasu:
+    // Jeśli w Excelu podano kolumnę `pages` (np. 15), to 1 strona = 2 minuty.
+    // Jeśli nie podano - używamy wag z kategorii dokumentu.
+    let readTime = 2; 
+    if (doc.pages && !isNaN(doc.pages)) {
+      readTime = parseInt(doc.pages) * 2;
+    } else {
+      if (text.includes('regulamin') || text.includes('statut')) readTime = Math.floor(Math.random() * 10) + 15; // 15-25 min
+      else if (text.includes('uchwała')) readTime = Math.floor(Math.random() * 5) + 5; // 5-10 min
+      else if (text.includes('instrukcja') || text.includes('szablon')) readTime = 2; // 2 min
+    }
 
     return { target, rigor, rigorColor, readTime };
   };
@@ -249,7 +271,6 @@ export default function DocumentsPage() {
                 
                 {/* TOOLBAR Z BAJERAMI */}
                 <div className="flex flex-wrap gap-3 mb-6">
-                  {/* Przycisk AI */}
                   <button 
                     onClick={runAiAnalysis}
                     disabled={isAiActive}
@@ -257,31 +278,36 @@ export default function DocumentsPage() {
                   >
                     <Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}
                   </button>
-                  
-                  {/* Przycisk Kodu QR */}
                   <button 
-                    onClick={() => setShowQR(!showQR)}
+                    onClick={() => handleCopyCitation(selectedDoc)}
                     className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
                   >
-                    <Icons.QR /> Kod QR do druku
+                    <Icons.Copy /> Skopiuj przypis
                   </button>
                 </div>
 
-                {/* MODUŁ LEX AI (HAKERSKI TERMINAL) */}
+                {/* MODUŁ LEX AI (REALISTYCZNY TERMINAL) */}
                 {isAiActive && (
                   <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
                     
                     <div className="space-y-3">
-                      <p className="flex items-center gap-2 text-blue-400">
-                        <Icons.Brain /> Uruchamianie analizy semantycznej...
-                      </p>
+                      <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
+                         <span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span>
+                         <span className="text-emerald-400 font-bold">{aiProgress}%</span>
+                      </div>
                       
-                      {aiStage >= 1 && <p className="text-slate-400">Skanowanie sygnatury i relacji uchylających... <span className="text-emerald-400">OK</span></p>}
-                      {aiStage >= 2 && <p className="text-slate-400">Ekstrakcja dyrektyw i obowiązków z tekstu... <span className="text-emerald-400">OK</span></p>}
+                      {/* Terminalowy Pasek Postępu */}
+                      <div className="text-slate-500 text-xs tracking-widest mb-4">
+                        [{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]
+                      </div>
+
+                      {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
+                      {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
+                      {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
                       
-                      {aiStage === 3 && (
-                        <div className="mt-4 pt-4 border-t border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slideUp">
+                      {aiStage === 4 && (
+                        <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slideUp">
                           {(() => {
                             const aiReport = generateAiReport(selectedDoc);
                             return (
@@ -297,7 +323,7 @@ export default function DocumentsPage() {
                                   </span>
                                 </div>
                                 <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                  <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas Czytania</span>
+                                  <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas</span>
                                   <span className="font-bold text-sky-400 flex items-center gap-1">
                                     <Icons.Timer /> ok. {aiReport.readTime} min
                                   </span>
@@ -307,16 +333,6 @@ export default function DocumentsPage() {
                           })()}
                         </div>
                       )}
-                    </div>
-                  </div>
-                )}
-
-                {/* GENERATOR QR */}
-                {showQR && (
-                  <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
-                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
-                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedDoc.link)}`} alt="QR Code" className="w-32 h-32" />
                     </div>
                   </div>
                 )}
@@ -338,7 +354,7 @@ export default function DocumentsPage() {
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span>
                     <button onClick={() => handleCopyLink(selectedDoc.link)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">
-                      <Icons.Copy /> Kopiuj link
+                      🔗 Kopiuj link
                     </button>
                   </div>
                   <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
