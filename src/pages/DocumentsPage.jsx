@@ -29,7 +29,7 @@ const CATEGORY_STYLES = {
 export default function DocumentsPage() {
   const [activeView, setActiveView] = useState('LEX'); 
 
-  // STANY DLA BAZY LEX
+  // Baza Lex
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,12 +43,15 @@ export default function DocumentsPage() {
   const [aiStage, setAiStage] = useState(0);
   const [showQR, setShowQR] = useState(false);
 
-  // STANY DLA STUDIA AI
+  // Studio AI
   const [editorText, setEditorText] = useState('');
   const [aiOutput, setAiOutput] = useState('');
   const [isDrafting, setIsDrafting] = useState(false);
   const aiOutputRef = useRef(null);
 
+  // ==========================================
+  // POBIERANIE DANYCH
+  // ==========================================
   useEffect(() => {
     const fetchDocs = async () => {
       setIsLoading(true);
@@ -74,7 +77,8 @@ export default function DocumentsPage() {
   
   const isNew = (dateStr) => {
     if (!dateStr) return false;
-    return Math.ceil(Math.abs(new Date() - new Date(dateStr)) / (1000 * 60 * 60 * 24)) <= 30;
+    const diff = new Date() - new Date(dateStr);
+    return !isNaN(diff) && Math.ceil(Math.abs(diff) / (1000 * 60 * 60 * 24)) <= 30;
   };
   
   const showAlert = (msg) => { setCopiedAlert(msg); setTimeout(() => setCopiedAlert(''), 2500); };
@@ -82,58 +86,84 @@ export default function DocumentsPage() {
   const handleCopyLink = (link) => { 
     try { navigator.clipboard.writeText(link); showAlert('Skopiowano!'); } catch(e) {} 
   };
-  
-  const handleCopyCitation = (doc) => { 
-    try { navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`); showAlert('Skopiowano przypis!'); } catch(e) {}
+
+  const handleCopyCitation = (sig, title, issuer, date) => { 
+    try { 
+      navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${sig} ("${title}") wydanego przez ${issuer} w dniu ${date} r.`); 
+      showAlert('Skopiowano przypis!'); 
+    } catch(e) {}
   };
   
   // ==========================================
-  // KULOODPORNY SANITIZER - CAŁKOWITA OCHRONA PRZED BIAŁYM EKRANEM
+  // ABSOLUTNY PANCERZ (FAIL-SAFE) DLA MODALA
   // ==========================================
   const openModal = (rawDoc) => { 
     if (!rawDoc) return;
-    const safeDoc = {
-      id: rawDoc.id || Math.random(),
-      signature: String(rawDoc.signature || '-'),
-      title: String(rawDoc.title || 'Brak tytułu'),
-      category: String(rawDoc.category || 'Niesklasyfikowane'),
-      status: String(rawDoc.status || 'Nieokreślony'),
-      date: String(rawDoc.date || 'Brak daty'),
-      issuer: String(rawDoc.issuer || 'Brak organu'),
-      desc: String(rawDoc.desc || 'Brak opisu.'),
-      link: String(rawDoc.link || '#'),
-      repeals: String(rawDoc.repeals || ''),
-      attachments: String(rawDoc.attachments || '')
-    };
-    setSelectedDoc(safeDoc); 
+    setSelectedDoc(rawDoc); 
     setIsAiActive(false); 
     setAiProgress(0); 
     setAiStage(0); 
     setShowQR(false); 
   };
 
-  const generateAiReport = (doc) => {
-    if (!doc) return { target: '-', rigor: '-', rigorColor: '', readTime: 0 };
-    
-    const title = doc.title || '';
-    const category = doc.category || '';
-    const desc = doc.desc || '';
-    const text = `${title} ${category} ${desc}`.toLowerCase();
-    
-    let target = text.includes('zarząd') || text.includes('wewnętrz') ? "Administracja SSUEW" : (text.includes('koł') || text.includes('organizacj') ? "Organizacje Studenckie" : "Wszyscy Studenci");
-    let rigor = text.includes('regulamin') || text.includes('uchwała') ? "Bardzo Wysoki" : (text.includes('zarządzenie') ? "Średni" : "Niski");
-    let rigorColor = rigor === "Bardzo Wysoki" ? "text-rose-500" : (rigor === "Średni" ? "text-amber-400" : "text-emerald-400");
-    
-    let readTime = 2; 
-    if (doc.pages && !isNaN(doc.pages)) {
-      readTime = parseInt(doc.pages) * 2;
-    } else {
-      const totalLength = title.length + desc.length;
-      readTime = Math.max(1, Math.ceil(totalLength / 200)); 
-      if (rigor === "Bardzo Wysoki" && readTime < 5) readTime = 5; 
+  // Przetwarzanie wszystkich zmiennych w bezpiecznym bloku ZANIM trafią do HTML-a
+  let modalData = null;
+  let modalError = null;
+
+  if (selectedDoc && activeView === 'LEX') {
+    try {
+      // Bezpieczne tablice
+      const parsedAttachments = [];
+      const attRaw = selectedDoc.attachments ? String(selectedDoc.attachments) : '';
+      if (attRaw && attRaw.toLowerCase() !== 'brak' && attRaw.trim() !== '') {
+        attRaw.split(';').forEach(item => {
+          const parts = item.split('|');
+          if (parts.length >= 2) {
+            parsedAttachments.push({ name: parts[0].trim(), link: parts.slice(1).join('|').trim() });
+          }
+        });
+      }
+
+      const repRaw = selectedDoc.repeals ? String(selectedDoc.repeals) : '';
+      const parsedRepeals = (repRaw && repRaw.toLowerCase() !== 'brak' && repRaw.trim() !== '') ? repRaw.trim() : null;
+
+      modalData = {
+        title: selectedDoc.title ? String(selectedDoc.title) : 'Brak tytułu',
+        signature: selectedDoc.signature ? String(selectedDoc.signature) : '-',
+        category: selectedDoc.category ? String(selectedDoc.category) : 'Brak kategorii',
+        status: selectedDoc.status ? String(selectedDoc.status) : 'Nieokreślony',
+        date: selectedDoc.date ? String(selectedDoc.date) : '-',
+        issuer: selectedDoc.issuer ? String(selectedDoc.issuer) : '-',
+        desc: selectedDoc.desc ? String(selectedDoc.desc) : 'Brak opisu.',
+        link: selectedDoc.link ? String(selectedDoc.link) : '#',
+        repeals: parsedRepeals,
+        attachments: parsedAttachments
+      };
+    } catch (err) {
+      console.error("Błąd parsowania modala: ", err);
+      modalError = "Wystąpił problem z wczytaniem danych tego dokumentu.";
     }
-    return { target, rigor, rigorColor, readTime };
-  };
+  }
+
+  // AI Audyt logic
+  let aiReport = { target: '-', rigor: '-', rigorColor: '', readTime: 0 };
+  if (selectedDoc && isAiActive && aiStage === 4) {
+     const title = selectedDoc.title || '';
+     const desc = selectedDoc.desc || '';
+     const text = `${title} ${desc}`.toLowerCase();
+     
+     aiReport.target = text.includes('zarząd') || text.includes('wewnętrz') ? "Administracja SSUEW" : (text.includes('koł') || text.includes('organizacj') ? "Organizacje Studenckie" : "Wszyscy Studenci");
+     aiReport.rigor = text.includes('regulamin') || text.includes('uchwała') ? "Bardzo Wysoki" : (text.includes('zarządzenie') ? "Średni" : "Niski");
+     aiReport.rigorColor = aiReport.rigor === "Bardzo Wysoki" ? "text-rose-500" : (aiReport.rigor === "Średni" ? "text-amber-400" : "text-emerald-400");
+     
+     if (selectedDoc.pages && !isNaN(selectedDoc.pages)) {
+       aiReport.readTime = parseInt(selectedDoc.pages) * 2;
+     } else {
+       const totalLength = title.length + desc.length;
+       aiReport.readTime = Math.max(1, Math.ceil(totalLength / 200)); 
+       if (aiReport.rigor === "Bardzo Wysoki" && aiReport.readTime < 5) aiReport.readTime = 5; 
+     }
+  }
 
   const runAiAnalysis = () => {
     setIsAiActive(true); setAiProgress(0); setAiStage(1);
@@ -160,22 +190,9 @@ export default function DocumentsPage() {
   const activeDocsCount = documents.filter(d => d.status === 'Obowiązujący').length;
   const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
 
-  // ==========================================
-  // ZABEZPIECZONE DANE DLA MODALA (GWARANCJA STRINGA)
-  // ==========================================
-  const safeSignature = selectedDoc?.signature || '-';
-  const safeCategory = selectedDoc?.category || 'Brak kategorii';
-  const safeTitle = selectedDoc?.title || 'Dokument bez tytułu';
-  const safeStatus = selectedDoc?.status || 'Nieokreślony';
-  const safeDate = selectedDoc?.date || '-';
-  const safeIssuer = selectedDoc?.issuer || '-';
-  const safeDesc = selectedDoc?.desc || 'Brak opisu dla tego dokumentu.';
-  const safeLink = selectedDoc?.link || '#';
-  const safeRepeals = selectedDoc?.repeals || '';
-  const safeAttachments = selectedDoc?.attachments || '';
 
   // ==========================================
-  // STUDIO LEGISLACYJNE - WDROŻONE 11 OFICJALNYCH WZORÓW
+  // STUDIO LEGISLACYJNE - WZORY OFICJALNE
   // ==========================================
   const simulateAiTyping = (fullText) => {
     setIsDrafting(true);
@@ -197,7 +214,6 @@ export default function DocumentsPage() {
     const today = new Date().toLocaleDateString('pl-PL');
     
     switch(type) {
-      // --- PODANIA DO PROREKTORA ---
       case 'zwolnienie':
         template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS]. Organizacja uczestniczy w wydarzeniu reprezentując Uczelnię i budując relacje z partnerami zewnętrznymi.\n\nDyżury oraz spotkania wymagają obecności delegowanych studentów, co uniemożliwia im uczestnictwo w zajęciach dydaktycznych. \n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
@@ -207,8 +223,6 @@ export default function DocumentsPage() {
       case 'sala_uew':
         template = `[WYMÓG: Informacja o charakterze spotkania i odpowiedzialności]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o bezpłatne udostępnienie nam sali [NUMER SALI i BUDYNEK] w dniu [DATA] r., w godzinach [GODZINY] na potrzeby organizacji [NAZWA SPOTKANIA np. I Spotkania Komisji].\n\nSpotkania te są cyklicznymi otwartym spotkaniem dla studentów zaangażowanych w działalność. Z uwagi na swój charakter roboczo-informacyjny spotkanie wymaga dostępności odpowiedniej sali, która pozwoli na swobodne przeprowadzenie posiedzenia.\n\nKoordynatorem spotkania i osobą odpowiedzialną za klucz i salę jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
-
-      // --- PODANIA DO KANCLERZA ---
       case 'banerowanie':
         template = `[WYMÓG: Klauzule o bezpiecznym montażu, dane osoby odpowiedzialnej i obowiązek demontażu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych w postaci baneru na terenie kampusu UEW w celu promocji wydarzenia "[NAZWA WYDARZENIA]".\n\nProszę o możliwość ekspozycji baneru w okresie od [DATA OD] do [DATA DO] w następującej lokalizacji: [WPISZ LOKALIZACJĘ, np. barierka przy budynku Z].\n\nZapewniam dołożenie należytej staranności w zakresie prawidłowego i bezpiecznego montażu baneru, z poszanowaniem infrastruktury Uczelni oraz w sposób nienaruszający bezpieczeństwa użytkowników Kampusu.\n\nOsobą odpowiedzialną za poprawne zamocowanie baneru, jego bieżące monitorowanie w trakcie ekspozycji oraz jego terminowy demontaż jest: [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON], e-mail: [E-MAIL]).\n\nZobowiązuję się również do:\n- samodzielnego zawieszenia i zdjęcia baneru we wskazanym terminie,\n- regularnego sprawdzania trwałości i stabilności mocowania baneru podczas okresu jego ekspozycji,\n- pozostawienia miejsca w stanie nienaruszonym po zakończeniu promocji.\n\nJednocześnie oświadczam, że ekspozycja baneru będzie prowadzona zgodnie z obowiązującymi zasadami Uczelni.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
@@ -219,7 +233,7 @@ export default function DocumentsPage() {
         template = `[WYMÓG: Podanie sal SSUEW oraz braku zakłóceń dla kampusu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o możliwość korzystania z pomieszczeń przeznaczonych na działalność organizacji w budynku B/J, pokojach 9, 16 oraz 28, w dniach [DATY] r. w godzinach 16:00 - 0:00.\n\nDostęp do pomieszczeń jest niezbędny ze względu na [CEL np. organizację zebrania oraz przygotowania logistyczne do projektu]. Spotkanie obejmuje [OPIS DZIAŁAŃ].\n\nPragnę podkreślić, że wszystkie działania odbywające się w wskazanych pomieszczeniach będą prowadzone w sposób w pełni niezakłócający funkcjonowania budynku ani spokoju na kampusie.\n\nKoordynatorem spotkania oraz osobą odpowiedzialną za klucz i sale będzie [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
       case 'wjazd':
-        template = `[WYMÓG: Numery rejestracyjne i wskazanie gabarytów transportu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na bezpłatny wjazd na teren Kampusu samochodu o numerze rejestracyjnym [NR REJESTRACYJNY] w dniu [DATA].\n\nUmożliwienie wjazdu jest niezbędne ze względu na konieczność przetransportowania sprzętu oraz materiałów wykorzystywanych podczas [RODZAJ WYDARZENIA], które odbędzie się w budynku [BUDYNEK]. Transport ręczny nie jest możliwy ze względu na gabaryty i wagę wyposażenia.\n\nZapewniam, że wjazd oraz postój będą odbywały się zgodnie z obowiązującymi zasadami ruchu na terenie Uczelni oraz w sposób niezakłócający funkcjonowania Kampusu.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        template = `[WYMÓG: Numery rejestracyjne i wskazanie gabarytów transportu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na bezpłat wjazd na teren Kampusu samochodu o numerze rejestracyjnym [NR REJESTRACYJNY] w dniu [DATA].\n\nUmożliwienie wjazdu jest niezbędne ze względu na konieczność przetransportowania sprzętu oraz materiałów wykorzystywanych podczas [RODZAJ WYDARZENIA], które odbędzie się w budynku [BUDYNEK]. Transport ręczny nie jest możliwy ze względu na gabaryty i wagę wyposażenia.\n\nZapewniam, że wjazd oraz postój będą odbywały się zgodnie z obowiązującymi zasadami ruchu na terenie Uczelni oraz w sposób niezakłócający funkcjonowania Kampusu.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
       case 'stoisko':
         template = `[WYMÓG: Udostępnienie stołów/krzeseł oraz zapewnienie swobody ruchu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na organizację nieodpłatnych stoisk promocyjnych związanych z wydarzeniem „[NAZWA]” w dniu [DATA] r., w godzinach [GODZINY], w przestrzeni [np. budynku CKU] (proponowana lokalizacja: przestrzeń przy wejściu).\n\nStoiska promocyjne mają na celu upowszechnienie informacji o wydarzeniu. W związku z organizacją stoiska uprzejmie proszę również o udostępnienie [ILOŚĆ np. dwóch] stołów i [ILOŚĆ np. czterech] krzeseł, niezbędnych do przygotowania przestrzeni.\n\nZapewniam, że stoisko zostanie ustawione w sposób niewpływający na ścieżki komunikacyjne, bezpieczeństwo ruchu oraz komfort osób korzystających z budynku.\n\nOsobą odpowiedzialną za organizację stoiska i pozostawienie udostępnionego wyposażenia w należytym stanie jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
@@ -252,6 +266,7 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
+      {/* NAGŁÓWEK */}
       <div className="max-w-7xl mx-auto mb-8 text-center md:text-left animate-fadeIn">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
@@ -283,6 +298,7 @@ export default function DocumentsPage() {
         </button>
       </div>
 
+      {/* WIDOK LEX BAZY */}
       {activeView === 'LEX' && (
         <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
           <div className="p-6 border-b border-slate-100">
@@ -327,7 +343,7 @@ export default function DocumentsPage() {
                   const nowosc = isNew(doc.date);
                   
                   return (
-                    <div key={doc.id} onClick={() => openModal(doc)} className={`group relative bg-white p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-5 md:items-center hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/5 ${isActive ? 'border-slate-200 hover:border-blue-200' : 'border-slate-200 opacity-70 bg-slate-50 hover:opacity-100'}`}>
+                    <div key={doc.id || Math.random()} onClick={() => openModal(doc)} className={`group relative bg-white p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-5 md:items-center hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/5 ${isActive ? 'border-slate-200 hover:border-blue-200' : 'border-slate-200 opacity-70 bg-slate-50 hover:opacity-100'}`}>
                       <div className={`hidden md:flex shrink-0 w-12 h-12 rounded-xl items-center justify-center transition-colors ${isActive ? 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 group-hover:border-blue-100' : 'bg-slate-100 text-slate-400'}`}>
                         <Icons.Document />
                       </div>
@@ -359,6 +375,7 @@ export default function DocumentsPage() {
         </div>
       )}
 
+      {/* WIDOK STUDIO LEGISLACYJNE */}
       {activeView === 'STUDIO' && (
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[850px] overflow-hidden">
@@ -407,21 +424,21 @@ export default function DocumentsPage() {
                  <div className="grid grid-cols-1 gap-2">
                    <button onClick={() => handleGenerateTemplate('zwolnienie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Zwolnienie z Zajęć Dydaktycznych</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie dot. zwolnienia z zajęć dydaktycznych</span>
                         <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Argumentacja społeczna + Tabele</span>
                       </div>
                       <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('wydarzenie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Organizacja Wydarzenia</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o możliwość organizacji wydarzenia</span>
                         <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Kwestie techniczne i wizerunek UEW</span>
                       </div>
                       <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('sala_uew')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Sali UEW</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o rezerwację pomieszczenia UEW</span>
                         <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Charakter merytoryczny spotkania</span>
                       </div>
                       <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
@@ -435,59 +452,51 @@ export default function DocumentsPage() {
                  <div className="grid grid-cols-1 gap-2">
                    <button onClick={() => handleGenerateTemplate('banerowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Możliwość Banerowania</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie dot. możliwości banerowania</span>
                         <span className="block text-emerald-400/80 text-[10px]">Wymóg 3-punktowej klauzuli BHP</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('plakatowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Możliwość Plakatowania</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o możliwość plakatowania</span>
                         <span className="block text-emerald-400/80 text-[10px]">Szablon z listą wejść do budynków</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('przedluzenie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Przedłużenie Godzin Budynku B/J</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o przedłużenie godzin otwarcia</span>
                         <span className="block text-emerald-400/80 text-[10px]">Gwarancja spokoju na Kampusie</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('stoisko')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Organizacja Stoiska Promocyjnego</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o organizację stoiska promocyjnego</span>
                         <span className="block text-emerald-400/80 text-[10px]">Wniosek o krzesła i ciągi komunikacyjne</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('grill')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Grill na Zaprzęgubiu</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o możliwość grilla na Zaprzęgubiu</span>
                         <span className="block text-emerald-400/80 text-[10px]">Wniosek o doprowadzenie zasilania</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('wjazd')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Wjazd na Kampus Samochodem</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o możliwość wjazdu na kampus</span>
                         <span className="block text-emerald-400/80 text-[10px]">Szablon gabarytów i nr rejestracyjnych</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('umeblowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Doposażenie w Umeblowanie</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o doposażenie w umeblowanie</span>
                         <span className="block text-emerald-400/80 text-[10px]">Odpowiedzialność za odbiór i zwrot</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('przestrzen')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Przestrzeni (Korytarze)</span>
-                        <span className="block text-emerald-400/80 text-[10px]">Wymogi ewakuacyjne i organizacyjne</span>
+                        <span className="block text-white font-bold text-sm mb-1">Podanie o rezerwację przestrzeni na Kampusie</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wymogi ewakuacyjne i backstage</span>
                       </div>
-                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                  </div>
                </div>
@@ -524,7 +533,7 @@ export default function DocumentsPage() {
       )}
 
       {/* ==================================================== */}
-      {/* KULOODPORNY MODAL LEX */}
+      {/* MODAL KULOODPORNY LEX */}
       {/* ==================================================== */}
       {selectedDoc && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -532,165 +541,147 @@ export default function DocumentsPage() {
            
            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] animate-bounceIn overflow-hidden border border-slate-100">
              
-             {copiedAlert && (
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-xl z-50 flex items-center gap-2 animate-slideDown">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400"></span> {copiedAlert}
-                </div>
-             )}
-
-             <div className="p-8 pb-6 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
-               <div className="pr-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeSignature}</p>
-                    <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeCategory}</p>
-                  </div>
-                  <h2 className={`text-2xl font-black leading-tight ${safeStatus === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
-                    {safeTitle}
-                  </h2>
+             {/* EKRAN BŁĘDU (Jeśli w Excelu są tak zepsute dane, że wywaliły parser) */}
+             {modalError ? (
+               <div className="p-12 text-center bg-white flex-grow">
+                 <span className="text-5xl mb-4 block">⚠️</span>
+                 <h2 className="text-xl font-bold text-red-600 mb-2">Problem z plikiem</h2>
+                 <p className="text-slate-500 text-sm mb-6">{modalError}</p>
+                 <button onClick={() => setSelectedDoc(null)} className="px-6 py-3 bg-slate-900 text-white rounded-xl font-bold">Zamknij</button>
                </div>
-               <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
-                  <Icons.Close />
-               </button>
-             </div>
+             ) : (
+               <>
+                 {copiedAlert && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-xl z-50 flex items-center gap-2 animate-slideDown">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400"></span> {copiedAlert}
+                    </div>
+                 )}
 
-             <div className="p-8 overflow-y-auto bg-slate-50/50 flex-grow">
-                
-                <div className="flex flex-wrap gap-3 mb-6">
-                  <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}>
-                    <Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}
-                  </button>
-                  <button onClick={() => handleCopyCitation(selectedDoc)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-                    <Icons.Copy /> Skopiuj przypis
-                  </button>
-                  <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-                    <Icons.QR /> Kod QR do druku
-                  </button>
-                </div>
-
-                {isAiActive && (
-                  <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
-                         <span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span>
-                         <span className="text-emerald-400 font-bold">{aiProgress}%</span>
+                 <div className="p-8 pb-6 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
+                   <div className="pr-6">
+                      <div className="flex items-center gap-3 mb-2">
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{modalData.signature}</p>
+                        <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{modalData.category}</p>
                       </div>
-                      <div className="text-slate-500 text-xs tracking-widest mb-4">[{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]</div>
-                      {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
-                      {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
-                      {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
-                      {aiStage === 4 && (
-                        <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slideUp">
-                          {(() => {
-                            const aiReport = generateAiReport(selectedDoc);
-                            return (
-                              <>
-                                <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                  <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span>
-                                  <span className="font-bold text-white">{aiReport.target}</span>
-                                </div>
-                                <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                  <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span>
-                                  <span className={`font-bold flex items-center gap-1 ${aiReport.rigorColor}`}><Icons.Shield /> {aiReport.rigor}</span>
-                                </div>
-                                <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                                  <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas</span>
-                                  <span className="font-bold text-sky-400 flex items-center gap-1"><Icons.Timer /> ok. {aiReport.readTime} min</span>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                      <h2 className={`text-2xl font-black leading-tight ${modalData.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
+                        {modalData.title}
+                      </h2>
+                   </div>
+                   <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
+                      <Icons.Close />
+                   </button>
+                 </div>
 
-                {showQR && (
-                  <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
-                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
-                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeLink)}`} alt="QR Code" className="w-32 h-32" />
-                    </div>
-                  </div>
-                )}
-
-                <div className="mb-8">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
-                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-slate-600 text-sm leading-relaxed">{safeDesc}</p>
-                  </div>
-                </div>
-
-                {/* Zabezpieczony render załączników przy użyciu bezpiecznej funkcji i IIFE */}
-                {(() => {
-                  try {
-                    const attStr = safeAttachments;
-                    if (!attStr || attStr.trim() === '' || attStr.toLowerCase().includes('brak')) return null;
+                 <div className="p-8 overflow-y-auto bg-slate-50/50 flex-grow">
                     
-                    const attachmentsList = attStr.split(';');
-                    return (
+                    <div className="flex flex-wrap gap-3 mb-6">
+                      <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}>
+                        <Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}
+                      </button>
+                      <button onClick={() => handleCopyCitation(modalData.signature, modalData.title, modalData.issuer, modalData.date)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
+                        <Icons.Copy /> Skopiuj przypis
+                      </button>
+                      <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
+                        <Icons.QR /> Kod QR do druku
+                      </button>
+                    </div>
+
+                    {isAiActive && (
+                      <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
+                             <span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span>
+                             <span className="text-emerald-400 font-bold">{aiProgress}%</span>
+                          </div>
+                          <div className="text-slate-500 text-xs tracking-widest mb-4">[{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]</div>
+                          {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
+                          {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
+                          {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
+                          {aiStage === 4 && (
+                            <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slideUp">
+                               <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                 <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span>
+                                 <span className="font-bold text-white">{aiReport.target}</span>
+                               </div>
+                               <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                 <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span>
+                                 <span className={`font-bold flex items-center gap-1 ${aiReport.rigorColor}`}><Icons.Shield /> {aiReport.rigor}</span>
+                               </div>
+                               <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
+                                 <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas</span>
+                                 <span className="font-bold text-sky-400 flex items-center gap-1"><Icons.Timer /> ok. {aiReport.readTime} min</span>
+                               </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {showQR && (
+                      <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
+                        <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
+                          <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(modalData.link)}`} alt="QR Code" className="w-32 h-32" />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mb-8">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
+                      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+                        <p className="text-slate-600 text-sm leading-relaxed">{modalData.desc}</p>
+                      </div>
+                    </div>
+
+                    {modalData.attachments.length > 0 && (
                       <div className="mb-8">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
                           <Icons.Paperclip /> Powiązane Załączniki
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          {attachmentsList.map((att, idx) => {
-                            const parts = att.split('|');
-                            if (parts.length < 2) return null;
-                            const name = parts[0].trim();
-                            const link = parts.slice(1).join('|').trim();
-                            if (!link) return null;
-                            
-                            return (
-                              <a key={idx} href={link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group">
-                                <div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div>
-                                <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{name}</span>
-                              </a>
-                            );
-                          })}
+                          {modalData.attachments.map((att, idx) => (
+                            <a key={idx} href={att.link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group">
+                              <div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div>
+                              <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{att.name}</span>
+                            </a>
+                          ))}
                         </div>
                       </div>
-                    );
-                  } catch(e) { return null; }
-                })()}
+                    )}
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span>
-                    <span className="font-bold text-slate-800 text-sm">{safeDate}</span>
-                  </div>
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span>
-                    <button onClick={() => handleCopyLink(safeLink)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button>
-                  </div>
-                  <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span>
-                    <span className="font-bold text-slate-800 text-sm">{safeIssuer}</span>
-                  </div>
-                  
-                  {(() => {
-                    try {
-                      const repStr = safeRepeals;
-                      if (!repStr || repStr.trim() === '' || repStr.toLowerCase().includes('brak')) return null;
-                      return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span>
+                        <span className="font-bold text-slate-800 text-sm">{modalData.date}</span>
+                      </div>
+                      <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span>
+                        <button onClick={() => handleCopyLink(modalData.link)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button>
+                      </div>
+                      <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span>
+                        <span className="font-bold text-slate-800 text-sm">{modalData.issuer}</span>
+                      </div>
+                      
+                      {modalData.repeals && (
                         <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
-                          <span className="font-bold text-rose-700 text-sm">{repStr}</span>
+                          <span className="font-bold text-rose-700 text-sm">{modalData.repeals}</span>
                         </div>
-                      );
-                    } catch(e) { return null; }
-                  })()}
-                </div>
+                      )}
+                    </div>
 
-             </div>
-             
-             <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-                <a href={safeLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">
-                  Otwórz oryginał dokumentu <Icons.External />
-                </a>
-             </div>
+                 </div>
+                 
+                 <div className="p-6 bg-white border-t border-slate-100 shrink-0">
+                    <a href={modalData.link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">
+                      Otwórz oryginał dokumentu <Icons.External />
+                    </a>
+                 </div>
+               </>
+             )}
 
            </div>
         </div>
