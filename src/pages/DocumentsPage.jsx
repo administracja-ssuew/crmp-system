@@ -64,7 +64,7 @@ export default function DocumentsPage() {
         <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
         </h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">Uczelniany System Aktów Prawnych zsynchronizowany z chmurą.</p>
+        <p className="text-sm font-medium text-slate-500 mt-1">Samorządowy System Aktów Prawnych zsynchronizowany z chmurą.</p>
       </div>
 
       <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden animate-slideUp">
