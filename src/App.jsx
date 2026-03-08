@@ -132,13 +132,13 @@ export default function App() {
           <Route path="/rejestr" element={<ProtectedRoute><StandsPage /></ProtectedRoute>} />
           
           {/* Ekran wyboru */}
-          <Route path="/kalendarz-wybor" element={<CalendarSelectionPage />} />
+          <Route path="/kalendarz-wybor" element={<ProtectedRoute><CalendarSelectionPage /></ProtectedRoute>} />
 
-          {/* Kalendarz dla Samorządu (Ten potężny, z akceptacją) */}
-          <Route path="/kalendarz/samorzad" element={<CalendarSamorzadPage userEmail={user.email} />} />
+          {/* Kalendarz dla Samorządu (Panel Admina z "miękką blokadą" wewnątrz) */}
+          <Route path="/kalendarz/samorzad" element={<ProtectedRoute><CalendarSamorzadPage userEmail={user?.email} /></ProtectedRoute>} />
 
-          {/* Kalendarz dla Organizacji (Tylko 28J i sale uczelniane) */}
-          <Route path="/kalendarz/organizacje" element={<UniversalCalendarPage />} />
+          {/* Kalendarz dla Organizacji (Formularz zgłoszeniowy) */}
+          <Route path="/kalendarz/organizacje" element={<ProtectedRoute><UniversalCalendarPage userEmail={user?.email} /></ProtectedRoute>} />
 
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
 

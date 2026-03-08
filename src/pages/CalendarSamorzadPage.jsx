@@ -17,7 +17,6 @@ const ADMIN_EMAILS = [
   'administrator@gmail.com'
 ];
 
-// Paleta kolorów (odzwierciedlająca Twojego Excela)
 const PALETTE = [
   'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
   'bg-emerald-500', 'bg-lime-500', 'bg-fuchsia-500', 
@@ -30,9 +29,8 @@ const EMPTY_FORM = {
   date: '', room: '9J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
-// Odbieramy maila (zakładając, że przekazujesz go z systemu logowania przez `userEmail`)
 export default function CalendarSamorzadPage({ userEmail }) {
-  // Sprawdzanie uprawnień admina
+  // Weryfikacja: TRUE jeśli mail jest na liście, FALSE dla reszty studentów
   const isAdmin = ADMIN_EMAILS.includes(userEmail);
 
   const [filterRoom, setFilterRoom] = useState('ALL');
@@ -42,7 +40,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({ sale: [], przedluzenia: [], pending: [] });
   
-  // Blokada podwójnego kliknięcia dla konkretnego wniosku
   const [processingId, setProcessingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -51,11 +48,8 @@ export default function CalendarSamorzadPage({ userEmail }) {
   const [bookingError, setBookingError] = useState('');
 
   const [expandedReq, setExpandedReq] = useState(null);
-  
-  // Stan wybranego koloru dla akceptowanego wniosku
   const [eventColor, setEventColor] = useState('bg-indigo-600');
 
-  // Stany dla formularza Przedłużeń
   const [isExtModalOpen, setIsExtModalOpen] = useState(false);
   const [extForm, setExtForm] = useState({ date: '', until: '03:00', note: 'Zgoda Kanclerza na przedłużenie' });
   const [isExtSubmitting, setIsExtSubmitting] = useState(false);
@@ -73,9 +67,10 @@ export default function CalendarSamorzadPage({ userEmail }) {
     }
   };
 
+  // ZMIANA: Pobieramy dane dla WSZYSTKICH użytkowników, żeby każdy widział kalendarz
   useEffect(() => { 
-    if (isAdmin) fetchData(); 
-  }, [isAdmin]);
+    fetchData(); 
+  }, []);
 
   const nextDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() + 1); setCurrentDate(d); };
   const prevDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() - 1); setCurrentDate(d); };
@@ -131,7 +126,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
       alert('Nie można zatwierdzić! Sala została w międzyczasie zajęta.'); return;
     }
 
-    setProcessingId(req.id); // ZAKŁADAMY BLOKADĘ NA TEN WNIOSEK
+    setProcessingId(req.id);
 
     try {
       await fetch(GOOGLE_SHEETS_URL, {
@@ -144,7 +139,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     } catch (e) {
       alert('Błąd akceptacji.');
     } finally {
-      setProcessingId(null); // ZDEJMUJEMY BLOKADĘ ZAWSZE NA KOŃCU
+      setProcessingId(null);
     }
   };
 
@@ -152,7 +147,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     const confirmReject = window.confirm(`Czy na pewno chcesz ODRZUCIĆ wniosek organizacji ${req.org}?`);
     if (!confirmReject) return;
 
-    setProcessingId(req.id); // ZAKŁADAMY BLOKADĘ
+    setProcessingId(req.id);
 
     try {
       await fetch(GOOGLE_SHEETS_URL, {
@@ -164,7 +159,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     } catch (e) {
       alert('Błąd podczas odrzucania wniosku.');
     } finally {
-      setProcessingId(null); // ZDEJMUJEMY BLOKADĘ
+      setProcessingId(null);
     }
   };
 
@@ -188,37 +183,15 @@ export default function CalendarSamorzadPage({ userEmail }) {
     }
   };
 
-  // Obsługa rozwijania kafelków
   const toggleExpand = (id) => {
     if (expandedReq === id) {
       setExpandedReq(null);
     } else {
       setExpandedReq(id);
-      setEventColor('bg-indigo-600'); // Reset koloru przy otwarciu nowego
+      setEventColor('bg-indigo-600'); 
     }
   };
 
-  // === EKRAN BLOKADY DLA NIEZALOGOWANYCH / BEZ UPRAWNIEŃ ===
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center relative overflow-hidden">
-         <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
-         
-         <div className="relative z-10 max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border border-red-100 animate-bounceIn">
-            <div className="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto">⛔</div>
-            <h1 className="text-2xl font-black text-slate-900 mb-2">Brak uprawnień</h1>
-            <p className="text-slate-500 font-medium mb-8">
-              Twój adres e-mail (<span className="text-slate-800 font-bold">{userEmail || 'niezalogowano'}</span>) nie ma dostępu do panelu zarządzania kalendarzem.
-            </p>
-            <Link to="/kalendarz-wybor" className="block w-full py-4 bg-slate-900 text-white font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition shadow-lg">
-              Wróć do wyboru
-            </Link>
-         </div>
-      </div>
-    );
-  }
-
-  // === GŁÓWNY INTERFEJS ADMINISTRATORA ===
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-20 pt-24 relative overflow-x-hidden">
       
@@ -226,12 +199,12 @@ export default function CalendarSamorzadPage({ userEmail }) {
         <div>
           <Link to="/kalendarz-wybor" className="text-xs font-bold text-slate-400 hover:text-indigo-600 mb-2 block">← Wróć do wyboru</Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-            Kalendarz <span className="text-emerald-600">Przestrzeni (Admin)</span>
+            Kalendarz <span className="text-emerald-600">Przestrzeni</span>
           </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Pełny grafik oraz panel weryfikacji wniosków.</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Pełny grafik sal Samorządu i przestrzeni uczelnianych.</p>
         </div>
 
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-4 items-center">
             <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
                 <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
                 <button onClick={() => setFilterRoom('9J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '9J' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>9J</button>
@@ -242,21 +215,27 @@ export default function CalendarSamorzadPage({ userEmail }) {
                 <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
             </div>
 
-            <button onClick={() => setIsExtModalOpen(true)} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
-              🌙 <span className="hidden md:inline">Przedłużenie</span>
-            </button>
-            
-            <button onClick={() => setIsPendingModalOpen(true)} className="relative bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
-              ⏳ Oczekujące
-              {calendarData.pending?.length > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full animate-bounce">{calendarData.pending.length}</span>}
-            </button>
+            {/* ZMIANA: Przyciski administratorskie są widoczne TYLKO jeśli isAdmin === true */}
+            {isAdmin && (
+              <>
+                <button onClick={() => setIsExtModalOpen(true)} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
+                  🌙 <span className="hidden md:inline">Przedłużenie</span>
+                </button>
+                
+                <button onClick={() => setIsPendingModalOpen(true)} className="relative bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
+                  ⏳ Oczekujące
+                  {calendarData.pending?.length > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full animate-bounce">{calendarData.pending.length}</span>}
+                </button>
 
-            <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
-                <span>+</span> Złóż Wniosek
-            </button>
+                <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
+                    <span>+</span> Złóż Wniosek
+                </button>
+              </>
+            )}
         </div>
       </div>
 
+      {/* --- OŚ CZASU KALENDARZA WIDOCZNA DLA KAŻDEGO --- */}
       <div className="max-w-7xl mx-auto space-y-6 animate-slideUp">
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
           <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100">→</button>
@@ -275,7 +254,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
             const dayOfWeek = dateObj.getDay();
             const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek);
             
-            // Pigułka przedłużenia
             const extension = calendarData.przedluzenia?.find(e => e.date?.substring(0, 10) === dayDate);
 
             let dailyRooms = ['9J', '16J', '28J'];
@@ -286,7 +264,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
             return (
               <div key={dayDate} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden mb-6">
                 
-                {/* ZAKTUALIZOWANY PASEK Z DATĄ I PRZEDŁUŻENIEM */}
                 <div className="bg-slate-50 p-3 border-b border-slate-100 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="flex flex-col items-center bg-white border border-slate-200 rounded-xl p-1.5 w-14 shadow-sm">
@@ -296,7 +273,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
                         <div>
                             <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
                             
-                            {/* WYŚWIETLANIE PRZEDŁUŻENIA */}
                             {extension && (
                                 <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
                                   🌙 {extension.note} (do {extension.until})
@@ -356,7 +332,8 @@ export default function CalendarSamorzadPage({ userEmail }) {
         )}
       </div>
 
-      {isModalOpen && (
+      {/* --- MODALE ADMINA (UKRYTE GDY !isAdmin) --- */}
+      {isAdmin && isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 animate-bounceIn">
@@ -386,8 +363,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
         </div>
       )}
 
-      {/* MODAL: DODAWANIE PRZEDŁUŻENIA (ZGODA KANCLERZA) */}
-      {isExtModalOpen && (
+      {isAdmin && isExtModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsExtModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 animate-bounceIn">
@@ -395,20 +371,10 @@ export default function CalendarSamorzadPage({ userEmail }) {
                <span className="text-3xl">🌙</span>
                <h2 className="text-2xl font-black text-slate-900 leading-tight">Zgoda na przedłużenie</h2>
              </div>
-             
              <div className="space-y-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Data *</label>
-                  <input type="date" value={extForm.date} onChange={e => setExtForm({...extForm, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Do której godziny? *</label>
-                  <input type="time" value={extForm.until} onChange={e => setExtForm({...extForm, until: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Krótka notatka (np. dla kogo?)</label>
-                  <input type="text" value={extForm.note} onChange={e => setExtForm({...extForm, note: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
-                </div>
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Data *</label><input type="date" value={extForm.date} onChange={e => setExtForm({...extForm, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" /></div>
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Do której godziny? *</label><input type="time" value={extForm.until} onChange={e => setExtForm({...extForm, until: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" /></div>
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Krótka notatka</label><input type="text" value={extForm.note} onChange={e => setExtForm({...extForm, note: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" /></div>
                 
                 <button onClick={handleAddExtension} disabled={isExtSubmitting} className="w-full py-4 bg-amber-500 text-white font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition shadow-lg shadow-amber-200 mt-4 disabled:bg-slate-300">
                   {isExtSubmitting ? 'Zapisywanie...' : 'Dodaj wpis'}
@@ -418,15 +384,13 @@ export default function CalendarSamorzadPage({ userEmail }) {
         </div>
       )}
 
-      {isPendingModalOpen && (
+      {isAdmin && isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsPendingModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-bounceIn">
              
              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem] shrink-0">
-               <div>
-                  <h2 className="text-2xl font-black text-slate-900">Skrzynka Podawcza 📥</h2>
-               </div>
+               <div><h2 className="text-2xl font-black text-slate-900">Skrzynka Podawcza 📥</h2></div>
                <button onClick={() => setIsPendingModalOpen(false)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-200 transition">✕</button>
              </div>
              
@@ -456,7 +420,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
                              >
                                {processingId === req.id ? '⏳...' : 'Akceptuj'}
                              </button>
-                             
                              <button 
                                disabled={processingId === req.id}
                                onClick={(e) => { e.stopPropagation(); handleReject(req); }} 
@@ -470,8 +433,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
 
                          {isExpanded && (
                            <div className="p-6 bg-slate-50 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 animate-slideUp">
-                             
-                             {/* SEKCJA: WYBÓR KOLORU */}
                              <div className="md:col-span-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Wybierz kolor kafelka w kalendarzu</p>
                                <div className="flex flex-wrap gap-3">
@@ -486,7 +447,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
                                </div>
                                <p className="text-[10px] text-slate-400 mt-3 italic">Ten kolor zostanie przypisany do wydarzenia po kliknięciu "Akceptuj".</p>
                              </div>
-
                              <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Zgłaszający</p><p className="font-bold text-slate-800">{req.applicantName}</p><p className="text-sm text-indigo-600 font-medium">{req.email}</p></div>
                              <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Typ</p><p className="font-bold text-slate-800">{req.orgType}</p></div>
                              <div className="md:col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uzasadnienie</p><div className="bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600 italic">"{req.justification}"</div></div>
