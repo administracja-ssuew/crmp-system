@@ -325,7 +325,7 @@ export default function DocumentsPage() {
                <div className="grid grid-cols-1 gap-3">
                  <button onClick={() => handleGenerateTemplate('rektorskie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                     <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Godziny Rektorskie</span>
+                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Zwolnienie z zajęć dydaktycznych (inaczej Rektorskie)</span>
                       <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Uzasadnienie wkładu w społeczność</span>
                     </div>
                     <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
@@ -333,7 +333,7 @@ export default function DocumentsPage() {
 
                  <button onClick={() => handleGenerateTemplate('nocka')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                     <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Nocka w sali 28J</span>
+                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. możliwości z przłużonego korzystania z sali 28J</span>
                       <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Klauzule BHP i odpowiedzialności</span>
                     </div>
                     <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
