@@ -78,28 +78,32 @@ export default function DocumentsPage() {
   };
   
   const showAlert = (msg) => { setCopiedAlert(msg); setTimeout(() => setCopiedAlert(''), 2500); };
-  const handleCopyLink = (link) => { navigator.clipboard.writeText(link); showAlert('Skopiowano!'); };
+  
+  const handleCopyLink = (link) => { 
+    try { navigator.clipboard.writeText(link); showAlert('Skopiowano!'); } catch(e) {} 
+  };
+  
   const handleCopyCitation = (doc) => { 
-    navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`); 
-    showAlert('Skopiowano przypis!'); 
+    try { navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`); showAlert('Skopiowano przypis!'); } catch(e) {}
   };
   
   // ==========================================
-  // KULOODPORNY SANITIZER - Zabezpiecza przed Cratchem Reacta
+  // KULOODPORNY SANITIZER - CAŁKOWITA OCHRONA PRZED BIAŁYM EKRANEM
   // ==========================================
   const openModal = (rawDoc) => { 
+    if (!rawDoc) return;
     const safeDoc = {
-      ...rawDoc,
-      signature: rawDoc.signature || '-',
-      title: rawDoc.title || 'Brak tytułu',
-      category: rawDoc.category || 'Niesklasyfikowane',
-      status: rawDoc.status || 'Nieokreślony',
-      date: rawDoc.date || 'Brak daty',
-      issuer: rawDoc.issuer || 'Brak organu',
-      desc: rawDoc.desc || 'Brak opisu.',
-      link: rawDoc.link || '#',
-      repeals: rawDoc.repeals || '',
-      attachments: rawDoc.attachments || ''
+      id: rawDoc.id || Math.random(),
+      signature: String(rawDoc.signature || '-'),
+      title: String(rawDoc.title || 'Brak tytułu'),
+      category: String(rawDoc.category || 'Niesklasyfikowane'),
+      status: String(rawDoc.status || 'Nieokreślony'),
+      date: String(rawDoc.date || 'Brak daty'),
+      issuer: String(rawDoc.issuer || 'Brak organu'),
+      desc: String(rawDoc.desc || 'Brak opisu.'),
+      link: String(rawDoc.link || '#'),
+      repeals: String(rawDoc.repeals || ''),
+      attachments: String(rawDoc.attachments || '')
     };
     setSelectedDoc(safeDoc); 
     setIsAiActive(false); 
@@ -109,7 +113,13 @@ export default function DocumentsPage() {
   };
 
   const generateAiReport = (doc) => {
-    const text = `${doc.title} ${doc.category} ${doc.desc}`.toLowerCase();
+    if (!doc) return { target: '-', rigor: '-', rigorColor: '', readTime: 0 };
+    
+    const title = doc.title || '';
+    const category = doc.category || '';
+    const desc = doc.desc || '';
+    const text = `${title} ${category} ${desc}`.toLowerCase();
+    
     let target = text.includes('zarząd') || text.includes('wewnętrz') ? "Administracja SSUEW" : (text.includes('koł') || text.includes('organizacj') ? "Organizacje Studenckie" : "Wszyscy Studenci");
     let rigor = text.includes('regulamin') || text.includes('uchwała') ? "Bardzo Wysoki" : (text.includes('zarządzenie') ? "Średni" : "Niski");
     let rigorColor = rigor === "Bardzo Wysoki" ? "text-rose-500" : (rigor === "Średni" ? "text-amber-400" : "text-emerald-400");
@@ -118,7 +128,7 @@ export default function DocumentsPage() {
     if (doc.pages && !isNaN(doc.pages)) {
       readTime = parseInt(doc.pages) * 2;
     } else {
-      const totalLength = doc.title.length + doc.desc.length;
+      const totalLength = title.length + desc.length;
       readTime = Math.max(1, Math.ceil(totalLength / 200)); 
       if (rigor === "Bardzo Wysoki" && readTime < 5) readTime = 5; 
     }
@@ -138,8 +148,12 @@ export default function DocumentsPage() {
   };
 
   const filteredDocs = documents.filter(doc => {
-    const matchesSearch = `${doc.title || ''} ${doc.signature || ''} ${doc.desc || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'Wszystkie' || doc.category === activeCategory;
+    const title = doc.title || '';
+    const sig = doc.signature || '';
+    const desc = doc.desc || '';
+    const cat = doc.category || '';
+    const matchesSearch = `${title} ${sig} ${desc}`.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === 'Wszystkie' || cat === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -147,7 +161,21 @@ export default function DocumentsPage() {
   const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
 
   // ==========================================
-  // STUDIO LEGISLACYJNE - SZABLONY URZĘDOWE
+  // ZABEZPIECZONE DANE DLA MODALA (GWARANCJA STRINGA)
+  // ==========================================
+  const safeSignature = selectedDoc?.signature || '-';
+  const safeCategory = selectedDoc?.category || 'Brak kategorii';
+  const safeTitle = selectedDoc?.title || 'Dokument bez tytułu';
+  const safeStatus = selectedDoc?.status || 'Nieokreślony';
+  const safeDate = selectedDoc?.date || '-';
+  const safeIssuer = selectedDoc?.issuer || '-';
+  const safeDesc = selectedDoc?.desc || 'Brak opisu dla tego dokumentu.';
+  const safeLink = selectedDoc?.link || '#';
+  const safeRepeals = selectedDoc?.repeals || '';
+  const safeAttachments = selectedDoc?.attachments || '';
+
+  // ==========================================
+  // STUDIO LEGISLACYJNE - WDROŻONE 11 OFICJALNYCH WZORÓW
   // ==========================================
   const simulateAiTyping = (fullText) => {
     setIsDrafting(true);
@@ -171,7 +199,7 @@ export default function DocumentsPage() {
     switch(type) {
       // --- PODANIA DO PROREKTORA ---
       case 'zwolnienie':
-        template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS np. targi pracy, oferujące studentom kontakt z pracodawcami]. Organizacja uczestniczy w wydarzeniu reprezentując Uczelnię i budując relacje z partnerami zewnętrznymi.\n\nDyżury oraz spotkania wymagają obecności delegowanych studentów, co uniemożliwia im uczestnictwo w zajęciach dydaktycznych. \n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS]. Organizacja uczestniczy w wydarzeniu reprezentując Uczelnię i budując relacje z partnerami zewnętrznymi.\n\nDyżury oraz spotkania wymagają obecności delegowanych studentów, co uniemożliwia im uczestnictwo w zajęciach dydaktycznych. \n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
       case 'wydarzenie':
         template = `[WYMÓG: Powołanie na charakter projektu i zapotrzebowanie na obsługę techniczną]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nSzanowny Panie Prorektorze,\nw imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na organizację wydarzenia „[NAZWA PROJEKTU]”, które planowane jest w dniach [DATY], a jego realizacja przewidziana jest w przestrzeni [BUDYNEK / TEREN]. Projekt stanowi ważną inicjatywę o charakterze [MERYTORYCZNYM/INTEGRACYJNYM], której celem jest [CEL, np. edukacja i aktywizacja studentów].\n\nWydarzenie przyciągnie grupy odbiorców, stwarzając przestrzeń do rozwoju kompetencji oraz budowania pozytywnego wizerunku Uniwersytetu Ekonomicznego we Wrocławiu.\n\nKoordynatorem projektu jest [IMIĘ NAZWISKO, NR INDEKSU], tel. [TELEFON], e-mail: [E-MAIL].\n\nJednocześnie zwracam się z uprzejmą prośbą o pomoc w kwestiach technicznych podczas realizacji wydarzenia. Zwracam się z prośbą o przydzielenie pracowników Uczelni odpowiedzialnych za obsługę techniczną, co pozwoli na sprawne przeprowadzenie projektu.\n\nMając na uwadze znaczenie wydarzenia dla społeczności akademickiej, uprzejmie proszę o pozytywne rozpatrzenie podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
@@ -188,7 +216,7 @@ export default function DocumentsPage() {
         template = `[WYMÓG: Rozpiska ilości, miejsc oraz terminowego zdjęcia]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych dotyczących inicjatywy [NAZWA PROJEKTU]. Celem plakatowania jest przekazanie studentom informacji o wydarzeniu oraz dotarcie do jak najszerszego grona odbiorców.\n\nUprzejmie proszę o możliwość umieszczenia plakatów w następujących lokalizacjach na terenie Uczelni:\n- na wejściach do budynków: A, D, E, P, SJO, W, Z,\n- na wejściach do Domów Studenckich: Przegubowiec oraz Ślężak,\n- na tablicach ogłoszeniowych na parterze CKU,\n- na tablicy ogłoszeniowej przy windach w budynku E,\n- na tablicach ogłoszeniowej przy windach w Bibliotece (budynek U).\n\nPlanowana ekspozycja obejmuje 1 plakat w każdym wskazanym miejscu (łącznie 15 plakatów w formacie A3), umieszczonych zgodnie z zasadami obowiązującymi na terenie Uczelni. Materiały byłyby eksponowane w terminie [DATA OD] – [DATA DO].\n\nZwracam się także z prośbą o wyrażenie zgody na samodzielne rozwieszenie materiałów promocyjnych oraz zobowiązuję się do ich terminowego zdjęcia po zakończeniu okresu ekspozycji.\n\nOsobą odpowiedzialną za rozwieszenie i zdjęcie plakatów jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
       case 'przedluzenie':
-        template = `[WYMÓG: Podanie sal SSUEW oraz braku zakłóceń dla kampusu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o możliwość korzystania z pomieszczeń przeznaczonych na działalność organizacji w budynku B/J, pokojach 9, 16 oraz 28, w dniach [DATY] r. w godzinach 16:00 - 0:00.\n\nDostęp do pomieszczeń jest niezbędny ze względu na [CEL np. organizację zebrania oraz przygotowania logistyczne do projektu]. Spotkanie obejmuje [OPIS DZIAŁAŃ].\n\nPragnę podkreślić, że wszystkie działania odbywające się w wskazanych pomieszczeniach będą prowadzone w sposób w pełni niezakłócający funkcjonowania budynku ani spokoju na kampusie.\n\nKoordynatorem spotkania oraz osobą odpowiedzialną za klucze i sale będzie [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        template = `[WYMÓG: Podanie sal SSUEW oraz braku zakłóceń dla kampusu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o możliwość korzystania z pomieszczeń przeznaczonych na działalność organizacji w budynku B/J, pokojach 9, 16 oraz 28, w dniach [DATY] r. w godzinach 16:00 - 0:00.\n\nDostęp do pomieszczeń jest niezbędny ze względu na [CEL np. organizację zebrania oraz przygotowania logistyczne do projektu]. Spotkanie obejmuje [OPIS DZIAŁAŃ].\n\nPragnę podkreślić, że wszystkie działania odbywające się w wskazanych pomieszczeniach będą prowadzone w sposób w pełni niezakłócający funkcjonowania budynku ani spokoju na kampusie.\n\nKoordynatorem spotkania oraz osobą odpowiedzialną za klucz i sale będzie [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
         break;
       case 'wjazd':
         template = `[WYMÓG: Numery rejestracyjne i wskazanie gabarytów transportu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na bezpłatny wjazd na teren Kampusu samochodu o numerze rejestracyjnym [NR REJESTRACYJNY] w dniu [DATA].\n\nUmożliwienie wjazdu jest niezbędne ze względu na konieczność przetransportowania sprzętu oraz materiałów wykorzystywanych podczas [RODZAJ WYDARZENIA], które odbędzie się w budynku [BUDYNEK]. Transport ręczny nie jest możliwy ze względu na gabaryty i wagę wyposażenia.\n\nZapewniam, że wjazd oraz postój będą odbywały się zgodnie z obowiązującymi zasadami ruchu na terenie Uczelni oraz w sposób niezakłócający funkcjonowania Kampusu.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
@@ -208,7 +236,7 @@ export default function DocumentsPage() {
 
       case 'formalize':
         if (!editorText || editorText.length < 10) {
-          setAiOutput("BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie (np. 'chcemy zrobic grilla za uczelnią'), a ja ubiorę to w odpowiednie paragrafy.");
+          setAiOutput("BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie, a ja ubiorę to w odpowiednie paragrafy.");
           return;
         }
         template = `[PRZEKSZTAŁCONO W STYL URZĘDOWY]\n\nWrocław, dnia ${today} r.\n\nWNIOSEK / PISMO PRZEWODNIE\n\nDziałając w interesie społeczności studenckiej oraz na podstawie obowiązujących przepisów, niniejszym wnoszę o:\n\nZgodnie ze zgłoszonym postulatem: "${editorText.substring(0, 80)}[...]", pragniemy zaznaczyć, iż realizacja tego przedsięwzięcia bezpośrednio wpisuje się w realizację celów statutowych naszej organizacji.\n\nZwracamy się z uprzejmą prośbą o pozytywne rozpatrzenie niniejszego pisma.\n\nZ poważaniem,\n[Podpis]`;
@@ -224,7 +252,6 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
-      {/* NAGŁÓWEK */}
       <div className="max-w-7xl mx-auto mb-8 text-center md:text-left animate-fadeIn">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
@@ -256,7 +283,6 @@ export default function DocumentsPage() {
         </button>
       </div>
 
-      {/* WIDOK LEX BAZY */}
       {activeView === 'LEX' && (
         <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
           <div className="p-6 border-b border-slate-100">
@@ -295,7 +321,8 @@ export default function DocumentsPage() {
             ) : (
               <div className="flex flex-col gap-4">
                 {filteredDocs.map(doc => {
-                  const style = CATEGORY_STYLES[doc.category] || CATEGORY_STYLES.Default;
+                  const catStr = String(doc.category || 'Default');
+                  const style = CATEGORY_STYLES[catStr] || CATEGORY_STYLES.Default;
                   const isActive = doc.status === 'Obowiązujący';
                   const nowosc = isNew(doc.date);
                   
@@ -311,8 +338,7 @@ export default function DocumentsPage() {
                           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date || '-'}</span>
                           {nowosc && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>}
                           
-                          {/* Zabezpieczony render ikony załączników na liście */}
-                          {doc.attachments && typeof doc.attachments === 'string' && doc.attachments.trim() !== '' && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
+                          {doc.attachments && String(doc.attachments).trim() !== '' && String(doc.attachments).trim().toLowerCase() !== 'brak' && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
                         </div>
                         <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
                         {!isActive && <p className="text-xs text-red-500 font-medium mt-1">Uchylony: Zastąpiony przez nowszy akt</p>}
@@ -333,10 +359,9 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {/* WIDOK STUDIO LEGISLACYJNE */}
       {activeView === 'STUDIO' && (
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[750px] overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[850px] overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                <div className="flex items-center gap-3">
                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><Icons.Pen /></div>
@@ -345,7 +370,7 @@ export default function DocumentsPage() {
                    <span className="text-[10px] text-slate-400 font-medium">Miejsce robocze na pisma</span>
                  </div>
                </div>
-               <button onClick={() => {navigator.clipboard.writeText(editorText); showAlert('Skopiowano treść!');}} className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
+               <button onClick={() => {try{navigator.clipboard.writeText(editorText); showAlert('Skopiowano treść!');}catch(e){}}} className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
                  Kopiuj Całość
                </button>
             </div>
@@ -357,7 +382,7 @@ export default function DocumentsPage() {
             />
           </div>
 
-          <div className="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 flex flex-col h-[750px] relative overflow-hidden">
+          <div className="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 flex flex-col h-[850px] relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900 to-slate-900 z-0"></div>
             <div className="relative z-10 p-5 border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-sm flex justify-between items-center">
                <div className="flex items-center gap-3">
@@ -413,53 +438,60 @@ export default function DocumentsPage() {
                         <span className="block text-white font-bold text-sm mb-1">Możliwość Banerowania</span>
                         <span className="block text-emerald-400/80 text-[10px]">Wymóg 3-punktowej klauzuli BHP</span>
                       </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('plakatowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
                         <span className="block text-white font-bold text-sm mb-1">Możliwość Plakatowania</span>
                         <span className="block text-emerald-400/80 text-[10px]">Szablon z listą wejść do budynków</span>
                       </div>
-                   </button>
-                   <button onClick={() => handleGenerateTemplate('stoisko')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
-                      <div>
-                        <span className="block text-white font-bold text-sm mb-1">Organizacja Stoiska Promocyjnego</span>
-                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o krzesła i ciągi komunikacyjne</span>
-                      </div>
-                   </button>
-                   <button onClick={() => handleGenerateTemplate('grill')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
-                      <div>
-                        <span className="block text-white font-bold text-sm mb-1">Grill na Zaprzęgubiu</span>
-                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o doprowadzenie zasilania</span>
-                      </div>
-                   </button>
-                   <button onClick={() => handleGenerateTemplate('wjazd')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
-                      <div>
-                        <span className="block text-white font-bold text-sm mb-1">Wjazd na Kampus Samochodem</span>
-                        <span className="block text-emerald-400/80 text-[10px]">Szablon gabarytów i nr rejestracyjnych</span>
-                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('przedluzenie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
                         <span className="block text-white font-bold text-sm mb-1">Przedłużenie Godzin Budynku B/J</span>
                         <span className="block text-emerald-400/80 text-[10px]">Gwarancja spokoju na Kampusie</span>
                       </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('stoisko')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Organizacja Stoiska Promocyjnego</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o krzesła i ciągi komunikacyjne</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('grill')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Grill na Zaprzęgubiu</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o doprowadzenie zasilania</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('wjazd')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Wjazd na Kampus Samochodem</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Szablon gabarytów i nr rejestracyjnych</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('umeblowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
                         <span className="block text-white font-bold text-sm mb-1">Doposażenie w Umeblowanie</span>
                         <span className="block text-emerald-400/80 text-[10px]">Odpowiedzialność za odbiór i zwrot</span>
                       </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                    <button onClick={() => handleGenerateTemplate('przestrzen')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                       <div>
-                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Przestrzeni Kampusu (Korytarze)</span>
+                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Przestrzeni (Korytarze)</span>
                         <span className="block text-emerald-400/80 text-[10px]">Wymogi ewakuacyjne i organizacyjne</span>
                       </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
                    </button>
                  </div>
                </div>
 
-               {/* MAGICZNY FORMATTER */}
                <button onClick={() => handleGenerateTemplate('formalize')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 hover:from-blue-800/50 hover:to-indigo-800/50 border border-blue-800/50 rounded-xl text-left transition-all group disabled:opacity-50 mt-2">
                   <div>
                     <span className="block text-blue-100 font-bold text-sm mb-1 flex items-center gap-2"><Icons.Brain /> Sformatuj własny tekst z Edytora</span>
@@ -492,7 +524,7 @@ export default function DocumentsPage() {
       )}
 
       {/* ==================================================== */}
-      {/* MODAL KULOODPORNY LEX */}
+      {/* KULOODPORNY MODAL LEX */}
       {/* ==================================================== */}
       {selectedDoc && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -591,26 +623,38 @@ export default function DocumentsPage() {
                   </div>
                 </div>
 
-                {safeAttachments && typeof safeAttachments === 'string' && safeAttachments.trim() !== '' && safeAttachments.trim() !== 'Brak' && (
-                  <div className="mb-8">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-                      <Icons.Paperclip /> Powiązane Załączniki
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {String(safeAttachments).split(';').map((att, idx) => {
-                        const parts = att.split('|');
-                        if (parts.length !== 2) return null;
-                        const [name, link] = parts;
-                        return (
-                          <a key={idx} href={link.trim()} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group">
-                            <div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div>
-                            <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{name.trim()}</span>
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
+                {/* Zabezpieczony render załączników przy użyciu bezpiecznej funkcji i IIFE */}
+                {(() => {
+                  try {
+                    const attStr = safeAttachments;
+                    if (!attStr || attStr.trim() === '' || attStr.toLowerCase().includes('brak')) return null;
+                    
+                    const attachmentsList = attStr.split(';');
+                    return (
+                      <div className="mb-8">
+                        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                          <Icons.Paperclip /> Powiązane Załączniki
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          {attachmentsList.map((att, idx) => {
+                            const parts = att.split('|');
+                            if (parts.length < 2) return null;
+                            const name = parts[0].trim();
+                            const link = parts.slice(1).join('|').trim();
+                            if (!link) return null;
+                            
+                            return (
+                              <a key={idx} href={link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group">
+                                <div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div>
+                                <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{name}</span>
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  } catch(e) { return null; }
+                })()}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
@@ -626,12 +670,18 @@ export default function DocumentsPage() {
                     <span className="font-bold text-slate-800 text-sm">{safeIssuer}</span>
                   </div>
                   
-                  {safeRepeals && typeof safeRepeals === 'string' && safeRepeals !== 'Brak' && safeRepeals.trim() !== '' && (
-                    <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
-                      <span className="font-bold text-rose-700 text-sm">{safeRepeals}</span>
-                    </div>
-                  )}
+                  {(() => {
+                    try {
+                      const repStr = safeRepeals;
+                      if (!repStr || repStr.trim() === '' || repStr.toLowerCase().includes('brak')) return null;
+                      return (
+                        <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
+                          <span className="font-bold text-rose-700 text-sm">{repStr}</span>
+                        </div>
+                      );
+                    } catch(e) { return null; }
+                  })()}
                 </div>
 
              </div>
