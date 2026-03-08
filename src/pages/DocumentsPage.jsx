@@ -29,11 +29,11 @@ const CATEGORY_STYLES = {
 export default function DocumentsPage() {
   const [activeView, setActiveView] = useState('LEX'); 
 
-  // STANY DLA BAZY
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Wszystkie');
+  
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [copiedAlert, setCopiedAlert] = useState('');
   
@@ -42,7 +42,6 @@ export default function DocumentsPage() {
   const [aiStage, setAiStage] = useState(0);
   const [showQR, setShowQR] = useState(false);
 
-  // STANY DLA STUDIA AI
   const [editorText, setEditorText] = useState('');
   const [aiOutput, setAiOutput] = useState('');
   const [isDrafting, setIsDrafting] = useState(false);
@@ -57,7 +56,10 @@ export default function DocumentsPage() {
           new Promise(resolve => setTimeout(resolve, 800))
         ]);
         const data = await response.json();
-        if (!data.error) setDocuments(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
+        // Zabezpieczony sort
+        if (!data.error && Array.isArray(data)) {
+          setDocuments(data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)));
+        }
       } catch (error) {
         console.error("Błąd pobierania dokumentów:", error);
       } finally {
@@ -68,13 +70,23 @@ export default function DocumentsPage() {
   }, []);
 
   const categoriesFromSheets = ['Wszystkie', ...new Set(documents.map(doc => doc.category).filter(Boolean))];
+  
   const isNew = (dateStr) => {
     if (!dateStr) return false;
     return Math.ceil(Math.abs(new Date() - new Date(dateStr)) / (1000 * 60 * 60 * 24)) <= 30;
   };
+  
   const showAlert = (msg) => { setCopiedAlert(msg); setTimeout(() => setCopiedAlert(''), 2500); };
   const handleCopyLink = (link) => { navigator.clipboard.writeText(link); showAlert('Skopiowano!'); };
-  const handleCopyCitation = (doc) => { navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`); showAlert('Skopiowano przypis!'); };
+  const handleCopyCitation = (doc) => { 
+    // Bezpieczne wstawianie
+    const sig = doc?.signature || '';
+    const title = doc?.title || '';
+    const issuer = doc?.issuer || '';
+    const date = doc?.date || '';
+    navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${sig} ("${title}") wydanego przez ${issuer} w dniu ${date} r.`); 
+    showAlert('Skopiowano przypis!'); 
+  };
   
   const openModal = (doc) => { 
     setSelectedDoc(doc); 
@@ -84,11 +96,9 @@ export default function DocumentsPage() {
     setShowQR(false); 
   };
 
-  // NAPRAWIONY ALGORYTM AI (Zabezpieczony przed pustymi polami w Excelu)
   const generateAiReport = (doc) => {
     if (!doc) return { target: '-', rigor: '-', rigorColor: '', readTime: 0 };
     
-    // Zabezpieczenie przed undefined/null
     const title = doc.title || '';
     const category = doc.category || '';
     const desc = doc.desc || '';
@@ -102,10 +112,9 @@ export default function DocumentsPage() {
     if (doc.pages && !isNaN(doc.pages)) {
       readTime = parseInt(doc.pages) * 2;
     } else {
-      // Wyliczenie na podstawie faktycznej długości tekstu
       const totalLength = title.length + desc.length;
       readTime = Math.max(1, Math.ceil(totalLength / 200)); 
-      if (rigor === "Bardzo Wysoki" && readTime < 5) readTime = 5; // Regulaminy minimum 5 min
+      if (rigor === "Bardzo Wysoki" && readTime < 5) readTime = 5; 
     }
     return { target, rigor, rigorColor, readTime };
   };
@@ -126,13 +135,28 @@ export default function DocumentsPage() {
     const title = doc.title || '';
     const sig = doc.signature || '';
     const desc = doc.desc || '';
+    const cat = doc.category || '';
     const matchesSearch = `${title} ${sig} ${desc}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'Wszystkie' || doc.category === activeCategory;
+    const matchesCategory = activeCategory === 'Wszystkie' || cat === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
   const activeDocsCount = documents.filter(d => d.status === 'Obowiązujący').length;
-  const lastUpdate = documents.length > 0 ? documents[0].date : 'Brak danych';
+  const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
+
+  // ==========================================
+  // ZABEZPIECZONE DANE DLA MODALA (KULOODPORNY RENDER)
+  // ==========================================
+  const safeSignature = selectedDoc?.signature || '-';
+  const safeCategory = selectedDoc?.category || 'Brak kategorii';
+  const safeTitle = selectedDoc?.title || 'Dokument bez tytułu';
+  const safeStatus = selectedDoc?.status || 'Nieokreślony';
+  const safeDate = selectedDoc?.date || '-';
+  const safeIssuer = selectedDoc?.issuer || '-';
+  const safeDesc = selectedDoc?.desc || 'Brak opisu dla tego dokumentu.';
+  const safeLink = selectedDoc?.link || '#';
+  const safeRepeals = selectedDoc?.repeals || '';
+  const safeAttachments = selectedDoc?.attachments || '';
 
   // ==========================================
   // STUDIO LEGISLACYJNE (Wymogi Podprogowe!)
@@ -149,21 +173,23 @@ export default function DocumentsPage() {
         clearInterval(typingInterval);
         setIsDrafting(false);
       }
-    }, 10); 
+    }, 5); // Bardzo szybkie pisanie, by nie nudzić
   };
 
   const handleGenerateTemplate = (type) => {
     let template = '';
-    if (type === 'nocka') {
-      template = `[WYMÓG: Klauzula odpowiedzialności cywilnej i PPOŻ uwzględniona]\n\nWrocław, dnia ${new Date().toLocaleDateString('pl-PL')}\n\nDo: Kanclerz Uniwersytetu Ekonomicznego we Wrocławiu\nOd: Zarząd Samorządu Studentów UEW\n\nWNIOSEK O PRZEDŁUŻENIE GODZIN OTWARCIA BUDYNKU\n\nDziałając na podstawie obowiązującego Regulaminu Przestrzeni, zwracam się z uprzejmą prośbą o wyrażenie zgody na przebywanie członków Samorządu w budynku Z (sala 28J) w godzinach od 22:00 do 03:00 w dniu [WPISZ DATĘ].\n\nUzasadnienie:\nPrzedłużenie godzin jest niezbędne do logistycznego przygotowania projektu [NAZWA PROJEKTU]. Jednocześnie oświadczam, że bierzemy na siebie pełną odpowiedzialność materialną i dyscyplinarną za pozostawione mienie oraz zobowiązujemy się do bezwzględnego przestrzegania przepisów BHP i PPOŻ.\n\nZ wyrazami szacunku,\n[Twój Podpis]`;
-    } else if (type === 'rektorskie') {
-      template = `[WYMÓG: Powołanie się na pozytywny wpływ na społeczność akademicką uwzględnione]\n\nWrocław, dnia ${new Date().toLocaleDateString('pl-PL')}\n\nDo: Jego Magnificencja Rektor Uniwersytetu Ekonomicznego we Wrocławiu\nOd: [Nazwa Organizacji / Koła Naukowego]\n\nWNIOSEK O ZWOLNIENIE REKTORSKIE (GODZINY REKTORSKIE)\n\nZwracamy się z uprzejmą prośbą o zwolnienie z zajęć dydaktycznych dla niżej wymienionych studentów w dniu [DATA] w godzinach [GODZINY].\n\nUzasadnienie:\nWskazani studenci są kluczowym ogniwem w organizacji wydarzenia "[NAZWA]". Ich nieobecność na zajęciach podyktowana jest pracą na rzecz naszej Uczelni. Projekt ten wnosi istotny, pozytywny wkład w integrację społeczności akademickiej oraz kreuje wizerunek Uniwersytetu jako przestrzeni promującej proaktywne postawy studenckie.\n\nLista studentów:\n1. [Imię Nazwisko, Nr Indeksu]\n\nZ wyrazami szacunku,\n[Twój Podpis]`;
+    const today = new Date().toLocaleDateString('pl-PL');
+    
+    if (type === 'zwolnienie') {
+      template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko / Organizacja]\n[Adres e-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS np. projekt promujący Uczelnię]. Studenci będą zaangażowani w [OPIS ZADAŃ], co uniemożliwia im uczestnictwo w zajęciach. Projekt ten wnosi pozytywny wkład w społeczność akademicką i kreuje wizerunek Uniwersytetu.\n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Twój Podpis i Funkcja]`;
+    } else if (type === 'banerowanie') {
+      template = `[WYMÓG: Klauzule o bezpiecznym montażu, dane osoby odpowiedzialnej i obowiązek demontażu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[Adres e-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych w postaci baneru na terenie kampusu UEW w celu promocji wydarzenia "[NAZWA WYDARZENIA]".\n\nProszę o możliwość ekspozycji baneru w okresie od [DATA OD] do [DATA DO] w następującej lokalizacji: [WPISZ LOKALIZACJĘ, np. barierka przy budynku Z].\n\nZapewniam dołożenie należytej staranności w zakresie prawidłowego i bezpiecznego montażu baneru, z poszanowaniem infrastruktury Uczelni oraz w sposób nienaruszający bezpieczeństwa użytkowników Kampusu.\n\nOsobą odpowiedzialną za poprawne zamocowanie baneru, jego bieżące monitorowanie w trakcie ekspozycji oraz jego terminowy demontaż jest: [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON], e-mail: [E-MAIL]).\n\nZobowiązuję się również do:\n- samodzielnego zawieszenia i zdjęcia baneru we wskazanym terminie,\n- regularnego sprawdzania trwałości i stabilności mocowania baneru podczas okresu jego ekspozycji,\n- pozostawienia miejsca w stanie nienaruszonym po zakończeniu promocji.\n\nJednocześnie oświadczam, że ekspozycja baneru będzie prowadzona zgodnie z obowiązującymi zasadami Uczelni.\n\nZ wyrazami szacunku,\n[Twój Podpis i Funkcja]`;
     } else if (type === 'formalize') {
       if (!editorText || editorText.length < 10) {
         setAiOutput("BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie (np. 'chcemy zrobic grilla za uczelnią'), a ja ubiorę to w odpowiednie paragrafy.");
         return;
       }
-      template = `[PRZEKSZTAŁCONO W STYL URZĘDOWY]\n\nWrocław, dnia ${new Date().toLocaleDateString('pl-PL')}\n\nWNIOSEK / PISMO PRZEWODNIE\n\nDziałając w interesie społeczności studenckiej oraz na podstawie obowiązujących przepisów, niniejszym wnoszę o:\n\nZgodnie ze zgłoszonym postulatem: "${editorText.substring(0, 80)}[...]", pragniemy zaznaczyć, iż realizacja tego przedsięwzięcia bezpośrednio wpisuje się w realizację celów statutowych naszej organizacji.\n\nZwracamy się z uprzejmą prośbą o pozytywne rozpatrzenie niniejszego pisma.\n\nZ poważaniem,\n[Podpis]`;
+      template = `[PRZEKSZTAŁCONO W STYL URZĘDOWY]\n\nWrocław, dnia ${today} r.\n\nWNIOSEK / PISMO PRZEWODNIE\n\nDziałając w interesie społeczności studenckiej oraz na podstawie obowiązujących przepisów, niniejszym wnoszę o:\n\nZgodnie ze zgłoszonym postulatem: "${editorText.substring(0, 80)}[...]", pragniemy zaznaczyć, iż realizacja tego przedsięwzięcia bezpośrednio wpisuje się w realizację celów statutowych naszej organizacji.\n\nZwracamy się z uprzejmą prośbą o pozytywne rozpatrzenie niniejszego pisma.\n\nZ poważaniem,\n[Podpis]`;
     }
     simulateAiTyping(template);
   };
@@ -253,22 +279,21 @@ export default function DocumentsPage() {
                       </div>
                       <div className="flex-grow">
                         <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.category}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.category || '-'}</span>
                           <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date}</span>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date || '-'}</span>
                           {nowosc && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>}
                           
-                          {/* Zabezpieczony render ikony załączników na liście */}
-                          {doc.attachments && String(doc.attachments).trim() !== '' && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
+                          {doc.attachments && typeof doc.attachments === 'string' && doc.attachments.trim() !== '' && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
                         </div>
-                        <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title}</h3>
+                        <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
                         {!isActive && <p className="text-xs text-red-500 font-medium mt-1">Uchylony: Zastąpiony przez nowszy akt</p>}
                       </div>
                       <div className="shrink-0 flex md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 border-slate-100">
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{doc.signature}</span>
+                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{doc.signature || '-'}</span>
                         <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${isActive ? 'bg-emerald-50/50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                          {doc.status}
+                          {doc.status || '-'}
                         </div>
                       </div>
                     </div>
@@ -319,22 +344,22 @@ export default function DocumentsPage() {
 
             <div className="relative z-10 flex-grow p-6 overflow-y-auto flex flex-col gap-6 scrollbar-hide" ref={aiOutputRef}>
                <div className="bg-slate-800/80 border border-slate-700 p-5 rounded-2xl text-sm text-slate-300 leading-relaxed shadow-lg">
-                 Cześć! Posiadam zaszyte wewnętrzne wymogi administracji. Wybierz szablon, a przygotuję gotowe pismo spełniające wszystkie "podprogowe" zasady uczelni.
+                 Cześć! Posiadam zaszyte wewnętrzne wymogi administracji uczelni. Wybierz szablon, a przygotuję dla Ciebie odpowiednie pismo.
                </div>
 
                <div className="grid grid-cols-1 gap-3">
-                 <button onClick={() => handleGenerateTemplate('rektorskie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                 <button onClick={() => handleGenerateTemplate('zwolnienie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                     <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Zwolnienie z zajęć dydaktycznych (inaczej Rektorskie)</span>
-                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Uzasadnienie wkładu w społeczność</span>
+                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. Zwolnienia z Zajęć Dydaktycznych</span>
+                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Uzasadnienie wkładu w społeczność i nadrabianie</span>
                     </div>
                     <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
                  </button>
 
-                 <button onClick={() => handleGenerateTemplate('nocka')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                 <button onClick={() => handleGenerateTemplate('banerowanie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
                     <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. możliwości z przłużonego korzystania z sali 28J</span>
-                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Klauzule BHP i odpowiedzialności</span>
+                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. Możliwości Banerowania</span>
+                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Klauzule bezpieczeństwa i demontażu</span>
                     </div>
                     <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
                  </button>
@@ -370,7 +395,7 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {/* METRYKA DOKUMENTU (LEX MODAL) */}
+      {/* KULOODPORNY RENDER MODALA LEX */}
       {selectedDoc && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDoc(null)}></div>
@@ -386,12 +411,12 @@ export default function DocumentsPage() {
              <div className="p-8 pb-6 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
                <div className="pr-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedDoc.signature}</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeSignature}</p>
                     <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedDoc.category}</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeCategory}</p>
                   </div>
-                  <h2 className={`text-2xl font-black leading-tight ${selectedDoc.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
-                    {selectedDoc.title}
+                  <h2 className={`text-2xl font-black leading-tight ${safeStatus === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
+                    {safeTitle}
                   </h2>
                </div>
                <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
@@ -456,7 +481,7 @@ export default function DocumentsPage() {
                   <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
                     <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
-                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedDoc.link || 'https://google.com')}`} alt="QR Code" className="w-32 h-32" />
+                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeLink)}`} alt="QR Code" className="w-32 h-32" />
                     </div>
                   </div>
                 )}
@@ -464,18 +489,18 @@ export default function DocumentsPage() {
                 <div className="mb-8">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
                   <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-slate-600 text-sm leading-relaxed">{selectedDoc.desc || "Brak opisu."}</p>
+                    <p className="text-slate-600 text-sm leading-relaxed">{safeDesc}</p>
                   </div>
                 </div>
 
-                {/* ZABEZPIECZONY RENDER ZAŁĄCZNIKÓW */}
-                {selectedDoc.attachments && String(selectedDoc.attachments).trim() !== '' && (
+                {/* Zabezpieczony render załączników i uchyleń */}
+                {safeAttachments && typeof safeAttachments === 'string' && safeAttachments.trim() !== '' && (
                   <div className="mb-8">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
                       <Icons.Paperclip /> Powiązane Załączniki
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {String(selectedDoc.attachments).split(';').map((att, idx) => {
+                      {String(safeAttachments).split(';').map((att, idx) => {
                         const parts = att.split('|');
                         if (parts.length !== 2) return null;
                         const [name, link] = parts;
@@ -493,22 +518,30 @@ export default function DocumentsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span>
-                    <span className="font-bold text-slate-800 text-sm">{selectedDoc.date || "-"}</span>
+                    <span className="font-bold text-slate-800 text-sm">{safeDate}</span>
                   </div>
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span>
-                    <button onClick={() => handleCopyLink(selectedDoc.link || '')} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button>
+                    <button onClick={() => handleCopyLink(safeLink)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button>
                   </div>
                   <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span>
-                    <span className="font-bold text-slate-800 text-sm">{selectedDoc.issuer || "-"}</span>
+                    <span className="font-bold text-slate-800 text-sm">{safeIssuer}</span>
                   </div>
+                  
+                  {/* Uchylenia */}
+                  {safeRepeals && typeof safeRepeals === 'string' && safeRepeals !== 'Brak' && safeRepeals.trim() !== '' && (
+                    <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
+                      <span className="font-bold text-rose-700 text-sm">{safeRepeals}</span>
+                    </div>
+                  )}
                 </div>
 
              </div>
              
              <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-                <a href={selectedDoc.link || '#'} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">
+                <a href={safeLink} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">
                   Otwórz oryginał dokumentu <Icons.External />
                 </a>
              </div>
