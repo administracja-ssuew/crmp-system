@@ -1,29 +1,28 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Scanner } from '@yudiel/react-qr-scanner';
 
 export default function ScannerPage() {
   const [scannedItems, setScannedItems] = useState([]);
   const [lastScanned, setLastScanned] = useState(null);
+  const navigate = useNavigate();
 
   const handleScan = (text) => {
-    if (text) {
-      // Zapobiegamy podwójnemu skanowaniu tego samego kodu w ułamku sekundy
-      if (text !== lastScanned) {
-        setLastScanned(text);
-        
-        // Dodajemy zeskanowany kod na samą górę listy
-        setScannedItems(prev => [
-          { code: text, time: new Date().toLocaleTimeString(), id: Date.now() },
-          ...prev
-        ]);
-
-        // Krótka wibracja (jeśli telefon to obsługuje)
-        if (navigator.vibrate) {
-          navigator.vibrate(50);
-        }
-      }
+    if (text && text !== lastScanned) {
+      setLastScanned(text);
+      setScannedItems(prev => [
+        { code: text, time: new Date().toLocaleTimeString(), id: Date.now() },
+        ...prev
+      ]);
+      if (navigator.vibrate) navigator.vibrate(50);
     }
+  };
+
+  // NOWOŚĆ: Funkcja zamykająca skaner i przekazująca kody do panelu
+  const handleFinishScanning = () => {
+    const extractedCodes = scannedItems.map(item => item.code);
+    // Przenosimy użytkownika do /sprzet i wysyłamy w tle paczkę (state) z kodami
+    navigate('/sprzet', { state: { scannedCodes: extractedCodes } });
   };
 
   return (
@@ -32,12 +31,12 @@ export default function ScannerPage() {
       {/* NAGŁÓWEK SKANERA */}
       <div className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between z-10 shadow-xl">
         <div className="flex items-center gap-3">
-          <Link 
-            to="/wydawanie" 
+          <button 
+            onClick={handleFinishScanning}
             className="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-full hover:bg-slate-700 transition-colors"
           >
             <svg className="w-5 h-5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
-          </Link>
+          </button>
           <div>
             <h1 className="font-black text-lg tracking-wide text-slate-100">Moduł SKI</h1>
             <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest flex items-center gap-1">
@@ -54,46 +53,30 @@ export default function ScannerPage() {
 
       {/* WIZJER APARATU */}
       <div className="relative flex-1 bg-black flex items-center justify-center overflow-hidden">
-        {/* Kontener dla biblioteki skanera */}
         <div className="absolute inset-0 w-full h-full object-cover opacity-80">
           <Scanner 
             onResult={(text) => handleScan(text)} 
             onError={(error) => console.log(error?.message)}
-            options={{
-              delayBetweenScanAttempts: 1000,
-              delayBetweenScanSuccess: 2000,
-            }}
+            options={{ delayBetweenScanAttempts: 1000, delayBetweenScanSuccess: 2000 }}
           />
         </div>
 
-        {/* Nakładka celownika (Design) */}
         <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
           <div className="w-64 h-64 relative">
-            {/* Rogi celownika */}
             <div className="absolute top-0 left-0 w-12 h-12 border-t-4 border-l-4 border-emerald-500 rounded-tl-xl"></div>
             <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-emerald-500 rounded-tr-xl"></div>
             <div className="absolute bottom-0 left-0 w-12 h-12 border-b-4 border-l-4 border-emerald-500 rounded-bl-xl"></div>
             <div className="absolute bottom-0 right-0 w-12 h-12 border-b-4 border-r-4 border-emerald-500 rounded-br-xl"></div>
-            
-            {/* Laser skanujący */}
             <div className="absolute top-0 left-0 w-full h-0.5 bg-emerald-400 shadow-[0_0_15px_3px_rgba(52,211,153,0.5)] animate-scanLaser"></div>
           </div>
-          <p className="mt-8 text-xs font-bold text-white/70 uppercase tracking-widest bg-black/50 px-4 py-1 rounded-full backdrop-blur-sm">
-            Nakieruj kod kreskowy lub QR
-          </p>
         </div>
       </div>
 
-      {/* LISTA ZESKANOWANYCH PRZEDMIOTÓW */}
+      {/* LISTA SKANÓW I PRZYCISK FINALIZACJI */}
       <div className="h-1/3 min-h-[250px] bg-slate-900 border-t border-slate-800 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20 flex flex-col">
         <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 rounded-t-3xl">
           <h2 className="text-sm font-black text-slate-300 uppercase tracking-wider">Historia sesji</h2>
-          <button 
-            onClick={() => setScannedItems([])}
-            className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-red-400 transition-colors"
-          >
-            Wyczyść
-          </button>
+          <button onClick={() => setScannedItems([])} className="text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-red-400 transition-colors">Wyczyść</button>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2">
@@ -103,7 +86,7 @@ export default function ScannerPage() {
               <p className="text-xs uppercase tracking-widest font-bold">Brak skanów</p>
             </div>
           ) : (
-            scannedItems.map((item, index) => (
+            scannedItems.map((item) => (
               <div key={item.id} className="bg-slate-800/50 border border-slate-700/50 p-3 rounded-2xl flex items-center justify-between animate-fadeIn">
                 <div className="flex items-center gap-3 overflow-hidden">
                   <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
@@ -118,8 +101,17 @@ export default function ScannerPage() {
             ))
           )}
         </div>
-      </div>
 
+        {/* NOWY PRZYCISK NA SAMYM DOLE */}
+        <div className="p-4 bg-slate-950 border-t border-slate-800">
+          <button 
+            onClick={handleFinishScanning}
+            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-emerald-900/50 transition-colors"
+          >
+            Zatwierdź i przejdź do koszyka
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

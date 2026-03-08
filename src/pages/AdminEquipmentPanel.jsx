@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 export default function AdminEquipmentPanel() {
   const [adminMode, setAdminMode] = useState('wydawanie'); 
@@ -489,4 +489,32 @@ export default function AdminEquipmentPanel() {
 
     </div>
   );
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // ODBIÓR DANYCH ZE SKANERA
+  useEffect(() => {
+    // Sprawdzamy, czy wróciliśmy ze skanera i czy baza sprzętu jest już załadowana
+    if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
+      const codesToFind = location.state.scannedCodes;
+      
+      // Szukamy sprzętów o zeskanowanych kodach, które są "available"
+      const itemsToAdd = equipmentData.filter(item => codesToFind.includes(item.id) && item.status === 'available');
+
+      if (itemsToAdd.length > 0) {
+        // Dodajemy do koszyka tylko te, których tam jeszcze nie ma
+        setSelectedItems(prev => {
+          const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id));
+          return [...prev, ...newItems];
+        });
+        
+        // Możesz opcjonalnie odkomentować poniższy alert, żeby informował o dodaniu
+        alert(`Skanowanie udane! Dodano ${itemsToAdd.length} przedmiotów do koszyka.`);
+      }
+
+      // Czyścimy "paczkę", żeby przy odświeżeniu strony sprzęty nie dodały się podwójnie
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [equipmentData, location.state, navigate, location.pathname]);
 }
