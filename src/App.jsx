@@ -135,7 +135,7 @@ export default function App() {
           <Route path="/kalendarz-wybor" element={<CalendarSelectionPage />} />
 
           {/* Kalendarz dla Samorządu (Ten potężny, z akceptacją) */}
-          <Route path="/kalendarz/samorzad" element={<CalendarSamorzadPage />} />
+          <Route path="/kalendarz/samorzad" element={<CalendarSamorzadPage userEmail={user.email} />} />
 
           {/* Kalendarz dla Organizacji (Tylko 28J i sale uczelniane) */}
           <Route path="/kalendarz/organizacje" element={<UniversalCalendarPage />} />

@@ -10,6 +10,13 @@ const CAMPUS_ROOMS = {
   '214 Z': { days: [1, 5], start: 18, end: 22 }
 };
 
+// 🔒 BIAŁA LISTA ADMINISTRATORÓW (Zmień na Wasze maile)
+const ADMIN_EMAILS = [
+  'twoj.mail@uew.edu.pl',
+  'inny.czlonek.zarzadu@uew.edu.pl',
+  'administrator@gmail.com'
+];
+
 // Paleta kolorów (odzwierciedlająca Twojego Excela)
 const PALETTE = [
   'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
@@ -23,13 +30,20 @@ const EMPTY_FORM = {
   date: '', room: '9J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
-export default function CalendarSamorzadPage() {
+// Odbieramy maila (zakładając, że przekazujesz go z systemu logowania przez `userEmail`)
+export default function CalendarSamorzadPage({ userEmail }) {
+  // Sprawdzanie uprawnień admina
+  const isAdmin = ADMIN_EMAILS.includes(userEmail);
+
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({ sale: [], przedluzenia: [], pending: [] });
+  
+  // Blokada podwójnego kliknięcia dla konkretnego wniosku
+  const [processingId, setProcessingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
   const [bookingForm, setBookingForm] = useState(EMPTY_FORM);
@@ -38,8 +52,13 @@ export default function CalendarSamorzadPage() {
 
   const [expandedReq, setExpandedReq] = useState(null);
   
-  // NOWOŚĆ: Stan wybranego koloru dla akceptowanego wniosku
+  // Stan wybranego koloru dla akceptowanego wniosku
   const [eventColor, setEventColor] = useState('bg-indigo-600');
+
+  // Stany dla formularza Przedłużeń
+  const [isExtModalOpen, setIsExtModalOpen] = useState(false);
+  const [extForm, setExtForm] = useState({ date: '', until: '03:00', note: 'Zgoda Kanclerza na przedłużenie' });
+  const [isExtSubmitting, setIsExtSubmitting] = useState(false);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -54,7 +73,9 @@ export default function CalendarSamorzadPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { 
+    if (isAdmin) fetchData(); 
+  }, [isAdmin]);
 
   const nextDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() + 1); setCurrentDate(d); };
   const prevDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() - 1); setCurrentDate(d); };
@@ -110,23 +131,28 @@ export default function CalendarSamorzadPage() {
       alert('Nie można zatwierdzić! Sala została w międzyczasie zajęta.'); return;
     }
 
+    setProcessingId(req.id); // ZAKŁADAMY BLOKADĘ NA TEN WNIOSEK
+
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        // Wysyłamy wybrany kolor do Apps Scriptu!
         body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor })
       });
       alert('Zatwierdzono! Wniosek wpisany do oficjalnego kalendarza.');
-      setExpandedReq(null); // Zwijamy kafelek
+      setExpandedReq(null); 
       fetchData(); 
     } catch (e) {
       alert('Błąd akceptacji.');
+    } finally {
+      setProcessingId(null); // ZDEJMUJEMY BLOKADĘ ZAWSZE NA KOŃCU
     }
   };
 
   const handleReject = async (req) => {
     const confirmReject = window.confirm(`Czy na pewno chcesz ODRZUCIĆ wniosek organizacji ${req.org}?`);
     if (!confirmReject) return;
+
+    setProcessingId(req.id); // ZAKŁADAMY BLOKADĘ
 
     try {
       await fetch(GOOGLE_SHEETS_URL, {
@@ -137,6 +163,28 @@ export default function CalendarSamorzadPage() {
       fetchData(); 
     } catch (e) {
       alert('Błąd podczas odrzucania wniosku.');
+    } finally {
+      setProcessingId(null); // ZDEJMUJEMY BLOKADĘ
+    }
+  };
+
+  const handleAddExtension = async () => {
+    if (!extForm.date || !extForm.until || !extForm.note) return alert('Wypełnij wszystkie pola!');
+    
+    setIsExtSubmitting(true);
+    try {
+      await fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: "addExtension", ...extForm })
+      });
+      alert('Przedłużenie zostało dodane do kalendarza!');
+      setIsExtModalOpen(false);
+      setExtForm({ date: '', until: '03:00', note: 'Zgoda Kanclerza na przedłużenie' });
+      fetchData(); 
+    } catch (e) {
+      alert('Błąd dodawania przedłużenia.');
+    } finally {
+      setIsExtSubmitting(false);
     }
   };
 
@@ -150,6 +198,27 @@ export default function CalendarSamorzadPage() {
     }
   };
 
+  // === EKRAN BLOKADY DLA NIEZALOGOWANYCH / BEZ UPRAWNIEŃ ===
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-center relative overflow-hidden">
+         <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
+         
+         <div className="relative z-10 max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-xl border border-red-100 animate-bounceIn">
+            <div className="w-20 h-20 bg-red-50 text-red-600 rounded-full flex items-center justify-center text-4xl mb-6 mx-auto">⛔</div>
+            <h1 className="text-2xl font-black text-slate-900 mb-2">Brak uprawnień</h1>
+            <p className="text-slate-500 font-medium mb-8">
+              Twój adres e-mail (<span className="text-slate-800 font-bold">{userEmail || 'niezalogowano'}</span>) nie ma dostępu do panelu zarządzania kalendarzem.
+            </p>
+            <Link to="/kalendarz-wybor" className="block w-full py-4 bg-slate-900 text-white font-black uppercase tracking-widest rounded-xl hover:bg-slate-800 transition shadow-lg">
+              Wróć do wyboru
+            </Link>
+         </div>
+      </div>
+    );
+  }
+
+  // === GŁÓWNY INTERFEJS ADMINISTRATORA ===
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-20 pt-24 relative overflow-x-hidden">
       
@@ -172,6 +241,10 @@ export default function CalendarSamorzadPage() {
                 <button onClick={() => setFilterRoom('213 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '213 Z' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>213 Z</button>
                 <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
             </div>
+
+            <button onClick={() => setIsExtModalOpen(true)} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
+              🌙 <span className="hidden md:inline">Przedłużenie</span>
+            </button>
             
             <button onClick={() => setIsPendingModalOpen(true)} className="relative bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
               ⏳ Oczekujące
@@ -201,6 +274,9 @@ export default function CalendarSamorzadPage() {
             const dateObj = new Date(dayDate);
             const dayOfWeek = dateObj.getDay();
             const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek);
+            
+            // Pigułka przedłużenia
+            const extension = calendarData.przedluzenia?.find(e => e.date?.substring(0, 10) === dayDate);
 
             let dailyRooms = ['9J', '16J', '28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
@@ -209,9 +285,27 @@ export default function CalendarSamorzadPage() {
 
             return (
               <div key={dayDate} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden mb-6">
-                <div className="bg-slate-50 p-3 border-b flex items-center gap-3">
-                    <div className="flex flex-col items-center bg-white border rounded-xl p-1.5 w-12"><span className="text-[9px] font-bold text-slate-400">{dateObj.toLocaleDateString('pl-PL', { weekday: 'short' })}</span><span className="text-lg font-black text-slate-900">{dateObj.getDate()}</span></div>
+                
+                {/* ZAKTUALIZOWANY PASEK Z DATĄ I PRZEDŁUŻENIEM */}
+                <div className="bg-slate-50 p-3 border-b border-slate-100 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center bg-white border border-slate-200 rounded-xl p-1.5 w-14 shadow-sm">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{dateObj.toLocaleDateString('pl-PL', { weekday: 'short' })}</span>
+                            <span className="text-xl font-black text-slate-900">{dateObj.getDate()}</span>
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
+                            
+                            {/* WYŚWIETLANIE PRZEDŁUŻENIA */}
+                            {extension && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
+                                  🌙 {extension.note} (do {extension.until})
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
+
                 <div className="overflow-x-auto scrollbar-hide">
                   <div className="min-w-[1200px] p-4">
                     <div className="flex mb-2 pl-14">{HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l">{String(h).padStart(2, '0')}:00</div>)}</div>
@@ -292,6 +386,38 @@ export default function CalendarSamorzadPage() {
         </div>
       )}
 
+      {/* MODAL: DODAWANIE PRZEDŁUŻENIA (ZGODA KANCLERZA) */}
+      {isExtModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsExtModalOpen(false)}></div>
+           <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 animate-bounceIn">
+             <div className="flex items-center gap-3 mb-6">
+               <span className="text-3xl">🌙</span>
+               <h2 className="text-2xl font-black text-slate-900 leading-tight">Zgoda na przedłużenie</h2>
+             </div>
+             
+             <div className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-600 ml-1">Data *</label>
+                  <input type="date" value={extForm.date} onChange={e => setExtForm({...extForm, date: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-600 ml-1">Do której godziny? *</label>
+                  <input type="time" value={extForm.until} onChange={e => setExtForm({...extForm, until: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-600 ml-1">Krótka notatka (np. dla kogo?)</label>
+                  <input type="text" value={extForm.note} onChange={e => setExtForm({...extForm, note: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold mt-1 focus:ring-2 focus:ring-amber-500 outline-none" />
+                </div>
+                
+                <button onClick={handleAddExtension} disabled={isExtSubmitting} className="w-full py-4 bg-amber-500 text-white font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition shadow-lg shadow-amber-200 mt-4 disabled:bg-slate-300">
+                  {isExtSubmitting ? 'Zapisywanie...' : 'Dodaj wpis'}
+                </button>
+             </div>
+           </div>
+        </div>
+      )}
+
       {isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsPendingModalOpen(false)}></div>
@@ -323,8 +449,21 @@ export default function CalendarSamorzadPage() {
                              <p className="text-sm font-bold text-slate-500">{req.title}</p>
                            </div>
                            <div className="flex items-center gap-2">
-                             <button onClick={(e) => { e.stopPropagation(); handleApprove(req); }} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl font-bold shadow-md shadow-emerald-200 transition text-sm">Akceptuj</button>
-                             <button onClick={(e) => { e.stopPropagation(); handleReject(req); }} className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-xl font-bold border border-red-200 transition text-sm">Odrzuć</button>
+                             <button 
+                               disabled={processingId === req.id}
+                               onClick={(e) => { e.stopPropagation(); handleApprove(req); }} 
+                               className={`px-4 py-2 rounded-xl font-bold transition text-sm ${processingId === req.id ? 'bg-slate-400 text-white cursor-wait' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-200'}`}
+                             >
+                               {processingId === req.id ? '⏳...' : 'Akceptuj'}
+                             </button>
+                             
+                             <button 
+                               disabled={processingId === req.id}
+                               onClick={(e) => { e.stopPropagation(); handleReject(req); }} 
+                               className={`px-4 py-2 rounded-xl font-bold transition text-sm ${processingId === req.id ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-wait' : 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-200'}`}
+                             >
+                               Odrzuć
+                             </button>
                              <span className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''} ml-2`}>▼</span>
                            </div>
                          </div>
