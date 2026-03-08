@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// !!! UWAGA: Upewnij się, że to Twój najnowszy link po wdrożeniu skryptu! !!!
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
@@ -10,6 +9,14 @@ const CAMPUS_ROOMS = {
   '213 Z': { days: [4, 5], start: 18, end: 22 }, 
   '214 Z': { days: [1, 5], start: 18, end: 22 }
 };
+
+// Paleta kolorów (odzwierciedlająca Twojego Excela)
+const PALETTE = [
+  'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
+  'bg-emerald-500', 'bg-lime-500', 'bg-fuchsia-500', 
+  'bg-purple-600', 'bg-red-500', 'bg-red-800', 
+  'bg-orange-400', 'bg-amber-500', 'bg-slate-600'
+];
 
 const EMPTY_FORM = {
   applicantName: '', email: '', orgType: 'Samorząd Studentów UEW', org: 'Samorząd Studentów', title: '',
@@ -28,7 +35,11 @@ export default function CalendarSamorzadPage() {
   const [bookingForm, setBookingForm] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState('');
+
   const [expandedReq, setExpandedReq] = useState(null);
+  
+  // NOWOŚĆ: Stan wybranego koloru dla akceptowanego wniosku
+  const [eventColor, setEventColor] = useState('bg-indigo-600');
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -54,13 +65,14 @@ export default function CalendarSamorzadPage() {
     return d.toISOString().split('T')[0];
   });
 
-  const checkCollision = (form) => {
+  const checkCollision = (form, ignoreId = null) => {
     const toFloat = (timeStr) => parseFloat(timeStr.split(':')[0]) + parseFloat(timeStr.split(':')[1] || 0)/60;
     const reqStart = toFloat(form.start);
     const reqEnd = toFloat(form.end);
     const allEvents = [...(calendarData.sale || []), ...(calendarData.pending || [])];
 
     return allEvents.some(ev => {
+      if (ignoreId && ev.id === ignoreId) return false;
       const evDate = ev.date ? ev.date.toString().substring(0, 10) : '';
       if (evDate !== form.date || ev.room !== form.room) return false;
       const evStart = toFloat(ev.start);
@@ -94,16 +106,18 @@ export default function CalendarSamorzadPage() {
   };
 
   const handleApprove = async (req) => {
-    if (checkCollision({ date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end })) {
+    if (checkCollision({ date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end }, req.id)) {
       alert('Nie można zatwierdzić! Sala została w międzyczasie zajęta.'); return;
     }
 
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title })
+        // Wysyłamy wybrany kolor do Apps Scriptu!
+        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor })
       });
-      alert('Zatwierdzono!');
+      alert('Zatwierdzono! Wniosek wpisany do oficjalnego kalendarza.');
+      setExpandedReq(null); // Zwijamy kafelek
       fetchData(); 
     } catch (e) {
       alert('Błąd akceptacji.');
@@ -126,6 +140,16 @@ export default function CalendarSamorzadPage() {
     }
   };
 
+  // Obsługa rozwijania kafelków
+  const toggleExpand = (id) => {
+    if (expandedReq === id) {
+      setExpandedReq(null);
+    } else {
+      setExpandedReq(id);
+      setEventColor('bg-indigo-600'); // Reset koloru przy otwarciu nowego
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-20 pt-24 relative overflow-x-hidden">
       
@@ -139,7 +163,6 @@ export default function CalendarSamorzadPage() {
         </div>
 
         <div className="flex gap-4 items-center">
-            {/* PRZYWRÓCONE FILTRY DLA SAMORZĄDU */}
             <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
                 <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
                 <button onClick={() => setFilterRoom('9J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '9J' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>9J</button>
@@ -177,7 +200,7 @@ export default function CalendarSamorzadPage() {
           daysToShow.map(dayDate => {
             const dateObj = new Date(dayDate);
             const dayOfWeek = dateObj.getDay();
-            const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek); // Od pon do pt
+            const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek);
 
             let dailyRooms = ['9J', '16J', '28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
@@ -202,7 +225,6 @@ export default function CalendarSamorzadPage() {
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border h-full relative flex overflow-hidden">
                             {HOURS.map(h => <div key={h} className="flex-1 border-l"></div>)}
                             
-                            {/* PRZYWRÓCONE: WYSZARZENIE DLA SAL UCZELNIANYCH */}
                             {campusRules && (
                               <>
                                 <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
@@ -213,7 +235,6 @@ export default function CalendarSamorzadPage() {
                               </>
                             )}
 
-                            {/* PRZYWRÓCONE: WOLNY DOSTĘP DLA 9J */}
                             {room === '9J' && isWorkingDay && (
                               <div className="absolute top-1 bottom-1 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-lg z-0 flex items-center justify-center pointer-events-none" 
                                    style={{ left: `${(8 / 24) * 100}%`, width: `${((16-8) / 24) * 100}%` }}>
@@ -225,7 +246,7 @@ export default function CalendarSamorzadPage() {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
                                 const isPending = ev.status === 'OCZEKUJE';
-                                const color = isPending ? 'bg-amber-400 opacity-80 border border-amber-600' : (ev.color || 'bg-emerald-600');
+                                const color = isPending ? 'bg-amber-400 opacity-80 border border-amber-600' : (ev.color || 'bg-indigo-500');
                                 return (
                                   <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${color} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}><span className="text-[9px] font-black text-white px-1 truncate">{ev.title} {isPending && '⏳'}</span></div>
                                 );
@@ -241,7 +262,6 @@ export default function CalendarSamorzadPage() {
         )}
       </div>
 
-      {/* MODAL SZYBKIEJ REZERWACJI ADMINA */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
@@ -272,11 +292,11 @@ export default function CalendarSamorzadPage() {
         </div>
       )}
 
-      {/* PANEL ADMINA: OCZEKUJĄCE */}
       {isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsPendingModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-bounceIn">
+             
              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem] shrink-0">
                <div>
                   <h2 className="text-2xl font-black text-slate-900">Skrzynka Podawcza 📥</h2>
@@ -293,7 +313,7 @@ export default function CalendarSamorzadPage() {
                      const isExpanded = expandedReq === req.id;
                      return (
                        <div key={req.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
-                         <div className="p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onClick={() => setExpandedReq(isExpanded ? null : req.id)}>
+                         <div className="p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onClick={() => toggleExpand(req.id)}>
                            <div>
                              <div className="flex items-center gap-3 mb-2">
                                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">{req.room}</span>
@@ -311,6 +331,23 @@ export default function CalendarSamorzadPage() {
 
                          {isExpanded && (
                            <div className="p-6 bg-slate-50 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 animate-slideUp">
+                             
+                             {/* SEKCJA: WYBÓR KOLORU */}
+                             <div className="md:col-span-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Wybierz kolor kafelka w kalendarzu</p>
+                               <div className="flex flex-wrap gap-3">
+                                 {PALETTE.map(colorClass => (
+                                   <button 
+                                     key={colorClass}
+                                     onClick={(e) => { e.stopPropagation(); setEventColor(colorClass); }}
+                                     className={`w-8 h-8 rounded-full ${colorClass} transition-all duration-200 ${eventColor === colorClass ? 'ring-4 ring-offset-2 ring-slate-300 scale-110 shadow-md' : 'hover:scale-110 hover:shadow-sm'}`}
+                                     title={`Użyj koloru: ${colorClass}`}
+                                   />
+                                 ))}
+                               </div>
+                               <p className="text-[10px] text-slate-400 mt-3 italic">Ten kolor zostanie przypisany do wydarzenia po kliknięciu "Akceptuj".</p>
+                             </div>
+
                              <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Zgłaszający</p><p className="font-bold text-slate-800">{req.applicantName}</p><p className="text-sm text-indigo-600 font-medium">{req.email}</p></div>
                              <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Typ</p><p className="font-bold text-slate-800">{req.orgType}</p></div>
                              <div className="md:col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uzasadnienie</p><div className="bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600 italic">"{req.justification}"</div></div>
