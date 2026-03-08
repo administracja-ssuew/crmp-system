@@ -21,6 +21,26 @@ const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9
 // LINK DO SKRYPTU OGŁOSZEŃ (Musi to być ten nowo wdrożony z funkcją doPost!)
 const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
 
+// === INTELIGENTNY FORMATER DATY ===
+// Zamienia brzydkie "2023-03-01T23:00:00.000Z" na ładne "02.03.2023"
+const formatDate = (rawDate) => {
+  if (!rawDate) return 'Brak';
+  if (rawDate === 'Dzisiaj' || rawDate === 'Wczoraj') return rawDate;
+  
+  try {
+    const dateObj = new Date(rawDate);
+    if (isNaN(dateObj.getTime())) return rawDate; // Jeśli to zwykły tekst, zostaw w spokoju
+    
+    return dateObj.toLocaleDateString('pl-PL', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (e) {
+    return rawDate;
+  }
+};
+
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
