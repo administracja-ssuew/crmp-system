@@ -11,7 +11,8 @@ const Icons = {
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
   Brain: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>,
   Timer: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
-  Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+  Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>,
+  Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>
 };
 
 const CATEGORY_STYLES = {
@@ -72,6 +73,11 @@ export default function DocumentsPage() {
     showAlert('Kopiowanie przypisu...');
   };
 
+  const handleCopyLink = (link) => {
+    navigator.clipboard.writeText(link);
+    showAlert('Link skopiowany!');
+  };
+
   const openModal = (doc) => {
     setSelectedDoc(doc);
     setIsAiActive(false);
@@ -79,7 +85,6 @@ export default function DocumentsPage() {
     setAiStage(0);
   };
 
-  // NAPRAWIONY EFEKT ŁADOWANIA AI (Procentowy ProgressBar)
   const runAiAnalysis = () => {
     setIsAiActive(true);
     setAiProgress(0);
@@ -87,21 +92,20 @@ export default function DocumentsPage() {
     
     let progress = 0;
     const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 15) + 5; // Skoki od 5 do 20%
+      progress += Math.floor(Math.random() * 15) + 5; 
       if (progress >= 100) {
         progress = 100;
         clearInterval(interval);
-        setTimeout(() => setAiStage(4), 400); // Finał po ułamku sekundy
+        setTimeout(() => setAiStage(4), 400);
       } else if (progress > 60 && progress < 80) {
         setAiStage(2);
       } else if (progress >= 80) {
         setAiStage(3);
       }
       setAiProgress(progress);
-    }, 300); // Aktualizacja co 300ms dla realistycznego skakania cyferek
+    }, 300);
   };
 
-  // NAPRAWIONA LOGIKA OBLICZANIA CZASU (Heurystyka i kolumna 'pages')
   const generateAiReport = (doc) => {
     const text = `${doc.title} ${doc.category} ${doc.desc}`.toLowerCase();
     
@@ -114,16 +118,13 @@ export default function DocumentsPage() {
     if (text.includes('regulamin') || text.includes('uchwała')) { rigor = "Bardzo Wysoki"; rigorColor = "text-rose-500"; }
     else if (text.includes('zarządzenie')) { rigor = "Średni"; rigorColor = "text-amber-400"; }
 
-    // Szacowanie czasu:
-    // Jeśli w Excelu podano kolumnę `pages` (np. 15), to 1 strona = 2 minuty.
-    // Jeśli nie podano - używamy wag z kategorii dokumentu.
     let readTime = 2; 
     if (doc.pages && !isNaN(doc.pages)) {
       readTime = parseInt(doc.pages) * 2;
     } else {
-      if (text.includes('regulamin') || text.includes('statut')) readTime = Math.floor(Math.random() * 10) + 15; // 15-25 min
-      else if (text.includes('uchwała')) readTime = Math.floor(Math.random() * 5) + 5; // 5-10 min
-      else if (text.includes('instrukcja') || text.includes('szablon')) readTime = 2; // 2 min
+      if (text.includes('regulamin') || text.includes('statut')) readTime = Math.floor(Math.random() * 10) + 15;
+      else if (text.includes('uchwała')) readTime = Math.floor(Math.random() * 5) + 5;
+      else if (text.includes('instrukcja') || text.includes('szablon')) readTime = 2;
     }
 
     return { target, rigor, rigorColor, readTime };
@@ -136,6 +137,10 @@ export default function DocumentsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Obliczenia do Dashboardu
+  const activeDocsCount = documents.filter(d => d.status === 'Obowiązujący').length;
+  const lastUpdate = documents.length > 0 ? documents[0].date : 'Brak danych';
+
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
@@ -143,9 +148,23 @@ export default function DocumentsPage() {
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
         </h1>
-        <p className="text-base font-medium text-slate-500 mt-2">
+        <p className="text-base font-medium text-slate-500 mt-2 mb-6">
           Samorządowy System Aktów Prawnych zsynchronizowany z chmurą.
         </p>
+
+        {/* MINIDASHBOARD PRAWNY */}
+        {!isLoading && documents.length > 0 && (
+          <div className="flex flex-wrap justify-center md:justify-start gap-4">
+            <div className="bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Aktywne Akty: <span className="text-slate-900 text-sm">{activeDocsCount}</span></span>
+            </div>
+            <div className="bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm flex items-center gap-3">
+              <span className="text-xl">📅</span>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Ostatnia zmiana: <span className="text-slate-900 text-sm">{lastUpdate}</span></span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
@@ -217,6 +236,11 @@ export default function DocumentsPage() {
                         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date}</span>
                         {nowosc && (
                           <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>
+                        )}
+                        
+                        {/* Wskaźnik, że dokument ma załączniki na liście */}
+                        {doc.attachments && doc.attachments.trim() !== '' && (
+                           <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>
                         )}
                       </div>
                       <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title}</h3>
@@ -297,7 +321,6 @@ export default function DocumentsPage() {
                          <span className="text-emerald-400 font-bold">{aiProgress}%</span>
                       </div>
                       
-                      {/* Terminalowy Pasek Postępu */}
                       <div className="text-slate-500 text-xs tracking-widest mb-4">
                         [{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]
                       </div>
@@ -344,6 +367,38 @@ export default function DocumentsPage() {
                     <p className="text-slate-600 text-sm leading-relaxed">{selectedDoc.desc}</p>
                   </div>
                 </div>
+
+                {/* ZAŁĄCZNIKI (NOWY MODUŁ) */}
+                {selectedDoc.attachments && selectedDoc.attachments.trim() !== '' && (
+                  <div className="mb-8">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+                      <Icons.Paperclip /> Powiązane Załączniki
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedDoc.attachments.split(';').map((att, idx) => {
+                        const parts = att.split('|');
+                        if (parts.length !== 2) return null;
+                        const [name, link] = parts;
+                        return (
+                          <a 
+                            key={idx} 
+                            href={link.trim()} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group"
+                          >
+                            <div className="text-slate-300 group-hover:text-blue-500 transition-colors">
+                              <Icons.Document />
+                            </div>
+                            <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">
+                              {name.trim()}
+                            </span>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Karty Metadanych */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
