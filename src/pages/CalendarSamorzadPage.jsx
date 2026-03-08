@@ -14,7 +14,7 @@ const CAMPUS_ROOMS = {
 const ADMIN_EMAILS = [
   'twoj.mail@uew.edu.pl',
   'inny.czlonek.zarzadu@uew.edu.pl',
-  'administrator@gmail.com'
+  'administracja@samorzad.ue.wroc.pl'
 ];
 
 const PALETTE = [
@@ -30,11 +30,13 @@ const EMPTY_FORM = {
 };
 
 export default function CalendarSamorzadPage({ userEmail }) {
-  // Weryfikacja: TRUE jeśli mail jest na liście, FALSE dla reszty studentów
   const isAdmin = ADMIN_EMAILS.includes(userEmail);
 
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
+  
+  // NOWOŚĆ: Stan przechowujący zakres widoczności kalendarza (3, 7 lub 30 dni)
+  const [viewRange, setViewRange] = useState(3);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
@@ -67,15 +69,24 @@ export default function CalendarSamorzadPage({ userEmail }) {
     }
   };
 
-  // ZMIANA: Pobieramy dane dla WSZYSTKICH użytkowników, żeby każdy widział kalendarz
   useEffect(() => { 
     fetchData(); 
   }, []);
 
-  const nextDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() + 1); setCurrentDate(d); };
-  const prevDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() - 1); setCurrentDate(d); };
+  // Inteligentne przewijanie kalendarza (O 1 dzień w widoku 3D, lub o cały blok w widoku 7D/30D)
+  const nextDay = () => { 
+    const d = new Date(currentDate); 
+    d.setDate(currentDate.getDate() + (viewRange === 3 ? 1 : viewRange)); 
+    setCurrentDate(d); 
+  };
+  const prevDay = () => { 
+    const d = new Date(currentDate); 
+    d.setDate(currentDate.getDate() - (viewRange === 3 ? 1 : viewRange)); 
+    setCurrentDate(d); 
+  };
 
-  const daysToShow = [0, 1, 2].map(offset => {
+  // Dynamiczne generowanie listy dni do wyświetlenia
+  const daysToShow = Array.from({ length: viewRange }).map((_, offset) => {
     const d = new Date(currentDate);
     d.setDate(currentDate.getDate() + offset);
     return d.toISOString().split('T')[0];
@@ -99,18 +110,24 @@ export default function CalendarSamorzadPage({ userEmail }) {
 
   const handleSubmitBooking = async () => {
     setBookingError('');
-    if (!bookingForm.applicantName || !bookingForm.title || !bookingForm.date) return setBookingError('Wypełnij wymagane pola.');
-    if (!bookingForm.rodo) return setBookingError('Zaakceptuj RODO.');
+    if (!bookingForm.title || !bookingForm.date) return setBookingError('Wypełnij wymagane pola.');
     if (bookingForm.start >= bookingForm.end) return setBookingError('Koniec musi być po starcie.');
     if (checkCollision(bookingForm)) return setBookingError('KOLIZJA! Sala jest zajęta.');
 
     setIsSubmitting(true);
     try {
+      const payload = {
+        ...bookingForm,
+        action: "submitBooking",
+        rodo: true,
+        applicantName: userEmail || "Zalogowany Użytkownik"
+      };
+
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: "submitBooking", ...bookingForm })
+        body: JSON.stringify(payload)
       });
-      alert('Wysłano wniosek (Oczekuje na akceptację).');
+      alert('Wysłano wniosek wewnętrzny (Oczekuje na akceptację Admina).');
       setIsModalOpen(false);
       setBookingForm(EMPTY_FORM);
       fetchData();
@@ -199,7 +216,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
         <div>
           <Link to="/kalendarz-wybor" className="text-xs font-bold text-slate-400 hover:text-indigo-600 mb-2 block">← Wróć do wyboru</Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-            Kalendarz <span className="text-emerald-600">Przestrzeni</span>
+            Kalendarz <span className="text-emerald-600">Samorządu</span>
           </h1>
           <p className="text-sm font-medium text-slate-500 mt-1">Pełny grafik sal Samorządu i przestrzeni uczelnianych.</p>
         </div>
@@ -215,7 +232,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
                 <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
             </div>
 
-            {/* ZMIANA: Przyciski administratorskie są widoczne TYLKO jeśli isAdmin === true */}
             {isAdmin && (
               <>
                 <button onClick={() => setIsExtModalOpen(true)} className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
@@ -226,24 +242,32 @@ export default function CalendarSamorzadPage({ userEmail }) {
                   ⏳ Oczekujące
                   {calendarData.pending?.length > 0 && <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] w-5 h-5 flex items-center justify-center rounded-full animate-bounce">{calendarData.pending.length}</span>}
                 </button>
-
-                <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
-                    <span>+</span> Złóż Wniosek
-                </button>
               </>
             )}
+
+            <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
+                <span>+</span> Złóż Wniosek
+            </button>
         </div>
       </div>
 
-      {/* --- OŚ CZASU KALENDARZA WIDOCZNA DLA KAŻDEGO --- */}
       <div className="max-w-7xl mx-auto space-y-6 animate-slideUp">
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100">→</button>
-          <div className="text-center">
-            <span className="block text-xs font-bold text-slate-400 uppercase">Zakres widoczności</span>
-            <span className="text-lg font-black text-slate-800">{new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[2]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}</span>
+          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">←</button>
+          
+          <div className="text-center flex flex-col items-center">
+            <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Zakres widoczności</span>
+            <div className="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+               <button onClick={() => setViewRange(3)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 3 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>3 DNI</button>
+               <button onClick={() => setViewRange(7)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 7 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>TYDZIEŃ</button>
+               <button onClick={() => setViewRange(30)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 30 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>MIESIĄC</button>
+            </div>
+            <span className="text-lg font-black text-slate-800">
+              {new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[daysToShow.length - 1]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
+            </span>
           </div>
-          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100">→</button>
+
+          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">→</button>
         </div>
 
         {isLoading ? (
@@ -332,8 +356,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
         )}
       </div>
 
-      {/* --- MODALE ADMINA (UKRYTE GDY !isAdmin) --- */}
-      {isAdmin && isModalOpen && (
+      {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 animate-bounceIn">
@@ -350,13 +373,10 @@ export default function CalendarSamorzadPage({ userEmail }) {
                 </div>
                 <input type="text" placeholder="Cel spotkania np. Zarząd" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
                 
-                <input type="hidden" value={bookingForm.rodo = true} />
-                <input type="hidden" value={bookingForm.applicantName = "Admin"} />
-                
                 {bookingError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">{bookingError}</p>}
                 
                 <button onClick={handleSubmitBooking} disabled={isSubmitting} className="w-full py-4 bg-emerald-600 text-white font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition mt-4">
-                  {isSubmitting ? 'Przetwarzanie...' : 'Wpisz do kalendarza'}
+                  {isSubmitting ? 'Wysyłanie...' : 'Wyślij Wniosek'}
                 </button>
              </div>
            </div>
