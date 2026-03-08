@@ -32,16 +32,21 @@ export default function DocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [copiedAlert, setCopiedAlert] = useState('');
   
-  // Lex AI States
   const [isAiActive, setIsAiActive] = useState(false);
   const [aiProgress, setAiProgress] = useState(0);
   const [aiStage, setAiStage] = useState(0);
+  const [showQR, setShowQR] = useState(false);
 
   useEffect(() => {
     const fetchDocs = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(DOCS_API_URL);
+        // Wymuszamy minimum 800ms ładowania dla efektu płynności (nawet jak internet jest super szybki)
+        const [response] = await Promise.all([
+          fetch(DOCS_API_URL),
+          new Promise(resolve => setTimeout(resolve, 800))
+        ]);
+        
         const data = await response.json();
         if (!data.error) {
           setDocuments(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
@@ -83,6 +88,7 @@ export default function DocumentsPage() {
     setIsAiActive(false);
     setAiProgress(0);
     setAiStage(0);
+    setShowQR(false);
   };
 
   const runAiAnalysis = () => {
@@ -108,7 +114,6 @@ export default function DocumentsPage() {
 
   const generateAiReport = (doc) => {
     const text = `${doc.title} ${doc.category} ${doc.desc}`.toLowerCase();
-    
     let target = "Wszyscy Studenci";
     if (text.includes('zarząd') || text.includes('wewnętrz')) target = "Administracja SSUEW";
     if (text.includes('koł') || text.includes('organizacj')) target = "Organizacje Studenckie";
@@ -126,7 +131,6 @@ export default function DocumentsPage() {
       else if (text.includes('uchwała')) readTime = Math.floor(Math.random() * 5) + 5;
       else if (text.includes('instrukcja') || text.includes('szablon')) readTime = 2;
     }
-
     return { target, rigor, rigorColor, readTime };
   };
 
@@ -137,7 +141,6 @@ export default function DocumentsPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Obliczenia do Dashboardu
   const activeDocsCount = documents.filter(d => d.status === 'Obowiązujący').length;
   const lastUpdate = documents.length > 0 ? documents[0].date : 'Brak danych';
 
@@ -201,8 +204,18 @@ export default function DocumentsPage() {
 
         <div className="p-6 bg-slate-50/30 min-h-[400px]">
           {isLoading ? (
+            // NOWY, ŁADNIEJSZY EFEKT SKELETON
             <div className="flex flex-col gap-4">
-              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white rounded-2xl animate-pulse border border-slate-100 shadow-sm"></div>)}
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex flex-col md:flex-row gap-5 p-5 rounded-2xl border border-slate-100 bg-white shadow-sm animate-pulse items-center">
+                  <div className="hidden md:block w-12 h-12 bg-slate-100 rounded-xl shrink-0"></div>
+                  <div className="flex-grow w-full space-y-3">
+                    <div className="h-3 bg-slate-100 rounded w-1/3"></div>
+                    <div className="h-5 bg-slate-100 rounded w-3/4"></div>
+                  </div>
+                  <div className="shrink-0 w-20 h-6 bg-slate-100 rounded-lg mt-3 md:mt-0"></div>
+                </div>
+              ))}
             </div>
           ) : filteredDocs.length === 0 ? (
             <div className="text-center py-20">
@@ -238,7 +251,6 @@ export default function DocumentsPage() {
                           <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>
                         )}
                         
-                        {/* Wskaźnik, że dokument ma załączniki na liście */}
                         {doc.attachments && doc.attachments.trim() !== '' && (
                            <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>
                         )}
@@ -293,7 +305,6 @@ export default function DocumentsPage() {
 
              <div className="p-8 overflow-y-auto bg-slate-50/50 flex-grow">
                 
-                {/* TOOLBAR Z BAJERAMI */}
                 <div className="flex flex-wrap gap-3 mb-6">
                   <button 
                     onClick={runAiAnalysis}
@@ -308,9 +319,14 @@ export default function DocumentsPage() {
                   >
                     <Icons.Copy /> Skopiuj przypis
                   </button>
+                  <button 
+                    onClick={() => setShowQR(!showQR)}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"
+                  >
+                    <Icons.QR /> Kod QR do druku
+                  </button>
                 </div>
 
-                {/* MODUŁ LEX AI (REALISTYCZNY TERMINAL) */}
                 {isAiActive && (
                   <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
@@ -360,7 +376,15 @@ export default function DocumentsPage() {
                   </div>
                 )}
 
-                {/* Opis */}
+                {showQR && (
+                  <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
+                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
+                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(selectedDoc.link)}`} alt="QR Code" className="w-32 h-32" />
+                    </div>
+                  </div>
+                )}
+
                 <div className="mb-8">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
                   <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
@@ -368,7 +392,6 @@ export default function DocumentsPage() {
                   </div>
                 </div>
 
-                {/* ZAŁĄCZNIKI (NOWY MODUŁ) */}
                 {selectedDoc.attachments && selectedDoc.attachments.trim() !== '' && (
                   <div className="mb-8">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
@@ -400,7 +423,6 @@ export default function DocumentsPage() {
                   </div>
                 )}
 
-                {/* Karty Metadanych */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span>
