@@ -5,20 +5,20 @@ import { useAuth } from '../context/AuthContext';
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
-  Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+  Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
 };
 
 // === WHITELISTA ADMINÓW ===
 const ADMIN_EMAILS = [
   'twoj.mail@samorzad.ue.wroc.pl',
   'inny.admin@samorzad.ue.wroc.pl',
-  'administracja@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy email!
+  'administracja@samorzad.ue.wroc.pl' // Zmień na swój mail
 ];
 
-// === TUTAJ WKLEJ LINK ZE SKRYPTU DLA BAZY CRED ===
+// === TUTAJ WKLEJ LINKI DO SKRYPTÓW GOOGLE ===
 const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9AjGsGh-xtzplOwnHrlXEkqS7ELN2FkRnlRGFgpkAAmZGDeWRkvA/exec";
-
-// === TUTAJ WKLEJ LINK ZE SKRYPTU DLA OGŁOSZEŃ ===
+// LINK DO SKRYPTU OGŁOSZEŃ (Musi to być ten nowo wdrożony z funkcją doPost!)
 const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
 
 export default function DashboardPage() {
