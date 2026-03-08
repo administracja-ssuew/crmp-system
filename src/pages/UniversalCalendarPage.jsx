@@ -16,9 +16,20 @@ const EMPTY_FORM = {
   date: '', room: '28J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
+// Funkcja naprawiająca format godziny wysyłany przez Google Sheets (ucinamy datę 1899-12-30)
+const formatTime = (timeStr) => {
+  if (typeof timeStr === 'string' && timeStr.includes('T')) {
+    return timeStr.split('T')[1].substring(0, 5);
+  }
+  return timeStr;
+};
+
 export default function UniversalCalendarPage() {
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
+  
+  // NOWOŚĆ: Stan przechowujący zakres widoczności kalendarza (3, 7 lub 30 dni)
+  const [viewRange, setViewRange] = useState(3);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({ sale: [], przedluzenia: [], pending: [] });
@@ -43,10 +54,19 @@ export default function UniversalCalendarPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const nextDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() + 1); setCurrentDate(d); };
-  const prevDay = () => { const d = new Date(currentDate); d.setDate(currentDate.getDate() - 1); setCurrentDate(d); };
+  // Nawigacja dat (przeskok o 1 dzień w widoku 3D, lub o cały blok w widoku 7D/30D)
+  const nextDay = () => { 
+    const d = new Date(currentDate); 
+    d.setDate(currentDate.getDate() + (viewRange === 3 ? 1 : viewRange)); 
+    setCurrentDate(d); 
+  };
+  const prevDay = () => { 
+    const d = new Date(currentDate); 
+    d.setDate(currentDate.getDate() - (viewRange === 3 ? 1 : viewRange)); 
+    setCurrentDate(d); 
+  };
 
-  const daysToShow = [0, 1, 2].map(offset => {
+  const daysToShow = Array.from({ length: viewRange }).map((_, offset) => {
     const d = new Date(currentDate);
     d.setDate(currentDate.getDate() + offset);
     return d.toISOString().split('T')[0];
@@ -105,7 +125,6 @@ export default function UniversalCalendarPage() {
         </div>
 
         <div className="flex gap-4 items-center">
-            {/* PRZYWRÓCONE FILTRY DLA ORGANIZACJI */}
             <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
                 <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
                 <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>28J</button>
@@ -122,12 +141,21 @@ export default function UniversalCalendarPage() {
 
       <div className="max-w-7xl mx-auto space-y-6 animate-slideUp">
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100">→</button>
-          <div className="text-center">
-            <span className="block text-xs font-bold text-slate-400 uppercase">Zakres widoczności</span>
-            <span className="text-lg font-black text-slate-800">{new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[2]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}</span>
+          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">←</button>
+          
+          <div className="text-center flex flex-col items-center">
+            <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Zakres widoczności</span>
+            <div className="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+               <button onClick={() => setViewRange(3)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 3 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>3 DNI</button>
+               <button onClick={() => setViewRange(7)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 7 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>TYDZIEŃ</button>
+               <button onClick={() => setViewRange(30)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 30 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>MIESIĄC</button>
+            </div>
+            <span className="text-lg font-black text-slate-800">
+              {new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[daysToShow.length - 1]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
+            </span>
           </div>
-          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100">→</button>
+
+          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">→</button>
         </div>
 
         {isLoading ? (
@@ -136,7 +164,8 @@ export default function UniversalCalendarPage() {
           daysToShow.map(dayDate => {
             const dateObj = new Date(dayDate);
             const dayOfWeek = dateObj.getDay();
-            const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek); // Od pon do pt
+            
+            const extension = calendarData.przedluzenia?.find(e => e.date?.substring(0, 10) === dayDate);
 
             let dailyRooms = ['28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
@@ -145,9 +174,26 @@ export default function UniversalCalendarPage() {
 
             return (
               <div key={dayDate} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden mb-6">
-                <div className="bg-slate-50 p-3 border-b flex items-center gap-3">
-                    <div className="flex flex-col items-center bg-white border rounded-xl p-1.5 w-12"><span className="text-[9px] font-bold text-slate-400">{dateObj.toLocaleDateString('pl-PL', { weekday: 'short' })}</span><span className="text-lg font-black text-slate-900">{dateObj.getDate()}</span></div>
+                
+                <div className="bg-slate-50 p-3 border-b border-slate-100 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center bg-white border border-slate-200 rounded-xl p-1.5 w-14 shadow-sm">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{dateObj.toLocaleDateString('pl-PL', { weekday: 'short' })}</span>
+                            <span className="text-xl font-black text-slate-900">{dateObj.getDate()}</span>
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
+                            
+                            {/* POPRAWIONY FORMAT GODZINY PRZEDŁUŻENIA */}
+                            {extension && (
+                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
+                                  🌙 {extension.note} (do {formatTime(extension.until)})
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
+
                 <div className="overflow-x-auto scrollbar-hide">
                   <div className="min-w-[1200px] p-4">
                     <div className="flex mb-2 pl-14">{HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l">{String(h).padStart(2, '0')}:00</div>)}</div>
@@ -161,7 +207,6 @@ export default function UniversalCalendarPage() {
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border h-full relative flex overflow-hidden">
                             {HOURS.map(h => <div key={h} className="flex-1 border-l"></div>)}
                             
-                            {/* PRZYWRÓCONE: WYSZARZENIE DLA SAL UCZELNIANYCH */}
                             {campusRules && (
                               <>
                                 <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
@@ -172,7 +217,6 @@ export default function UniversalCalendarPage() {
                               </>
                             )}
 
-                            {/* BLOKI REZERWACJI */}
                             {allEvents.filter(ev => ev.date?.substring(0, 10) === dayDate && ev.room === room).map((ev, idx) => {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
@@ -193,7 +237,6 @@ export default function UniversalCalendarPage() {
         )}
       </div>
 
-      {/* MODAL FORMULARZA Z OSTATNIEJ WERSJI (Skrócony dla czytelności odpowiedzi, nie zmieniaj go jeśli u Ciebie działał) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>

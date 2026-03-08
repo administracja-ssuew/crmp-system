@@ -29,6 +29,15 @@ const EMPTY_FORM = {
   date: '', room: '9J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
+// === WKLEJ TO TUTAJ ===
+const formatTime = (timeStr) => {
+  if (typeof timeStr === 'string' && timeStr.includes('T')) {
+    return timeStr.split('T')[1].substring(0, 5);
+  }
+  return timeStr;
+};
+// =====================
+
 export default function CalendarSamorzadPage({ userEmail }) {
   const isAdmin = ADMIN_EMAILS.includes(userEmail);
 
@@ -297,11 +306,11 @@ export default function CalendarSamorzadPage({ userEmail }) {
                         <div>
                             <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
                             
-                            {extension && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
-                                  🌙 {extension.note} (do {extension.until})
-                                </span>
-                            )}
+                          {extension && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
+                            🌙 {extension.note} (do {formatTime(extension.until)})
+                            </span>
+                          )}
                         </div>
                     </div>
                 </div>
