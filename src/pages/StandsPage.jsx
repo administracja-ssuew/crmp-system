@@ -22,6 +22,9 @@ export default function StandsPage() {
   
   const [activeTab, setActiveTab] = useState('upcoming'); 
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // NOWOŚĆ: Stan dla Wizualnej Mapy Dostępności
+  const [selectedMapDate, setSelectedMapDate] = useState(new Date().toISOString().split('T')[0]);
 
   // === POBIERANIE DANYCH ===
   useEffect(() => {
@@ -43,15 +46,37 @@ export default function StandsPage() {
     setCurrentPage(1);
   }, [activeTab, searchTerm]);
 
-  // === LOGIKA FILTROWANIA ===
+  // === NOWOŚĆ: LOGIKA WIZUALNEJ MAPY DOSTĘPNOŚCI ===
+  const getOccupancyForDate = (date) => {
+    const occupancy = {};
+    Object.keys(BUILDING_INFO).forEach(k => occupancy[k] = []);
+
+    data.forEach(item => {
+      // Liczymy rezerwacje w tym dniu, które NIE SĄ odrzucone
+      if (item.date === date && !(item.status || '').toLowerCase().includes('odrzucone')) {
+        const bCode = item.building;
+        if (occupancy[bCode]) {
+          occupancy[bCode].push(item);
+        }
+      }
+    });
+    return occupancy;
+  };
+
+  const currentOccupancy = getOccupancyForDate(selectedMapDate);
+
+  // === LOGIKA FILTROWANIA (NAPRAWIONY BUG Z BUDYNKAMI) ===
   const getProcessedData = () => {
     const today = new Date().toISOString().split('T')[0];
     
     let filtered = data.filter(item => {
       const search = searchTerm.toLowerCase();
       const org = (item.org || '').toLowerCase();
-      const building = (item.building || '').toLowerCase();
-      return org.includes(search) || building.includes(search);
+      const bCode = (item.building || '');
+      // Tłumaczymy literkę "Z" na "Budynek Z", żeby wyszukiwarka to łapała
+      const bName = (BUILDING_INFO[bCode]?.name || bCode).toLowerCase(); 
+      
+      return org.includes(search) || bName.includes(search) || bCode.toLowerCase().includes(search);
     });
 
     if (activeTab === 'upcoming') {
@@ -117,8 +142,65 @@ export default function StandsPage() {
           </button>
         </div>
 
-        {/* PASEK NARZĘDZI */}
-        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp">
+        {/* === WIZUALNA MAPA DOSTĘPNOŚCI === */}
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 animate-slideUp">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+              <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">📍 Mapa Dostępności Kampusu</h2>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Szybki podgląd wolnych miejsc (BHP)</p>
+            </div>
+            <input 
+              type="date" 
+              value={selectedMapDate} 
+              onChange={(e) => setSelectedMapDate(e.target.value)} 
+              className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm font-black text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" 
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(BUILDING_INFO).map(([code, info]) => {
+              const occupants = currentOccupancy[code] || [];
+              const count = occupants.length;
+              const capacity = info.capacity;
+              const isFull = count >= capacity;
+              const percentage = Math.min(100, (count / capacity) * 100);
+
+              return (
+                <div key={code} className={`p-5 rounded-2xl border transition-all ${isFull ? 'bg-red-50/50 border-red-100 shadow-sm' : 'bg-white border-slate-100 hover:shadow-md hover:border-indigo-100'}`}>
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-black text-slate-800">{info.name}</h3>
+                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg shadow-sm ${isFull ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>
+                      {count} / {capacity}
+                    </span>
+                  </div>
+                  
+                  {/* Pasek postępu */}
+                  <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden shadow-inner">
+                    <div className={`h-full rounded-full transition-all duration-700 ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${percentage}%` }}></div>
+                  </div>
+                  
+                  {/* Lista zajmujących */}
+                  <div className="space-y-1.5 min-h-[40px]">
+                    {occupants.length === 0 ? (
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Wszystkie miejsca wolne
+                      </p>
+                    ) : (
+                      occupants.map((occ, idx) => (
+                        <p key={idx} className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-400' : 'bg-indigo-400'}`}></span> {occ.org}
+                        </p>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* PASEK NARZĘDZI (WYSZUKIWARKA I TABY) */}
+        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp" style={{animationDelay: '0.1s'}}>
           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto shrink-0">
             <TabButton active={activeTab === 'upcoming'} onClick={() => setActiveTab('upcoming')} label="Nadchodzące" />
             <TabButton active={activeTab === 'pending'} onClick={() => setActiveTab('pending')} label="W toku" count={data.filter(i => (i.status||'').toLowerCase().includes('zaopiniowane') || (i.status||'').toLowerCase().includes('zgłoszone')).length} />
@@ -129,7 +211,7 @@ export default function StandsPage() {
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
             <input 
               type="text" 
-              placeholder="Szukaj organizacji, budynku..." 
+              placeholder="Szukaj organizacji, budynku (np. Budynek Z)..." 
               className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border-none outline-none focus:ring-2 focus:ring-indigo-100 font-medium text-slate-700 transition"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -138,7 +220,7 @@ export default function StandsPage() {
         </div>
 
         {/* LISTA KART REZERWACJI */}
-        <div className="space-y-4 animate-slideUp min-h-[400px]">
+        <div className="space-y-4 animate-slideUp min-h-[400px]" style={{animationDelay: '0.2s'}}>
           {paginatedData.map((row, index) => {
             const building = BUILDING_INFO[row.building] || { name: row.building, capacity: '?', color: 'bg-slate-100 text-slate-600' };
             const dateObj = new Date(row.date);
@@ -181,7 +263,7 @@ export default function StandsPage() {
             <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-[2rem] border border-dashed border-slate-200">
               <span className="text-5xl mb-4 opacity-20">📭</span>
               <p className="font-bold text-lg text-slate-600">Brak wyników</p>
-              <p className="text-sm">Nie znaleziono rezerwacji w tej kategorii.</p>
+              <p className="text-sm">Nie znaleziono rezerwacji dla zapytania: "{searchTerm}".</p>
             </div>
           )}
         </div>
@@ -232,7 +314,7 @@ export default function StandsPage() {
               <Step 
                 num="1" 
                 title="Wybierz termin" 
-                desc="Sprawdź w tym Rejestrze, czy wybrana data i budynek są wolne (nie ma statusu 'Potwierdzone')." 
+                desc="Sprawdź na naszej nowej Mapie Dostępności, czy w wybranym dniu i budynku są jeszcze wolne miejsca (limit BHP)." 
               />
               
               <Step 
