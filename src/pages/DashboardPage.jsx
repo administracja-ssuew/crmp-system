@@ -230,7 +230,7 @@ export default function DashboardPage() {
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">
                           <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                            {notice.target === 'ADMIN' ? 'Wiadomość Zarządu' : 'Ogłoszenie SSUEW'} • {notice.date}
+                            {notice.target === 'ADMIN' ? 'Wiadomość Zarządu' : 'Ogłoszenie SSUEW'} • {formatDate(notice.date)}
                           </span>
                         </div>
                         <p className="text-sm font-semibold leading-snug">{notice.text}</p>
@@ -291,11 +291,11 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-4 pt-1">
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase">Data wpłynięcia</span>
-                  <span className="font-bold text-slate-700 text-sm">{searchResult.data_zlozenia || 'Brak'}</span>
+                  <span className="font-bold text-slate-700 text-sm">{formatDate(searchResult.data_zlozenia)}</span>
                 </div>
                 <div>
                   <span className="block text-[10px] font-bold text-slate-400 uppercase">Planowane zakończenie</span>
-                  <span className="font-bold text-slate-700 text-sm">{searchResult.planowane_zakonczenie || 'Brak'}</span>
+                  <span className="font-bold text-slate-700 text-sm">{formatDate(searchResult.planowane_zakonczenie)}</span>
                 </div>
               </div>
             </div>
