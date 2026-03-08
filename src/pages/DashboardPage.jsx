@@ -23,38 +23,38 @@ const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  // Wyciągamy imię (lub fallback)
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
 
-  // PRAWDZIWE SPRAWDZANIE ROLI (na podstawie Whitelisty e-maili)
   const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
 
-  // === STANY DLA OGŁOSZEŃ (SMART NOTICES) ===
+  // === STANY OGŁOSZEŃ ===
   const [notices, setNotices] = useState([]);
   const [isLoadingNotices, setIsLoadingNotices] = useState(true);
   const [dismissedNotices, setDismissedNotices] = useState([]);
+  
+  // === STANY KREATORA OGŁOSZEŃ (TYLKO DLA ADMINA) ===
+  const [showNoticeModal, setShowNoticeModal] = useState(false);
+  const [isSubmittingNotice, setIsSubmittingNotice] = useState(false);
+  const [noticeForm, setNoticeForm] = useState({ target: 'ALL', type: 'info', text: '' });
 
-  // === STANY DLA WYSZUKIWARKI CRED ===
+  // === STANY WYSZUKIWARKI CRED ===
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // Pobieranie ogłoszeń przy starcie Dashboardu
+  // POBIERANIE OGŁOSZEŃ
   useEffect(() => {
     const fetchNotices = async () => {
       setIsLoadingNotices(true);
       try {
         if (NOTICES_API_URL === "TUTAJ_WKLEJ_LINK_DO_OGLOSZEN_Z_APPS_SCRIPT") {
-          setIsLoadingNotices(false);
-          return;
+          setIsLoadingNotices(false); return;
         }
-
         const [response] = await Promise.all([
           fetch(NOTICES_API_URL),
-          new Promise(resolve => setTimeout(resolve, 600)) // płynna animacja ładowania
+          new Promise(resolve => setTimeout(resolve, 600))
         ]);
-        
         const data = await response.json();
         if (!data.error && Array.isArray(data)) {
           setNotices(data.reverse()); 
@@ -65,26 +65,54 @@ export default function DashboardPage() {
         setIsLoadingNotices(false);
       }
     };
-    
     fetchNotices();
   }, []);
 
+  // DODAWANIE NOWEGO OGŁOSZENIA
+  const handleSubmitNotice = async (e) => {
+    e.preventDefault();
+    if (!noticeForm.text.trim()) return;
+
+    setIsSubmittingNotice(true);
+    try {
+      // Używamy text/plain aby ominąć restrykcyjny CORS od Google
+      const response = await fetch(NOTICES_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(noticeForm)
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        // Dodaj pomyślnie zapisane ogłoszenie na szczyt listy (optymistyczny update)
+        const newNotice = {
+          id: result.id,
+          target: noticeForm.target,
+          type: noticeForm.type,
+          text: noticeForm.text,
+          date: result.date
+        };
+        setNotices([newNotice, ...notices]);
+        setShowNoticeModal(false);
+        setNoticeForm({ target: 'ALL', type: 'info', text: '' }); // Reset
+      } else {
+        alert("Błąd zapisu w Google Sheets.");
+      }
+    } catch (err) {
+      alert("Wystąpił błąd komunikacji. Spróbuj ponownie.");
+    } finally {
+      setIsSubmittingNotice(false);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
-    setIsSearching(true);
-    setSearchError('');
-    setSearchResult(null);
-    
+    setIsSearching(true); setSearchError(''); setSearchResult(null);
     try {
       const response = await fetch(`${CRED_API_URL}?znak=${encodeURIComponent(searchQuery)}`);
       const data = await response.json();
-      
-      if (data.error) {
-        setSearchError(data.error);
-      } else {
-        setSearchResult(data);
-      }
+      if (data.error) setSearchError(data.error);
+      else setSearchResult(data);
     } catch (error) {
       setSearchError("Błąd połączenia z bazą CRED. Spróbuj ponownie później.");
     } finally {
@@ -92,45 +120,25 @@ export default function DashboardPage() {
     }
   };
 
-  // Logika filtrowania ogłoszeń
   const activeNotices = notices.filter(notice => {
     if (dismissedNotices.includes(notice.id)) return false;
     if (notice.target === 'ADMIN' && !isAdmin) return false;
-    if (!notice.text || notice.text.trim() === '') return false;
+    if (!notice.text || String(notice.text).trim() === '') return false;
     return true;
   });
 
-  const handleDismiss = (id) => {
-    setDismissedNotices([...dismissedNotices, id]);
-  };
+  const handleDismiss = (id) => setDismissedNotices([...dismissedNotices, id]);
 
-  // === KOMPONENT POMOCNICZY KAFELKA ===
   const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
-    <Link 
-      to={to} 
-      // OPCJA ATOMOWA: mask-image i isolate wymuszają perfekcyjne docięcie tła!
-      className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]"
-    >
-      
-      {/* TŁO GRADIENTOWE */}
+    <Link to={to} className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]">
       <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700 -z-10`}></div>
-      
-      {/* DEKORACJA (Plama światła) */}
       <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10"></div>
-      
-      {/* TREŚĆ KARTY */}
       <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
-        
-        {/* IKONA */}
         <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">
           {icon}
         </div>
-        
-        {/* TYTUŁY */}
         <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight leading-tight">{title}</h2>
         <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">{subtitle}</p>
-        
-        {/* PRZYCISK */}
         <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
           {buttonText}
         </div>
@@ -141,17 +149,17 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-50">
       
-      {/* === TŁO === */}
+      {/* TŁO */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-blue-100/30 pointer-events-none z-0"></div>
 
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center pt-16">
         
-        {/* === NAGŁÓWEK === */}
+        {/* NAGŁÓWEK */}
         <header className="text-center mb-10 animate-fadeIn">
-          <div className="inline-flex items-center justify-center gap-2 px-4 py-1 mb-4 rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur-sm">
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-1 mb-4 rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-sm">
             <span className="text-xs font-black tracking-[0.2em] text-blue-600 uppercase">Witaj, {firstName} 👋</span>
-            {isAdmin && <span className="bg-rose-500 text-white text-[9px] px-2 py-0.5 rounded-md font-bold tracking-widest">ADMIN</span>}
+            {isAdmin && <span className="bg-rose-500 text-white text-[9px] px-2 py-0.5 rounded-md font-bold tracking-widest shadow-inner">ADMIN</span>}
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-tight">
             Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Administracyjny</span>
@@ -161,48 +169,66 @@ export default function DashboardPage() {
           </p>
         </header>
 
-        {/* === INTELIGENTNA TABLICA OGŁOSZEŃ === */}
-        {(isLoadingNotices || activeNotices.length > 0) && (
-          <div className="w-full max-w-3xl mb-10 space-y-3">
-            {isLoadingNotices ? (
-              <div className="w-full h-16 bg-slate-200/50 animate-pulse rounded-2xl"></div>
-            ) : (
-              activeNotices.map((notice) => (
-                <div 
-                  key={notice.id} 
-                  className={`flex items-start md:items-center justify-between p-4 rounded-2xl border shadow-sm transition-all group backdrop-blur-sm animate-slideDown
-                    ${notice.type === 'urgent' ? 'bg-rose-50/90 border-rose-200 text-rose-900' : 
-                      notice.type === 'warning' ? 'bg-amber-50/90 border-amber-200 text-amber-900' : 
-                      'bg-white/90 border-slate-200 text-slate-700'}`}
-                >
-                  <div className="flex items-start md:items-center gap-4 pr-4">
-                    <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                      ${notice.type === 'urgent' ? 'bg-rose-200/50 text-rose-600' : 
-                        notice.type === 'warning' ? 'bg-amber-200/50 text-amber-600' : 
-                        'bg-slate-100 text-slate-500'}`}>
-                      <Icons.Bell />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
-                          {notice.target === 'ADMIN' ? 'Wiadomość Zarządu' : 'Ogłoszenie SSUEW'} • {notice.date}
-                        </span>
-                      </div>
-                      <p className="text-sm font-semibold leading-snug">{notice.text}</p>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleDismiss(notice.id)} 
-                    className="shrink-0 p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
-                    title="Zrozumiałem, ukryj"
+        {/* ==================================================== */}
+        {/* PANEL ADMINISTRATORA I TABLICA OGŁOSZEŃ */}
+        {/* ==================================================== */}
+        <div className="w-full max-w-3xl mb-10 relative">
+          
+          {/* Przycisk dodawania (Tylko dla Adminów) */}
+          {isAdmin && (
+            <div className="absolute -top-10 right-0 z-10 animate-fadeIn">
+              <button 
+                onClick={() => setShowNoticeModal(true)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5"
+              >
+                <Icons.Plus /> Nadaj Komunikat
+              </button>
+            </div>
+          )}
+
+          {/* Lista Ogłoszeń */}
+          {(isLoadingNotices || activeNotices.length > 0) && (
+            <div className="space-y-3">
+              {isLoadingNotices ? (
+                <div className="w-full h-16 bg-slate-200/50 animate-pulse rounded-2xl"></div>
+              ) : (
+                activeNotices.map((notice) => (
+                  <div 
+                    key={notice.id} 
+                    className={`flex items-start md:items-center justify-between p-4 rounded-2xl border shadow-sm transition-all group backdrop-blur-sm animate-slideDown
+                      ${notice.type === 'urgent' ? 'bg-rose-50/90 border-rose-200 text-rose-900' : 
+                        notice.type === 'warning' ? 'bg-amber-50/90 border-amber-200 text-amber-900' : 
+                        'bg-white/90 border-slate-200 text-slate-700'}`}
                   >
-                    <Icons.Close />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+                    <div className="flex items-start md:items-center gap-4 pr-4">
+                      <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                        ${notice.type === 'urgent' ? 'bg-rose-200/50 text-rose-600' : 
+                          notice.type === 'warning' ? 'bg-amber-200/50 text-amber-600' : 
+                          'bg-slate-100 text-slate-500'}`}>
+                        <Icons.Bell />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                            {notice.target === 'ADMIN' ? 'Wiadomość Zarządu' : 'Ogłoszenie SSUEW'} • {notice.date}
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold leading-snug">{notice.text}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => handleDismiss(notice.id)} 
+                      className="shrink-0 p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
+                      title="Zrozumiałem, ukryj"
+                    >
+                      <Icons.Close />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
 
         {/* === WYSZUKIWARKA CRED === */}
         <div className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-blue-900/5 border border-white mb-10 animate-slideUp">
@@ -225,14 +251,12 @@ export default function DashboardPage() {
              </button>
           </div>
           
-          {/* Komunikat o błędzie */}
           {searchError && (
             <div className="mt-4 p-4 bg-red-50 text-red-600 text-sm font-bold rounded-2xl border border-red-100 animate-fadeIn text-center">
               ❌ {searchError}
             </div>
           )}
           
-          {/* Wynik wyszukiwania */}
           {searchResult && (
             <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 border-b border-emerald-200/50 pb-3">
@@ -258,78 +282,88 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* === SIATKA 6 KAFELKÓW (PERFEKCYJNY GRID 3x2) === */}
+        {/* === SIATKA 6 KAFELKÓW === */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
-          
-          <Card 
-            to="/sprzet" 
-            icon="📦" 
-            title="Baza Sprzętu" 
-            subtitle="Katalog i Rezerwacje" 
-            colorFrom="from-orange-500" 
-            colorTo="to-red-600" 
-            buttonText="Otwórz Magazyn" 
-          />
-
-          <Card 
-            to="/mapa" 
-            icon="🗺️" 
-            title="Mapa Kampusu" 
-            subtitle="Banery i Plakaty" 
-            colorFrom="from-blue-500" 
-            colorTo="to-blue-700" 
-            buttonText="Otwórz Mapę" 
-          />
-          
-          <Card 
-            to="/rejestr" 
-            icon="📋" 
-            title="Rejestr Stoisk Promocyjnych" 
-            subtitle="Harmonogram stoisk w budynkach uczelnianych" 
-            colorFrom="from-indigo-600" 
-            colorTo="to-purple-800" 
-            buttonText="Sprawdź Terminy" 
-          />
-
-          <Card 
-            to="/kalendarz-wybor" 
-            icon="📅" 
-            title="Kalendarz Przestrzeni" 
-            subtitle="Sale samorządowe i uczelniane" 
-            colorFrom="from-emerald-500" 
-            colorTo="to-teal-700" 
-            buttonText="Wybierz Tryb" 
-          />
-
-          <Card 
-            to="/dokumenty" 
-            icon="📂" 
-            title="Baza Wiedzy" 
-            subtitle="Regulaminy i Zarządzenia" 
-            colorFrom="from-slate-600" 
-            colorTo="to-slate-800" 
-            buttonText="Przeglądaj Pliki" 
-          />
-
-          {/* NOWY 6 KAFELEK */}
-          <Card 
-            to="/legal-hub" 
-            icon="⚖️" 
-            title="Zaplecze Prawne" 
-            subtitle="Wzory regulaminów i edukacja" 
-            colorFrom="from-amber-500" 
-            colorTo="to-orange-500" 
-            buttonText="Otwórz Akademię" 
-          />
-
+          <Card to="/sprzet" icon="📦" title="Baza Sprzętu" subtitle="Katalog i Rezerwacje" colorFrom="from-orange-500" colorTo="to-red-600" buttonText="Otwórz Magazyn" />
+          <Card to="/mapa" icon="🗺️" title="Mapa Kampusu" subtitle="Banery i Plakaty" colorFrom="from-blue-500" colorTo="to-blue-700" buttonText="Otwórz Mapę" />
+          <Card to="/rejestr" icon="📋" title="Rejestr Stoisk" subtitle="Harmonogram w budynkach" colorFrom="from-indigo-600" colorTo="to-purple-800" buttonText="Sprawdź Terminy" />
+          <Card to="/kalendarz-wybor" icon="📅" title="Sale i Przestrzenie" subtitle="Rezerwacje samorządowe" colorFrom="from-emerald-500" colorTo="to-teal-700" buttonText="Wybierz Tryb" />
+          <Card to="/dokumenty" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
+          <Card to="/legal-hub" icon="⚖️" title="Zaplecze Prawne" subtitle="Wzory regulaminów i edukacja" colorFrom="from-amber-500" colorTo="to-orange-500" buttonText="Otwórz Akademię" />
         </div>
 
-        {/* === STOPKA === */}
-        <footer className="mt-12 opacity-50 flex flex-col items-center gap-2">
+        <footer className="mt-16 opacity-50 flex flex-col items-center gap-2">
             <div className="h-[1px] w-10 bg-slate-300"></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Powered by Samorząd Studentów UEW</p>
         </footer>
       </div>
+
+      {/* ==================================================== */}
+      {/* MODAL DODAWANIA OGŁOSZENIA (TYLKO DLA ADMINA) */}
+      {/* ==================================================== */}
+      {showNoticeModal && isAdmin && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmittingNotice && setShowNoticeModal(false)}></div>
+          
+          <form onSubmit={handleSubmitNotice} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-bounceIn">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
+                <Icons.Bell /> Utwórz Nowy Komunikat
+              </h3>
+              <button type="button" onClick={() => setShowNoticeModal(false)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-200 rounded-full transition-colors">
+                <Icons.Close />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Grupa Docelowa</label>
+                <select 
+                  value={noticeForm.target} 
+                  onChange={(e) => setNoticeForm({...noticeForm, target: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                >
+                  <option value="ALL">Wszyscy Użytkownicy (Studenci, Organizacje)</option>
+                  <option value="ADMIN">Tylko Zarząd / Administratorzy</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Priorytet (Kolor Kafelka)</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'info'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Zwykła<br/>(Niebieski)</button>
+                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'warning'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Ważne<br/>(Żółty)</button>
+                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'urgent'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'urgent' ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Pilne!<br/>(Czerwony)</button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treść Komunikatu</label>
+                <textarea 
+                  required
+                  value={noticeForm.text}
+                  onChange={(e) => setNoticeForm({...noticeForm, text: e.target.value})}
+                  placeholder="Np. Przypominamy o konieczności rozliczenia projektów do końca tygodnia!"
+                  className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-medium text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none h-24"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
+              <button type="button" onClick={() => setShowNoticeModal(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
+                Anuluj
+              </button>
+              <button 
+                type="submit" 
+                disabled={isSubmittingNotice}
+                className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-lg shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100"
+              >
+                {isSubmittingNotice ? 'Wysyłanie...' : 'Opublikuj na tablicy'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
