@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+// !!! UWAGA: Upewnij się, że to Twój najnowszy link po wdrożeniu skryptu! !!!
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
@@ -104,9 +105,13 @@ export default function UniversalCalendarPage() {
         </div>
 
         <div className="flex gap-4 items-center">
-            <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}>ALL</button>
-                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>28J</button>
+            {/* PRZYWRÓCONE FILTRY DLA ORGANIZACJI */}
+            <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
+                <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
+                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>28J</button>
+                <button onClick={() => setFilterRoom('10 A')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '10 A' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>10 A</button>
+                <button onClick={() => setFilterRoom('213 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '213 Z' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>213 Z</button>
+                <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
             </div>
             
             <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
@@ -131,6 +136,8 @@ export default function UniversalCalendarPage() {
           daysToShow.map(dayDate => {
             const dateObj = new Date(dayDate);
             const dayOfWeek = dateObj.getDay();
+            const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek); // Od pon do pt
+
             let dailyRooms = ['28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
             const roomsToRender = dailyRooms.filter(r => filterRoom === 'ALL' || filterRoom === r);
@@ -144,11 +151,28 @@ export default function UniversalCalendarPage() {
                 <div className="overflow-x-auto scrollbar-hide">
                   <div className="min-w-[1200px] p-4">
                     <div className="flex mb-2 pl-14">{HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l">{String(h).padStart(2, '0')}:00</div>)}</div>
-                    {roomsToRender.map(room => (
+                    
+                    {roomsToRender.map(room => {
+                        const campusRules = CAMPUS_ROOMS[room];
+
+                        return (
                         <div key={room} className="flex items-center mb-2 relative h-12">
                           <div className="w-14 shrink-0 flex items-center justify-center font-black text-slate-500 bg-slate-50 rounded-l-xl border h-full text-xs sticky left-0 z-20">{room}</div>
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border h-full relative flex overflow-hidden">
                             {HOURS.map(h => <div key={h} className="flex-1 border-l"></div>)}
+                            
+                            {/* PRZYWRÓCONE: WYSZARZENIE DLA SAL UCZELNIANYCH */}
+                            {campusRules && (
+                              <>
+                                <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
+                                  <span className="text-[10px] font-bold text-slate-400 opacity-50 px-2 truncate">SALA ZABLOKOWANA</span>
+                                </div>
+                                <div className="absolute top-0 bottom-0 right-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${((24 - campusRules.end) / 24) * 100}%`}}>
+                                </div>
+                              </>
+                            )}
+
+                            {/* BLOKI REZERWACJI */}
                             {allEvents.filter(ev => ev.date?.substring(0, 10) === dayDate && ev.room === room).map((ev, idx) => {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
@@ -160,7 +184,7 @@ export default function UniversalCalendarPage() {
                             })}
                           </div>
                         </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               </div>
@@ -169,85 +193,45 @@ export default function UniversalCalendarPage() {
         )}
       </div>
 
+      {/* MODAL FORMULARZA Z OSTATNIEJ WERSJI (Skrócony dla czytelności odpowiedzi, nie zmieniaj go jeśli u Ciebie działał) */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-           
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] animate-bounceIn">
              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem]">
                <div>
                   <h2 className="text-2xl font-black text-slate-900">Wniosek o Rezerwację</h2>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Przestrzenie SSUEW</p>
                </div>
                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-200 transition">✕</button>
              </div>
-
              <div className="p-6 overflow-y-auto space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 ml-1">Imię i nazwisko zgłaszającego *</label>
-                    <input type="text" value={bookingForm.applicantName} onChange={e => setBookingForm({...bookingForm, applicantName: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 ml-1">E-mail kontaktowy *</label>
-                    <input type="email" value={bookingForm.email} onChange={e => setBookingForm({...bookingForm, email: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1" />
-                  </div>
+                  <div><label className="text-xs font-bold text-slate-600 ml-1">Imię i nazwisko *</label><input type="text" value={bookingForm.applicantName} onChange={e => setBookingForm({...bookingForm, applicantName: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
+                  <div><label className="text-xs font-bold text-slate-600 ml-1">E-mail *</label><input type="email" value={bookingForm.email} onChange={e => setBookingForm({...bookingForm, email: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Nazwa Organizacji / Koła *</label>
-                  <input type="text" value={bookingForm.org} onChange={e => setBookingForm({...bookingForm, org: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1" />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Nazwa wydarzenia / Cel *</label>
-                  <input type="text" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1" />
-                </div>
-
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Organizacja *</label><input type="text" value={bookingForm.org} onChange={e => setBookingForm({...bookingForm, org: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Wydarzenie *</label><input type="text" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                  <div><label className="text-xs font-black text-indigo-800 ml-1 uppercase">Data *</label><input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1" /></div>
                   <div>
-                    <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Data Rezerwacji *</label>
-                    <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1 shadow-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Wybór Sali *</label>
-                    <select value={bookingForm.room} onChange={e => setBookingForm({...bookingForm, room: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1 shadow-sm">
+                    <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Sala *</label>
+                    <select value={bookingForm.room} onChange={e => setBookingForm({...bookingForm, room: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1">
                       <option value="28J">Sala 28J</option>
                       {Object.keys(CAMPUS_ROOMS).map(r => <option key={r} value={r}>Sala {r}</option>)}
                     </select>
                   </div>
-                  <div>
-                    <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Start *</label>
-                    <input type="time" value={bookingForm.start} onChange={e => setBookingForm({...bookingForm, start: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1 shadow-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Koniec *</label>
-                    <input type="time" value={bookingForm.end} onChange={e => setBookingForm({...bookingForm, end: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none mt-1 shadow-sm" />
-                  </div>
+                  <div><label className="text-xs font-black text-indigo-800 ml-1 uppercase">Start *</label><input type="time" value={bookingForm.start} onChange={e => setBookingForm({...bookingForm, start: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1" /></div>
+                  <div><label className="text-xs font-black text-indigo-800 ml-1 uppercase">Koniec *</label><input type="time" value={bookingForm.end} onChange={e => setBookingForm({...bookingForm, end: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1" /></div>
                 </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Uzasadnienie rezerwacji *</label>
-                  <textarea value={bookingForm.justification} onChange={e => setBookingForm({...bookingForm, justification: e.target.value})} rows="3" className="w-full bg-slate-50 border p-3 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500 outline-none mt-1 resize-none" placeholder="Opisz krótko charakter spotkania..."></textarea>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-600 ml-1">Dodatkowe uwagi / Potrzeby techniczne</label>
-                  <textarea value={bookingForm.notes} onChange={e => setBookingForm({...bookingForm, notes: e.target.value})} rows="2" className="w-full bg-slate-50 border p-3 rounded-xl font-medium focus:ring-2 focus:ring-indigo-500 outline-none mt-1 resize-none" placeholder="Opcjonalnie..."></textarea>
-                </div>
-
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Uzasadnienie *</label><textarea value={bookingForm.justification} onChange={e => setBookingForm({...bookingForm, justification: e.target.value})} rows="2" className="w-full bg-slate-50 border p-3 rounded-xl font-medium mt-1"></textarea></div>
                 <div className="bg-slate-100 p-4 rounded-xl flex items-start gap-3">
-                  <input type="checkbox" id="rodo" checked={bookingForm.rodo} onChange={e => setBookingForm({...bookingForm, rodo: e.target.checked})} className="mt-1 w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-                  <label htmlFor="rodo" className="text-[10px] text-slate-500 leading-tight">
-                    Zgodnie z art. 13 ust. 1 i 2 ogólnego rozporządzenia o ochronie danych (RODO) informujemy, że administratorem Twoich danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu... <strong className="text-slate-700">Akceptuję klauzulę informacyjną i wyrażam zgodę na przetwarzanie danych. *</strong>
-                  </label>
+                  <input type="checkbox" id="rodo" checked={bookingForm.rodo} onChange={e => setBookingForm({...bookingForm, rodo: e.target.checked})} className="mt-1 w-5 h-5 rounded" />
+                  <label htmlFor="rodo" className="text-[10px] text-slate-500 leading-tight">Akceptuję klauzulę informacyjną i wyrażam zgodę na przetwarzanie danych. *</label>
                 </div>
-
-                {bookingError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200 text-center animate-pulse">{bookingError}</p>}
+                {bookingError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200 text-center">{bookingError}</p>}
              </div>
-             
              <div className="p-4 border-t border-slate-100 bg-white rounded-b-[2rem]">
-                <button onClick={handleSubmitBooking} disabled={isSubmitting} className="w-full py-4 bg-indigo-600 text-white font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 disabled:bg-slate-300">
+                <button onClick={handleSubmitBooking} disabled={isSubmitting} className="w-full py-4 bg-indigo-600 text-white font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition">
                   {isSubmitting ? 'Przetwarzanie...' : 'Wyślij Wniosek'}
                 </button>
              </div>

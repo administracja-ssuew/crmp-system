@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
+// !!! UWAGA: Upewnij się, że to Twój najnowszy link po wdrożeniu skryptu! !!!
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
@@ -27,7 +28,6 @@ export default function CalendarSamorzadPage() {
   const [bookingForm, setBookingForm] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingError, setBookingError] = useState('');
-
   const [expandedReq, setExpandedReq] = useState(null);
 
   const fetchData = async () => {
@@ -101,11 +101,9 @@ export default function CalendarSamorzadPage() {
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ 
-          action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title 
-        })
+        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title })
       });
-      alert('Zatwierdzono! Wniosek wpisany do oficjalnego kalendarza.');
+      alert('Zatwierdzono!');
       fetchData(); 
     } catch (e) {
       alert('Błąd akceptacji.');
@@ -141,11 +139,15 @@ export default function CalendarSamorzadPage() {
         </div>
 
         <div className="flex gap-4 items-center">
-            <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
-                <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500'}`}>ALL</button>
-                <button onClick={() => setFilterRoom('9J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === '9J' ? 'bg-emerald-600 text-white' : 'text-slate-500'}`}>9J</button>
-                <button onClick={() => setFilterRoom('16J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === '16J' ? 'bg-blue-600 text-white' : 'text-slate-500'}`}>16J</button>
-                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500'}`}>28J</button>
+            {/* PRZYWRÓCONE FILTRY DLA SAMORZĄDU */}
+            <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
+                <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
+                <button onClick={() => setFilterRoom('9J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '9J' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>9J</button>
+                <button onClick={() => setFilterRoom('16J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '16J' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>16J</button>
+                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>28J</button>
+                <button onClick={() => setFilterRoom('10 A')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '10 A' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>10 A</button>
+                <button onClick={() => setFilterRoom('213 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '213 Z' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>213 Z</button>
+                <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
             </div>
             
             <button onClick={() => setIsPendingModalOpen(true)} className="relative bg-white border border-amber-200 hover:bg-amber-50 text-amber-700 px-4 py-2 rounded-xl font-bold shadow-sm transition flex items-center gap-2">
@@ -175,6 +177,8 @@ export default function CalendarSamorzadPage() {
           daysToShow.map(dayDate => {
             const dateObj = new Date(dayDate);
             const dayOfWeek = dateObj.getDay();
+            const isWorkingDay = [1, 2, 3, 4, 5].includes(dayOfWeek); // Od pon do pt
+
             let dailyRooms = ['9J', '16J', '28J'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
             const roomsToRender = dailyRooms.filter(r => filterRoom === 'ALL' || filterRoom === r);
@@ -188,11 +192,35 @@ export default function CalendarSamorzadPage() {
                 <div className="overflow-x-auto scrollbar-hide">
                   <div className="min-w-[1200px] p-4">
                     <div className="flex mb-2 pl-14">{HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l">{String(h).padStart(2, '0')}:00</div>)}</div>
-                    {roomsToRender.map(room => (
+                    
+                    {roomsToRender.map(room => {
+                        const campusRules = CAMPUS_ROOMS[room];
+
+                        return (
                         <div key={room} className="flex items-center mb-2 relative h-12">
                           <div className="w-14 shrink-0 flex items-center justify-center font-black text-slate-500 bg-slate-50 rounded-l-xl border h-full text-xs sticky left-0 z-20">{room}</div>
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border h-full relative flex overflow-hidden">
                             {HOURS.map(h => <div key={h} className="flex-1 border-l"></div>)}
+                            
+                            {/* PRZYWRÓCONE: WYSZARZENIE DLA SAL UCZELNIANYCH */}
+                            {campusRules && (
+                              <>
+                                <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
+                                  <span className="text-[10px] font-bold text-slate-400 opacity-50 px-2 truncate">SALA ZABLOKOWANA</span>
+                                </div>
+                                <div className="absolute top-0 bottom-0 right-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${((24 - campusRules.end) / 24) * 100}%`}}>
+                                </div>
+                              </>
+                            )}
+
+                            {/* PRZYWRÓCONE: WOLNY DOSTĘP DLA 9J */}
+                            {room === '9J' && isWorkingDay && (
+                              <div className="absolute top-1 bottom-1 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-lg z-0 flex items-center justify-center pointer-events-none" 
+                                   style={{ left: `${(8 / 24) * 100}%`, width: `${((16-8) / 24) * 100}%` }}>
+                                <span className="text-[10px] font-black text-emerald-600/70 tracking-widest uppercase px-2 bg-emerald-50 rounded-full truncate">Wolny Dostęp</span>
+                              </div>
+                            )}
+
                             {allEvents.filter(ev => ev.date?.substring(0, 10) === dayDate && ev.room === room).map((ev, idx) => {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
@@ -204,7 +232,7 @@ export default function CalendarSamorzadPage() {
                             })}
                           </div>
                         </div>
-                    ))}
+                    )})}
                   </div>
                 </div>
               </div>
@@ -213,6 +241,7 @@ export default function CalendarSamorzadPage() {
         )}
       </div>
 
+      {/* MODAL SZYBKIEJ REZERWACJI ADMINA */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
@@ -243,15 +272,14 @@ export default function CalendarSamorzadPage() {
         </div>
       )}
 
+      {/* PANEL ADMINA: OCZEKUJĄCE */}
       {isPendingModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsPendingModalOpen(false)}></div>
            <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh] animate-bounceIn">
-             
              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 rounded-t-[2rem] shrink-0">
                <div>
                   <h2 className="text-2xl font-black text-slate-900">Skrzynka Podawcza 📥</h2>
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Wnioski z nowego formularza</p>
                </div>
                <button onClick={() => setIsPendingModalOpen(false)} className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-200 transition">✕</button>
              </div>
@@ -265,11 +293,7 @@ export default function CalendarSamorzadPage() {
                      const isExpanded = expandedReq === req.id;
                      return (
                        <div key={req.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
-                         
-                         <div 
-                           className="p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition"
-                           onClick={() => setExpandedReq(isExpanded ? null : req.id)}
-                         >
+                         <div className="p-5 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onClick={() => setExpandedReq(isExpanded ? null : req.id)}>
                            <div>
                              <div className="flex items-center gap-3 mb-2">
                                <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">{req.room}</span>
@@ -287,29 +311,10 @@ export default function CalendarSamorzadPage() {
 
                          {isExpanded && (
                            <div className="p-6 bg-slate-50 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 animate-slideUp">
-                             <div>
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Osoba zgłaszająca</p>
-                               <p className="font-bold text-slate-800">{req.applicantName}</p>
-                               <p className="text-sm text-indigo-600 font-medium">{req.email}</p>
-                             </div>
-                             <div>
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Typ podmiotu</p>
-                               <p className="font-bold text-slate-800">{req.orgType}</p>
-                             </div>
-                             <div className="md:col-span-2">
-                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uzasadnienie</p>
-                               <div className="bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600 italic">
-                                 "{req.justification}"
-                               </div>
-                             </div>
-                             {req.notes && (
-                               <div className="md:col-span-2">
-                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uwagi / Technika</p>
-                                 <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm text-amber-800 font-medium">
-                                   {req.notes}
-                                 </div>
-                               </div>
-                             )}
+                             <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Zgłaszający</p><p className="font-bold text-slate-800">{req.applicantName}</p><p className="text-sm text-indigo-600 font-medium">{req.email}</p></div>
+                             <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Typ</p><p className="font-bold text-slate-800">{req.orgType}</p></div>
+                             <div className="md:col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uzasadnienie</p><div className="bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600 italic">"{req.justification}"</div></div>
+                             {req.notes && <div className="md:col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Uwagi</p><div className="bg-amber-50 p-4 rounded-xl border border-amber-100 text-sm text-amber-800 font-medium">{req.notes}</div></div>}
                            </div>
                          )}
                        </div>
