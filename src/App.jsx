@@ -12,6 +12,7 @@ import MapPage from './pages/MapPage';
 import StandsPage from './pages/StandsPage';
 import CalendarSelectionPage from './pages/CalendarSelectionPage';
 import UniversalCalendarPage from './pages/UniversalCalendarPage'; 
+import CalendarSamorzadPage from './pages/CalendarSamorzadPage';  
 import DocumentsPage from './pages/DocumentsPage';
 import EquipmentPage from './pages/EquipmentPage'; 
 import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
@@ -130,11 +131,15 @@ export default function App() {
           <Route path="/mapa" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
           <Route path="/rejestr" element={<ProtectedRoute><StandsPage /></ProtectedRoute>} />
           
-          <Route path="/kalendarz-wybor" element={<ProtectedRoute><CalendarSelectionPage /></ProtectedRoute>} />
-          
-          <Route path="/kalendarz/samorzad" element={<ProtectedRoute><UniversalCalendarPage variant="full" /></ProtectedRoute>} />
-          <Route path="/kalendarz/organizacje" element={<ProtectedRoute><UniversalCalendarPage variant="orgs" /></ProtectedRoute>} />
-          
+          {/* Ekran wyboru */}
+          <Route path="/kalendarz-wybor" element={<CalendarSelectionPage />} />
+
+          {/* Kalendarz dla Samorządu (Ten potężny, z akceptacją) */}
+          <Route path="/kalendarz/samorzad" element={<CalendarSamorzadPage />} />
+
+          {/* Kalendarz dla Organizacji (Tylko 28J i sale uczelniane) */}
+          <Route path="/kalendarz/organizacje" element={<UniversalCalendarPage />} />
+
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
 
           <Route path="/zaplecze-prawne" element={<ProtectedRoute><PlaceholderPage title="Zaplecze Prawne Projektów" /></ProtectedRoute>} />
