@@ -15,7 +15,7 @@ const Icons = {
   Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>,
   Pen: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>,
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" /></svg>,
-  Check: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
 };
 
 const CATEGORY_STYLES = {
@@ -29,6 +29,7 @@ const CATEGORY_STYLES = {
 export default function DocumentsPage() {
   const [activeView, setActiveView] = useState('LEX'); 
 
+  // STANY DLA BAZY LEX
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,6 +43,7 @@ export default function DocumentsPage() {
   const [aiStage, setAiStage] = useState(0);
   const [showQR, setShowQR] = useState(false);
 
+  // STANY DLA STUDIA AI
   const [editorText, setEditorText] = useState('');
   const [aiOutput, setAiOutput] = useState('');
   const [isDrafting, setIsDrafting] = useState(false);
@@ -56,7 +58,6 @@ export default function DocumentsPage() {
           new Promise(resolve => setTimeout(resolve, 800))
         ]);
         const data = await response.json();
-        // Zabezpieczony sort
         if (!data.error && Array.isArray(data)) {
           setDocuments(data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)));
         }
@@ -79,17 +80,28 @@ export default function DocumentsPage() {
   const showAlert = (msg) => { setCopiedAlert(msg); setTimeout(() => setCopiedAlert(''), 2500); };
   const handleCopyLink = (link) => { navigator.clipboard.writeText(link); showAlert('Skopiowano!'); };
   const handleCopyCitation = (doc) => { 
-    // Bezpieczne wstawianie
-    const sig = doc?.signature || '';
-    const title = doc?.title || '';
-    const issuer = doc?.issuer || '';
-    const date = doc?.date || '';
-    navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${sig} ("${title}") wydanego przez ${issuer} w dniu ${date} r.`); 
+    navigator.clipboard.writeText(`Zgodnie z postanowieniami aktu: ${doc.signature} ("${doc.title}") wydanego przez ${doc.issuer} w dniu ${doc.date} r.`); 
     showAlert('Skopiowano przypis!'); 
   };
   
-  const openModal = (doc) => { 
-    setSelectedDoc(doc); 
+  // ==========================================
+  // KULOODPORNY SANITIZER - Zabezpiecza przed Cratchem Reacta
+  // ==========================================
+  const openModal = (rawDoc) => { 
+    const safeDoc = {
+      ...rawDoc,
+      signature: rawDoc.signature || '-',
+      title: rawDoc.title || 'Brak tytułu',
+      category: rawDoc.category || 'Niesklasyfikowane',
+      status: rawDoc.status || 'Nieokreślony',
+      date: rawDoc.date || 'Brak daty',
+      issuer: rawDoc.issuer || 'Brak organu',
+      desc: rawDoc.desc || 'Brak opisu.',
+      link: rawDoc.link || '#',
+      repeals: rawDoc.repeals || '',
+      attachments: rawDoc.attachments || ''
+    };
+    setSelectedDoc(safeDoc); 
     setIsAiActive(false); 
     setAiProgress(0); 
     setAiStage(0); 
@@ -97,13 +109,7 @@ export default function DocumentsPage() {
   };
 
   const generateAiReport = (doc) => {
-    if (!doc) return { target: '-', rigor: '-', rigorColor: '', readTime: 0 };
-    
-    const title = doc.title || '';
-    const category = doc.category || '';
-    const desc = doc.desc || '';
-    const text = `${title} ${category} ${desc}`.toLowerCase();
-    
+    const text = `${doc.title} ${doc.category} ${doc.desc}`.toLowerCase();
     let target = text.includes('zarząd') || text.includes('wewnętrz') ? "Administracja SSUEW" : (text.includes('koł') || text.includes('organizacj') ? "Organizacje Studenckie" : "Wszyscy Studenci");
     let rigor = text.includes('regulamin') || text.includes('uchwała') ? "Bardzo Wysoki" : (text.includes('zarządzenie') ? "Średni" : "Niski");
     let rigorColor = rigor === "Bardzo Wysoki" ? "text-rose-500" : (rigor === "Średni" ? "text-amber-400" : "text-emerald-400");
@@ -112,7 +118,7 @@ export default function DocumentsPage() {
     if (doc.pages && !isNaN(doc.pages)) {
       readTime = parseInt(doc.pages) * 2;
     } else {
-      const totalLength = title.length + desc.length;
+      const totalLength = doc.title.length + doc.desc.length;
       readTime = Math.max(1, Math.ceil(totalLength / 200)); 
       if (rigor === "Bardzo Wysoki" && readTime < 5) readTime = 5; 
     }
@@ -132,12 +138,8 @@ export default function DocumentsPage() {
   };
 
   const filteredDocs = documents.filter(doc => {
-    const title = doc.title || '';
-    const sig = doc.signature || '';
-    const desc = doc.desc || '';
-    const cat = doc.category || '';
-    const matchesSearch = `${title} ${sig} ${desc}`.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'Wszystkie' || cat === activeCategory;
+    const matchesSearch = `${doc.title || ''} ${doc.signature || ''} ${doc.desc || ''}`.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = activeCategory === 'Wszystkie' || doc.category === activeCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -145,21 +147,7 @@ export default function DocumentsPage() {
   const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
 
   // ==========================================
-  // ZABEZPIECZONE DANE DLA MODALA (KULOODPORNY RENDER)
-  // ==========================================
-  const safeSignature = selectedDoc?.signature || '-';
-  const safeCategory = selectedDoc?.category || 'Brak kategorii';
-  const safeTitle = selectedDoc?.title || 'Dokument bez tytułu';
-  const safeStatus = selectedDoc?.status || 'Nieokreślony';
-  const safeDate = selectedDoc?.date || '-';
-  const safeIssuer = selectedDoc?.issuer || '-';
-  const safeDesc = selectedDoc?.desc || 'Brak opisu dla tego dokumentu.';
-  const safeLink = selectedDoc?.link || '#';
-  const safeRepeals = selectedDoc?.repeals || '';
-  const safeAttachments = selectedDoc?.attachments || '';
-
-  // ==========================================
-  // STUDIO LEGISLACYJNE (Wymogi Podprogowe!)
+  // STUDIO LEGISLACYJNE - SZABLONY URZĘDOWE
   // ==========================================
   const simulateAiTyping = (fullText) => {
     setIsDrafting(true);
@@ -173,23 +161,60 @@ export default function DocumentsPage() {
         clearInterval(typingInterval);
         setIsDrafting(false);
       }
-    }, 5); // Bardzo szybkie pisanie, by nie nudzić
+    }, 5); 
   };
 
   const handleGenerateTemplate = (type) => {
     let template = '';
     const today = new Date().toLocaleDateString('pl-PL');
     
-    if (type === 'zwolnienie') {
-      template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko / Organizacja]\n[Adres e-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS np. projekt promujący Uczelnię]. Studenci będą zaangażowani w [OPIS ZADAŃ], co uniemożliwia im uczestnictwo w zajęciach. Projekt ten wnosi pozytywny wkład w społeczność akademicką i kreuje wizerunek Uniwersytetu.\n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Twój Podpis i Funkcja]`;
-    } else if (type === 'banerowanie') {
-      template = `[WYMÓG: Klauzule o bezpiecznym montażu, dane osoby odpowiedzialnej i obowiązek demontażu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[Adres e-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych w postaci baneru na terenie kampusu UEW w celu promocji wydarzenia "[NAZWA WYDARZENIA]".\n\nProszę o możliwość ekspozycji baneru w okresie od [DATA OD] do [DATA DO] w następującej lokalizacji: [WPISZ LOKALIZACJĘ, np. barierka przy budynku Z].\n\nZapewniam dołożenie należytej staranności w zakresie prawidłowego i bezpiecznego montażu baneru, z poszanowaniem infrastruktury Uczelni oraz w sposób nienaruszający bezpieczeństwa użytkowników Kampusu.\n\nOsobą odpowiedzialną za poprawne zamocowanie baneru, jego bieżące monitorowanie w trakcie ekspozycji oraz jego terminowy demontaż jest: [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON], e-mail: [E-MAIL]).\n\nZobowiązuję się również do:\n- samodzielnego zawieszenia i zdjęcia baneru we wskazanym terminie,\n- regularnego sprawdzania trwałości i stabilności mocowania baneru podczas okresu jego ekspozycji,\n- pozostawienia miejsca w stanie nienaruszonym po zakończeniu promocji.\n\nJednocześnie oświadczam, że ekspozycja baneru będzie prowadzona zgodnie z obowiązującymi zasadami Uczelni.\n\nZ wyrazami szacunku,\n[Twój Podpis i Funkcja]`;
-    } else if (type === 'formalize') {
-      if (!editorText || editorText.length < 10) {
-        setAiOutput("BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie (np. 'chcemy zrobic grilla za uczelnią'), a ja ubiorę to w odpowiednie paragrafy.");
-        return;
-      }
-      template = `[PRZEKSZTAŁCONO W STYL URZĘDOWY]\n\nWrocław, dnia ${today} r.\n\nWNIOSEK / PISMO PRZEWODNIE\n\nDziałając w interesie społeczności studenckiej oraz na podstawie obowiązujących przepisów, niniejszym wnoszę o:\n\nZgodnie ze zgłoszonym postulatem: "${editorText.substring(0, 80)}[...]", pragniemy zaznaczyć, iż realizacja tego przedsięwzięcia bezpośrednio wpisuje się w realizację celów statutowych naszej organizacji.\n\nZwracamy się z uprzejmą prośbą o pozytywne rozpatrzenie niniejszego pisma.\n\nZ poważaniem,\n[Podpis]`;
+    switch(type) {
+      // --- PODANIA DO PROREKTORA ---
+      case 'zwolnienie':
+        template = `[WYMÓG: Uzasadnienie wpływu na społeczność oraz formuła o nadrabianiu zaległości]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji np. Samorządu Studentów UEW] zwracam się z uprzejmą prośbą o udzielenie zwolnienia z zajęć dydaktycznych w dniu [DATA] r., w godzinach [GODZINY], dla studentów biorących udział w wydarzeniu "[NAZWA WYDARZENIA]".\n\n[NAZWA WYDARZENIA] to [KRÓTKI OPIS np. targi pracy, oferujące studentom kontakt z pracodawcami]. Organizacja uczestniczy w wydarzeniu reprezentując Uczelnię i budując relacje z partnerami zewnętrznymi.\n\nDyżury oraz spotkania wymagają obecności delegowanych studentów, co uniemożliwia im uczestnictwo w zajęciach dydaktycznych. \n\nLista osób:\n1. [Nazwisko Imię] (nr indeksu: [NUMER])\n2. [Nazwisko Imię] (nr indeksu: [NUMER])\n\nWyżej wymienieni studenci zobowiązują się do uzgodnienia z prowadzącymi sposobu uzupełnienia ewentualnych zaległości, tak aby nie zakłócić toku kształcenia.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'wydarzenie':
+        template = `[WYMÓG: Powołanie na charakter projektu i zapotrzebowanie na obsługę techniczną]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nSzanowny Panie Prorektorze,\nw imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na organizację wydarzenia „[NAZWA PROJEKTU]”, które planowane jest w dniach [DATY], a jego realizacja przewidziana jest w przestrzeni [BUDYNEK / TEREN]. Projekt stanowi ważną inicjatywę o charakterze [MERYTORYCZNYM/INTEGRACYJNYM], której celem jest [CEL, np. edukacja i aktywizacja studentów].\n\nWydarzenie przyciągnie grupy odbiorców, stwarzając przestrzeń do rozwoju kompetencji oraz budowania pozytywnego wizerunku Uniwersytetu Ekonomicznego we Wrocławiu.\n\nKoordynatorem projektu jest [IMIĘ NAZWISKO, NR INDEKSU], tel. [TELEFON], e-mail: [E-MAIL].\n\nJednocześnie zwracam się z uprzejmą prośbą o pomoc w kwestiach technicznych podczas realizacji wydarzenia. Zwracam się z prośbą o przydzielenie pracowników Uczelni odpowiedzialnych za obsługę techniczną, co pozwoli na sprawne przeprowadzenie projektu.\n\nMając na uwadze znaczenie wydarzenia dla społeczności akademickiej, uprzejmie proszę o pozytywne rozpatrzenie podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'sala_uew':
+        template = `[WYMÓG: Informacja o charakterze spotkania i odpowiedzialności]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nDr hab. inż. Andrzej Okruszek, prof. UEW\nProrektor ds. Studenckich i Kształcenia\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o bezpłatne udostępnienie nam sali [NUMER SALI i BUDYNEK] w dniu [DATA] r., w godzinach [GODZINY] na potrzeby organizacji [NAZWA SPOTKANIA np. I Spotkania Komisji].\n\nSpotkania te są cyklicznymi otwartym spotkaniem dla studentów zaangażowanych w działalność. Z uwagi na swój charakter roboczo-informacyjny spotkanie wymaga dostępności odpowiedniej sali, która pozwoli na swobodne przeprowadzenie posiedzenia.\n\nKoordynatorem spotkania i osobą odpowiedzialną za klucz i salę jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+
+      // --- PODANIA DO KANCLERZA ---
+      case 'banerowanie':
+        template = `[WYMÓG: Klauzule o bezpiecznym montażu, dane osoby odpowiedzialnej i obowiązek demontażu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych w postaci baneru na terenie kampusu UEW w celu promocji wydarzenia "[NAZWA WYDARZENIA]".\n\nProszę o możliwość ekspozycji baneru w okresie od [DATA OD] do [DATA DO] w następującej lokalizacji: [WPISZ LOKALIZACJĘ, np. barierka przy budynku Z].\n\nZapewniam dołożenie należytej staranności w zakresie prawidłowego i bezpiecznego montażu baneru, z poszanowaniem infrastruktury Uczelni oraz w sposób nienaruszający bezpieczeństwa użytkowników Kampusu.\n\nOsobą odpowiedzialną za poprawne zamocowanie baneru, jego bieżące monitorowanie w trakcie ekspozycji oraz jego terminowy demontaż jest: [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON], e-mail: [E-MAIL]).\n\nZobowiązuję się również do:\n- samodzielnego zawieszenia i zdjęcia baneru we wskazanym terminie,\n- regularnego sprawdzania trwałości i stabilności mocowania baneru podczas okresu jego ekspozycji,\n- pozostawienia miejsca w stanie nienaruszonym po zakończeniu promocji.\n\nJednocześnie oświadczam, że ekspozycja baneru będzie prowadzona zgodnie z obowiązującymi zasadami Uczelni.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'plakatowanie':
+        template = `[WYMÓG: Rozpiska ilości, miejsc oraz terminowego zdjęcia]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na rozwieszenie materiałów promocyjnych dotyczących inicjatywy [NAZWA PROJEKTU]. Celem plakatowania jest przekazanie studentom informacji o wydarzeniu oraz dotarcie do jak najszerszego grona odbiorców.\n\nUprzejmie proszę o możliwość umieszczenia plakatów w następujących lokalizacjach na terenie Uczelni:\n- na wejściach do budynków: A, D, E, P, SJO, W, Z,\n- na wejściach do Domów Studenckich: Przegubowiec oraz Ślężak,\n- na tablicach ogłoszeniowych na parterze CKU,\n- na tablicy ogłoszeniowej przy windach w budynku E,\n- na tablicach ogłoszeniowej przy windach w Bibliotece (budynek U).\n\nPlanowana ekspozycja obejmuje 1 plakat w każdym wskazanym miejscu (łącznie 15 plakatów w formacie A3), umieszczonych zgodnie z zasadami obowiązującymi na terenie Uczelni. Materiały byłyby eksponowane w terminie [DATA OD] – [DATA DO].\n\nZwracam się także z prośbą o wyrażenie zgody na samodzielne rozwieszenie materiałów promocyjnych oraz zobowiązuję się do ich terminowego zdjęcia po zakończeniu okresu ekspozycji.\n\nOsobą odpowiedzialną za rozwieszenie i zdjęcie plakatów jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'przedluzenie':
+        template = `[WYMÓG: Podanie sal SSUEW oraz braku zakłóceń dla kampusu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o możliwość korzystania z pomieszczeń przeznaczonych na działalność organizacji w budynku B/J, pokojach 9, 16 oraz 28, w dniach [DATY] r. w godzinach 16:00 - 0:00.\n\nDostęp do pomieszczeń jest niezbędny ze względu na [CEL np. organizację zebrania oraz przygotowania logistyczne do projektu]. Spotkanie obejmuje [OPIS DZIAŁAŃ].\n\nPragnę podkreślić, że wszystkie działania odbywające się w wskazanych pomieszczeniach będą prowadzone w sposób w pełni niezakłócający funkcjonowania budynku ani spokoju na kampusie.\n\nKoordynatorem spotkania oraz osobą odpowiedzialną za klucze i sale będzie [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'wjazd':
+        template = `[WYMÓG: Numery rejestracyjne i wskazanie gabarytów transportu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o wyrażenie zgody na bezpłatny wjazd na teren Kampusu samochodu o numerze rejestracyjnym [NR REJESTRACYJNY] w dniu [DATA].\n\nUmożliwienie wjazdu jest niezbędne ze względu na konieczność przetransportowania sprzętu oraz materiałów wykorzystywanych podczas [RODZAJ WYDARZENIA], które odbędzie się w budynku [BUDYNEK]. Transport ręczny nie jest możliwy ze względu na gabaryty i wagę wyposażenia.\n\nZapewniam, że wjazd oraz postój będą odbywały się zgodnie z obowiązującymi zasadami ruchu na terenie Uczelni oraz w sposób niezakłócający funkcjonowania Kampusu.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'stoisko':
+        template = `[WYMÓG: Udostępnienie stołów/krzeseł oraz zapewnienie swobody ruchu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o wyrażenie zgody na organizację nieodpłatnych stoisk promocyjnych związanych z wydarzeniem „[NAZWA]” w dniu [DATA] r., w godzinach [GODZINY], w przestrzeni [np. budynku CKU] (proponowana lokalizacja: przestrzeń przy wejściu).\n\nStoiska promocyjne mają na celu upowszechnienie informacji o wydarzeniu. W związku z organizacją stoiska uprzejmie proszę również o udostępnienie [ILOŚĆ np. dwóch] stołów i [ILOŚĆ np. czterech] krzeseł, niezbędnych do przygotowania przestrzeni.\n\nZapewniam, że stoisko zostanie ustawione w sposób niewpływający na ścieżki komunikacyjne, bezpieczeństwo ruchu oraz komfort osób korzystających z budynku.\n\nOsobą odpowiedzialną za organizację stoiska i pozostawienie udostępnionego wyposażenia w należytym stanie jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'grill':
+        template = `[WYMÓG: Infrastruktura Zaprzęgubia oraz doprowadzenie prądu]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o udostępnienie terenu Zaprzęgubia w dniu [DATA WYDARZENIA] ([DZIEŃ TYGODNIA]), w godzinach [GODZINY] w celu przeprowadzenia [NAZWA WYDARZENIA / INTEGRACJI].\n\nPrzestrzeń jest niezbędna do właściwej realizacji wydarzenia, którego celem jest integracja uczestników i aktywność na świeżym powietrzu. Spotkanie zakłada grill i integrację, co sprzyja budowaniu relacji pomiędzy uczestnikami.\n\nJednocześnie zwracam się z prośbą o możliwość doprowadzenia zasilania elektrycznego na potrzeby organizacji wydarzenia, w szczególności oświetlenia i nagłośnienia.\n\nW przypadku pytań organizacyjnych lub konieczności doprecyzowania szczegółów wydarzenia, osobą kontaktową jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'przestrzen':
+        template = `[WYMÓG: Rezerwacja korytarza na backstage i niezakłócanie ciągów komunikacyjnych]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji] zwracam się z uprzejmą prośbą o bezpłatne zarezerwowanie przestrzeni (korytarza) przed salą [NR SALI np. 1 CKU] w dniu [DATA] r., w godz. [GODZINY].\n\nPrzestrzeń ta jest niezbędna ze względu na organizację wydarzenia [NAZWA], którego celem jest popularyzacja idei oraz wymiana doświadczeń. Z uwagi na charakter wydarzenia wskazana przestrzeń będzie pełnić funkcję backstage’u dla prelegentów - miejsca przygotowania, a także strefy odpoczynku.\n\nPragnę podkreślić, że korzystanie z przestrzeni będzie odbywać się w sposób w pełni niezakłócający funkcjonowania budynku ani ciągów komunikacyjnych.\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+      case 'umeblowanie':
+        template = `[WYMÓG: Informacja o odpowiedzialności za odbiór i zwrot mebli]\n\nWrocław, dnia ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n[E-mail]\n[Telefon]\n\nDo:\nMgr inż. Wiesław Witter\nZastępca Kanclerza ds. Technicznych\n\nPODANIE\nW imieniu [Nazwa Organizacji], zwracam się z uprzejmą prośbą o udostępnienie umeblowania niezbędnego do realizacji wydarzenia [NAZWA WYDARZENIA], które odbędzie się dnia [DATA] w przestrzeni [LOKALIZACJA].\n\nW szczególności zwracam się z prośbą o przygotowanie i udostępnienie:\n- [liczba] stołów,\n- [liczba] krzeseł.\n\nUmeblowanie będzie wykorzystywane do obsługi punktu informacji/rejestracji. Zapewniam, że zostanie ono ustawione i użytkowane w sposób zgodny z zasadami obowiązującymi na terenie Uczelni oraz niezakłócający ruchu w budynku.\n\nPo zakończeniu wydarzenia wszystkie meble zostaną uporządkowane oraz pozostawione w stanie niepogorszonym.\n\nOsobą odpowiedzialną za odbiór umeblowania, jego ustawienie oraz późniejszy zwrot jest [IMIĘ NAZWISKO] (nr indeksu: [NUMER], tel. [TELEFON]).\n\nUprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.\n\nZ wyrazami szacunku,\n[Podpis, Funkcja]`;
+        break;
+
+      case 'formalize':
+        if (!editorText || editorText.length < 10) {
+          setAiOutput("BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie (np. 'chcemy zrobic grilla za uczelnią'), a ja ubiorę to w odpowiednie paragrafy.");
+          return;
+        }
+        template = `[PRZEKSZTAŁCONO W STYL URZĘDOWY]\n\nWrocław, dnia ${today} r.\n\nWNIOSEK / PISMO PRZEWODNIE\n\nDziałając w interesie społeczności studenckiej oraz na podstawie obowiązujących przepisów, niniejszym wnoszę o:\n\nZgodnie ze zgłoszonym postulatem: "${editorText.substring(0, 80)}[...]", pragniemy zaznaczyć, iż realizacja tego przedsięwzięcia bezpośrednio wpisuje się w realizację celów statutowych naszej organizacji.\n\nZwracamy się z uprzejmą prośbą o pozytywne rozpatrzenie niniejszego pisma.\n\nZ poważaniem,\n[Podpis]`;
+        break;
+      default:
+        template = "Wybierz wzór z menu.";
     }
     simulateAiTyping(template);
   };
@@ -199,6 +224,7 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
+      {/* NAGŁÓWEK */}
       <div className="max-w-7xl mx-auto mb-8 text-center md:text-left animate-fadeIn">
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
@@ -230,6 +256,7 @@ export default function DocumentsPage() {
         </button>
       </div>
 
+      {/* WIDOK LEX BAZY */}
       {activeView === 'LEX' && (
         <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
           <div className="p-6 border-b border-slate-100">
@@ -284,6 +311,7 @@ export default function DocumentsPage() {
                           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date || '-'}</span>
                           {nowosc && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>}
                           
+                          {/* Zabezpieczony render ikony załączników na liście */}
                           {doc.attachments && typeof doc.attachments === 'string' && doc.attachments.trim() !== '' && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
                         </div>
                         <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
@@ -305,9 +333,10 @@ export default function DocumentsPage() {
         </div>
       )}
 
+      {/* WIDOK STUDIO LEGISLACYJNE */}
       {activeView === 'STUDIO' && (
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[700px] overflow-hidden">
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[750px] overflow-hidden">
             <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                <div className="flex items-center gap-3">
                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><Icons.Pen /></div>
@@ -323,12 +352,12 @@ export default function DocumentsPage() {
             <textarea 
               value={editorText}
               onChange={(e) => setEditorText(e.target.value)}
-              placeholder="Zacznij pisać swój dokument lub wniosek tutaj... Albo po prawej wybierz gotowy wzór, który AI dostosuje do uczelnianych wymogów!"
+              placeholder="Zacznij pisać swój dokument tutaj... Albo po prawej wybierz gotowy wzór podania, który spełnia wszystkie wewnątrzuczelniane wymogi!"
               className="flex-grow p-8 outline-none resize-none text-sm text-slate-800 leading-relaxed font-medium"
             />
           </div>
 
-          <div className="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 flex flex-col h-[700px] relative overflow-hidden">
+          <div className="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 flex flex-col h-[750px] relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900 to-slate-900 z-0"></div>
             <div className="relative z-10 p-5 border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-sm flex justify-between items-center">
                <div className="flex items-center gap-3">
@@ -337,48 +366,115 @@ export default function DocumentsPage() {
                  </div>
                  <div>
                    <h3 className="font-bold text-white text-sm leading-none">Lex AI Assistant</h3>
-                   <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> WDROŻONO WYMOGI FORMALNE</span>
+                   <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 11 URZĘDOWYCH WZORÓW</span>
                  </div>
                </div>
             </div>
 
             <div className="relative z-10 flex-grow p-6 overflow-y-auto flex flex-col gap-6 scrollbar-hide" ref={aiOutputRef}>
-               <div className="bg-slate-800/80 border border-slate-700 p-5 rounded-2xl text-sm text-slate-300 leading-relaxed shadow-lg">
-                 Cześć! Posiadam zaszyte wewnętrzne wymogi administracji uczelni. Wybierz szablon, a przygotuję dla Ciebie odpowiednie pismo.
+               <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl text-xs text-slate-300 leading-relaxed shadow-lg">
+                 Wybierz oficjalny szablon pisma do władz Uczelni. W każdym z nich zaszyłem już wymagane przez konkretnych dyrektorów paragrafy (BHP, oświadczenia itd.).
                </div>
 
-               <div className="grid grid-cols-1 gap-3">
-                 <button onClick={() => handleGenerateTemplate('zwolnienie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
-                    <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. Zwolnienia z Zajęć Dydaktycznych</span>
-                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Uzasadnienie wkładu w społeczność i nadrabianie</span>
-                    </div>
-                    <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
-                 </button>
-
-                 <button onClick={() => handleGenerateTemplate('banerowanie')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
-                    <div>
-                      <span className="block text-white font-bold text-sm mb-1 flex items-center gap-2"><Icons.Document /> Podanie dot. Możliwości Banerowania</span>
-                      <span className="block text-emerald-400/80 text-xs flex items-center gap-1"><Icons.Check /> Klauzule bezpieczeństwa i demontażu</span>
-                    </div>
-                    <span className="text-slate-500 group-hover:text-blue-400 transition-colors"><Icons.ArrowRight /></span>
-                 </button>
-                 
-                 <button onClick={() => handleGenerateTemplate('formalize')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 hover:from-blue-800/50 hover:to-indigo-800/50 border border-blue-800/50 rounded-xl text-left transition-all group disabled:opacity-50 mt-2">
-                    <div>
-                      <span className="block text-blue-100 font-bold text-sm mb-1 flex items-center gap-2"><Icons.Brain /> Sformatuj własny tekst z Edytora</span>
-                      <span className="block text-blue-300/70 text-xs">Zamienię luźny pomysł na pismo formalne.</span>
-                    </div>
-                    <span className="text-blue-400 group-hover:text-blue-300 transition-colors"><Icons.ArrowRight /></span>
-                 </button>
+               {/* GRUPA 1: DO PROREKTORA */}
+               <div>
+                 <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Do Prorektora ds. Studenckich</span>
+                 <div className="grid grid-cols-1 gap-2">
+                   <button onClick={() => handleGenerateTemplate('zwolnienie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Zwolnienie z Zajęć Dydaktycznych</span>
+                        <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Argumentacja społeczna + Tabele</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('wydarzenie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Organizacja Wydarzenia</span>
+                        <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Kwestie techniczne i wizerunek UEW</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('sala_uew')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Sali UEW</span>
+                        <span className="block text-emerald-400/80 text-[10px]"><Icons.Check /> Charakter merytoryczny spotkania</span>
+                      </div>
+                      <span className="text-slate-500 group-hover:text-blue-400"><Icons.ArrowRight /></span>
+                   </button>
+                 </div>
                </div>
 
+               {/* GRUPA 2: DO KANCLERZA */}
+               <div>
+                 <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Do Zastępcy Kanclerza (Administracja)</span>
+                 <div className="grid grid-cols-1 gap-2">
+                   <button onClick={() => handleGenerateTemplate('banerowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Możliwość Banerowania</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wymóg 3-punktowej klauzuli BHP</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('plakatowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Możliwość Plakatowania</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Szablon z listą wejść do budynków</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('stoisko')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Organizacja Stoiska Promocyjnego</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o krzesła i ciągi komunikacyjne</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('grill')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Grill na Zaprzęgubiu</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wniosek o doprowadzenie zasilania</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('wjazd')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Wjazd na Kampus Samochodem</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Szablon gabarytów i nr rejestracyjnych</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('przedluzenie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Przedłużenie Godzin Budynku B/J</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Gwarancja spokoju na Kampusie</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('umeblowanie')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Doposażenie w Umeblowanie</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Odpowiedzialność za odbiór i zwrot</span>
+                      </div>
+                   </button>
+                   <button onClick={() => handleGenerateTemplate('przestrzen')} disabled={isDrafting} className="flex items-center justify-between p-3 bg-slate-800/40 hover:bg-slate-700/60 border border-slate-700 rounded-xl text-left transition-all group disabled:opacity-50">
+                      <div>
+                        <span className="block text-white font-bold text-sm mb-1">Rezerwacja Przestrzeni Kampusu (Korytarze)</span>
+                        <span className="block text-emerald-400/80 text-[10px]">Wymogi ewakuacyjne i organizacyjne</span>
+                      </div>
+                   </button>
+                 </div>
+               </div>
+
+               {/* MAGICZNY FORMATTER */}
+               <button onClick={() => handleGenerateTemplate('formalize')} disabled={isDrafting} className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 hover:from-blue-800/50 hover:to-indigo-800/50 border border-blue-800/50 rounded-xl text-left transition-all group disabled:opacity-50 mt-2">
+                  <div>
+                    <span className="block text-blue-100 font-bold text-sm mb-1 flex items-center gap-2"><Icons.Brain /> Sformatuj własny tekst z Edytora</span>
+                    <span className="block text-blue-300/70 text-xs">Zamienię Twój luźny pomysł w formalne pismo.</span>
+                  </div>
+                  <span className="text-blue-400 group-hover:text-blue-300 transition-colors"><Icons.ArrowRight /></span>
+               </button>
+
+               {/* Odpowiedź AI (Pisanie) */}
                {aiOutput && (
                  <div className="mt-4 animate-slideUp">
                     <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <Icons.Brain /> Generowanie odpowiedzi...
+                      <Icons.Brain /> Generowanie urzędowego pisma...
                     </span>
-                    <div className="bg-slate-950 border border-slate-700 p-5 rounded-2xl text-sm text-slate-300 leading-relaxed font-mono shadow-inner whitespace-pre-wrap">
+                    <div className="bg-slate-950 border border-slate-700 p-5 rounded-2xl text-xs text-slate-300 leading-relaxed font-mono shadow-inner whitespace-pre-wrap">
                       {aiOutput}
                       {isDrafting && <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>}
                     </div>
@@ -395,7 +491,9 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {/* KULOODPORNY RENDER MODALA LEX */}
+      {/* ==================================================== */}
+      {/* MODAL KULOODPORNY LEX */}
+      {/* ==================================================== */}
       {selectedDoc && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDoc(null)}></div>
@@ -493,8 +591,7 @@ export default function DocumentsPage() {
                   </div>
                 </div>
 
-                {/* Zabezpieczony render załączników i uchyleń */}
-                {safeAttachments && typeof safeAttachments === 'string' && safeAttachments.trim() !== '' && (
+                {safeAttachments && typeof safeAttachments === 'string' && safeAttachments.trim() !== '' && safeAttachments.trim() !== 'Brak' && (
                   <div className="mb-8">
                     <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
                       <Icons.Paperclip /> Powiązane Załączniki
@@ -529,7 +626,6 @@ export default function DocumentsPage() {
                     <span className="font-bold text-slate-800 text-sm">{safeIssuer}</span>
                   </div>
                   
-                  {/* Uchylenia */}
                   {safeRepeals && typeof safeRepeals === 'string' && safeRepeals !== 'Brak' && safeRepeals.trim() !== '' && (
                     <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
