@@ -2,10 +2,28 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
+const Icons = {
+  Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
+  Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+};
+
+// === BAZA OGŁOSZEŃ (SMART NOTICES) ===
+const ALL_NOTICES = [
+  { id: 1, target: 'ALL', type: 'info', text: 'Przypominamy o konieczności terminowego zwrotu sprzętu po wydarzeniach (max 48h).', date: 'Dzisiaj' },
+  { id: 2, target: 'ALL', type: 'warning', text: 'Nowe wzory podań do Kanclerza zostały zaktualizowane w Lex SSUEW. Prosimy nie używać starych druków!', date: 'Wczoraj' },
+  { id: 3, target: 'ADMIN', type: 'urgent', text: 'Posiedzenie Zarządu zostało przeniesione na ten czwartek, godz. 18:30 (Sala 205A).', date: 'Dzisiaj' },
+  { id: 4, target: 'ADMIN', type: 'info', text: 'W systemie CRED oczekują 3 nowe wnioski o rezerwację CKU na przyszły tydzień.', date: 'Wczoraj' },
+];
+
 export default function DashboardPage() {
   const { user } = useAuth();
   // Wyciągamy imię (lub fallback)
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
+
+  // === PRZEŁĄCZNIK ROLI (Do testów tablicy ogłoszeń) ===
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [dismissedNotices, setDismissedNotices] = useState([]);
 
   // === STANY DLA WYSZUKIWARKI CRED ===
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,14 +57,24 @@ export default function DashboardPage() {
     }
   };
 
-// === KOMPONENT POMOCNICZY KAFELKA ===
+  // Logika filtrowania ogłoszeń
+  const activeNotices = ALL_NOTICES.filter(notice => {
+    if (dismissedNotices.includes(notice.id)) return false;
+    if (notice.target === 'ADMIN' && !isAdmin) return false;
+    return true;
+  });
+
+  const handleDismiss = (id) => {
+    setDismissedNotices([...dismissedNotices, id]);
+  };
+
+  // === KOMPONENT POMOCNICZY KAFELKA ===
   const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
     <Link 
       to={to} 
       // OPCJA ATOMOWA: mask-image i isolate wymuszają perfekcyjne docięcie tła!
       className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]"
     >
-      
       {/* TŁO GRADIENTOWE */}
       <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700 -z-10`}></div>
       
@@ -55,17 +83,11 @@ export default function DashboardPage() {
       
       {/* TREŚĆ KARTY */}
       <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
-        
-        {/* IKONA */}
-        <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">
+        <div className="w-14 h-14 md:w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">
           {icon}
         </div>
-        
-        {/* TYTUŁY */}
         <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight leading-tight">{title}</h2>
         <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">{subtitle}</p>
-        
-        {/* PRZYCISK */}
         <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
           {buttonText}
         </div>
@@ -74,26 +96,77 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-50">
+    <div className="min-h-screen flex flex-col items-center p-6 relative overflow-hidden bg-slate-50">
       
       {/* === TŁO === */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-blue-100/30 pointer-events-none z-0"></div>
 
-      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center pt-16">
+      {/* === PASEK ZARZĄDZANIA ROLĄ (Do testów) === */}
+      <div className="relative z-20 w-full max-w-6xl flex justify-end mt-4 mb-2">
+        <div className="bg-white/80 backdrop-blur-sm p-1 rounded-2xl border border-slate-200 shadow-sm flex items-center">
+          <button onClick={() => setIsAdmin(false)} className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all ${!isAdmin ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>
+            Użytkownik
+          </button>
+          <button onClick={() => setIsAdmin(true)} className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${isAdmin ? 'bg-rose-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}>
+            <Icons.Shield /> Admin
+          </button>
+        </div>
+      </div>
+
+      <div className="relative z-10 w-full max-w-6xl flex flex-col items-center">
         
         {/* === NAGŁÓWEK === */}
-        <header className="text-center mb-10 animate-fadeIn">
+        <header className="text-center mb-8 animate-fadeIn">
           <div className="inline-block px-4 py-1 mb-4 rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur-sm">
             <span className="text-xs font-black tracking-[0.2em] text-blue-600 uppercase">Witaj, {firstName} 👋</span>
           </div>
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900 leading-tight">
             Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Administracyjny</span>
           </h1>
-          <p className="mt-4 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
+          <p className="mt-2 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
             Wybierz moduł poniżej, aby zarządzać zasobami.
           </p>
         </header>
+
+        {/* === INTELIGENTNA TABLICA OGŁOSZEŃ === */}
+        {activeNotices.length > 0 && (
+          <div className="w-full max-w-3xl mb-10 space-y-3 animate-slideDown">
+            {activeNotices.map((notice) => (
+              <div 
+                key={notice.id} 
+                className={`flex items-start md:items-center justify-between p-4 rounded-2xl border shadow-sm transition-all group backdrop-blur-sm
+                  ${notice.type === 'urgent' ? 'bg-rose-50/90 border-rose-200 text-rose-900' : 
+                    notice.type === 'warning' ? 'bg-amber-50/90 border-amber-200 text-amber-900' : 
+                    'bg-white/90 border-slate-200 text-slate-700'}`}
+              >
+                <div className="flex items-start md:items-center gap-4 pr-4">
+                  <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+                    ${notice.type === 'urgent' ? 'bg-rose-200/50 text-rose-600' : 
+                      notice.type === 'warning' ? 'bg-amber-200/50 text-amber-600' : 
+                      'bg-slate-100 text-slate-500'}`}>
+                    <Icons.Bell />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                        {notice.target === 'ADMIN' ? 'Wiadomość Zarządu' : 'Ogłoszenie SSUEW'} • {notice.date}
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold leading-snug">{notice.text}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => handleDismiss(notice.id)} 
+                  className="shrink-0 p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
+                  title="Zrozumiałem, ukryj"
+                >
+                  <Icons.Close />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* === WYSZUKIWARKA CRED === */}
         <div className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-blue-900/5 border border-white mb-10 animate-slideUp">
@@ -116,14 +189,12 @@ export default function DashboardPage() {
              </button>
           </div>
           
-          {/* Komunikat o błędzie */}
           {searchError && (
             <div className="mt-4 p-4 bg-red-50 text-red-600 text-sm font-bold rounded-2xl border border-red-100 animate-fadeIn text-center">
               ❌ {searchError}
             </div>
           )}
           
-          {/* Wynik wyszukiwania */}
           {searchResult && (
             <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 border-b border-emerald-200/50 pb-3">
@@ -175,8 +246,8 @@ export default function DashboardPage() {
           <Card 
             to="/rejestr" 
             icon="📋" 
-            title="Rejestr Stoisk Promocyjnych" 
-            subtitle="Harmonogram stoisk w budynkach uczelnianych" 
+            title="Rejestr Stoisk" 
+            subtitle="Harmonogram w budynkach" 
             colorFrom="from-indigo-600" 
             colorTo="to-purple-800" 
             buttonText="Sprawdź Terminy" 
@@ -185,8 +256,8 @@ export default function DashboardPage() {
           <Card 
             to="/kalendarz-wybor" 
             icon="📅" 
-            title="Kalendarz Przestrzeni" 
-            subtitle="Sale samorządowe i uczelniane" 
+            title="Sale i Przestrzenie" 
+            subtitle="Rezerwacje samorządowe" 
             colorFrom="from-emerald-500" 
             colorTo="to-teal-700" 
             buttonText="Wybierz Tryb" 
@@ -195,14 +266,13 @@ export default function DashboardPage() {
           <Card 
             to="/dokumenty" 
             icon="📂" 
-            title="Baza Wiedzy" 
-            subtitle="Regulaminy i Zarządzenia" 
+            title="Moduł Lex SSUEW" 
+            subtitle="Uchwały i Studio Legislacyjne" 
             colorFrom="from-slate-600" 
             colorTo="to-slate-800" 
             buttonText="Przeglądaj Pliki" 
           />
 
-          {/* NOWY 6 KAFELEK */}
           <Card 
             to="/legal-hub" 
             icon="⚖️" 
@@ -216,7 +286,7 @@ export default function DashboardPage() {
         </div>
 
         {/* === STOPKA === */}
-        <footer className="mt-12 opacity-50 flex flex-col items-center gap-2">
+        <footer className="mt-16 opacity-50 flex flex-col items-center gap-2">
             <div className="h-[1px] w-10 bg-slate-300"></div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Powered by Samorząd Studentów UEW</p>
         </footer>
