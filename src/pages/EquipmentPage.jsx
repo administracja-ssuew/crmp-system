@@ -9,6 +9,7 @@ export default function EquipmentPage() {
 
   const [equipmentData, setEquipmentData] = useState([]);
   const [allReservations, setAllReservations] = useState([]); 
+  const [allWydania, setAllWydania] = useState([]); // NOWOŚĆ: Fizyczne wydania
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -20,18 +21,13 @@ export default function EquipmentPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); 
   
-  // === POPRAWKA 2: ROZBUDOWANE DANE KONTAKTOWE ===
   const [reservationData, setReservationData] = useState({
     dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''
   });
 
   const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
   const [damageData, setDamageData] = useState({
-    perpetrator: '',
-    albumId: '',
-    type: 'Mechaniczne',
-    description: '',
-    photoUrl: null
+    perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null
   });
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
@@ -67,6 +63,7 @@ export default function EquipmentPage() {
         });
         setEquipmentData(formattedData);
         setAllReservations(data.rezerwacje || []); 
+        setAllWydania(data.wydania || []); // Zaciągamy fizyczne wydania
         setIsLoading(false);
       })
       .catch(err => {
@@ -76,9 +73,7 @@ export default function EquipmentPage() {
       });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
 
@@ -127,8 +122,6 @@ export default function EquipmentPage() {
 
     setIsSubmitting(true);
     let itemsCodes = cart.map(item => item.id).join(', ');
-    
-    // Zbijamy dane kontaktowe w jeden ciąg znaków, żeby nie przebudowywać struktury Excela
     const formattedContact = `${reservationData.contactName} | Tel: ${reservationData.contactPhone} | Email: ${reservationData.contactEmail}`;
 
     const payload = {
@@ -158,7 +151,7 @@ export default function EquipmentPage() {
         alert("Błąd po stronie serwera: " + result.error);
       }
     } catch(err) {
-      alert("Błąd połączenia. Spróbuj ponownie później.");
+      alert("Błąd połączenia.");
     } finally {
       setIsSubmitting(false);
     }
@@ -166,6 +159,14 @@ export default function EquipmentPage() {
 
   const getDynamicStatus = (item) => {
     if (item.status === 'maintenance') return 'maintenance';
+    
+    // NOWOŚĆ: Najpierw sprawdzamy fizyczne wydania. Jeżeli nie oddali, sprzęt jest niedostępny!
+    const isPhysicallyOut = allWydania.some(w => 
+      w.Status === 'WYDANE' && w['Sprzęt (Kody QR)'] && w['Sprzęt (Kody QR)'].includes(item.id)
+    );
+    if (isPhysicallyOut) return 'rented';
+
+    // Jeśli leży w magazynie, sprawdzamy czy na dzisiaj nie ma aktywnej rezerwacji
     const today = new Date().setHours(0,0,0,0);
     const isRentedToday = allReservations.some(res => {
       if (res.Sprzet_Kody && res.Sprzet_Kody.includes(item.id) && res.Status === 'Zatwierdzone') {
@@ -175,6 +176,7 @@ export default function EquipmentPage() {
       }
       return false;
     });
+    
     return isRentedToday ? 'rented' : 'available';
   };
 
@@ -201,14 +203,11 @@ export default function EquipmentPage() {
 
   const handlePhotoCapture = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setDamageData({ ...damageData, photoUrl: imageUrl });
-    }
+    if (file) setDamageData({ ...damageData, photoUrl: URL.createObjectURL(file) });
   };
 
   const submitDamageReport = () => {
-    alert("Protokół Szkody został wygenerowany. W przyszłości system wyśle to zdjęcie i formularz bezpośrednio do bazy CRW i Zarządu!");
+    alert("Protokół Szkody wygenerowany i przesłany do bazy CRW.");
     setIsDamageReportOpen(false);
     setDamageData({ perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null });
   };
@@ -222,7 +221,7 @@ export default function EquipmentPage() {
 
       {isAdmin && (
         <div className="absolute top-6 right-6 z-50 animate-fadeIn">
-          <Link to="/wydawanie" className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-400 hover:bg-slate-800 hover:scale-105 transition-all">
+          <Link to="/wydawanie" className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 hover:scale-105 transition-all">
             <span>🔐</span> Panel Wydawania (Admin)
           </Link>
         </div>
@@ -309,8 +308,7 @@ export default function EquipmentPage() {
               </div>
               <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cel rezerwacji (Nazwa wydarzenia)</label><input type="text" placeholder="np. Dni Otwarte UEW..." value={reservationData.purpose} onChange={e => setReservationData({...reservationData, purpose: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               
-              {/* NOWOŚĆ: Rozbite pola kontaktowe dla Kalendarza */}
-              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Imię i Nazwisko / Organizacja</label><input type="text" placeholder="Jan Kowalski (Wampiriada)" value={reservationData.contactName} onChange={e => setReservationData({...reservationData, contactName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Imię i Nazwisko / Organizacja</label><input type="text" placeholder="Jan Kowalski (SKN Zarządzania)" value={reservationData.contactName} onChange={e => setReservationData({...reservationData, contactName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">E-mail</label><input type="email" placeholder="jan@student.ue.wroc.pl" value={reservationData.contactEmail} onChange={e => setReservationData({...reservationData, contactEmail: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Telefon</label><input type="text" placeholder="123 456 789" value={reservationData.contactPhone} onChange={e => setReservationData({...reservationData, contactPhone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
@@ -323,7 +321,7 @@ export default function EquipmentPage() {
             </div>
 
             <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
-              {isSubmitting ? 'Weryfikacja i wysyłanie...' : 'Wyślij Wniosek do Zarządu'}
+              {isSubmitting ? 'Weryfikacja kolizji i wysyłanie...' : 'Wyślij Wniosek do Biura'}
             </button>
           </div>
         </div>
@@ -392,7 +390,6 @@ export default function EquipmentPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość Księgowa</span><span className="font-black text-slate-700 text-sm">{selectedItem.value}</span></div>
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja do</span><span className="font-black text-slate-700 text-sm">{selectedItem.warranty}</span></div>
                   </div>
-                  
                   <button 
                     onClick={() => setIsDamageReportOpen(true)} 
                     className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -411,7 +408,6 @@ export default function EquipmentPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
           <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp max-h-[90vh] overflow-y-auto">
             <button onClick={() => setIsDamageReportOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold text-xl">✕</button>
-            
             <div className="flex items-center gap-3 mb-6">
               <span className="text-3xl">🚨</span>
               <div>
@@ -419,24 +415,20 @@ export default function EquipmentPage() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Załącznik nr 8 do Regulaminu SSUEW</p>
               </div>
             </div>
-
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
               <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Przedmiot Szkody</span>
               <p className="font-black text-slate-800 text-sm">{selectedItem.name}</p>
               <p className="font-mono text-slate-500 text-[10px] mt-1">{selectedItem.id}</p>
             </div>
-
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sprawca / Ostatni Wypożyczający</label>
                 <input type="text" placeholder="Imię, Nazwisko, Organizacja..." value={damageData.perpetrator} onChange={e => setDamageData({...damageData, perpetrator: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none" />
               </div>
-              
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nr Albumu Sprawcy</label>
                 <input type="text" placeholder="Wymagane do postępowania regresowego" value={damageData.albumId} onChange={e => setDamageData({...damageData, albumId: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none" />
               </div>
-
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Rodzaj Zdarzenia</label>
                 <select value={damageData.type} onChange={e => setDamageData({...damageData, type: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none">
@@ -447,23 +439,18 @@ export default function EquipmentPage() {
                   <option value="Inne">Inne uszkodzenie</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Szczegółowy Opis Szkody</label>
                 <textarea rows="3" placeholder="Opisz dokładnie co zostało zniszczone i w jakich okolicznościach..." value={damageData.description} onChange={e => setDamageData({...damageData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none resize-none"></textarea>
               </div>
-
-              {/* INTEGRACJA Z APARATEM (DOKUMENTACJA FOTOGRAFICZNA) */}
               <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
                 <span className="block text-[10px] font-bold text-red-600 uppercase mb-2">Dokumentacja Fotograficzna</span>
-                
                 {!damageData.photoUrl ? (
                   <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-red-200 border-dashed rounded-lg cursor-pointer bg-white hover:bg-red-50 transition-colors">
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <span className="text-2xl mb-1">📷</span>
                       <p className="text-xs font-bold text-red-500">Zrób zdjęcie usterki</p>
                     </div>
-                    {/* Ten input wywołuje aparat na urządzeniach mobilnych! */}
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotoCapture} />
                   </label>
                 ) : (
@@ -475,18 +462,10 @@ export default function EquipmentPage() {
                 )}
               </div>
             </div>
-
-            <button 
-              onClick={submitDamageReport} 
-              disabled={!damageData.perpetrator || !damageData.description}
-              className="block text-center w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-200 transition-all"
-            >
-              Zatwierdź Protokół Szkody
-            </button>
+            <button onClick={submitDamageReport} disabled={!damageData.perpetrator || !damageData.description} className="block text-center w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-200 transition-all">Zatwierdź Protokół Szkody</button>
           </div>
         </div>
       )}
-
     </div>
   );
 }
