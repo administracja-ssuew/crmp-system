@@ -87,52 +87,31 @@ export default function AdminEquipmentPanel() {
 
   const confirmAndSendInvite = async () => {
     setIsUpdatingStatus(true);
-    
     const payload = {
-      action: "updateRezerwacjaStatus",
-      id: approvalModal.id,
-      status: "Zatwierdzone",
-      createEvent: true, 
-      pickupDateTime: `${pickupDate}T${pickupTime}`,
-      requesterEmail: requesterEmail,
-      adminEmail: selectedAdminEmail,
-      organizacja: approvalModal.organizacja,
-      sprzetKody: approvalModal.sprzetKody
+      action: "updateRezerwacjaStatus", id: approvalModal.id, status: "Zatwierdzone", createEvent: true, 
+      pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: selectedAdminEmail,
+      organizacja: approvalModal.organizacja, sprzetKody: approvalModal.sprzetKody
     };
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
-        body: JSON.stringify(payload)
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
       });
       const result = await response.json();
-      
-      // Pokazujemy komunikat z Google Script czy kalendarz się powiódł
-      alert(`Wniosek Zatwierdzony!\nSzczegóły: ${result.message || 'Zapisano'}`); 
+      alert(`Wniosek Zatwierdzony!\nKalendarz: ${result.message || 'Zapisano'}`); 
       setApprovalModal(null);
       fetchAllData(); 
-    } catch (err) {
-      alert("Błąd przy zatwierdzaniu.");
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    } catch (err) { alert("Błąd przy zatwierdzaniu."); } finally { setIsUpdatingStatus(false); }
   };
 
   const handleRejectReservation = async (id) => {
     setIsUpdatingStatus(true);
     try {
       await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
-        body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" })
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" })
       });
       fetchAllData(); 
-    } catch (err) {
-      alert("Błąd przy odrzucaniu.");
-    } finally {
-      setIsUpdatingStatus(false);
-    }
+    } catch (err) { alert("Błąd przy odrzucaniu."); } finally { setIsUpdatingStatus(false); }
   };
 
   const formatResDate = (rawDate) => {
@@ -141,9 +120,7 @@ export default function AdminEquipmentPanel() {
       const d = new Date(rawDate);
       if (isNaN(d.getTime())) return String(rawDate);
       return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    } catch {
-      return String(rawDate);
-    }
+    } catch { return String(rawDate); }
   };
 
   const toggleItem = (item) => {
@@ -152,8 +129,7 @@ export default function AdminEquipmentPanel() {
   };
 
   const verifyBorrower = () => {
-    setIsVerifying(true);
-    setVerificationStatus(null);
+    setIsVerifying(true); setVerificationStatus(null);
     setTimeout(() => {
       if (borrower.albumId === '123456') { setVerificationStatus('blocked'); } 
       else if (borrower.albumId.length >= 3 && borrower.name.length > 2) { setVerificationStatus('ok'); setStep(3); } 
@@ -187,54 +163,42 @@ export default function AdminEquipmentPanel() {
       action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, organizacja: borrower.organization, sprzet: selectedItems.map(item => item.id).join(', ')
     };
     try {
-      await fetch(API_URL, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
-        body: JSON.stringify(payload) 
-      });
-      alert(`Sukces! Porozumienie ${docNumber} zostało zapisane w Bazie CRW!`);
-      setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''}); setVerificationStatus(null); setSignatureData(null); setDocNumber('GENEROWANIE...'); fetchAllData();
+      await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      alert(`Sukces! Porozumienie ${docNumber} zostało zapisane!`);
+      setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''}); setVerificationStatus(null); setSignatureData(null); setDocNumber('GENEROWANIE...');
+      setTimeout(() => fetchAllData(), 500);
     } catch (error) { alert("Błąd zapisu."); } finally { setIsVerifying(false); }
   };
 
+  // FINALIZACJA ZWROTU 
   const processReturn = async () => {
     if(!signatureData) { alert("Podpisz protokół zwrotu!"); return; }
     setIsVerifying(true);
     try {
       await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
-        body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: selectedReturn['Nr Porozumienia'] })
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+        // Używamy Nr_Porozumienia lub Data (bo miałeś zamienione kolumny)
+        body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: selectedReturn['Nr_Porozumienia'] || selectedReturn['Nr Porozumienia'] || selectedReturn['Data'] })
       });
-      alert(`Sprzęt z porozumienia ${selectedReturn['Nr Porozumienia']} został zwrócony na stan!`);
-      setSelectedReturn(null);
-      setSignatureData(null);
-      fetchAllData();
-    } catch (err) {
-      alert("Błąd przetwarzania zwrotu.");
-    } finally {
-      setIsVerifying(false);
-    }
+      alert(`Sprzęt został zwrócony na stan! Pigułki na stronie znów będą zielone.`);
+      setSelectedReturn(null); setSignatureData(null);
+      setTimeout(() => fetchAllData(), 500);
+    } catch (err) { alert("Błąd przetwarzania zwrotu."); } finally { setIsVerifying(false); }
   };
 
   const today = new Date().toLocaleDateString('pl-PL');
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return { date: '....................', time: '........' };
-    const [date, time] = dateTimeString.split('T');
-    return { date, time };
+    const [date, time] = dateTimeString.split('T'); return { date, time };
   };
+  const fromDT = formatDateTime(borrower.dateFrom); const toDT = formatDateTime(borrower.dateTo);
 
-  const fromDT = formatDateTime(borrower.dateFrom);
-  const toDT = formatDateTime(borrower.dateTo);
-
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location = useLocation(); const navigate = useNavigate();
 
   useEffect(() => {
     if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
       const codesToFind = location.state.scannedCodes;
       const itemsToAdd = equipmentData.filter(item => codesToFind.includes(item.id) && item.status === 'available');
-
       if (itemsToAdd.length > 0) {
         setSelectedItems(prev => {
           const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id));
@@ -245,6 +209,12 @@ export default function AdminEquipmentPanel() {
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [equipmentData, location.state, navigate, location.pathname]);
+
+  // PANCERNA LOGIKA WYSZUKIWANIA ZWROTÓW (Odporna na zły nagłówek)
+  const activeWydania = allWydania.filter(w => {
+    const status = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
+    return status === 'WYDANE';
+  });
 
   return (
     <div className="min-h-screen bg-slate-900 p-4 md:p-6 flex flex-col items-center pb-20 print:bg-white print:p-0">
@@ -266,6 +236,9 @@ export default function AdminEquipmentPanel() {
         </Link>
       )}
 
+      {/* ========================================================= */}
+      {/* TRYB 1: WYDAWANIE SPRZĘTU */}
+      {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
           <div className="w-full max-w-4xl flex justify-between items-center mb-8 bg-slate-800 p-4 rounded-3xl border border-slate-700 print:hidden animate-fadeIn">
@@ -329,8 +302,10 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
+            {/* KROK 3: A4 ZGODNE Z PDF */}
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
+                {/* NAGŁÓWEK ZGODNY Z PDF */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -525,37 +500,50 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 3: ZWROTY SPRZĘTU (ZAŁĄCZNIK 3) */}
+      {/* TRYB 3: ZWROTY SPRZĘTU (PANCERNE POBIERANIE DANYCH) */}
       {/* ========================================================= */}
       {adminMode === 'zwroty' && (
         <div className="w-full max-w-4xl flex flex-col items-center">
           {!selectedReturn ? (
             <div className="w-full bg-slate-800 p-8 rounded-[2rem] shadow-2xl animate-fadeIn">
               <h2 className="text-3xl font-black text-white mb-2">Przyjmowanie Zwrotów</h2>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół wydania</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół wydania z bazy</p>
               
               <div className="space-y-4">
-                {allWydania.filter(w => w.Status === 'WYDANE').map((wyd, idx) => (
-                  <div key={idx} onClick={() => setSelectedReturn(wyd)} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group">
+                {activeWydania.map((wyd, idx) => (
+                  <div key={idx} onClick={() => setSelectedReturn(wyd)} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group shadow-md">
                     <div>
-                      <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">NR: {wyd['Nr Porozumienia']}</span>
-                      <h3 className="text-lg font-bold text-white leading-tight">{wyd['Organizacja']}</h3>
-                      <p className="text-xs text-slate-300 mt-1">Osoba: {wyd['Wypożyczający']}</p>
+                      <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">
+                        {/* Zabezpieczenie przed zamienionymi nagłówkami w Excelu */}
+                        NR: {wyd['Nr_Porozumienia'] || wyd['Nr Porozumienia'] || wyd['Data']}
+                      </span>
+                      <h3 className="text-lg font-bold text-white leading-tight">
+                        {wyd['Organizator'] || wyd['Organizacja']}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1">
+                        Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-400 uppercase mb-2">Sprzęt: {String(wyd['Sprzęt (Kody QR)']).substring(0, 15)}...</p>
-                      <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase group-hover:bg-emerald-500">Odbierz</button>
+                      <p className="text-[10px] text-slate-400 uppercase mb-2">
+                        Sprzęt: {String(wyd['SPRZĘT'] || wyd['Sprzęt (Kody QR)'] || '').substring(0, 15)}...
+                      </p>
+                      <button className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-lg group-hover:bg-emerald-500 transition-colors">Odbierz</button>
                     </div>
                   </div>
                 ))}
-                {allWydania.filter(w => w.Status === 'WYDANE').length === 0 && (
-                  <div className="text-center py-10 text-slate-500 font-bold">Wszystkie wydane sprzęty zostały poprawnie zwrócone.</div>
+                {activeWydania.length === 0 && (
+                  <div className="text-center py-16">
+                    <span className="text-6xl mb-4 opacity-20">✅</span>
+                    <p className="text-slate-400 font-black text-xl uppercase tracking-widest">Magazyn pełny</p>
+                    <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie wydane sprzęty zostały poprawnie zwrócone.</p>
+                  </div>
                 )}
               </div>
             </div>
           ) : (
             <div className="w-full max-w-[210mm] bg-white p-6 md:p-10 rounded-[2rem] shadow-2xl animate-fadeIn print:shadow-none print:w-full print:rounded-none">
-              <button onClick={() => setSelectedReturn(null)} className="mb-6 text-slate-400 font-bold uppercase text-xs hover:text-slate-800 print:hidden">← Wróć do listy zwrotów</button>
+              <button onClick={() => setSelectedReturn(null)} className="mb-6 text-slate-400 font-bold uppercase text-xs hover:text-slate-800 print:hidden transition-colors">← Wróć do listy zwrotów</button>
               
               <div id="printable-document" className="text-black font-sans text-[9px] md:text-[10px] leading-tight">
                 <div className="flex justify-between items-start mb-6">
@@ -565,15 +553,15 @@ export default function AdminEquipmentPanel() {
 
                 <div className="text-center mb-8">
                   <h1 className="text-sm font-bold underline">PROTOKÓŁ ZDAWCZO-ODBIORCZY - ZWROT</h1>
-                  <p className="font-bold uppercase">DO POROZUMIENIA NR {selectedReturn['Nr Porozumienia']}</p>
+                  <p className="font-bold uppercase">DO POROZUMIENIA NR {selectedReturn['Nr_Porozumienia'] || selectedReturn['Nr Porozumienia'] || selectedReturn['Data']}</p>
                 </div>
 
                 <div className="text-justify space-y-4 mb-8">
-                  <p>W dniu <strong>{today}</strong>, na podstawie Protokołu, następuje zwrot niżej wymienionego majątku użyczonego Organizacji/Projektowi: <strong>{selectedReturn['Organizacja']}</strong>, reprezentowanej przez: <strong>{selectedReturn['Wypożyczający']}</strong>.</p>
+                  <p>W dniu <strong>{today}</strong>, na podstawie Protokołu, następuje zwrot niżej wymienionego majątku użyczonego Organizacji/Projektowi: <strong>{selectedReturn['Organizator'] || selectedReturn['Organizacja']}</strong>, reprezentowanej przez: <strong>{selectedReturn['Kto_wypozyczyl'] || selectedReturn['Wypożyczający']}</strong>.</p>
                   
                   <div className="bg-gray-100 p-4 border border-gray-400">
                     <p className="font-bold mb-2">ZWRACANY SPRZĘT (KODY QR):</p>
-                    <p className="font-mono">{selectedReturn['Sprzęt (Kody QR)']}</p>
+                    <p className="font-mono">{selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']}</p>
                   </div>
 
                   <p>1. Wydający (Przedstawiciel SSUEW) przyjmuje sprzęt i oświadcza, że w momencie zwrotu:</p>
@@ -596,7 +584,7 @@ export default function AdminEquipmentPanel() {
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
                   <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpis</button>
                   <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] flex-1">🖨️ Drukuj PDF</button>
-                  <button onClick={processReturn} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50">Zakończ Wypożyczenie w Bazie</button>
+                  <button onClick={processReturn} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50 shadow-lg">Zakończ Wypożyczenie w Bazie</button>
                 </div>
               </div>
             </div>
