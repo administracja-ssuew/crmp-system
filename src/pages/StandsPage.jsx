@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 // === KONFIGURACJA ===
-const DATA_URL = "https://script.google.com/macros/s/AKfycbwNtQx8na9KJnx6RvdwgzcmPM07Vym5dqgjrGJCXTxOMxdv2Q2kGqquME3uqpgSTBs/exec";
-// Wklej tu link do swojego arkusza, żeby przycisk "Edytuj Bazę" dla Admina działał:
-const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/TWÓJ_ID_ARKUSZA/edit"; 
+const DATA_URL = "https://script.google.com/macros/s/AKfycbwNtQx8na9KJnx6RvdwgzcmPM07Vym5dqgjrGJCXTxOMxdv2Q2kGqquME3uqpgSTBs/exec"; 
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1A63PV5WAj5B6jkbgurENB2sZ9ncGaEOQftkCzDBZKsM/edit"; 
 const ITEMS_PER_PAGE = 6; 
 
+// === WHITELISTA ADMINÓW ===
 const ADMIN_EMAILS = [
   'twoj.mail@samorzad.ue.wroc.pl',
-  'm.radlinski@samorzad.ue.wroc.pl' // Zmień na swój
+  'm.radlinski@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
 ];
 
 const BUILDING_INFO = {
@@ -29,7 +29,22 @@ export default function StandsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [updatingId, setUpdatingId] = useState(null); // Stan dla animacji przycisku "Zatwierdź"
+
+  // Domyślny stan formularza dodawania
+  const [addForm, setAddForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    start: '08:00',
+    end: '15:00',
+    building: 'Z',
+    org: '',
+    title: '',
+    status: 'Zaopiniowane' // ZMIANA 1: Domyślny status po wprowadzeniu!
+  });
   
   const [activeTab, setActiveTab] = useState('upcoming'); 
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,7 +52,8 @@ export default function StandsPage() {
   const [viewMode, setViewMode] = useState('list'); 
   const [weekOffset, setWeekOffset] = useState(0); 
 
-  useEffect(() => {
+  const fetchData = () => {
+    setLoading(true);
     fetch(DATA_URL)
       .then(res => res.json())
       .then(json => {
@@ -50,14 +66,71 @@ export default function StandsPage() {
         setError("Błąd połączenia z bazą.");
         setLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  useEffect(() => { setCurrentPage(1); }, [activeTab, searchTerm, viewMode]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchTerm, viewMode]);
+
+  // WYSYŁANIE NOWEJ REZERWACJI
+  const handleAddSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(DATA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'add', ...addForm })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        setIsAdminModalOpen(false);
+        setAddForm({ ...addForm, org: '', title: '' });
+        fetchData(); 
+      } else {
+        alert("Błąd dodawania zapisu do bazy.");
+      }
+    } catch (err) {
+      alert("Błąd połączenia. Spróbuj ponownie.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // AKTUALIZACJA STATUSU Z POZIOMU LISTY (Zatwierdzanie przez Admina)
+  const handleStatusUpdate = async (id, newStatus) => {
+    setUpdatingId(id);
+    try {
+      const response = await fetch(DATA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus })
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        fetchData(); // Odświeżamy listę, żeby status przeskoczył na zielony!
+      } else {
+        alert("Błąd aktualizacji statusu.");
+      }
+    } catch (err) {
+      alert("Błąd połączenia z bazą.");
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const getOccupancyForDate = (date) => {
     const occupancy = {};
     Object.keys(BUILDING_INFO).forEach(k => occupancy[k] = []);
     data.forEach(item => {
+      // Rezerwacja pokazuje się na mapie TYLKO jak nie jest odrzucona
       if (item.date === date && !(item.status || '').toLowerCase().includes('odrzucone')) {
         const bCode = item.building;
         if (occupancy[bCode]) occupancy[bCode].push(item);
@@ -79,7 +152,8 @@ export default function StandsPage() {
     });
 
     if (activeTab === 'upcoming') {
-      filtered = filtered.filter(item => item.date >= today);
+      // W nadchodzących pokazujemy tylko Potwierdzone, żeby nie robić bałaganu
+      filtered = filtered.filter(item => item.date >= today && (item.status||'').toLowerCase().includes('potwierdzone'));
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else if (activeTab === 'pending') {
       filtered = filtered.filter(item => {
@@ -88,7 +162,7 @@ export default function StandsPage() {
       });
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else if (activeTab === 'history') {
-      filtered = filtered.filter(item => item.date < today);
+      filtered = filtered.filter(item => item.date < today || (item.status||'').toLowerCase().includes('odrzucone'));
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
     return filtered;
@@ -109,28 +183,25 @@ export default function StandsPage() {
     const days = [];
     const todayStr = today.toISOString().split('T')[0];
 
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i++) { 
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
-      
+
       days.push({
          dateStr: dateStr,
          displayStr: d.toLocaleDateString('pl-PL', { weekday: 'short', day: '2-digit', month: '2-digit' }),
-         isToday: dateStr === todayStr // FLAG "DZIŚ"
+         isToday: dateStr === todayStr
       });
     }
     return days;
   };
   const weekDays = getWeekDays();
 
-  // Funkcja drukowania (wywołuje systemowe okno druku)
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => { window.print(); };
 
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
@@ -141,77 +212,92 @@ export default function StandsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden print:bg-white print:p-0">
-      {/* Tło - znika przy druku */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2 print:hidden"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-100/40 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2 print:hidden"></div>
 
       <div className="max-w-6xl mx-auto">
         
         {/* NAGŁÓWEK */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 animate-fadeIn print:mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 animate-fadeIn print:mb-6">
           <div>
             <div className="flex items-center gap-3">
               <span className="text-4xl print:hidden">🗓️</span>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Rejestr Stoisk</h1>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">Rejestr Stoisk Promocyjnych</h1>
             </div>
             <p className="text-slate-500 font-medium mt-2 max-w-lg print:hidden">
               Oficjalny harmonogram stoisk promocyjnych na terenie kampusu UEW.
             </p>
-            {/* Tekst widoczny tylko na wydruku */}
-            <p className="hidden print:block text-slate-500 font-bold mt-2">
+            <p className="hidden print:block text-slate-500 font-bold mt-2 border-b border-slate-200 pb-4">
               Wydruk wygenerowany dla Portierni. Stan na: {new Date().toLocaleDateString('pl-PL')}
             </p>
           </div>
-          
-          <div className="flex items-center gap-3 print:hidden">
-            {/* Skrót dla Admina */}
+          <div className="flex items-center gap-3 flex-wrap print:hidden">
+            
+            {/* PANEL ADMINA */}
             {isAdmin && (
-              <a href={GOOGLE_SHEET_URL} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-bold hover:bg-indigo-100 transition border border-indigo-200">
-                ✏️ Edytuj Bazę
-              </a>
+              <>
+                <a href={GOOGLE_SHEET_URL} target="_blank" rel="noopener noreferrer" className="px-4 py-4 bg-white text-indigo-600 rounded-2xl text-xs font-bold hover:bg-indigo-50 transition border border-slate-200 shadow-sm">
+                  ✏️ Edytuj w Excelu
+                </a>
+                <button onClick={() => setIsAdminModalOpen(true)} className="px-5 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black tracking-wide hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
+                  + Dodaj do Rejestru
+                </button>
+              </>
             )}
             
-            {/* Przycisk Drukowania */}
-            <button onClick={handlePrint} className="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300 transition flex items-center gap-2">
+            <button onClick={handlePrint} className="px-5 py-4 bg-white text-slate-700 rounded-2xl text-xs font-bold hover:bg-slate-50 transition border border-slate-200 shadow-sm">
               🖨️ Drukuj dla Ochrony
             </button>
-            
-            <button onClick={() => setIsModalOpen(true)} className="group flex items-center gap-3 bg-slate-900 hover:bg-slate-800 text-white pl-5 pr-6 py-3 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all hover:-translate-y-0.5">
-              <div className="bg-white/20 rounded-lg p-1">➕</div>
-              <div className="text-xs">Zarezerwuj</div>
+
+            <button 
+              onClick={() => setIsModalOpen(true)}
+              className="group flex items-center gap-3 bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all hover:-translate-y-1 active:scale-95"
+            >
+              <div className="bg-white/20 rounded-lg p-1 group-hover:bg-white/30 transition">➕</div>
+              <div>
+                <div className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Zarezerwuj przestrzeń</div>
+                <div className="text-sm">Procedura krok po kroku</div>
+              </div>
             </button>
           </div>
         </div>
 
-        {/* WIZUALNA MAPA DOSTĘPNOŚCI - Ukrywana przy druku jeśli chcemy tylko tabelę */}
+        {/* WIZUALNA MAPA DOSTĘPNOŚCI */}
         <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 animate-slideUp print:hidden">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
               <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">📍 Mapa Dostępności Kampusu</h2>
               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-1">Szybki podgląd wolnych miejsc (BHP)</p>
             </div>
-            <input type="date" value={selectedMapDate} onChange={(e) => setSelectedMapDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm font-black text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500" />
+            <input type="date" value={selectedMapDate} onChange={(e) => setSelectedMapDate(e.target.value)} className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-3 text-sm font-black text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Object.entries(BUILDING_INFO).map(([code, info]) => {
               const occupants = currentOccupancy[code] || [];
               const count = occupants.length;
-              const isFull = count >= info.capacity;
-              const percentage = Math.min(100, (count / info.capacity) * 100);
+              const capacity = info.capacity;
+              const isFull = count >= capacity;
+              const percentage = Math.min(100, (count / capacity) * 100);
 
               return (
                 <div key={code} className={`p-5 rounded-2xl border transition-all ${isFull ? 'bg-red-50/50 border-red-100 shadow-sm' : 'bg-white border-slate-100 hover:shadow-md hover:border-indigo-100'}`}>
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-black text-slate-800">{info.name}</h3>
-                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg shadow-sm ${isFull ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>{count} / {info.capacity}</span>
+                    <span className={`text-xs font-black px-2.5 py-1 rounded-lg shadow-sm ${isFull ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-100 text-emerald-700'}`}>
+                      {count} / {info.capacity}
+                    </span>
                   </div>
-                  <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden"><div className={`h-full rounded-full ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${percentage}%` }}></div></div>
+                  <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden shadow-inner">
+                    <div className={`h-full rounded-full transition-all duration-700 ${isFull ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${percentage}%` }}></div>
+                  </div>
                   <div className="space-y-1.5 min-h-[40px]">
                     {occupants.length === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Wolne</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Wszystkie miejsca wolne</p>
                     ) : (
-                      occupants.map((occ, idx) => <p key={idx} className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-400' : 'bg-indigo-400'}`}></span> {occ.org}</p>)
+                      occupants.map((occ, idx) => (
+                        <p key={idx} className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-400' : 'bg-indigo-400'}`}></span> {occ.org}</p>
+                      ))
                     )}
                   </div>
                 </div>
@@ -224,39 +310,44 @@ export default function StandsPage() {
         <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp print:hidden">
           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto shrink-0">
             <button onClick={() => setViewMode('list')} className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2 ${viewMode === 'list' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}>☰ Widok Listy</button>
-            <button onClick={() => setViewMode('grid')} className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2 ${viewMode === 'grid' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}>📅 Kalendarz</button>
+            <button onClick={() => setViewMode('grid')} className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2 ${viewMode === 'grid' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}>📅 Szeroki Kalendarz</button>
           </div>
           {viewMode === 'list' && (
             <div className="relative w-full">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-              <input type="text" placeholder="Szukaj..." className="w-full pl-10 pr-4 py-3 rounded-xl bg-white outline-none focus:ring-2 focus:ring-indigo-100 font-medium text-slate-700" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" placeholder="Szukaj organizacji, budynku..." className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border-none outline-none focus:ring-2 focus:ring-indigo-100 font-medium text-slate-700" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
           )}
         </div>
 
+        {/* DODATKOWE ZAKŁADKI */}
         {viewMode === 'list' && (
            <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto mb-6 w-fit animate-fadeIn print:hidden">
-             <TabButton active={activeTab === 'upcoming'} onClick={() => setActiveTab('upcoming')} label="Nadchodzące" />
+             <TabButton active={activeTab === 'upcoming'} onClick={() => setActiveTab('upcoming')} label="Zatwierdzone" count={data.filter(i => i.date >= new Date().toISOString().split('T')[0] && (i.status||'').toLowerCase().includes('potwierdzone')).length} />
              <TabButton active={activeTab === 'pending'} onClick={() => setActiveTab('pending')} label="W toku" count={data.filter(i => (i.status||'').toLowerCase().includes('zaopiniowane') || (i.status||'').toLowerCase().includes('zgłoszone')).length} />
              <TabButton active={activeTab === 'history'} onClick={() => setActiveTab('history')} label="Archiwum" />
            </div>
         )}
 
-        {/* WIDOKI */}
+        {/* RENDEROWANIE WIDOKÓW */}
         {viewMode === 'list' ? (
-          <div className="space-y-4 animate-fadeIn min-h-[400px]">
+          <div className="space-y-4 animate-slideUp min-h-[400px]">
             {paginatedData.map((row, index) => {
               const building = BUILDING_INFO[row.building] || { name: row.building, capacity: '?', color: 'bg-slate-100 text-slate-600' };
               const dateObj = new Date(row.date);
-              const day = String(dateObj.getDate()).padStart(2, '0');
+              const day = dateObj.getDate();
               const month = dateObj.toLocaleDateString('pl-PL', { month: 'short' });
               
+              const isPending = (row.status || '').toLowerCase().includes('zaopiniowane') || (row.status || '').toLowerCase().includes('zgłoszone');
+              
               return (
-                <div key={index} className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-start md:items-center gap-6 print:border-b print:shadow-none print:rounded-none">
-                  <div className="shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-xs font-bold text-slate-400 uppercase">{month}</span>
-                    <span className="text-2xl font-black text-slate-800">{day}</span>
+                <div key={index} className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col md:flex-row items-start md:items-center gap-6 print:border-b print:shadow-none print:rounded-none">
+                  
+                  <div className="shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-slate-50 rounded-xl border border-slate-200 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-colors">
+                    <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-indigo-400">{month}</span>
+                    <span className="text-2xl font-black text-slate-800 group-hover:text-indigo-700">{day}</span>
                   </div>
+
                   <div className="flex-grow">
                     <div className="flex flex-wrap gap-2 mb-2">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide border border-transparent ${building.color} bg-opacity-50 print:border-slate-300 print:text-black`}>📍 {building.name}</span>
@@ -265,42 +356,57 @@ export default function StandsPage() {
                     <h3 className="text-lg font-bold text-slate-900 leading-tight">{row.org}</h3>
                     <p className="text-sm text-slate-500 font-medium">{row.title || 'Wydarzenie promocyjne'}</p>
                   </div>
-                  <div className="shrink-0 w-full md:w-auto flex justify-end print:hidden">
+
+                  <div className="shrink-0 w-full md:w-auto flex flex-col items-end gap-2 print:hidden">
                      <StatusBadge status={row.status} />
+                     
+                     {/* PRZYCISK ZATWIERDZANIA DLA ADMINA */}
+                     {isAdmin && isPending && (
+                       <button 
+                         onClick={() => handleStatusUpdate(row.id, 'Potwierdzone')}
+                         disabled={updatingId === row.id}
+                         className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-lg hover:bg-emerald-500 hover:text-white transition-all disabled:opacity-50"
+                       >
+                         {updatingId === row.id ? 'Przetwarzanie...' : 'Zatwierdź Kanclerza ✅'}
+                       </button>
+                     )}
                   </div>
                 </div>
               );
             })}
+
+            {paginatedData.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-[2rem] border border-dashed border-slate-200 print:hidden">
+                <span className="text-5xl mb-4 opacity-20">📭</span>
+                <p className="font-bold text-lg text-slate-600">Brak wyników</p>
+              </div>
+            )}
+
             {totalPages > 1 && (
               <div className="flex justify-center mt-8 gap-2 print:hidden">
-                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 disabled:opacity-50">←</button>
+                <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 disabled:opacity-50">←</button>
                 <span className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700">Strona {currentPage} / {totalPages}</span>
-                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 hover:text-indigo-600 disabled:opacity-50">→</button>
+                <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 disabled:opacity-50">→</button>
               </div>
             )}
           </div>
         ) : (
           <div className="animate-fadeIn">
-            {/* Nawigacja Tygodniowa */}
             <div className="flex items-center justify-between bg-white p-4 rounded-t-3xl border border-slate-200 border-b-0 print:hidden">
-              <button onClick={() => setWeekOffset(o => o - 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">← Poprzedni Tydzień</button>
+              <button onClick={() => setWeekOffset(o => o - 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">← Poprzedni</button>
               <h3 className="font-black text-slate-800 text-lg">Tydzień: {weekDays[0].displayStr.split(',')[1]} - {weekDays[4].displayStr.split(',')[1]}</h3>
-              <button onClick={() => setWeekOffset(o => o + 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">Następny Tydzień →</button>
+              <button onClick={() => setWeekOffset(o => o + 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">Następny →</button>
             </div>
-
-            {/* Siatka */}
             <div className="overflow-x-auto bg-white rounded-b-3xl border border-slate-200 shadow-sm print:shadow-none print:border-none">
               <table className="w-full text-left border-collapse min-w-[800px] print:min-w-full">
                 <thead>
                   <tr>
-                    <th className="p-4 border-b border-r border-slate-200 bg-slate-50 w-48 sticky left-0 z-10 print:bg-white print:border-slate-800">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 print:text-black">Budynek</span>
-                    </th>
+                    <th className="p-4 border-b border-r border-slate-200 bg-slate-50 w-48 sticky left-0 z-10 print:bg-white print:border-slate-800"><span className="text-[10px] font-black uppercase tracking-widest text-slate-400 print:text-black">Budynek</span></th>
                     {weekDays.map((day, idx) => (
-                      <th key={idx} className={`p-4 border-b border-slate-200 text-center w-1/5 print:border-slate-800 print:bg-white ${day.isToday ? 'bg-indigo-50 border-b-2 border-b-indigo-500' : 'bg-slate-50'}`}>
-                        {day.isToday && <div className="text-[9px] font-black text-indigo-600 uppercase tracking-widest mb-1 print:hidden">Dzisiaj</div>}
-                        <div className={`text-sm font-black capitalize ${day.isToday ? 'text-indigo-900' : 'text-slate-700'}`}>{day.displayStr.split(',')[0]}</div>
-                        <div className={`text-xs font-bold ${day.isToday ? 'text-indigo-600' : 'text-slate-500'}`}>{day.displayStr.split(',')[1]}</div>
+                      <th key={idx} className={`p-4 border-b border-slate-200 text-center w-1/5 print:border-slate-800 print:bg-white ${day.isToday ? 'bg-amber-50 border-b-2 border-b-amber-500' : 'bg-slate-50'}`}>
+                        {day.isToday && <div className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1 print:hidden">Dzisiaj</div>}
+                        <div className={`text-sm font-black capitalize ${day.isToday ? 'text-amber-900' : 'text-slate-700'}`}>{day.displayStr.split(',')[0]}</div>
+                        <div className={`text-xs font-bold ${day.isToday ? 'text-amber-700' : 'text-slate-500'}`}>{day.displayStr.split(',')[1]}</div>
                       </th>
                     ))}
                   </tr>
@@ -316,9 +422,8 @@ export default function StandsPage() {
                         const occupants = data.filter(item => item.building === bCode && item.date === day.dateStr && !(item.status || '').toLowerCase().includes('odrzucone'));
                         const isFull = occupants.length >= info.capacity;
                         const isFree = occupants.length === 0;
-
                         return (
-                          <td key={idx} className={`p-3 border-b border-slate-100 align-top relative print:border-slate-800 ${day.isToday ? 'bg-indigo-50/20' : ''}`}>
+                          <td key={idx} className={`p-3 border-b border-slate-100 align-top relative print:border-slate-800 ${day.isToday ? 'bg-amber-50/20' : ''}`}>
                             <div className={`h-full min-h-[80px] rounded-xl p-2 border print:border-0 print:p-0 ${isFree ? 'bg-emerald-50/30 border-emerald-100/50' : isFull ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/40 border-amber-100'}`}>
                               <div className="absolute top-4 right-4 text-[10px] font-black text-slate-400 print:hidden">{occupants.length}/{info.capacity}</div>
                               {isFree ? (
@@ -327,9 +432,10 @@ export default function StandsPage() {
                                 <div className="space-y-1.5 mt-4 print:mt-0">
                                   {occupants.map((occ, i) => (
                                     <div key={i} className="bg-white border border-slate-200 p-2 rounded-lg shadow-sm print:shadow-none print:border-slate-400">
-                                      <p className="text-[11px] font-black text-slate-800 truncate">{occ.org}</p>
+                                      <p className="text-[11px] font-black text-slate-800 truncate" title={occ.org}>{occ.org}</p>
                                       <p className="text-[9px] font-bold text-slate-500 flex justify-between items-center mt-0.5">
                                         <span>{occ.start?.substring(0,5)}-{occ.end?.substring(0,5)}</span>
+                                        <span className={`w-2 h-2 rounded-full print:hidden ${(occ.status||'').toLowerCase().includes('potwierdzone') ? 'bg-emerald-400' : 'bg-amber-400'}`} title={occ.status}></span>
                                       </p>
                                     </div>
                                   ))}
@@ -346,10 +452,11 @@ export default function StandsPage() {
             </div>
           </div>
         )}
-
       </div>
 
-      {/* MODAL */}
+      {/* ==================================================== */}
+      {/* MODAL: PROCEDURA MAILOWA (DLA UŻYTKOWNIKA) */}
+      {/* ==================================================== */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
@@ -357,27 +464,103 @@ export default function StandsPage() {
             <div className="bg-slate-900 p-8 text-center shrink-0">
               <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl backdrop-blur-sm border border-white/10">🚀</div>
               <h2 className="text-2xl md:text-3xl font-black text-white mb-2">Jak zarezerwować stoisko?</h2>
-              <p className="text-slate-400 text-sm font-medium">Procedura rezerwacji krok po kroku.</p>
+              <p className="text-slate-400 text-sm font-medium">To system poglądowy. Właściwa procedura odbywa się za sprawą wniosków - drogą mailową.</p>
             </div>
             <div className="p-8 md:p-10 space-y-8 overflow-y-auto">
-              <Step num="1" title="Wybierz termin" desc="Sprawdź na naszej nowej Mapie Dostępności lub w Kalendarzu, czy w wybranym dniu są wolne miejsca." />
-              <Step num="2" title="Wyślij podanie" desc={<span>Wyślij podanie na adres: <a href="mailto:administracja@samorzad.ue.wroc.pl" className="text-indigo-600 font-bold">administracja@samorzad.ue.wroc.pl</a>.</span>} />
-              <Step num="3" title="Czekaj na opinię" desc="Członek ds. Administracji SSUEW zaopiniuje Twoje podanie. Status zmieni się na 'ZAOPINIOWANE'." status="Zaopiniowane" />
-              <Step num="4" title="Zgoda Kanclerza" desc="Prześlij zaopiniowane podanie do Zastępcy Kanclerza ds. Technicznych. Po jego zgodzie status zmieni się na 'POTWIERDZONE'." status="Potwierdzone" isLast={true} />
+              <Step num="1" title="Wybierz termin" desc="Sprawdź na naszej nowej Mapie Dostępności, czy w wybranym dniu i budynku są jeszcze wolne miejsca (limit BHP)." />
+              <Step num="2" title="Wyślij podanie (EOD)" desc={<span>Napisz podanie zgodnie z zasadami <strong>CRED SSUEW</strong> i wyślij je na adres: <br/><a href="mailto:administracja@samorzad.ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">administracja@samorzad.ue.wroc.pl</a>.</span>} />
+              <Step num="3" title="Czekaj na opinię" desc="Członek ds. Administracji SSUEW zaopiniuje Twoje podanie. Wtedy w tym systemie pojawi się status: 'ZAOPINIOWANE'." status="Zaopiniowane" />
+              <Step num="4" title="Zgoda Zastępcy Kanclerza ds. Technicznych" desc={<span>Prześlij zaopiniowane podanie do Zastępcy Kanclerza ds.&nbsp;Technicznych (<a href="mailto:wieslaw.witter@ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">wieslaw.witter@ue.wroc.pl</a>). Pamiętaj, aby w DW koreponencji zawrzeć adres: <a href="mailto:administracja@samorzad.ue.wroc.pl" className="text-indigo-600 font-bold hover:underline">administracja@samorzad.ue.wroc.pl</a>. Po jego zgodzie status zmieni się na 'POTWIERDZONE'.</span>} status="Potwierdzone" isLast={true} />
             </div>
             <div className="p-6 bg-slate-50 border-t border-slate-100 text-center shrink-0">
-              <button onClick={() => setIsModalOpen(false)} className="px-12 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition">Rozumiem, zamykam</button>
+              <button onClick={() => setIsModalOpen(false)} className="w-full md:w-auto px-12 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition shadow-lg">Rozumiem, zamykam</button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ==================================================== */}
+      {/* MODAL: DODAWANIE DO BAZY (TYLKO DLA ADMINA) */}
+      {/* ==================================================== */}
+      {isAdminModalOpen && isAdmin && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsAdminModalOpen(false)}></div>
+          
+          <form onSubmit={handleAddSubmit} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-bounceIn">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-indigo-50">
+              <h3 className="font-black text-indigo-900 text-lg flex items-center gap-2">
+                ✏️ Wprowadź wpis do Rejestru
+              </h3>
+              <button type="button" onClick={() => setIsAdminModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold text-xl">&times;</button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
+                  <input type="date" required value={addForm.date} onChange={(e) => setAddForm({...addForm, date: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Budynek</label>
+                  <select value={addForm.building} onChange={(e) => setAddForm({...addForm, building: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    {Object.entries(BUILDING_INFO).map(([code, info]) => (
+                      <option key={code} value={code}>{info.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Godzina Od</label>
+                  <input type="time" required value={addForm.start} onChange={(e) => setAddForm({...addForm, start: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Godzina Do</label>
+                  <input type="time" required value={addForm.end} onChange={(e) => setAddForm({...addForm, end: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Organizacja / Koło</label>
+                <input type="text" required placeholder="Np. SKN Młodych Menedżerów" value={addForm.org} onChange={(e) => setAddForm({...addForm, org: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tytuł Wydarzenia / Cel (Opcjonalnie)</label>
+                <input type="text" placeholder="Np. Zbiórka charytatywna" value={addForm.title} onChange={(e) => setAddForm({...addForm, title: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Status Procedury</label>
+                <select value={addForm.status} onChange={(e) => setAddForm({...addForm, status: e.target.value})} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-amber-600">
+                  <option value="Zaopiniowane">⚖️ Zaopiniowane (Domyślny dla nowych)</option>
+                  <option value="Potwierdzone">✅ Potwierdzone (Kanclerz OK)</option>
+                  <option value="Zgłoszone">📩 Zgłoszone (Oczekuje)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
+              <button type="button" onClick={() => setIsAdminModalOpen(false)} className="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">Anuluj</button>
+              <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-md transition-all disabled:opacity-70">
+                {isSubmitting ? 'Zapisywanie...' : 'Zapisz do bazy'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
     </div>
   );
 }
 
-// KOMPONENTY UI
+// === KOMPONENTY UI ===
 const TabButton = ({ active, onClick, label, count }) => (
-  <button onClick={onClick} className={`relative px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${active ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:bg-white'}`}>
+  <button 
+    onClick={onClick}
+    className={`relative px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${active ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}
+  >
     {label}
     {count > 0 && <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[9px] ${active ? 'bg-white text-indigo-600' : 'bg-indigo-100 text-indigo-600'}`}>{count}</span>}
   </button>
@@ -386,13 +569,13 @@ const TabButton = ({ active, onClick, label, count }) => (
 const Step = ({ num, title, desc, status, isLast }) => (
   <div className="flex gap-5">
     <div className="flex flex-col items-center">
-      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black text-sm border-2 border-indigo-100 shrink-0">{num}</div>
+      <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center font-black text-sm border-2 border-indigo-100 shadow-sm shrink-0">{num}</div>
       {!isLast && <div className="w-0.5 h-full bg-slate-100 my-2 rounded-full min-h-[40px]"></div>}
     </div>
     <div className="pb-2 w-full">
-      <div className="flex items-center gap-4 mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-1">
         <h3 className="font-bold text-slate-900 text-lg leading-tight">{title}</h3>
-        {status && <StatusBadge status={status} mini />}
+        {status && <div className="shrink-0 w-fit"><StatusBadge status={status} mini /></div>}
       </div>
       <div className="text-slate-500 text-sm leading-relaxed mt-2">{desc}</div>
     </div>
@@ -402,12 +585,20 @@ const Step = ({ num, title, desc, status, isLast }) => (
 function StatusBadge({ status, mini }) {
   if (!status) return null;
   const s = status.toLowerCase().trim();
-  let style = 'bg-slate-100 text-slate-500'; let label = status;
-  if (s.includes('potwierdzone')) { style = 'bg-emerald-100 text-emerald-700'; label = 'Potwierdzone'; }
-  else if (s.includes('zaopiniowane')) { style = 'bg-amber-100 text-amber-700'; label = 'Zaopiniowane'; }
-  else if (s.includes('zgłoszone')) { style = 'bg-blue-100 text-blue-700'; label = 'Zgłoszone'; }
-  else if (s.includes('odrzucone')) { style = 'bg-red-100 text-red-700'; label = 'Odrzucone'; }
+  
+  let style = 'bg-slate-100 text-slate-500 border-slate-200';
+  let icon = '•';
+  let label = status;
 
-  if (mini) return <span className={`text-[10px] px-2 py-1 rounded border ${style} font-bold uppercase`}>{label}</span>;
-  return <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase border ${style}`}>{label}</div>;
+  if (s.includes('potwierdzone')) { style = 'bg-emerald-100 text-emerald-700 border-emerald-200'; icon = '✅'; label = 'Potwierdzone'; }
+  else if (s.includes('zaopiniowane')) { style = 'bg-amber-100 text-amber-700 border-amber-200'; icon = '⚖️'; label = 'Zaopiniowane'; }
+  else if (s.includes('zgłoszone')) { style = 'bg-blue-100 text-blue-700 border-blue-200'; icon = '📩'; label = 'Zgłoszone'; }
+  else if (s.includes('odrzucone')) { style = 'bg-red-100 text-red-700 border-red-200'; icon = '⛔'; label = 'Odrzucone'; }
+
+  if (mini) return <span className={`text-[10px] px-2 py-1 rounded border ${style} font-bold uppercase truncate inline-block`}>{label}</span>;
+  return (
+    <div className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border flex items-center gap-1.5 shadow-sm ${style}`}>
+      <span className="text-base leading-none">{icon}</span> <span className="pt-0.5">{label}</span>
+    </div>
+  );
 }
