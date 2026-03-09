@@ -9,7 +9,7 @@ const ITEMS_PER_PAGE = 6;
 // === WHITELISTA ADMINÓW ===
 const ADMIN_EMAILS = [
   'twoj.mail@samorzad.ue.wroc.pl',
-  'administracja@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
+  'administracja@samorzad.ue.wroc.pl' // Zmień na swój e-mail
 ];
 
 const BUILDING_INFO = {
@@ -35,7 +35,6 @@ export default function StandsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
 
-  // Domyślny stan formularza dodawania
   const [addForm, setAddForm] = useState({
     date: new Date().toISOString().split('T')[0],
     start: '08:00',
@@ -76,7 +75,6 @@ export default function StandsPage() {
     setCurrentPage(1);
   }, [activeTab, searchTerm, viewMode]);
 
-  // WYSYŁANIE NOWEJ REZERWACJI
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -103,7 +101,6 @@ export default function StandsPage() {
     }
   };
 
-  // AKTUALIZACJA STATUSU Z POZIOMU LISTY (Zatwierdzanie przez Admina)
   const handleStatusUpdate = async (id, newStatus) => {
     setUpdatingId(id);
     try {
@@ -199,8 +196,6 @@ export default function StandsPage() {
   };
   const weekDays = getWeekDays();
 
-  const handlePrint = () => { window.print(); };
-
   if (loading) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
       <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
@@ -209,28 +204,24 @@ export default function StandsPage() {
   );
 
   return (
-    // FIX DRUKOWANIA: Dodane print:overflow-visible i print:min-h-0
-    <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden print:bg-white print:p-0 print:overflow-visible print:min-h-0">
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2 print:hidden"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-100/40 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2 print:hidden"></div>
+    <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2"></div>
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-100/40 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2"></div>
 
       <div className="max-w-6xl mx-auto">
         
         {/* NAGŁÓWEK */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 animate-fadeIn print:mb-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 animate-fadeIn">
           <div>
             <div className="flex items-center gap-3">
-              <span className="text-4xl print:hidden">🗓️</span>
+              <span className="text-4xl">🗓️</span>
               <h1 className="text-4xl font-black text-slate-900 tracking-tight">Rejestr Stoisk Promocyjnych</h1>
             </div>
-            <p className="text-slate-500 font-medium mt-2 max-w-lg print:hidden">
+            <p className="text-slate-500 font-medium mt-2 max-w-lg">
               Oficjalny harmonogram stoisk promocyjnych na terenie kampusu UEW.
             </p>
-            <p className="hidden print:block text-slate-500 font-bold mt-2 border-b border-slate-200 pb-4">
-              Wydruk wygenerowany dla Portierni. Stan na: {new Date().toLocaleDateString('pl-PL')}
-            </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap print:hidden">
+          <div className="flex items-center gap-3 flex-wrap">
             
             {/* PANEL ADMINA */}
             {isAdmin && (
@@ -244,10 +235,6 @@ export default function StandsPage() {
               </>
             )}
             
-            <button onClick={handlePrint} className="px-5 py-4 bg-white text-slate-700 rounded-2xl text-xs font-bold hover:bg-slate-50 transition border border-slate-200 shadow-sm">
-              🖨️ Drukuj dla Ochrony
-            </button>
-
             <button 
               onClick={() => setIsModalOpen(true)}
               className="group flex items-center gap-3 bg-slate-900 hover:bg-slate-800 text-white pl-6 pr-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all hover:-translate-y-1 active:scale-95"
@@ -262,7 +249,7 @@ export default function StandsPage() {
         </div>
 
         {/* WIZUALNA MAPA DOSTĘPNOŚCI */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 animate-slideUp print:hidden">
+        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 mb-8 animate-slideUp">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
               <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">📍 Mapa Dostępności Kampusu</h2>
@@ -310,7 +297,7 @@ export default function StandsPage() {
         </div>
 
         {/* PASEK NARZĘDZI */}
-        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp print:hidden">
+        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 mb-8 animate-slideUp">
           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto shrink-0">
             <button onClick={() => setViewMode('list')} className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2 ${viewMode === 'list' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}>☰ Widok Listy</button>
             <button onClick={() => setViewMode('grid')} className={`px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2 ${viewMode === 'grid' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'text-slate-500 hover:bg-white hover:shadow-sm'}`}>📅 Szeroki Kalendarz</button>
@@ -325,7 +312,7 @@ export default function StandsPage() {
 
         {/* DODATKOWE ZAKŁADKI */}
         {viewMode === 'list' && (
-           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto mb-6 w-fit animate-fadeIn print:hidden">
+           <div className="flex p-1 bg-slate-100 rounded-xl overflow-x-auto mb-6 w-fit animate-fadeIn">
              <TabButton active={activeTab === 'upcoming'} onClick={() => setActiveTab('upcoming')} label="Zatwierdzone" count={data.filter(i => i.date >= new Date().toISOString().split('T')[0] && (i.status||'').toLowerCase().includes('potwierdzone')).length} />
              <TabButton active={activeTab === 'pending'} onClick={() => setActiveTab('pending')} label="W toku" count={data.filter(i => (i.status||'').toLowerCase().includes('zaopiniowane') || (i.status||'').toLowerCase().includes('zgłoszone')).length} />
              <TabButton active={activeTab === 'history'} onClick={() => setActiveTab('history')} label="Archiwum" />
@@ -344,7 +331,7 @@ export default function StandsPage() {
               const isPending = (row.status || '').toLowerCase().includes('zaopiniowane') || (row.status || '').toLowerCase().includes('zgłoszone');
               
               return (
-                <div key={index} className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col md:flex-row items-start md:items-center gap-6 print:border-b print:shadow-none print:rounded-none">
+                <div key={index} className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all flex flex-col md:flex-row items-start md:items-center gap-6">
                   
                   <div className="shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-slate-50 rounded-xl border border-slate-200 group-hover:border-indigo-200 group-hover:bg-indigo-50 transition-colors">
                     <span className="text-xs font-bold text-slate-400 uppercase group-hover:text-indigo-400">{month}</span>
@@ -353,14 +340,14 @@ export default function StandsPage() {
 
                   <div className="flex-grow">
                     <div className="flex flex-wrap gap-2 mb-2">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide border border-transparent ${building.color} bg-opacity-50 print:border-slate-300 print:text-black`}>📍 {building.name}</span>
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide border border-transparent ${building.color} bg-opacity-50`}>📍 {building.name}</span>
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200">🕒 {row.start?.substring(0,5)} - {row.end?.substring(0,5)}</span>
                     </div>
                     <h3 className="text-lg font-bold text-slate-900 leading-tight">{row.org}</h3>
                     <p className="text-sm text-slate-500 font-medium">{row.title || 'Wydarzenie promocyjne'}</p>
                   </div>
 
-                  <div className="shrink-0 w-full md:w-auto flex flex-col items-end gap-2 print:hidden">
+                  <div className="shrink-0 w-full md:w-auto flex flex-col items-end gap-2">
                      <StatusBadge status={row.status} />
                      
                      {/* PRZYCISK ZATWIERDZANIA DLA ADMINA */}
@@ -379,14 +366,14 @@ export default function StandsPage() {
             })}
 
             {paginatedData.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-[2rem] border border-dashed border-slate-200 print:hidden">
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-[2rem] border border-dashed border-slate-200">
                 <span className="text-5xl mb-4 opacity-20">📭</span>
                 <p className="font-bold text-lg text-slate-600">Brak wyników</p>
               </div>
             )}
 
             {totalPages > 1 && (
-              <div className="flex justify-center mt-8 gap-2 print:hidden">
+              <div className="flex justify-center mt-8 gap-2">
                 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 disabled:opacity-50">←</button>
                 <span className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700">Strona {currentPage} / {totalPages}</span>
                 <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages} className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-500 disabled:opacity-50">→</button>
@@ -395,21 +382,20 @@ export default function StandsPage() {
           </div>
         ) : (
           <div className="animate-fadeIn">
-            <div className="flex items-center justify-between bg-white p-4 rounded-t-3xl border border-slate-200 border-b-0 print:hidden">
+            <div className="flex items-center justify-between bg-white p-4 rounded-t-3xl border border-slate-200 border-b-0">
               <button onClick={() => setWeekOffset(o => o - 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">← Poprzedni</button>
               <h3 className="font-black text-slate-800 text-lg">Tydzień: {weekDays[0].displayStr.split(',')[1]} - {weekDays[4].displayStr.split(',')[1]}</h3>
               <button onClick={() => setWeekOffset(o => o + 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">Następny →</button>
             </div>
             
-            {/* FIX DRUKOWANIA: print:overflow-visible na tabeli! */}
-            <div className="overflow-x-auto bg-white rounded-b-3xl border border-slate-200 shadow-sm print:shadow-none print:border-none print:overflow-visible">
-              <table className="w-full text-left border-collapse min-w-[800px] print:min-w-full">
+            <div className="overflow-x-auto bg-white rounded-b-3xl border border-slate-200 shadow-sm">
+              <table className="w-full text-left border-collapse min-w-[800px]">
                 <thead>
                   <tr>
-                    <th className="p-4 border-b border-r border-slate-200 bg-slate-50 w-48 sticky left-0 z-10 print:bg-white print:border-slate-800"><span className="text-[10px] font-black uppercase tracking-widest text-slate-400 print:text-black">Budynek</span></th>
+                    <th className="p-4 border-b border-r border-slate-200 bg-slate-50 w-48 sticky left-0 z-10"><span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Budynek</span></th>
                     {weekDays.map((day, idx) => (
-                      <th key={idx} className={`p-4 border-b border-slate-200 text-center w-1/5 print:border-slate-800 print:bg-white ${day.isToday ? 'bg-amber-50 border-b-2 border-b-amber-500' : 'bg-slate-50'}`}>
-                        {day.isToday && <div className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1 print:hidden">Dzisiaj</div>}
+                      <th key={idx} className={`p-4 border-b border-slate-200 text-center w-1/5 ${day.isToday ? 'bg-amber-50 border-b-2 border-b-amber-500' : 'bg-slate-50'}`}>
+                        {day.isToday && <div className="text-[9px] font-black text-amber-600 uppercase tracking-widest mb-1">Dzisiaj</div>}
                         <div className={`text-sm font-black capitalize ${day.isToday ? 'text-amber-900' : 'text-slate-700'}`}>{day.displayStr.split(',')[0]}</div>
                         <div className={`text-xs font-bold ${day.isToday ? 'text-amber-700' : 'text-slate-500'}`}>{day.displayStr.split(',')[1]}</div>
                       </th>
@@ -419,7 +405,7 @@ export default function StandsPage() {
                 <tbody>
                   {Object.entries(BUILDING_INFO).map(([bCode, info]) => (
                     <tr key={bCode} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-4 border-b border-r border-slate-200 bg-white sticky left-0 z-10 print:border-slate-800">
+                      <td className="p-4 border-b border-r border-slate-200 bg-white sticky left-0 z-10">
                         <div className="font-black text-slate-800">{info.name}</div>
                         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Miejsc: {info.capacity}</div>
                       </td>
@@ -428,19 +414,19 @@ export default function StandsPage() {
                         const isFull = occupants.length >= info.capacity;
                         const isFree = occupants.length === 0;
                         return (
-                          <td key={idx} className={`p-3 border-b border-slate-100 align-top relative print:border-slate-800 ${day.isToday ? 'bg-amber-50/20' : ''}`}>
-                            <div className={`h-full min-h-[80px] rounded-xl p-2 border print:border-0 print:p-0 ${isFree ? 'bg-emerald-50/30 border-emerald-100/50' : isFull ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/40 border-amber-100'}`}>
-                              <div className="absolute top-4 right-4 text-[10px] font-black text-slate-400 print:hidden">{occupants.length}/{info.capacity}</div>
+                          <td key={idx} className={`p-3 border-b border-slate-100 align-top relative ${day.isToday ? 'bg-amber-50/20' : ''}`}>
+                            <div className={`h-full min-h-[80px] rounded-xl p-2 border ${isFree ? 'bg-emerald-50/30 border-emerald-100/50' : isFull ? 'bg-red-50/50 border-red-100' : 'bg-amber-50/40 border-amber-100'}`}>
+                              <div className="absolute top-4 right-4 text-[10px] font-black text-slate-400">{occupants.length}/{info.capacity}</div>
                               {isFree ? (
-                                <div className="h-full flex items-center justify-center opacity-40 print:hidden"><span className="text-xs font-bold text-emerald-600 uppercase">Wolne</span></div>
+                                <div className="h-full flex items-center justify-center opacity-40"><span className="text-xs font-bold text-emerald-600 uppercase">Wolne</span></div>
                               ) : (
-                                <div className="space-y-1.5 mt-4 print:mt-0">
+                                <div className="space-y-1.5 mt-4">
                                   {occupants.map((occ, i) => (
-                                    <div key={i} className="bg-white border border-slate-200 p-2 rounded-lg shadow-sm print:shadow-none print:border-slate-400">
+                                    <div key={i} className="bg-white border border-slate-200 p-2 rounded-lg shadow-sm">
                                       <p className="text-[11px] font-black text-slate-800 truncate" title={occ.org}>{occ.org}</p>
                                       <p className="text-[9px] font-bold text-slate-500 flex justify-between items-center mt-0.5">
                                         <span>{occ.start?.substring(0,5)}-{occ.end?.substring(0,5)}</span>
-                                        <span className={`w-2 h-2 rounded-full print:hidden ${(occ.status||'').toLowerCase().includes('potwierdzone') ? 'bg-emerald-400' : 'bg-amber-400'}`} title={occ.status}></span>
+                                        <span className={`w-2 h-2 rounded-full ${(occ.status||'').toLowerCase().includes('potwierdzone') ? 'bg-emerald-400' : 'bg-amber-400'}`} title={occ.status}></span>
                                       </p>
                                     </div>
                                   ))}
@@ -461,7 +447,7 @@ export default function StandsPage() {
 
       {/* === MODAL: PROCEDURA MAILOWA (DLA UŻYTKOWNIKA) === */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
           <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-bounceIn flex flex-col max-h-[90vh]">
             <div className="bg-slate-900 p-8 text-center shrink-0">
@@ -484,7 +470,7 @@ export default function StandsPage() {
 
       {/* === MODAL: DODAWANIE DO BAZY (TYLKO DLA ADMINA) === */}
       {isAdminModalOpen && isAdmin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsAdminModalOpen(false)}></div>
           
           <form onSubmit={handleAddSubmit} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-bounceIn">
