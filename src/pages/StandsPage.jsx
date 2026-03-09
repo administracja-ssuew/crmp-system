@@ -9,7 +9,7 @@ const ITEMS_PER_PAGE = 6;
 // === WHITELISTA ADMINÓW ===
 const ADMIN_EMAILS = [
   'twoj.mail@samorzad.ue.wroc.pl',
-  'administracja@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
+  'm.radlinski@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
 ];
 
 const BUILDING_INFO = {
@@ -33,7 +33,7 @@ export default function StandsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false); 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false); 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [updatingId, setUpdatingId] = useState(null); // Stan dla animacji przycisku "Zatwierdź"
+  const [updatingId, setUpdatingId] = useState(null);
 
   // Domyślny stan formularza dodawania
   const [addForm, setAddForm] = useState({
@@ -43,7 +43,7 @@ export default function StandsPage() {
     building: 'Z',
     org: '',
     title: '',
-    status: 'Zaopiniowane' // ZMIANA 1: Domyślny status po wprowadzeniu!
+    status: 'Zaopiniowane' 
   });
   
   const [activeTab, setActiveTab] = useState('upcoming'); 
@@ -115,7 +115,7 @@ export default function StandsPage() {
       const result = await response.json();
 
       if (result.success) {
-        fetchData(); // Odświeżamy listę, żeby status przeskoczył na zielony!
+        fetchData(); 
       } else {
         alert("Błąd aktualizacji statusu.");
       }
@@ -130,7 +130,6 @@ export default function StandsPage() {
     const occupancy = {};
     Object.keys(BUILDING_INFO).forEach(k => occupancy[k] = []);
     data.forEach(item => {
-      // Rezerwacja pokazuje się na mapie TYLKO jak nie jest odrzucona
       if (item.date === date && !(item.status || '').toLowerCase().includes('odrzucone')) {
         const bCode = item.building;
         if (occupancy[bCode]) occupancy[bCode].push(item);
@@ -152,7 +151,6 @@ export default function StandsPage() {
     });
 
     if (activeTab === 'upcoming') {
-      // W nadchodzących pokazujemy tylko Potwierdzone, żeby nie robić bałaganu
       filtered = filtered.filter(item => item.date >= today && (item.status||'').toLowerCase().includes('potwierdzone'));
       filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else if (activeTab === 'pending') {
@@ -211,7 +209,8 @@ export default function StandsPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden print:bg-white print:p-0">
+    // FIX DRUKOWANIA: Dodane print:overflow-visible i print:min-h-0
+    <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24 relative overflow-hidden print:bg-white print:p-0 print:overflow-visible print:min-h-0">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-100/40 rounded-full blur-[100px] -z-10 translate-x-1/2 -translate-y-1/2 print:hidden"></div>
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-100/40 rounded-full blur-[100px] -z-10 -translate-x-1/2 translate-y-1/2 print:hidden"></div>
 
@@ -240,7 +239,7 @@ export default function StandsPage() {
                   ✏️ Edytuj w Excelu
                 </a>
                 <button onClick={() => setIsAdminModalOpen(true)} className="px-5 py-4 bg-indigo-600 text-white rounded-2xl text-xs font-black tracking-wide hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">
-                  + Dodaj do Rejestru
+                  + Wprowadź do Rejestru
                 </button>
               </>
             )}
@@ -293,10 +292,14 @@ export default function StandsPage() {
                   </div>
                   <div className="space-y-1.5 min-h-[40px]">
                     {occupants.length === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Wszystkie miejsca wolne</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Wszystkie miejsca wolne
+                      </p>
                     ) : (
                       occupants.map((occ, idx) => (
-                        <p key={idx} className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5"><span className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-400' : 'bg-indigo-400'}`}></span> {occ.org}</p>
+                        <p key={idx} className="text-xs font-bold text-slate-700 truncate flex items-center gap-1.5">
+                          <span className={`w-1.5 h-1.5 rounded-full ${isFull ? 'bg-red-400' : 'bg-indigo-400'}`}></span> {occ.org}
+                        </p>
                       ))
                     )}
                   </div>
@@ -397,7 +400,9 @@ export default function StandsPage() {
               <h3 className="font-black text-slate-800 text-lg">Tydzień: {weekDays[0].displayStr.split(',')[1]} - {weekDays[4].displayStr.split(',')[1]}</h3>
               <button onClick={() => setWeekOffset(o => o + 1)} className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 font-bold transition">Następny →</button>
             </div>
-            <div className="overflow-x-auto bg-white rounded-b-3xl border border-slate-200 shadow-sm print:shadow-none print:border-none">
+            
+            {/* FIX DRUKOWANIA: print:overflow-visible na tabeli! */}
+            <div className="overflow-x-auto bg-white rounded-b-3xl border border-slate-200 shadow-sm print:shadow-none print:border-none print:overflow-visible">
               <table className="w-full text-left border-collapse min-w-[800px] print:min-w-full">
                 <thead>
                   <tr>
@@ -454,9 +459,7 @@ export default function StandsPage() {
         )}
       </div>
 
-      {/* ==================================================== */}
-      {/* MODAL: PROCEDURA MAILOWA (DLA UŻYTKOWNIKA) */}
-      {/* ==================================================== */}
+      {/* === MODAL: PROCEDURA MAILOWA (DLA UŻYTKOWNIKA) === */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
@@ -479,9 +482,7 @@ export default function StandsPage() {
         </div>
       )}
 
-      {/* ==================================================== */}
-      {/* MODAL: DODAWANIE DO BAZY (TYLKO DLA ADMINA) */}
-      {/* ==================================================== */}
+      {/* === MODAL: DODAWANIE DO BAZY (TYLKO DLA ADMINA) === */}
       {isAdminModalOpen && isAdmin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 print:hidden">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsAdminModalOpen(false)}></div>
