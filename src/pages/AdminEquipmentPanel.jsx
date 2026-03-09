@@ -41,6 +41,18 @@ export default function AdminEquipmentPanel() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
+  // POPRAWKA 3: TŁUMACZ DAT
+  const formatResDate = (rawDate) => {
+    if (!rawDate) return '';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return String(rawDate);
+      return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return String(rawDate);
+    }
+  };
+
   // POBIERANIE BAZY SPRZĘTU ORAZ REZERWACJI Z CRW
   const fetchAllData = () => {
     fetch(API_URL)
@@ -55,7 +67,7 @@ export default function AdminEquipmentPanel() {
             accessories: item.INTERAKCJA || 'Brak'
           }));
           setEquipmentData(formatted);
-          setAllReservations(data.rezerwacje || []); // Zaciągamy wnioski
+          setAllReservations(data.rezerwacje || []); 
         }
       })
       .catch(err => console.error("Błąd ładowania danych:", err));
@@ -72,7 +84,7 @@ export default function AdminEquipmentPanel() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: newStatus })
       });
-      fetchAllData(); // Odśwież listę po zatwierdzeniu
+      fetchAllData(); 
     } catch (err) {
       alert("Błąd połączenia. Nie udało się zaktualizować statusu.");
     } finally {
@@ -115,7 +127,6 @@ export default function AdminEquipmentPanel() {
     }, 800);
   };
 
-  // --- LOGIKA RYSOWANIA PODPISU (CANVAS) ---
   const startDrawing = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -156,7 +167,6 @@ export default function AdminEquipmentPanel() {
     setSignatureData(null);
   };
 
-  // FINALIZACJA WYDANIA - WYSŁANIE DO GOOGLE SHEETS
   const finalizeProtocol = async () => {
     setIsVerifying(true);
     
@@ -205,7 +215,6 @@ export default function AdminEquipmentPanel() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ODBIÓR DANYCH ZE SKANERA (W PEŁNI ZACHOWANY)
   useEffect(() => {
     if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
       const codesToFind = location.state.scannedCodes;
@@ -268,7 +277,7 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 1: WYDAWANIE SPRZĘTU (ZACHOWANY W 100%) */}
+      {/* TRYB 1: WYDAWANIE SPRZĘTU */}
       {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
@@ -282,7 +291,6 @@ export default function AdminEquipmentPanel() {
 
           <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none`}>
             
-            {/* KROK 1 */}
             {step === 1 && (
               <div className="animate-fadeIn">
                 <h2 className="text-3xl font-black text-slate-900 mb-2">Wydanie z Magazynu</h2>
@@ -299,7 +307,6 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
-            {/* KROK 2 */}
             {step === 2 && (
               <div className="animate-fadeIn">
                 <h2 className="text-3xl font-black text-slate-900 mb-6">Dane do Porozumienia</h2>
@@ -335,7 +342,6 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
-            {/* KROK 3: PEŁNY TEKST POROZUMIENIA ZGODNY Z PDF */}
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
                 <div className="flex justify-between items-start mb-6">
@@ -430,7 +436,7 @@ export default function AdminEquipmentPanel() {
                   <div className="w-1/3 text-center border-t border-black pt-2"><p>(Podpis WYDAJĄCEGO)</p></div>
                   <div className="w-1/2 flex flex-col items-center">
                     <div className="w-full h-24 border-b border-black relative touch-none bg-blue-50/30 print:bg-transparent" title="Podpisz tutaj">
-                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
+                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseOut={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
                       {!signatureData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ</div>}
                     </div>
                     <p className="mt-2">(Czytelny podpis <strong>KORZYSTAJĄCEGO</strong>)</p>
@@ -467,7 +473,10 @@ export default function AdminEquipmentPanel() {
               <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-indigo-500 transition-all">
                 <div className="mb-6">
                   <div className="flex justify-between items-start mb-4">
-                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">{rez.Data_Od} ➔ {rez.Data_Do}</span>
+                    {/* === POPRAWKA 3: TŁUMACZENIE BRZYDKICH DAT NA EKRANIE ADMINA === */}
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">
+                      {formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}
+                    </span>
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Wniosek: {rez.ID}</span>
                   </div>
                   <h3 className="text-xl font-black text-white leading-tight mb-2">{rez.Organizacja_Cel}</h3>
@@ -510,7 +519,7 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 3: WINDYKACJA / WEZWANIA PRZEDSĄDOWE (ZACHOWANY W 100%) */}
+      {/* TRYB 3: WINDYKACJA / WEZWANIA PRZEDSĄDOWE */}
       {/* ========================================================= */}
       {adminMode === 'windykacja' && (
         <div className={`w-full ${showSummonsDocument ? 'max-w-[210mm] p-8 md:p-16' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none animate-fadeIn`}>
