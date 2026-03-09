@@ -9,7 +9,7 @@ const ITEMS_PER_PAGE = 6;
 // === WHITELISTA ADMINÓW ===
 const ADMIN_EMAILS = [
   'twoj.mail@samorzad.ue.wroc.pl',
-  'm.radlinski@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
+  'administracja@samorzad.ue.wroc.pl' // Zmień na swój prawdziwy e-mail!
 ];
 
 const BUILDING_INFO = {
