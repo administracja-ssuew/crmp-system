@@ -8,19 +8,15 @@ export default function AdminEquipmentPanel() {
   const [adminMode, setAdminMode] = useState('wydawanie'); 
 
   const [allReservations, setAllReservations] = useState([]);
-  const [allWydania, setAllWydania] = useState([]); // NOWOŚĆ: Baza wypożyczeń dla zakładki Zwroty
+  const [allWydania, setAllWydania] = useState([]); 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   
-  // MODAL KALENDARZA
   const [approvalModal, setApprovalModal] = useState(null); 
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('12:00');
   const [selectedAdminEmail, setSelectedAdminEmail] = useState(ADMIN_EMAILS[0]);
   const [requesterEmail, setRequesterEmail] = useState('');
 
-  // ==========================================
-  // STANY DLA TRYBU: WYDAWANIE SPRZĘTU
-  // ==========================================
   const [step, setStep] = useState(1);
   const [equipmentData, setEquipmentData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -39,14 +35,8 @@ export default function AdminEquipmentPanel() {
 
   const [docNumber, setDocNumber] = useState('POBIERANIE...');
 
-  // ==========================================
-  // STANY DLA TRYBU: ZWROTY (NOWOŚĆ)
-  // ==========================================
   const [selectedReturn, setSelectedReturn] = useState(null);
 
-  // ==========================================
-  // STANY DLA TRYBU: WINDYKACJA
-  // ==========================================
   const [summonsData, setSummonsData] = useState({
     perpetrator: '', address: '', protocolNumber: '', equipmentName: '', brand: '', model: ''
   });
@@ -68,7 +58,7 @@ export default function AdminEquipmentPanel() {
           }));
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
-          setAllWydania(data.wydania || []); // Pobieranie aktywnych wydan
+          setAllWydania(data.wydania || []); 
         }
       })
       .catch(err => console.error("Błąd ładowania danych:", err));
@@ -89,16 +79,10 @@ export default function AdminEquipmentPanel() {
     }
   }, [step, adminMode]);
 
-  // PROCES AKCEPTACJI Z KALENDARZEM
   const initiateApproval = (rez) => {
     const emailMatch = rez.Kontakt.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
     setRequesterEmail(emailMatch ? emailMatch[1] : '');
-    
-    setApprovalModal({
-      id: rez.ID,
-      organizacja: rez.Organizacja_Cel,
-      sprzetKody: rez.Sprzet_Kody
-    });
+    setApprovalModal({ id: rez.ID, organizacja: rez.Organizacja_Cel, sprzetKody: rez.Sprzet_Kody });
   };
 
   const confirmAndSendInvite = async () => {
@@ -117,12 +101,15 @@ export default function AdminEquipmentPanel() {
     };
 
     try {
-      await fetch(API_URL, {
+      const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
         body: JSON.stringify(payload)
       });
-      alert("Zatwierdzono! Zaproszenie na odbiór sprzętu wyleciało do kalendarza.");
+      const result = await response.json();
+      
+      // Pokazujemy komunikat z Google Script czy kalendarz się powiódł
+      alert(`Wniosek Zatwierdzony!\nSzczegóły: ${result.message || 'Zapisano'}`); 
       setApprovalModal(null);
       fetchAllData(); 
     } catch (err) {
@@ -137,7 +124,7 @@ export default function AdminEquipmentPanel() {
     try {
       await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
         body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" })
       });
       fetchAllData(); 
@@ -148,7 +135,6 @@ export default function AdminEquipmentPanel() {
     }
   };
 
-  // Ładne formatowanie daty
   const formatResDate = (rawDate) => {
     if (!rawDate) return '';
     try {
@@ -169,92 +155,55 @@ export default function AdminEquipmentPanel() {
     setIsVerifying(true);
     setVerificationStatus(null);
     setTimeout(() => {
-      if (borrower.albumId === '123456') {
-        setVerificationStatus('blocked');
-      } else if (borrower.albumId.length >= 3 && borrower.name.length > 2) {
-        setVerificationStatus('ok');
-        setStep(3);
-      } else {
-        alert("Wypełnij poprawnie podstawowe pola (Imię, Nazwisko, Nr albumu).");
-      }
+      if (borrower.albumId === '123456') { setVerificationStatus('blocked'); } 
+      else if (borrower.albumId.length >= 3 && borrower.name.length > 2) { setVerificationStatus('ok'); setStep(3); } 
+      else { alert("Wypełnij poprawnie podstawowe pola (Imię, Nazwisko, Nr albumu)."); }
       setIsVerifying(false);
     }, 800);
   };
 
-  // RYSOWANIE (CANVAS)
   const startDrawing = (e) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();
     const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left;
     const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    setIsDrawing(true);
+    ctx.beginPath(); ctx.moveTo(x, y); setIsDrawing(true);
   };
 
   const draw = (e) => {
-    if (!isDrawing) return;
-    e.preventDefault(); 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    const rect = canvas.getBoundingClientRect();
+    if (!isDrawing) return; e.preventDefault(); 
+    const canvas = canvasRef.current; const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();
     const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left;
     const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top;
-    ctx.lineTo(x, y);
-    ctx.strokeStyle = '#000080';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.stroke();
+    ctx.lineTo(x, y); ctx.strokeStyle = '#000080'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
   };
 
-  const stopDrawing = () => {
-    setIsDrawing(false);
-    if(canvasRef.current) setSignatureData(canvasRef.current.toDataURL());
-  };
+  const stopDrawing = () => { setIsDrawing(false); if(canvasRef.current) setSignatureData(canvasRef.current.toDataURL()); };
+  const clearSignature = () => { const canvas = canvasRef.current; if (!canvas) return; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); setSignatureData(null); };
 
-  const clearSignature = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    setSignatureData(null);
-  };
-
-  // FINALIZACJA WYDANIA
   const finalizeProtocol = async () => {
     setIsVerifying(true);
-    const equipmentList = selectedItems.map(item => item.id).join(', ');
     const payload = {
-      action: "zapiszWydanie",
-      nrPorozumienia: docNumber,
-      osoba: borrower.name,
-      organizacja: borrower.organization,
-      sprzet: equipmentList
+      action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, organizacja: borrower.organization, sprzet: selectedItems.map(item => item.id).join(', ')
     };
-
     try {
-      await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-      alert(`Sukces! Porozumienie ${docNumber} zapisane!`);
-      setStep(1); setSelectedItems([]);
-      setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''});
-      setVerificationStatus(null); setSignatureData(null); setDocNumber('GENEROWANIE...');
-      fetchAllData();
-    } catch (error) {
-      alert("Błąd zapisu.");
-    } finally {
-      setIsVerifying(false);
-    }
+      await fetch(API_URL, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
+        body: JSON.stringify(payload) 
+      });
+      alert(`Sukces! Porozumienie ${docNumber} zostało zapisane w Bazie CRW!`);
+      setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''}); setVerificationStatus(null); setSignatureData(null); setDocNumber('GENEROWANIE...'); fetchAllData();
+    } catch (error) { alert("Błąd zapisu."); } finally { setIsVerifying(false); }
   };
 
-  // FINALIZACJA ZWROTU
   const processReturn = async () => {
     if(!signatureData) { alert("Podpisz protokół zwrotu!"); return; }
     setIsVerifying(true);
     try {
       await fetch(API_URL, {
         method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // ZŁOTY FIX!
         body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: selectedReturn['Nr Porozumienia'] })
       });
       alert(`Sprzęt z porozumienia ${selectedReturn['Nr Porozumienia']} został zwrócony na stan!`);
@@ -317,9 +266,6 @@ export default function AdminEquipmentPanel() {
         </Link>
       )}
 
-      {/* ========================================================= */}
-      {/* TRYB 1: WYDAWANIE SPRZĘTU */}
-      {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
           <div className="w-full max-w-4xl flex justify-between items-center mb-8 bg-slate-800 p-4 rounded-3xl border border-slate-700 print:hidden animate-fadeIn">
@@ -358,17 +304,26 @@ export default function AdminEquipmentPanel() {
                   <input type="text" placeholder="Adres zamieszkania / korespondencyjny" value={borrower.address} onChange={e => setBorrower({...borrower, address: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
                   <input type="text" placeholder="Nr telefonu" value={borrower.phone} onChange={e => setBorrower({...borrower, phone: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
                   <input type="email" placeholder="E-mail" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
+                  
                   <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
-                    <div><label className="text-xs font-bold text-slate-500 ml-1">Od kiedy</label><input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" /></div>
-                    <div><label className="text-xs font-bold text-slate-500 ml-1">Do kiedy (zawity)</label><input type="datetime-local" value={borrower.dateTo} onChange={e => setBorrower({...borrower, dateTo: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" /></div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 ml-1">Od kiedy (data i godz.)</label>
+                      <input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 ml-1">Do kiedy (termin zawity)</label>
+                      <input type="datetime-local" value={borrower.dateTo} onChange={e => setBorrower({...borrower, dateTo: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" />
+                    </div>
                   </div>
                   <input type="text" placeholder="Miejsce docelowe użytkowania sprzętu" value={borrower.location} onChange={e => setBorrower({...borrower, location: e.target.value})} className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2 mt-2" />
                 </div>
-                {verificationStatus === 'blocked' && (<div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl"><p className="text-red-700 font-black text-sm uppercase tracking-widest">⚠️ Odmowa Wydania</p></div>)}
+                {verificationStatus === 'blocked' && (
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl"><p className="text-red-700 font-black text-sm uppercase tracking-widest">⚠️ Odmowa Wydania</p></div>
+                )}
                 <div className="flex gap-4">
                   <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase tracking-widest w-1/3">Wróć</button>
-                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1">
-                    {isVerifying ? 'Weryfikacja...' : 'Generuj Umowę'}
+                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1 flex items-center justify-center gap-2">
+                    {isVerifying ? <span className="animate-pulse">Weryfikacja...</span> : <span>Generuj Umowę</span>}
                   </button>
                 </div>
               </div>
@@ -377,8 +332,17 @@ export default function AdminEquipmentPanel() {
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-1/2 font-bold leading-tight"><p>Samorząd Studentów UEW</p></div>
-                  <div className="w-1/2 text-right font-bold leading-tight"><p>ZAŁĄCZNIK NR 1</p><p>DO REGULAMINU GOSPODAROWANIA SSUEW</p></div>
+                  <div className="w-1/2 font-bold leading-tight">
+                    <p>Samorząd Studentów</p>
+                    <p>Uniwersytetu Ekonomicznego</p>
+                    <p>we Wrocławiu</p>
+                  </div>
+                  <div className="w-1/2 text-right font-bold leading-tight">
+                    <p>ZAŁĄCZNIK NR 1</p>
+                    <p>DO REGULAMINU GOSPODAROWANIA</p>
+                    <p>SKŁADNIKAMI MAJĄTKU RUCHOMEGO SAMORZĄDU</p>
+                    <p>STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU</p>
+                  </div>
                 </div>
 
                 <div className="text-center mb-6">
@@ -388,29 +352,59 @@ export default function AdminEquipmentPanel() {
                 
                 <div className="mb-4">
                   <p className="mb-2">Zawarte w dniu <strong>{today}</strong> we Wrocławiu, pomiędzy:</p>
-                  <p><strong>1. WYDAJĄCYM:</strong> Samorządem Studentów Uniwersytetu Ekonomicznego we Wrocławiu,</p>
-                  <p className="font-bold mb-2 mt-2">a</p>
-                  <p><strong>2. KORZYSTAJĄCYM:</strong></p>
+                  <p><strong>1. SAMORZĄDEM STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU,</strong></p>
+                  <p>reprezentowanym przez Dysponenta / Operatora Systemu:</p>
+                  <p className="mb-2">........................................................................... zwanym dalej <strong>„WYDAJĄCYM"</strong>,</p>
+                  <p className="font-bold mb-2">a</p>
+                  <p><strong>2. PODMIOT:</strong></p>
                   <p className="font-bold uppercase border-b border-dotted border-gray-400 inline-block min-w-[300px] mb-1">{borrower.organization || '\u00A0'}</p>
+                  <p className="mb-1 text-[8px] text-gray-500">(pełna nazwa Organizacji Studenckiej / Koła Naukowego i/lub Projektu) reprezentowaną przez:</p>
+                  
                   <div className="mt-2 space-y-1">
-                    <p>Reprezentowanym przez: <span className="font-bold uppercase border-b border-dotted border-gray-400 px-2">{borrower.name}</span></p>
-                    <p>Nr albumu: <span className="font-bold border-b border-dotted border-gray-400 px-2">{borrower.albumId}</span></p>
-                    <p>Adres: <span className="border-b border-dotted border-gray-400 px-2">{borrower.address || '...........................................'}</span></p>
+                    <p>Pana/Panią: <span className="font-bold uppercase border-b border-dotted border-gray-400 px-2">{borrower.name}</span></p>
+                    <p className="text-[8px] text-gray-500">(imię i nazwisko Reprezentanta)</p>
+                    <p>Nr albumu (legitymacji): <span className="font-bold border-b border-dotted border-gray-400 px-2">{borrower.albumId}</span></p>
+                    <p>Adres zamieszkania/korespondencyjny: <span className="border-b border-dotted border-gray-400 px-2">{borrower.address || '...................................................'}</span></p>
+                    <p>Nr telefonu: <span className="border-b border-dotted border-gray-400 px-2">{borrower.phone || '......................'}</span> E-mail: <span className="border-b border-dotted border-gray-400 px-2">{borrower.email || '......................'}</span></p>
                   </div>
+                  <p className="mt-2">zwanym dalej <strong>„KORZYSTAJĄCYM"</strong>.</p>
                 </div>
                 
                 <div className="text-justify space-y-3">
                   <p className="font-bold">§ 1. PRZEDMIOT UMOWY I OŚWIADCZENIA</p>
-                  <p>Wydający oddaje w używanie na czas oznaczony Sprzęt określony w Protokole Zdawczo-Odbiorczym. Korzystający akceptuje Regulamin SSUEW.</p>
+                  <p>1. Wydający oddaje Korzystającemu w bezpłatne używanie na czas oznaczony Sprzęt określony szczegółowo w Protokole Zdawczo-Odbiorczym (Załącznik nr 2), stanowiącym integralną część niniejszej umowy.</p>
+                  <p>2. Korzystający oświadcza, że zapoznał się z treścią "Regulaminu Gospodarowania Składnikami Majątku Ruchomego Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu" (dalej: Regulamin), w pełni akceptuje jego postanowienia, w tym zasady odpowiedzialności materialnej, i zobowiązuje się do ich ścisłego przestrzegania.</p>
+
                   <p className="font-bold">§ 2. OKRES OBOWIĄZYWANIA I MIEJSCE</p>
-                  <p>Sprzęt zostaje wydany od: <strong>{fromDT.date} {fromDT.time}</strong> do: <strong>{toDT.date} {toDT.time}</strong>.</p>
-                  <p>Miejsce: <span className="font-bold">{borrower.location || '.....................................'}</span></p>
+                  <p>1. Sprzęt zostaje wydany na okres:<br/>
+                      OD dnia: <strong>{fromDT.date}</strong> godz. <strong>{fromDT.time}</strong><br/>
+                      DO dnia: <strong>{toDT.date}</strong> godz. <strong>{toDT.time}</strong>
+                  </p>
+                  <p>2. Miejscem docelowym użytkowania Sprzętu jest: <span className="font-bold">{borrower.location || '..................................................................'}</span></p>
+                  <p>3. Termin zwrotu określony w ust. 1 jest terminem zawitym. Przekroczenie terminu bez uprzedniej pisemnej zgody Wydającego skutkuje:<br/>
+                      a. Natychmiastowym rozwiązaniem umowy;<br/>
+                      b. Nałożeniem blokady na wypożyczenia (karencja);<br/>
+                      c. Powstaniem roszczenia o naprawienie szkody poprzez zapłatę pełnej wartości odtworzeniowej przedmiotu (zakup fabrycznie nowego urządzenia o identycznych lub lepszych parametrach), w przypadku jego utraty, zniszczenia lub trwałego uszkodzenia w okresie po upływie terminu zwrotu.
+                  </p>
+
                   <p className="font-bold">§ 3. ZASADY ODPOWIEDZIALNOŚCI (SOLIDARNOŚĆ)</p>
-                  <p>Reprezentant przyjmuje na siebie odpowiedzialność solidarną ze wskazanym Podmiotem za ewentualną szkodę (art. 366 § 1 k.c.).</p>
+                  <p>1. Korzystający ponosi pełną odpowiedzialność materialną za powierzone mienie na zasadzie ryzyka, od momentu jego wydania do momentu zwrotu potwierdzonego przez Wydającego.</p>
+                  <p>2. Reprezentant podpisujący niniejszą umowę oświadcza, iż jest umocowany do działania w imieniu wskazanego w komparycji Podmiotu.</p>
+                  <p>3. Na podstawie art. 366 § 1 Kodeksu cywilnego, Reprezentant przyjmuje na siebie odpowiedzialność solidarną ze wskazany Podmiot za wszelkie zobowiązania wynikające z niniejszej umowy, w tym w szczególności za naprawienie szkody wynikłej z utraty, kradzieży lub uszkodzenia Sprzętu.</p>
+                  <p>4. Wydający uprawniony jest do dochodzenia całości roszczenia od Reprezentanta z jego majątku osobistego, niezależnie od stanu finansów Podmiotu.</p>
+
+                  <p className="font-bold">§ 4. BEZPIECZEŃSTWO I DANE OSOBOWE</p>
+                  <p>1. Korzystający zobowiązuje się do używania Sprzętu zgodnie z jego przeznaczeniem oraz zasadami BHP.</p>
+                  <p>2. W przypadku powstania szkody lub utraty Sprzętu, Korzystający zobowiązuje się do niezwłocznego uzupełnienia danych osobowych niezbędnych do dochodzenia roszczeń, na wezwanie Wydającego w Protokole Szkody.</p>
+
+                  <p className="font-bold">§ 5. DORĘCZENIA I POSTANOWIENIA KOŃCOWE</p>
+                  <p>1. Korzystający zobowiązuje się do informowania Wydającego o każdej zmianie adresu pod rygorem uznania doręczenia na adres wskazany w komparycji umowy za skuteczne po upływie 7 dni od nadania (fikcja doręczenia).</p>
+                  <p>2. W sprawach nieuregulowanych zastosowanie mają przepisy Regulaminu oraz Kodeksu cywilnego.</p>
+                  <p>3. Sądem właściwym do rozstrzygania sporów jest Sąd powszechny właściwy miejscowo dla siedziby Wydającego.</p>
                 </div>
 
                 <div className="mt-6 page-break-inside-avoid">
-                  <h2 className="font-bold mb-2">PROTOKÓŁ ZDAWCZO-ODBIORCZY</h2>
+                  <h2 className="font-bold mb-2">ZAŁĄCZNIK NR 2: PROTOKÓŁ ZDAWCZO-ODBIORCZY</h2>
                   <table className="w-full border-collapse border border-black text-[9px] text-left">
                     <thead><tr className="bg-gray-100"><th className="border border-black p-1.5">L.P.</th><th className="border border-black p-1.5">NAZWA SPRZĘTU</th><th className="border border-black p-1.5">NR INWENTARZOWY</th></tr></thead>
                     <tbody>
@@ -432,14 +426,20 @@ export default function AdminEquipmentPanel() {
                       <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
                       {!signatureData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ</div>}
                     </div>
-                    <p className="mt-2">(Podpis KORZYSTAJĄCEGO)</p>
+                    <p className="mt-2">(Czytelny podpis <strong>KORZYSTAJĄCEGO</strong>)</p>
                   </div>
+                </div>
+                
+                <div className="mt-8 text-[7px] text-gray-400 text-center border-t border-gray-200 pt-2">
+                   Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu | ul. Kamienna 43, 53-307 Wrocław | e-mail: kontakt@samorzad.ue.wroc.pl | samorzad.ue.wroc.pl
                 </div>
 
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
-                  <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpis</button>
-                  <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] flex-1">🖨️ Zapisz PDF</button>
-                  <button onClick={finalizeProtocol} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50">Zatwierdź Umowę</button>
+                  <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors">Wyczyść Podpis</button>
+                  <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] flex-1 shadow-lg">🖨️ Zapisz jako PDF</button>
+                  <button onClick={finalizeProtocol} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg transition-all">
+                    {isVerifying ? 'Zapisywanie...' : 'Zatwierdź Umowę'}
+                  </button>
                 </div>
               </div>
             )}
@@ -485,6 +485,7 @@ export default function AdminEquipmentPanel() {
               <div className="col-span-full py-20 text-center flex flex-col items-center">
                  <span className="text-6xl mb-4 opacity-20">📭</span>
                  <p className="text-slate-400 font-black text-xl uppercase tracking-widest">Brak nowych wniosków</p>
+                 <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie rezerwacje zostały rozpatrzone.</p>
               </div>
             )}
           </div>
@@ -517,14 +518,14 @@ export default function AdminEquipmentPanel() {
             </div>
 
             <button onClick={confirmAndSendInvite} disabled={!pickupDate || !requesterEmail || isUpdatingStatus} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50">
-              {isUpdatingStatus ? 'Zatwierdzanie...' : 'Zatwierdź i Wyślij Zaproszenie'}
+              {isUpdatingStatus ? 'Tworzenie wydarzenia...' : 'Zatwierdź i Wyślij Zaproszenie'}
             </button>
           </div>
         </div>
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 4: ZWROTY SPRZĘTU (NOWOŚĆ - ZAŁĄCZNIK 3) */}
+      {/* TRYB 3: ZWROTY SPRZĘTU (ZAŁĄCZNIK 3) */}
       {/* ========================================================= */}
       {adminMode === 'zwroty' && (
         <div className="w-full max-w-4xl flex flex-col items-center">
@@ -548,7 +549,7 @@ export default function AdminEquipmentPanel() {
                   </div>
                 ))}
                 {allWydania.filter(w => w.Status === 'WYDANE').length === 0 && (
-                  <div className="text-center py-10 text-slate-500 font-bold">Wszystkie wydane sprzęty zostały zwrócone.</div>
+                  <div className="text-center py-10 text-slate-500 font-bold">Wszystkie wydane sprzęty zostały poprawnie zwrócone.</div>
                 )}
               </div>
             </div>
@@ -595,7 +596,7 @@ export default function AdminEquipmentPanel() {
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
                   <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpis</button>
                   <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] flex-1">🖨️ Drukuj PDF</button>
-                  <button onClick={processReturn} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50">Zakończ Wypożyczenie</button>
+                  <button onClick={processReturn} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50">Zakończ Wypożyczenie w Bazie</button>
                 </div>
               </div>
             </div>
