@@ -1,14 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { ADMIN_EMAILS } from '../config';
 
 export default function AdminEquipmentPanel() {
+  const { user } = useAuth();
   const [adminMode, setAdminMode] = useState('wydawanie'); 
 
   // ==========================================
-  // STANY DLA NOWEJ ZAKŁADKI: WNIOSKI (REZERWACJE)
+  // STANY DLA ZAKŁADKI: WNIOSKI (REZERWACJE I KALENDARZ)
   // ==========================================
   const [allReservations, setAllReservations] = useState([]);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  
+  // NOWOŚĆ: Stan modala potwierdzania i zaproszenia do kalendarza
+  const [approvalModal, setApprovalModal] = useState(null); 
+  const [pickupDate, setPickupDate] = useState('');
+  const [pickupTime, setPickupTime] = useState('12:00');
+  const [selectedAdminEmail, setSelectedAdminEmail] = useState(ADMIN_EMAILS[0]);
+  const [requesterEmail, setRequesterEmail] = useState('');
 
   // ==========================================
   // STANY DLA TRYBU: WYDAWANIE SPRZĘTU
@@ -41,19 +51,7 @@ export default function AdminEquipmentPanel() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-  // POPRAWKA 3: TŁUMACZ DAT
-  const formatResDate = (rawDate) => {
-    if (!rawDate) return '';
-    try {
-      const d = new Date(rawDate);
-      if (isNaN(d.getTime())) return String(rawDate);
-      return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
-    } catch {
-      return String(rawDate);
-    }
-  };
-
-  // POBIERANIE BAZY SPRZĘTU ORAZ REZERWACJI Z CRW
+  // POBIERANIE BAZY SPRZĘTU
   const fetchAllData = () => {
     fetch(API_URL)
       .then(res => res.json())
@@ -67,7 +65,7 @@ export default function AdminEquipmentPanel() {
             accessories: item.INTERAKCJA || 'Brak'
           }));
           setEquipmentData(formatted);
-          setAllReservations(data.rezerwacje || []); 
+          setAllReservations(data.rezerwacje || []);
         }
       })
       .catch(err => console.error("Błąd ładowania danych:", err));
@@ -75,24 +73,6 @@ export default function AdminEquipmentPanel() {
 
   useEffect(() => { fetchAllData(); }, []);
 
-  // OBSŁUGA ZMIANY STATUSU REZERWACJI PRZEZ ADMINA
-  const handleUpdateReservationStatus = async (id, newStatus) => {
-    setIsUpdatingStatus(true);
-    try {
-      await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: newStatus })
-      });
-      fetchAllData(); 
-    } catch (err) {
-      alert("Błąd połączenia. Nie udało się zaktualizować statusu.");
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
-
-  // POBIERANIE NOWEGO NUMERU POROZUMIENIA DLA WYDAŃ
   useEffect(() => {
     if (step === 2) {
       setDocNumber('Pobieranie...');
@@ -105,6 +85,78 @@ export default function AdminEquipmentPanel() {
         .catch(() => setDocNumber(`BŁĄD/SSUEW/${new Date().getMonth()+1}/2026`));
     }
   }, [step]);
+
+  // === NOWOŚĆ: PROCES AKCEPTACJI Z KALENDARZEM ===
+  const initiateApproval = (rez) => {
+    // Aplikacja sama szuka e-maila w ciągu znaków "Kontakt" wpisanym przez studenta
+    const emailMatch = rez.Kontakt.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+    setRequesterEmail(emailMatch ? emailMatch[1] : '');
+    
+    setApprovalModal({
+      id: rez.ID,
+      organizacja: rez.Organizacja_Cel,
+      sprzetKody: rez.Sprzet_Kody
+    });
+  };
+
+  const confirmAndSendInvite = async () => {
+    setIsUpdatingStatus(true);
+    
+    const payload = {
+      action: "updateRezerwacjaStatus",
+      id: approvalModal.id,
+      status: "Zatwierdzone",
+      createEvent: true, // Wskazówka dla Apps Script, by utworzyć wydarzenie
+      pickupDateTime: `${pickupDate}T${pickupTime}`,
+      requesterEmail: requesterEmail,
+      adminEmail: selectedAdminEmail,
+      organizacja: approvalModal.organizacja,
+      sprzetKody: approvalModal.sprzetKody
+    };
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      alert("Zatwierdzono! Zaproszenie na odbiór sprzętu zostało wysłane na maile.");
+      setApprovalModal(null);
+      fetchAllData(); 
+    } catch (err) {
+      alert("Błąd przy zatwierdzaniu.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const handleRejectReservation = async (id) => {
+    setIsUpdatingStatus(true);
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" })
+      });
+      fetchAllData(); 
+    } catch (err) {
+      alert("Błąd przy odrzucaniu.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // Ładne formatowanie daty
+  const formatResDate = (rawDate) => {
+    if (!rawDate) return '';
+    try {
+      const d = new Date(rawDate);
+      if (isNaN(d.getTime())) return String(rawDate);
+      return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return String(rawDate);
+    }
+  };
 
   const toggleItem = (item) => {
     if (selectedItems.find(i => i.id === item.id)) setSelectedItems(selectedItems.filter(i => i.id !== item.id));
@@ -167,6 +219,7 @@ export default function AdminEquipmentPanel() {
     setSignatureData(null);
   };
 
+  // FINALIZACJA - WYSŁANIE DO GOOGLE SHEETS
   const finalizeProtocol = async () => {
     setIsVerifying(true);
     
@@ -237,19 +290,19 @@ export default function AdminEquipmentPanel() {
       <div className="w-full max-w-xl flex bg-slate-800 rounded-full p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp">
         <button 
           onClick={() => setAdminMode('wydawanie')}
-          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+          className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
         >
           📦 Wydawanie
         </button>
         <button 
           onClick={() => setAdminMode('rezerwacje')}
-          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+          className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
         >
           📩 Wnioski
         </button>
         <button 
           onClick={() => setAdminMode('windykacja')}
-          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+          className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
         >
           ⚖️ Windykacja
         </button>
@@ -291,6 +344,7 @@ export default function AdminEquipmentPanel() {
 
           <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none`}>
             
+            {/* KROK 1 */}
             {step === 1 && (
               <div className="animate-fadeIn">
                 <h2 className="text-3xl font-black text-slate-900 mb-2">Wydanie z Magazynu</h2>
@@ -307,6 +361,7 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
+            {/* KROK 2 */}
             {step === 2 && (
               <div className="animate-fadeIn">
                 <h2 className="text-3xl font-black text-slate-900 mb-6">Dane do Porozumienia</h2>
@@ -342,8 +397,10 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
+            {/* KROK 3: A4 ZGODNE Z PDF */}
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
+                {/* NAGŁÓWEK ZGODNY Z PDF */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -461,7 +518,7 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 2: SKRZYNKA WNIOSKÓW (ZARZĄDZANIE REZERWACJAMI) */}
+      {/* TRYB 2: SKRZYNKA WNIOSKÓW Z KALENDARZEM */}
       {/* ========================================================= */}
       {adminMode === 'rezerwacje' && (
         <div className="w-full max-w-5xl animate-fadeIn">
@@ -473,14 +530,13 @@ export default function AdminEquipmentPanel() {
               <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-indigo-500 transition-all">
                 <div className="mb-6">
                   <div className="flex justify-between items-start mb-4">
-                    {/* === POPRAWKA 3: TŁUMACZENIE BRZYDKICH DAT NA EKRANIE ADMINA === */}
                     <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">
                       {formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}
                     </span>
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Wniosek: {rez.ID}</span>
                   </div>
                   <h3 className="text-xl font-black text-white leading-tight mb-2">{rez.Organizacja_Cel}</h3>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-6">Osoba: {rez.Kontakt}</p>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-6">Dane: {rez.Kontakt}</p>
                   
                   <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Żądany sprzęt (Kody QR):</p>
@@ -490,18 +546,18 @@ export default function AdminEquipmentPanel() {
                 
                 <div className="flex gap-3">
                   <button 
-                    onClick={() => handleUpdateReservationStatus(rez.ID, 'Odrzucone')} 
+                    onClick={() => handleRejectReservation(rez.ID)} 
                     disabled={isUpdatingStatus}
                     className="flex-1 py-3.5 bg-slate-700 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all duration-300 disabled:opacity-50"
                   >
                     Odrzuć
                   </button>
                   <button 
-                    onClick={() => handleUpdateReservationStatus(rez.ID, 'Zatwierdzone')} 
+                    onClick={() => initiateApproval(rez)} 
                     disabled={isUpdatingStatus}
                     className="flex-[2] py-3.5 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-500 transition-all duration-300 disabled:opacity-50"
                   >
-                    Zatwierdź Rezerwację
+                    Zatwierdź ✅
                   </button>
                 </div>
               </div>
@@ -514,6 +570,48 @@ export default function AdminEquipmentPanel() {
                  <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie rezerwacje zostały rozpatrzone.</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* === MODAL AKCEPTACJI: WYBÓR TERMINU ODBIORU === */}
+      {approvalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl relative">
+            <button onClick={() => setApprovalModal(null)} className="absolute top-6 right-6 text-slate-400 font-bold text-xl">✕</button>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Ustal Termin Odbioru</h3>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">System utworzy zaproszenie w Google Calendar</p>
+            
+            <div className="space-y-4 mb-8">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Dzień odbioru</label>
+                  <input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Godzina</label>
+                  <input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Dyżurujący Członek Zarządu</label>
+                <select value={selectedAdminEmail} onChange={e => setSelectedAdminEmail(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-200 outline-none">
+                  {ADMIN_EMAILS.map(email => <option key={email} value={email}>{email}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Email wnioskodawcy (Pobrano z wniosku)</label>
+                <input type="email" value={requesterEmail} onChange={e => setRequesterEmail(e.target.value)} className="w-full bg-indigo-50 border border-indigo-100 text-indigo-700 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-200 outline-none" />
+              </div>
+            </div>
+
+            <button 
+              onClick={confirmAndSendInvite}
+              disabled={!pickupDate || !requesterEmail || isUpdatingStatus}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg active:scale-95"
+            >
+              {isUpdatingStatus ? 'Tworzenie wydarzenia...' : 'Zatwierdź i Wyślij Zaproszenie'}
+            </button>
           </div>
         </div>
       )}

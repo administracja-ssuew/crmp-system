@@ -20,11 +20,11 @@ export default function EquipmentPage() {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); 
   
+  // === POPRAWKA 2: ROZBUDOWANE DANE KONTAKTOWE ===
   const [reservationData, setReservationData] = useState({
-    dateFrom: '', dateTo: '', purpose: '', contactInfo: ''
+    dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''
   });
 
-  // === STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
   const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
   const [damageData, setDamageData] = useState({
     perpetrator: '',
@@ -94,37 +94,31 @@ export default function EquipmentPage() {
   };
   const isInCart = (id) => cart.some(c => c.id === id);
 
-  // === POPRAWKA 1: BLOKADA KOLIZJI DAT ===
   const checkForCollisions = () => {
     const startReq = new Date(reservationData.dateFrom).setHours(0,0,0,0);
     const endReq = new Date(reservationData.dateTo).setHours(0,0,0,0);
 
     for (let item of cart) {
-      // Szukamy zatwierdzonych rezerwacji dla danego sprzętu
       const itemReservations = allReservations.filter(r => r.Sprzet_Kody && r.Sprzet_Kody.includes(item.id) && r.Status === 'Zatwierdzone');
-      
       for (let res of itemReservations) {
         const resStart = new Date(res.Data_Od).setHours(0,0,0,0);
         const resEnd = new Date(res.Data_Do).setHours(0,0,0,0);
-        
-        // Warunek nachodzenia się dat
         if (startReq <= resEnd && resStart <= endReq) {
-          return item.name; // Zwracamy nazwę przedmiotu, który wywołuje kolizję
+          return item.name; 
         }
       }
     }
-    return null; // Brak kolizji
+    return null; 
   };
 
   const handleReservationSubmit = async (e) => {
     e.preventDefault();
 
-    if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactInfo) {
+    if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactName || !reservationData.contactEmail) {
       alert("Proszę wypełnić wszystkie pola formularza rezerwacji.");
       return;
     }
 
-    // Odpalamy sprawdzanie kolizji przed wysyłką!
     const collidingItemName = checkForCollisions();
     if (collidingItemName) {
       alert(`⛔ KOLIZJA TERMINÓW!\n\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym przedziale czasowym. Zmień daty lub usuń ten przedmiot z koszyka.`);
@@ -134,13 +128,16 @@ export default function EquipmentPage() {
     setIsSubmitting(true);
     let itemsCodes = cart.map(item => item.id).join(', ');
     
+    // Zbijamy dane kontaktowe w jeden ciąg znaków, żeby nie przebudowywać struktury Excela
+    const formattedContact = `${reservationData.contactName} | Tel: ${reservationData.contactPhone} | Email: ${reservationData.contactEmail}`;
+
     const payload = {
       action: "nowaRezerwacja",
       sprzetKody: itemsCodes,
       dataOd: reservationData.dateFrom,
       dataDo: reservationData.dateTo,
       cel: reservationData.purpose,
-      kontakt: reservationData.contactInfo
+      kontakt: formattedContact 
     };
 
     try {
@@ -155,7 +152,7 @@ export default function EquipmentPage() {
         alert("Wniosek o rezerwację został przekazany do akceptacji Zarządu!");
         setCart([]); 
         setIsCheckoutOpen(false); 
-        setReservationData({dateFrom: '', dateTo: '', purpose: '', contactInfo: ''});
+        setReservationData({dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''});
         fetchData(); 
       } else {
         alert("Błąd po stronie serwera: " + result.error);
@@ -167,12 +164,9 @@ export default function EquipmentPage() {
     }
   };
 
-  // === POPRAWKA 2: ŻYWE PIGUŁKI STATUSU ===
   const getDynamicStatus = (item) => {
     if (item.status === 'maintenance') return 'maintenance';
-    
     const today = new Date().setHours(0,0,0,0);
-    // Sprawdzamy czy DZISIAJ trwa jakaś zatwierdzona rezerwacja na ten sprzęt
     const isRentedToday = allReservations.some(res => {
       if (res.Sprzet_Kody && res.Sprzet_Kody.includes(item.id) && res.Status === 'Zatwierdzone') {
         const start = new Date(res.Data_Od).setHours(0,0,0,0);
@@ -181,7 +175,6 @@ export default function EquipmentPage() {
       }
       return false;
     });
-    
     return isRentedToday ? 'rented' : 'available';
   };
 
@@ -261,7 +254,7 @@ export default function EquipmentPage() {
         {/* SIATKA SPRZĘTU */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEquipment.length > 0 ? filteredEquipment.map((item) => {
-            const currentStatus = getDynamicStatus(item); // Używamy dynamicznego statusu
+            const currentStatus = getDynamicStatus(item); 
             return (
               <div key={item.id} className={`bg-white rounded-3xl p-6 shadow-lg border transition-all duration-300 group flex flex-col h-full ${isInCart(item.id) ? 'border-indigo-500 shadow-indigo-200 ring-4 ring-indigo-50' : 'border-slate-100 shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1'}`}>
                 <div className="flex justify-between items-start mb-4">
@@ -315,7 +308,13 @@ export default function EquipmentPage() {
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Data Do</label><input type="date" value={reservationData.dateTo} onChange={e => setReservationData({...reservationData, dateTo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               </div>
               <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cel rezerwacji (Nazwa wydarzenia)</label><input type="text" placeholder="np. Dni Otwarte UEW..." value={reservationData.purpose} onChange={e => setReservationData({...reservationData, purpose: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
-              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Organizacja / Osoba Kontaktowa</label><input type="text" placeholder="np. SKN Zarządzania - Jan Kowalski" value={reservationData.contactInfo} onChange={e => setReservationData({...reservationData, contactInfo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+              
+              {/* NOWOŚĆ: Rozbite pola kontaktowe dla Kalendarza */}
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Imię i Nazwisko / Organizacja</label><input type="text" placeholder="Jan Kowalski (Wampiriada)" value={reservationData.contactName} onChange={e => setReservationData({...reservationData, contactName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">E-mail</label><input type="email" placeholder="jan@student.ue.wroc.pl" value={reservationData.contactEmail} onChange={e => setReservationData({...reservationData, contactEmail: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+                <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Telefon</label><input type="text" placeholder="123 456 789" value={reservationData.contactPhone} onChange={e => setReservationData({...reservationData, contactPhone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+              </div>
             </div>
 
             <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-6">
@@ -324,7 +323,7 @@ export default function EquipmentPage() {
             </div>
 
             <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
-              {isSubmitting ? 'Weryfikacja i wysyłanie...' : 'Wyślij Wniosek do Biura'}
+              {isSubmitting ? 'Weryfikacja i wysyłanie...' : 'Wyślij Wniosek do Zarządu'}
             </button>
           </div>
         </div>
