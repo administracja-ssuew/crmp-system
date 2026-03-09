@@ -8,6 +8,7 @@ export default function EquipmentPage() {
   const isAdmin = user && user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
 
   const [equipmentData, setEquipmentData] = useState([]);
+  const [allReservations, setAllReservations] = useState([]); // NOWOŚĆ: Stan na rezerwacje z bazy
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -18,29 +19,33 @@ export default function EquipmentPage() {
   const [activeTab, setActiveTab] = useState('info');
   const [cart, setCart] = useState([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // NOWOŚĆ: Blokada przycisku podczas wysyłania
   
   const [reservationData, setReservationData] = useState({
     dateFrom: '', dateTo: '', purpose: '', contactInfo: ''
   });
 
-  // === NOWOŚĆ: STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
+  // === STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
   const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
   const [damageData, setDamageData] = useState({
     perpetrator: '',
     albumId: '',
-    type: 'Mechaniczne', // Mechaniczne, Zalanie, Zagubienie/Kradzież, Inne
+    type: 'Mechaniczne',
     description: '',
     photoUrl: null
   });
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-  useEffect(() => {
+  const fetchData = () => {
+    setIsLoading(true);
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
-        const formattedData = data.map(item => {
+        
+        // NOWOŚĆ: Zmiana w mapowaniu danych (ZDJĘCIA i LOKALIZACJA)
+        const formattedData = data.sprzet.map(item => {
           let icon = '📦';
           if (item.TYP === 'OŚW') icon = '💡';
           if (item.TYP === 'AUD') icon = '🔊';
@@ -53,15 +58,19 @@ export default function EquipmentPage() {
             category: `${item.RODZAJ || ''} / ${item.TYP || ''}`.trim(),
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
-            locationPath: item['POLE SPISOWE'] && item['POLE SPISOWE'] !== '-' ? item['POLE SPISOWE'].replace('\n', ' > ') : 'Magazyn SSUEW',
+            // POPRAWKA: Używamy LOKALIZACJI zamiast POLA SPISOWEGO
+            locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
             description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
             value: 'Zgodnie z ewidencją księgową',
             warranty: 'Sprawdź protokół zakupu',
-            image: icon,
+            // NOWOŚĆ: Priorytet ma link do zdjęcia, jeśli brak -> ikona
+            image: item.ZDJĘCIE || icon,
+            isRealImage: !!item.ZDJĘCIE,
             link: item.LINK || null
           };
         });
         setEquipmentData(formattedData);
+        setAllReservations(data.rezerwacje || []); // Zapisujemy rezerwacje do osi czasu
         setIsLoading(false);
       })
       .catch(err => {
@@ -69,6 +78,10 @@ export default function EquipmentPage() {
         setError("Nie udało się pobrać bazy sprzętu z CRW. Sprawdź połączenie lub link.");
         setIsLoading(false);
       });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
@@ -85,12 +98,51 @@ export default function EquipmentPage() {
   };
   const isInCart = (id) => cart.some(c => c.id === id);
 
-  const generateReservationMail = () => {
-    const email = "biuro@samorzad.uew.edu.pl";
-    const subject = encodeURIComponent(`Wniosek o Rezerwację Sprzętu - ${reservationData.dateFrom}`);
-    let itemsList = cart.map((item, index) => `${index + 1}. ${item.name} (${item.id})`).join('\n');
-    const body = encodeURIComponent(`Cześć,\n\nZgłaszam zapotrzebowanie na REZERWACJĘ poniższego majątku:\n\nWybrany sprzęt:\n${itemsList}\n\nSZCZEGÓŁY REZERWACJI:\n- Data wynajmu (OD): ${reservationData.dateFrom}\n- Data zwrotu (DO): ${reservationData.dateTo}\n- Cel / Wydarzenie: ${reservationData.purpose}\n- Dane kontaktowe: ${reservationData.contactInfo}\n\nProszę o potwierdzenie dostępności sprzętu.\n\nPozdrawiam,`);
-    return `mailto:${email}?subject=${subject}&body=${body}`;
+  // === NOWOŚĆ: AUTOMATYCZNA WYSYŁKA DO BAZY ZAMIAST E-MAILA ===
+  const handleReservationSubmit = async () => {
+    // Prosta walidacja przed wysyłką
+    if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactInfo) {
+      alert("Proszę wypełnić wszystkie pola formularza rezerwacji.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Lista KODÓW QR wybranych przedmiotów
+    let itemsCodes = cart.map(item => item.id).join(', ');
+    
+    const payload = {
+      action: "nowaRezerwacja",
+      sprzetKody: itemsCodes,
+      dataOd: reservationData.dateFrom,
+      dataDo: reservationData.dateTo,
+      cel: reservationData.purpose,
+      kontakt: reservationData.contactInfo
+    };
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      
+      const result = await response.json();
+      
+      if(result.success) {
+        alert("Wniosek o rezerwację został przekazany do akceptacji Zarządu!");
+        setCart([]); // Czyszczenie koszyka
+        setIsCheckoutOpen(false); // Zamknięcie modala
+        setReservationData({dateFrom: '', dateTo: '', purpose: '', contactInfo: ''});
+        fetchData(); // Odświeżenie danych z CRW
+      } else {
+        alert("Błąd po stronie serwera: " + result.error);
+      }
+    } catch(err) {
+      alert("Błąd połączenia. Spróbuj ponownie później.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -102,19 +154,25 @@ export default function EquipmentPage() {
     }
   };
 
-  const getNext7Days = () => {
-    return Array.from({length: 7}).map((_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      return d;
+  // === NOWOŚĆ: SPRAWDZANIE OSI CZASU Z BAZY REZERWACJI ===
+  const isDateReserved = (itemId, dateObj) => {
+    const checkDate = dateObj.setHours(0,0,0,0);
+    
+    return allReservations.some(res => {
+      // Szukamy tylko zatwierdzonych wniosków zawierających ten sprzęt
+      if (res.Sprzet_Kody && res.Sprzet_Kody.includes(itemId) && res.Status === 'Zatwierdzone') {
+        const start = new Date(res.Data_Od).setHours(0,0,0,0);
+        const end = new Date(res.Data_Do).setHours(0,0,0,0);
+        return checkDate >= start && checkDate <= end;
+      }
+      return false;
     });
   };
 
-  // === NOWOŚĆ: OBSŁUGA APARATU ===
+  // OBSŁUGA APARATU
   const handlePhotoCapture = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Tworzymy tymczasowy URL do podglądu zdjęcia w przeglądarce
       const imageUrl = URL.createObjectURL(file);
       setDamageData({ ...damageData, photoUrl: imageUrl });
     }
@@ -170,7 +228,10 @@ export default function EquipmentPage() {
           {filteredEquipment.length > 0 ? filteredEquipment.map((item) => (
             <div key={item.id} className={`bg-white rounded-3xl p-6 shadow-lg border transition-all duration-300 group flex flex-col h-full ${isInCart(item.id) ? 'border-indigo-500 shadow-indigo-200 ring-4 ring-indigo-50' : 'border-slate-100 shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1'}`}>
               <div className="flex justify-between items-start mb-4">
-                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl border border-slate-100 shadow-inner group-hover:scale-110 transition-transform">{item.image}</div>
+                {/* NOWOŚĆ: Zdjęcie (jeśli jest) lub ikona */}
+                <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl border border-slate-100 shadow-inner group-hover:scale-110 transition-transform overflow-hidden">
+                   {item.isRealImage ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" /> : item.image}
+                </div>
                 {getStatusBadge(item.status)}
               </div>
               <div className="mb-2">
@@ -203,13 +264,13 @@ export default function EquipmentPage() {
         </div>
       )}
 
-      {/* MODAL REZERWACJI */}
+      {/* MODAL REZERWACJI - ZMIENIONY NA WYSYŁANIE POST DO GOOGLE SHEETS */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
           <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp max-h-[90vh] overflow-y-auto">
             <button onClick={() => setIsCheckoutOpen(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800 font-bold text-xl">✕</button>
             <h2 className="text-2xl font-black text-slate-800 mb-2">Formularz Rezerwacji</h2>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Zaklep sprzęt na swoje wydarzenie</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">Wniosek trafi prosto do Zarządu</p>
             
             <div className="space-y-4 mb-8">
               <div className="grid grid-cols-2 gap-4">
@@ -217,7 +278,7 @@ export default function EquipmentPage() {
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Data Do</label><input type="date" value={reservationData.dateTo} onChange={e => setReservationData({...reservationData, dateTo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               </div>
               <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cel rezerwacji (Nazwa wydarzenia)</label><input type="text" placeholder="np. Dni Otwarte UEW..." value={reservationData.purpose} onChange={e => setReservationData({...reservationData, purpose: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
-              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Organizacja / Osoba Kontaktowa</label><input type="text" placeholder="np. SKN Zarządzania - Jan Kowalski" value={reservationData.contactInfo} onChange={e => setReservationData({...reservationData, contactInfo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Organizacja / Osoba Kontaktowa</label><input type="text" placeholder="np. SKN Zarządzania - Jan Kowalski, 123456789" value={reservationData.contactInfo} onChange={e => setReservationData({...reservationData, contactInfo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
             </div>
 
             <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-6">
@@ -225,7 +286,9 @@ export default function EquipmentPage() {
               <ul className="text-sm font-bold text-indigo-900 space-y-1">{cart.map((item, idx) => <li key={item.id}>{idx + 1}. {item.name}</li>)}</ul>
             </div>
 
-            <a href={generateReservationMail()} onClick={() => {setCart([]); setIsCheckoutOpen(false);}} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">Wyślij Wniosek do Biura</a>
+            <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
+              {isSubmitting ? 'Wysyłanie...' : 'Wyślij Wniosek'}
+            </button>
           </div>
         </div>
       )}
@@ -236,7 +299,9 @@ export default function EquipmentPage() {
           <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp border border-white/20">
             <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors font-bold">✕</button>
             <div className="flex items-center gap-4 mb-6 pr-10">
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl border border-slate-100 shadow-inner shrink-0">{selectedItem.image}</div>
+              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl border border-slate-100 shadow-inner shrink-0 overflow-hidden">
+                 {selectedItem.isRealImage ? <img src={selectedItem.image} className="w-full h-full object-cover" /> : selectedItem.image}
+              </div>
               <div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Paszport Majątku</span>
                 <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedItem.name}</h2>
@@ -266,20 +331,23 @@ export default function EquipmentPage() {
               )}
               {activeTab === 'terminarz' && (
                 <div className="space-y-4 animate-fadeIn">
-                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Dostępność (Najbliższe 7 dni)</span>
-                  <div className="flex gap-2 overflow-x-auto pb-2">
-                    {getNext7Days().map((date, i) => {
-                      const isMockBooked = (selectedItem.id.length % 2 === 0) && (i === 2 || i === 3); 
+                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Dostępność (Najbliższe 28 dni)</span>
+                  {/* NOWOŚĆ: INTERAKTYWNY KALENDARZ 28 DNI */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array.from({length: 28}).map((_, i) => {
+                      const d = new Date(); d.setDate(d.getDate() + i);
+                      const isBooked = isDateReserved(selectedItem.id, d); 
                       return (
-                        <div key={i} className={`flex-1 min-w-[60px] flex flex-col items-center justify-center p-3 rounded-2xl border ${isMockBooked ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
-                          <span className="text-[10px] font-black uppercase mb-1">{date.toLocaleDateString('pl-PL', {weekday: 'short'})}</span>
-                          <span className="text-lg font-black">{date.getDate()}</span>
+                        <div key={i} className={`flex flex-col items-center justify-center p-2 rounded-xl border ${isBooked ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
+                          <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('pl-PL', {weekday: 'short'})}</span>
+                          <span className="text-sm font-black">{d.getDate()}</span>
                         </div>
                       )
                     })}
                   </div>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs font-medium text-slate-600 text-center">
-                    Czerwone pola oznaczają aktywną rezerwację lub serwis w danym dniu.
+                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px] font-medium text-slate-600 flex justify-center gap-4">
+                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400"></div> Rezerwacja</span>
+                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Wolne</span>
                   </div>
                 </div>
               )}
@@ -290,7 +358,6 @@ export default function EquipmentPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja do</span><span className="font-black text-slate-700 text-sm">{selectedItem.warranty}</span></div>
                   </div>
                   
-                  {/* NOWOŚĆ: Zmiana działania przycisku na otwarcie Modułu Szkody */}
                   <button 
                     onClick={() => setIsDamageReportOpen(true)} 
                     className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm"
@@ -304,7 +371,7 @@ export default function EquipmentPage() {
         </div>
       )}
 
-      {/* === NOWOŚĆ: MODAL PROTOKOŁU SZKODY (ZAŁĄCZNIK 8) === */}
+      {/* === MODAL PROTOKOŁU SZKODY (ZAŁĄCZNIK 8) - TWOJA LOGIKA I APARAT === */}
       {isDamageReportOpen && selectedItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
           <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp max-h-[90vh] overflow-y-auto">

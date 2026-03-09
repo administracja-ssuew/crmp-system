@@ -5,6 +5,12 @@ export default function AdminEquipmentPanel() {
   const [adminMode, setAdminMode] = useState('wydawanie'); 
 
   // ==========================================
+  // STANY DLA NOWEJ ZAKŁADKI: WNIOSKI (REZERWACJE)
+  // ==========================================
+  const [allReservations, setAllReservations] = useState([]);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // ==========================================
   // STANY DLA TRYBU: WYDAWANIE SPRZĘTU
   // ==========================================
   const [step, setStep] = useState(1);
@@ -23,7 +29,6 @@ export default function AdminEquipmentPanel() {
   const [isDrawing, setIsDrawing] = useState(false);
   const [signatureData, setSignatureData] = useState(null);
 
-  // === STAN NUMERU DOKUMENTU ===
   const [docNumber, setDocNumber] = useState('POBIERANIE...');
 
   // ==========================================
@@ -36,13 +41,13 @@ export default function AdminEquipmentPanel() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-  // POBIERANIE BAZY SPRZĘTU
-  useEffect(() => {
+  // POBIERANIE BAZY SPRZĘTU ORAZ REZERWACJI Z CRW
+  const fetchAllData = () => {
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
-        if (!data.error && Array.isArray(data)) {
-          const formatted = data.map(item => ({
+        if (!data.error) {
+          const formatted = data.sprzet.map(item => ({
             id: item.KOD_QR || `BRAK-ID-${Math.floor(Math.random()*1000)}`,
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
@@ -50,12 +55,32 @@ export default function AdminEquipmentPanel() {
             accessories: item.INTERAKCJA || 'Brak'
           }));
           setEquipmentData(formatted);
+          setAllReservations(data.rezerwacje || []); // Zaciągamy wnioski
         }
       })
-      .catch(err => console.error("Błąd ładowania sprzętu:", err));
-  }, []);
+      .catch(err => console.error("Błąd ładowania danych:", err));
+  };
 
-  // POBIERANIE NOWEGO NUMERU POROZUMIENIA
+  useEffect(() => { fetchAllData(); }, []);
+
+  // OBSŁUGA ZMIANY STATUSU REZERWACJI PRZEZ ADMINA
+  const handleUpdateReservationStatus = async (id, newStatus) => {
+    setIsUpdatingStatus(true);
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: newStatus })
+      });
+      fetchAllData(); // Odśwież listę po zatwierdzeniu
+    } catch (err) {
+      alert("Błąd połączenia. Nie udało się zaktualizować statusu.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // POBIERANIE NOWEGO NUMERU POROZUMIENIA DLA WYDAŃ
   useEffect(() => {
     if (step === 2) {
       setDocNumber('Pobieranie...');
@@ -90,6 +115,7 @@ export default function AdminEquipmentPanel() {
     }, 800);
   };
 
+  // --- LOGIKA RYSOWANIA PODPISU (CANVAS) ---
   const startDrawing = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -130,7 +156,7 @@ export default function AdminEquipmentPanel() {
     setSignatureData(null);
   };
 
-  // FINALIZACJA - WYSŁANIE DO GOOGLE SHEETS
+  // FINALIZACJA WYDANIA - WYSŁANIE DO GOOGLE SHEETS
   const finalizeProtocol = async () => {
     setIsVerifying(true);
     
@@ -176,45 +202,73 @@ export default function AdminEquipmentPanel() {
   const fromDT = formatDateTime(borrower.dateFrom);
   const toDT = formatDateTime(borrower.dateTo);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // ODBIÓR DANYCH ZE SKANERA (W PEŁNI ZACHOWANY)
+  useEffect(() => {
+    if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
+      const codesToFind = location.state.scannedCodes;
+      const itemsToAdd = equipmentData.filter(item => codesToFind.includes(item.id) && item.status === 'available');
+
+      if (itemsToAdd.length > 0) {
+        setSelectedItems(prev => {
+          const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id));
+          return [...prev, ...newItems];
+        });
+        alert(`Skanowanie udane! Dodano ${itemsToAdd.length} przedmiotów do koszyka.`);
+      }
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [equipmentData, location.state, navigate, location.pathname]);
+
   return (
     <div className="min-h-screen bg-slate-900 p-4 md:p-6 flex flex-col items-center pb-20 print:bg-white print:p-0">
       
       <div className="w-full max-w-xl flex bg-slate-800 rounded-full p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp">
         <button 
           onClick={() => setAdminMode('wydawanie')}
-          className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
         >
-          📦 Wydawanie Sprzętu
+          📦 Wydawanie
+        </button>
+        <button 
+          onClick={() => setAdminMode('rezerwacje')}
+          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+        >
+          📩 Wnioski
         </button>
         <button 
           onClick={() => setAdminMode('windykacja')}
-          className={`flex-1 py-3 rounded-full text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+          className={`flex-1 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
         >
-          ⚖️ Windykacja / Wezwania
+          ⚖️ Windykacja
         </button>
       </div>
 
-      <Link 
-        to="/skaner-ski"
-        className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 flex items-center gap-5 w-full max-w-xl hover:-translate-y-1 mb-8 print:hidden animate-fadeIn"
-      >
-        <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none"></div>
-        <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
-          <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-          </svg>
-        </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-black mb-0.5 tracking-tight drop-shadow-sm">Skaner Inwentaryzacji</h3>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Uruchom moduł SKI (QR / Barcode)</p>
-        </div>
-        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-1 group-hover:bg-white text-white group-hover:text-emerald-600 transition-all duration-300 shadow-sm shrink-0">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-        </div>
-      </Link>
+      {adminMode === 'wydawanie' && (
+        <Link 
+          to="/skaner-ski"
+          className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl hover:shadow-2xl hover:shadow-emerald-500/30 transition-all duration-300 flex items-center gap-5 w-full max-w-xl hover:-translate-y-1 mb-8 print:hidden animate-fadeIn"
+        >
+          <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none"></div>
+          <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
+            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-xl font-black mb-0.5 tracking-tight drop-shadow-sm">Skaner Inwentaryzacji</h3>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Uruchom moduł SKI (QR / Barcode)</p>
+          </div>
+          <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-1 group-hover:bg-white text-white group-hover:text-emerald-600 transition-all duration-300 shadow-sm shrink-0">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+          </div>
+        </Link>
+      )}
 
       {/* ========================================================= */}
-      {/* TRYB: WYDAWANIE SPRZĘTU */}
+      {/* TRYB 1: WYDAWANIE SPRZĘTU (ZACHOWANY W 100%) */}
       {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
@@ -281,10 +335,9 @@ export default function AdminEquipmentPanel() {
               </div>
             )}
 
-            {/* KROK 3: A4 ZGODNE Z PDF */}
+            {/* KROK 3: PEŁNY TEKST POROZUMIENIA ZGODNY Z PDF */}
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
-                {/* NAGŁÓWEK ZGODNY Z PDF */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -331,14 +384,14 @@ export default function AdminEquipmentPanel() {
 
                   <p className="font-bold">§ 2. OKRES OBOWIĄZYWANIA I MIEJSCE</p>
                   <p>1. Sprzęt zostaje wydany na okres:<br/>
-                     OD dnia: <strong>{fromDT.date}</strong> godz. <strong>{fromDT.time}</strong><br/>
-                     DO dnia: <strong>{toDT.date}</strong> godz. <strong>{toDT.time}</strong>
+                      OD dnia: <strong>{fromDT.date}</strong> godz. <strong>{fromDT.time}</strong><br/>
+                      DO dnia: <strong>{toDT.date}</strong> godz. <strong>{toDT.time}</strong>
                   </p>
                   <p>2. Miejscem docelowym użytkowania Sprzętu jest: <span className="font-bold">{borrower.location || '..................................................................'}</span></p>
                   <p>3. Termin zwrotu określony w ust. 1 jest terminem zawitym. Przekroczenie terminu bez uprzedniej pisemnej zgody Wydającego skutkuje:<br/>
-                     a. Natychmiastowym rozwiązaniem umowy;<br/>
-                     b. Nałożeniem blokady na wypożyczenia (karencja);<br/>
-                     c. Powstaniem roszczenia o naprawienie szkody poprzez zapłatę pełnej wartości odtworzeniowej przedmiotu (zakup fabrycznie nowego urządzenia o identycznych lub lepszych parametrach), w przypadku jego utraty, zniszczenia lub trwałego uszkodzenia w okresie po upływie terminu zwrotu.
+                      a. Natychmiastowym rozwiązaniem umowy;<br/>
+                      b. Nałożeniem blokady na wypożyczenia (karencja);<br/>
+                      c. Powstaniem roszczenia o naprawienie szkody poprzez zapłatę pełnej wartości odtworzeniowej przedmiotu (zakup fabrycznie nowego urządzenia o identycznych lub lepszych parametrach), w przypadku jego utraty, zniszczenia lub trwałego uszkodzenia w okresie po upływie terminu zwrotu.
                   </p>
 
                   <p className="font-bold">§ 3. ZASADY ODPOWIEDZIALNOŚCI (SOLIDARNOŚĆ)</p>
@@ -377,7 +430,7 @@ export default function AdminEquipmentPanel() {
                   <div className="w-1/3 text-center border-t border-black pt-2"><p>(Podpis WYDAJĄCEGO)</p></div>
                   <div className="w-1/2 flex flex-col items-center">
                     <div className="w-full h-24 border-b border-black relative touch-none bg-blue-50/30 print:bg-transparent" title="Podpisz tutaj">
-                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseOut={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
+                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
                       {!signatureData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ</div>}
                     </div>
                     <p className="mt-2">(Czytelny podpis <strong>KORZYSTAJĄCEGO</strong>)</p>
@@ -402,7 +455,62 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB: WINDYKACJA / WEZWANIA PRZEDSĄDOWE */}
+      {/* TRYB 2: SKRZYNKA WNIOSKÓW (ZARZĄDZANIE REZERWACJAMI) */}
+      {/* ========================================================= */}
+      {adminMode === 'rezerwacje' && (
+        <div className="w-full max-w-5xl animate-fadeIn">
+          <h2 className="text-3xl font-black text-white mb-2 tracking-tighter">Wnioski o Rezerwację</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Zarządzanie Kalendarzem Majątku (CRW)</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {allReservations.filter(r => r.Status === 'Oczekuje').map(rez => (
+              <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-indigo-500 transition-all">
+                <div className="mb-6">
+                  <div className="flex justify-between items-start mb-4">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">{rez.Data_Od} ➔ {rez.Data_Do}</span>
+                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Wniosek: {rez.ID}</span>
+                  </div>
+                  <h3 className="text-xl font-black text-white leading-tight mb-2">{rez.Organizacja_Cel}</h3>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-6">Osoba: {rez.Kontakt}</p>
+                  
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Żądany sprzęt (Kody QR):</p>
+                    <p className="text-xs font-bold text-emerald-400 leading-relaxed">📦 {rez.Sprzet_Kody}</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => handleUpdateReservationStatus(rez.ID, 'Odrzucone')} 
+                    disabled={isUpdatingStatus}
+                    className="flex-1 py-3.5 bg-slate-700 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all duration-300 disabled:opacity-50"
+                  >
+                    Odrzuć
+                  </button>
+                  <button 
+                    onClick={() => handleUpdateReservationStatus(rez.ID, 'Zatwierdzone')} 
+                    disabled={isUpdatingStatus}
+                    className="flex-[2] py-3.5 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-500 transition-all duration-300 disabled:opacity-50"
+                  >
+                    Zatwierdź Rezerwację
+                  </button>
+                </div>
+              </div>
+            ))}
+            
+            {allReservations.filter(r => r.Status === 'Oczekuje').length === 0 && (
+              <div className="col-span-full py-20 text-center flex flex-col items-center">
+                 <span className="text-6xl mb-4 opacity-20">📭</span>
+                 <p className="text-slate-400 font-black text-xl uppercase tracking-widest">Brak nowych wniosków</p>
+                 <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie rezerwacje zostały rozpatrzone.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* TRYB 3: WINDYKACJA / WEZWANIA PRZEDSĄDOWE (ZACHOWANY W 100%) */}
       {/* ========================================================= */}
       {adminMode === 'windykacja' && (
         <div className={`w-full ${showSummonsDocument ? 'max-w-[210mm] p-8 md:p-16' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none animate-fadeIn`}>
@@ -489,32 +597,4 @@ export default function AdminEquipmentPanel() {
 
     </div>
   );
-
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  // ODBIÓR DANYCH ZE SKANERA
-  useEffect(() => {
-    // Sprawdzamy, czy wróciliśmy ze skanera i czy baza sprzętu jest już załadowana
-    if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
-      const codesToFind = location.state.scannedCodes;
-      
-      // Szukamy sprzętów o zeskanowanych kodach, które są "available"
-      const itemsToAdd = equipmentData.filter(item => codesToFind.includes(item.id) && item.status === 'available');
-
-      if (itemsToAdd.length > 0) {
-        // Dodajemy do koszyka tylko te, których tam jeszcze nie ma
-        setSelectedItems(prev => {
-          const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id));
-          return [...prev, ...newItems];
-        });
-        
-        // Możesz opcjonalnie odkomentować poniższy alert, żeby informował o dodaniu
-        alert(`Skanowanie udane! Dodano ${itemsToAdd.length} przedmiotów do koszyka.`);
-      }
-
-      // Czyścimy "paczkę", żeby przy odświeżeniu strony sprzęty nie dodały się podwójnie
-      navigate(location.pathname, { replace: true, state: {} });
-    }
-  }, [equipmentData, location.state, navigate, location.pathname]);
 }
