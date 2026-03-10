@@ -9,12 +9,13 @@ export default function EquipmentPage() {
 
   const [equipmentData, setEquipmentData] = useState([]);
   const [allReservations, setAllReservations] = useState([]); 
-  const [allWydania, setAllWydania] = useState([]); // NOWOŚĆ: Fizyczne wydania
+  const [allWydania, setAllWydania] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Wszystko');
+  
   const [selectedItem, setSelectedItem] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
   const [cart, setCart] = useState([]);
@@ -25,9 +26,14 @@ export default function EquipmentPage() {
     dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''
   });
 
+  // === STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
   const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
   const [damageData, setDamageData] = useState({
-    perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null
+    perpetrator: '',
+    albumId: '',
+    type: 'Mechaniczne',
+    description: '',
+    photoUrl: null
   });
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
@@ -38,7 +44,6 @@ export default function EquipmentPage() {
       .then(res => res.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
-        
         const formattedData = data.sprzet.map(item => {
           let icon = '📦';
           if (item.TYP === 'OŚW') icon = '💡';
@@ -63,7 +68,7 @@ export default function EquipmentPage() {
         });
         setEquipmentData(formattedData);
         setAllReservations(data.rezerwacje || []); 
-        setAllWydania(data.wydania || []); // Zaciągamy fizyczne wydania
+        setAllWydania(data.wydania || []); 
         setIsLoading(false);
       })
       .catch(err => {
@@ -73,7 +78,9 @@ export default function EquipmentPage() {
       });
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
 
@@ -89,6 +96,7 @@ export default function EquipmentPage() {
   };
   const isInCart = (id) => cart.some(c => c.id === id);
 
+  // === ZABEZPIECZENIE: KOLIZJE DAT ===
   const checkForCollisions = () => {
     const startReq = new Date(reservationData.dateFrom).setHours(0,0,0,0);
     const endReq = new Date(reservationData.dateTo).setHours(0,0,0,0);
@@ -110,13 +118,13 @@ export default function EquipmentPage() {
     e.preventDefault();
 
     if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactName || !reservationData.contactEmail) {
-      alert("Proszę wypełnić wszystkie pola formularza rezerwacji.");
+      alert("Proszę wypełnić wszystkie wymagane pola formularza rezerwacji.");
       return;
     }
 
     const collidingItemName = checkForCollisions();
     if (collidingItemName) {
-      alert(`⛔ KOLIZJA TERMINÓW!\n\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym przedziale czasowym. Zmień daty lub usuń ten przedmiot z koszyka.`);
+      alert(`⛔ BŁĄD KOLIZJI!\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym terminie.`);
       return;
     }
 
@@ -142,31 +150,32 @@ export default function EquipmentPage() {
       const result = await response.json();
       
       if(result.success) {
-        alert("Wniosek o rezerwację został przekazany do akceptacji Zarządu!");
+        alert("Wniosek został wysłany do Zarządu! Numer wniosku: " + result.id);
         setCart([]); 
         setIsCheckoutOpen(false); 
         setReservationData({dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''});
         fetchData(); 
       } else {
-        alert("Błąd po stronie serwera: " + result.error);
+        alert("Błąd po stronie serwera.");
       }
     } catch(err) {
-      alert("Błąd połączenia.");
+      alert("Błąd połączenia. Spróbuj ponownie później.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // === ŻYWY STATUS: NA BAZIE WYDAŃ I REZERWACJI ===
   const getDynamicStatus = (item) => {
     if (item.status === 'maintenance') return 'maintenance';
     
-    // NOWOŚĆ: Najpierw sprawdzamy fizyczne wydania. Jeżeli nie oddali, sprzęt jest niedostępny!
-    const isPhysicallyOut = allWydania.some(w => 
-      w.Status === 'WYDANE' && w['Sprzęt (Kody QR)'] && w['Sprzęt (Kody QR)'].includes(item.id)
-    );
+    const isPhysicallyOut = allWydania.some(w => {
+      const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
+      const codes = String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '');
+      return wStatus === 'WYDANE' && codes.includes(item.id);
+    });
     if (isPhysicallyOut) return 'rented';
 
-    // Jeśli leży w magazynie, sprawdzamy czy na dzisiaj nie ma aktywnej rezerwacji
     const today = new Date().setHours(0,0,0,0);
     const isRentedToday = allReservations.some(res => {
       if (res.Sprzet_Kody && res.Sprzet_Kody.includes(item.id) && res.Status === 'Zatwierdzone') {
@@ -203,11 +212,14 @@ export default function EquipmentPage() {
 
   const handlePhotoCapture = (e) => {
     const file = e.target.files[0];
-    if (file) setDamageData({ ...damageData, photoUrl: URL.createObjectURL(file) });
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setDamageData({ ...damageData, photoUrl: imageUrl });
+    }
   };
 
   const submitDamageReport = () => {
-    alert("Protokół Szkody wygenerowany i przesłany do bazy CRW.");
+    alert("Protokół Szkody został wygenerowany. W przyszłości system wyśle to zdjęcie i formularz bezpośrednio do bazy CRW i Zarządu!");
     setIsDamageReportOpen(false);
     setDamageData({ perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null });
   };
@@ -219,9 +231,10 @@ export default function EquipmentPage() {
     <div className="min-h-screen bg-slate-50 p-6 relative overflow-hidden flex flex-col items-center pb-32">
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-indigo-50/50 pointer-events-none z-0"></div>
 
+      {/* PRZYCISK ADMINISTRATORA */}
       {isAdmin && (
         <div className="absolute top-6 right-6 z-50 animate-fadeIn">
-          <Link to="/wydawanie" className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest shadow-xl hover:bg-slate-800 hover:scale-105 transition-all">
+          <Link to="/wydawanie" className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-400 hover:bg-slate-800 hover:scale-105 transition-all">
             <span>🔐</span> Panel Wydawania (Admin)
           </Link>
         </div>
@@ -321,7 +334,7 @@ export default function EquipmentPage() {
             </div>
 
             <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
-              {isSubmitting ? 'Weryfikacja kolizji i wysyłanie...' : 'Wyślij Wniosek do Biura'}
+              {isSubmitting ? 'Weryfikacja...' : 'Wyślij Wniosek do Zarządu'}
             </button>
           </div>
         </div>
@@ -390,10 +403,7 @@ export default function EquipmentPage() {
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość Księgowa</span><span className="font-black text-slate-700 text-sm">{selectedItem.value}</span></div>
                     <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja do</span><span className="font-black text-slate-700 text-sm">{selectedItem.warranty}</span></div>
                   </div>
-                  <button 
-                    onClick={() => setIsDamageReportOpen(true)} 
-                    className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm"
-                  >
+                  <button onClick={() => setIsDamageReportOpen(true)} className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm">
                     <span>⚠️</span> Zgłoś uszkodzenie (Załącznik nr 8)
                   </button>
                 </div>
@@ -415,11 +425,13 @@ export default function EquipmentPage() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Załącznik nr 8 do Regulaminu SSUEW</p>
               </div>
             </div>
+
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
               <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Przedmiot Szkody</span>
               <p className="font-black text-slate-800 text-sm">{selectedItem.name}</p>
               <p className="font-mono text-slate-500 text-[10px] mt-1">{selectedItem.id}</p>
             </div>
+
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sprawca / Ostatni Wypożyczający</label>
@@ -443,6 +455,8 @@ export default function EquipmentPage() {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Szczegółowy Opis Szkody</label>
                 <textarea rows="3" placeholder="Opisz dokładnie co zostało zniszczone i w jakich okolicznościach..." value={damageData.description} onChange={e => setDamageData({...damageData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none resize-none"></textarea>
               </div>
+
+              {/* INTEGRACJA Z APARATEM */}
               <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
                 <span className="block text-[10px] font-bold text-red-600 uppercase mb-2">Dokumentacja Fotograficzna</span>
                 {!damageData.photoUrl ? (
@@ -462,6 +476,7 @@ export default function EquipmentPage() {
                 )}
               </div>
             </div>
+
             <button onClick={submitDamageReport} disabled={!damageData.perpetrator || !damageData.description} className="block text-center w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-200 transition-all">Zatwierdź Protokół Szkody</button>
           </div>
         </div>

@@ -14,7 +14,7 @@ export default function AdminEquipmentPanel() {
   const [approvalModal, setApprovalModal] = useState(null); 
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('12:00');
-  const [selectedAdminEmail, setSelectedAdminEmail] = useState(ADMIN_EMAILS[0]);
+  const [selectedAdminEmail, setSelectedAdminEmail] = useState(user?.email || ADMIN_EMAILS[0]);
   const [requesterEmail, setRequesterEmail] = useState('');
 
   const [step, setStep] = useState(1);
@@ -29,12 +29,16 @@ export default function AdminEquipmentPanel() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
 
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [signatureData, setSignatureData] = useState(null);
+  const canvasBorrowerRef = useRef(null);
+  const canvasAdminRef = useRef(null);
+  
+  const [isDrawingBorrower, setIsDrawingBorrower] = useState(false);
+  const [isDrawingAdmin, setIsDrawingAdmin] = useState(false);
+  
+  const [sigBorrowerData, setSigBorrowerData] = useState(null);
+  const [sigAdminData, setSigAdminData] = useState(null);
 
   const [docNumber, setDocNumber] = useState('POBIERANIE...');
-
   const [selectedReturn, setSelectedReturn] = useState(null);
 
   const [summonsData, setSummonsData] = useState({
@@ -60,8 +64,7 @@ export default function AdminEquipmentPanel() {
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []); 
         }
-      })
-      .catch(err => console.error("Błąd ładowania danych:", err));
+      });
   };
 
   useEffect(() => { fetchAllData(); }, []);
@@ -74,8 +77,7 @@ export default function AdminEquipmentPanel() {
         .then(data => {
           if (data.docNumber) setDocNumber(data.docNumber);
           else setDocNumber(`AWARYJNY/SSUEW/${new Date().getMonth()+1}/2026`);
-        })
-        .catch(() => setDocNumber(`BŁĄD/SSUEW/${new Date().getMonth()+1}/2026`));
+        });
     }
   }, [step, adminMode]);
 
@@ -92,24 +94,18 @@ export default function AdminEquipmentPanel() {
       pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: selectedAdminEmail,
       organizacja: approvalModal.organizacja, sprzetKody: approvalModal.sprzetKody
     };
-
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload)
-      });
+      const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();
       alert(`Wniosek Zatwierdzony!\nKalendarz: ${result.message || 'Zapisano'}`); 
-      setApprovalModal(null);
-      fetchAllData(); 
+      setApprovalModal(null); fetchAllData(); 
     } catch (err) { alert("Błąd przy zatwierdzaniu."); } finally { setIsUpdatingStatus(false); }
   };
 
   const handleRejectReservation = async (id) => {
     setIsUpdatingStatus(true);
     try {
-      await fetch(API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" })
-      });
+      await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" }) });
       fetchAllData(); 
     } catch (err) { alert("Błąd przy odrzucaniu."); } finally { setIsUpdatingStatus(false); }
   };
@@ -138,50 +134,63 @@ export default function AdminEquipmentPanel() {
     }, 800);
   };
 
-  const startDrawing = (e) => {
-    const canvas = canvasRef.current; if (!canvas) return;
-    const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();
-    const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left;
-    const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top;
-    ctx.beginPath(); ctx.moveTo(x, y); setIsDrawing(true);
-  };
+  const startDrawBorrower = (e) => { const c = canvasBorrowerRef.current; if (!c) return; const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect(); const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left; const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top; ctx.beginPath(); ctx.moveTo(x, y); setIsDrawingBorrower(true); };
+  const drawBorrower = (e) => { if (!isDrawingBorrower) return; e.preventDefault(); const c = canvasBorrowerRef.current; const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect(); const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left; const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top; ctx.lineTo(x, y); ctx.strokeStyle = '#000080'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke(); };
+  const stopDrawBorrower = () => { setIsDrawingBorrower(false); if(canvasBorrowerRef.current) setSigBorrowerData(canvasBorrowerRef.current.toDataURL()); };
+  
+  const startDrawAdmin = (e) => { const c = canvasAdminRef.current; if (!c) return; const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect(); const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left; const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top; ctx.beginPath(); ctx.moveTo(x, y); setIsDrawingAdmin(true); };
+  const drawAdmin = (e) => { if (!isDrawingAdmin) return; e.preventDefault(); const c = canvasAdminRef.current; const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect(); const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left; const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top; ctx.lineTo(x, y); ctx.strokeStyle = '#000080'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke(); };
+  const stopDrawAdmin = () => { setIsDrawingAdmin(false); if(canvasAdminRef.current) setSigAdminData(canvasAdminRef.current.toDataURL()); };
 
-  const draw = (e) => {
-    if (!isDrawing) return; e.preventDefault(); 
-    const canvas = canvasRef.current; const ctx = canvas.getContext('2d'); const rect = canvas.getBoundingClientRect();
-    const x = e.clientX ? e.clientX - rect.left : e.touches[0].clientX - rect.left;
-    const y = e.clientY ? e.clientY - rect.top : e.touches[0].clientY - rect.top;
-    ctx.lineTo(x, y); ctx.strokeStyle = '#000080'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+  const clearSignatures = () => { 
+    if (canvasBorrowerRef.current) { const ctx = canvasBorrowerRef.current.getContext('2d'); ctx.clearRect(0, 0, canvasBorrowerRef.current.width, canvasBorrowerRef.current.height); setSigBorrowerData(null); }
+    if (canvasAdminRef.current) { const ctx = canvasAdminRef.current.getContext('2d'); ctx.clearRect(0, 0, canvasAdminRef.current.width, canvasAdminRef.current.height); setSigAdminData(null); }
   };
-
-  const stopDrawing = () => { setIsDrawing(false); if(canvasRef.current) setSignatureData(canvasRef.current.toDataURL()); };
-  const clearSignature = () => { const canvas = canvasRef.current; if (!canvas) return; const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height); setSignatureData(null); };
 
   const finalizeProtocol = async () => {
+    if(!sigBorrowerData || !sigAdminData) {
+      alert("Protokół musi zostać podpisany przez obie strony (Studenta i Dysponenta)!");
+      return;
+    }
+    
     setIsVerifying(true);
+    const equipmentList = selectedItems.map(item => item.id).join(', ');
     const payload = {
-      action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, organizacja: borrower.organization, sprzet: selectedItems.map(item => item.id).join(', ')
+      action: "zapiszWydanie", 
+      nrPorozumienia: docNumber, 
+      osoba: borrower.name, 
+      albumId: borrower.albumId,
+      organizacja: borrower.organization, 
+      sprzet: equipmentList,
+      dateFrom: `${borrower.dateFrom.replace('T', ' ')}`,
+      dateTo: `${borrower.dateTo.replace('T', ' ')}`,
+      location: borrower.location || "..................................................................",
+      address: borrower.address || "...................................................",
+      phone: borrower.phone || "......................",
+      email: borrower.email || "......................",
+      adminName: user?.email ? user.email.split('@')[0] : 'Administrator', 
+      sigBorrower: sigBorrowerData,
+      sigAdmin: sigAdminData
     };
+
     try {
-      await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-      alert(`Sukces! Porozumienie ${docNumber} zostało zapisane!`);
-      setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''}); setVerificationStatus(null); setSignatureData(null); setDocNumber('GENEROWANIE...');
+      const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      const resData = await response.json();
+      
+      alert(`Wydanie sfinalizowane! \nCyfrowy PDF został zapisany na Dysku.\nLink: ${resData.link}`);
+      
+      setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: ''}); setVerificationStatus(null); clearSignatures(); setDocNumber('GENEROWANIE...');
       setTimeout(() => fetchAllData(), 500);
-    } catch (error) { alert("Błąd zapisu."); } finally { setIsVerifying(false); }
+    } catch (error) { alert("Błąd przetwarzania umowy cyfrowej."); } finally { setIsVerifying(false); }
   };
 
-  // FINALIZACJA ZWROTU 
   const processReturn = async () => {
-    if(!signatureData) { alert("Podpisz protokół zwrotu!"); return; }
+    if(!sigAdminData) { alert("Podpisz protokół zwrotu!"); return; }
     setIsVerifying(true);
     try {
-      await fetch(API_URL, {
-        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-        // Używamy Nr_Porozumienia lub Data (bo miałeś zamienione kolumny)
-        body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: selectedReturn['Nr_Porozumienia'] || selectedReturn['Nr Porozumienia'] || selectedReturn['Data'] })
-      });
-      alert(`Sprzęt został zwrócony na stan! Pigułki na stronie znów będą zielone.`);
-      setSelectedReturn(null); setSignatureData(null);
+      await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: selectedReturn['Nr_Porozumienia'] || selectedReturn['Nr Porozumienia'] || selectedReturn['Data'] }) });
+      alert(`Sprzęt został zwrócony na stan!`);
+      setSelectedReturn(null); clearSignatures();
       setTimeout(() => fetchAllData(), 500);
     } catch (err) { alert("Błąd przetwarzania zwrotu."); } finally { setIsVerifying(false); }
   };
@@ -194,23 +203,18 @@ export default function AdminEquipmentPanel() {
   const fromDT = formatDateTime(borrower.dateFrom); const toDT = formatDateTime(borrower.dateTo);
 
   const location = useLocation(); const navigate = useNavigate();
-
   useEffect(() => {
     if (equipmentData.length > 0 && location.state && location.state.scannedCodes) {
       const codesToFind = location.state.scannedCodes;
       const itemsToAdd = equipmentData.filter(item => codesToFind.includes(item.id) && item.status === 'available');
       if (itemsToAdd.length > 0) {
-        setSelectedItems(prev => {
-          const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id));
-          return [...prev, ...newItems];
-        });
-        alert(`Skanowanie udane! Dodano ${itemsToAdd.length} przedmiotów do koszyka.`);
+        setSelectedItems(prev => { const newItems = itemsToAdd.filter(newIt => !prev.find(p => p.id === newIt.id)); return [...prev, ...newItems]; });
+        alert(`Dodano ${itemsToAdd.length} przedmiotów z kodu QR.`);
       }
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [equipmentData, location.state, navigate, location.pathname]);
 
-  // PANCERNA LOGIKA WYSZUKIWANIA ZWROTÓW (Odporna na zły nagłówek)
   const activeWydania = allWydania.filter(w => {
     const status = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
     return status === 'WYDANE';
@@ -236,9 +240,6 @@ export default function AdminEquipmentPanel() {
         </Link>
       )}
 
-      {/* ========================================================= */}
-      {/* TRYB 1: WYDAWANIE SPRZĘTU */}
-      {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
           <div className="w-full max-w-4xl flex justify-between items-center mb-8 bg-slate-800 p-4 rounded-3xl border border-slate-700 print:hidden animate-fadeIn">
@@ -276,7 +277,7 @@ export default function AdminEquipmentPanel() {
                   <input type="text" placeholder="Pełna nazwa Organizacji / Projektu" value={borrower.organization} onChange={e => setBorrower({...borrower, organization: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
                   <input type="text" placeholder="Adres zamieszkania / korespondencyjny" value={borrower.address} onChange={e => setBorrower({...borrower, address: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
                   <input type="text" placeholder="Nr telefonu" value={borrower.phone} onChange={e => setBorrower({...borrower, phone: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
-                  <input type="email" placeholder="E-mail" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
+                  <input type="email" placeholder="E-mail (Do wysyłki PDF umowy)" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-indigo-50 border border-indigo-200 p-3 rounded-xl text-sm font-bold w-full focus:ring-2 focus:ring-indigo-300 outline-none" />
                   
                   <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
                     <div>
@@ -290,22 +291,19 @@ export default function AdminEquipmentPanel() {
                   </div>
                   <input type="text" placeholder="Miejsce docelowe użytkowania sprzętu" value={borrower.location} onChange={e => setBorrower({...borrower, location: e.target.value})} className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2 mt-2" />
                 </div>
-                {verificationStatus === 'blocked' && (
-                  <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl"><p className="text-red-700 font-black text-sm uppercase tracking-widest">⚠️ Odmowa Wydania</p></div>
-                )}
+                {verificationStatus === 'blocked' && (<div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-xl"><p className="text-red-700 font-black text-sm uppercase tracking-widest">⚠️ Odmowa Wydania</p></div>)}
                 <div className="flex gap-4">
                   <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase tracking-widest w-1/3">Wróć</button>
-                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1 flex items-center justify-center gap-2">
-                    {isVerifying ? <span className="animate-pulse">Weryfikacja...</span> : <span>Generuj Umowę</span>}
+                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1">
+                    {isVerifying ? 'Weryfikacja...' : 'Przejdź do Podpisów'}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* KROK 3: A4 ZGODNE Z PDF */}
             {step === 3 && (
               <div id="printable-document" className="animate-fadeIn text-black font-sans text-[9px] md:text-[10px] leading-tight">
-                {/* NAGŁÓWEK ZGODNY Z PDF */}
+                {/* PRZYWRÓCONY W 100% TWÓJ ORYGINALNY TEKST PRAWNY */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold leading-tight">
                     <p>Samorząd Studentów</p>
@@ -365,7 +363,7 @@ export default function AdminEquipmentPanel() {
                   <p className="font-bold">§ 3. ZASADY ODPOWIEDZIALNOŚCI (SOLIDARNOŚĆ)</p>
                   <p>1. Korzystający ponosi pełną odpowiedzialność materialną za powierzone mienie na zasadzie ryzyka, od momentu jego wydania do momentu zwrotu potwierdzonego przez Wydającego.</p>
                   <p>2. Reprezentant podpisujący niniejszą umowę oświadcza, iż jest umocowany do działania w imieniu wskazanego w komparycji Podmiotu.</p>
-                  <p>3. Na podstawie art. 366 § 1 Kodeksu cywilnego, Reprezentant przyjmuje na siebie odpowiedzialność solidarną ze wskazany Podmiot za wszelkie zobowiązania wynikające z niniejszej umowy, w tym w szczególności za naprawienie szkody wynikłej z utraty, kradzieży lub uszkodzenia Sprzętu.</p>
+                  <p>3. Na podstawie art. 366 § 1 Kodeksu cywilnego, Reprezentant przyjmuje na siebie odpowiedzialność solidarną ze wskazanym Podmiotem za wszelkie zobowiązania wynikające z niniejszej umowy, w tym w szczególności za naprawienie szkody wynikłej z utraty, kradzieży lub uszkodzenia Sprzętu.</p>
                   <p>4. Wydający uprawniony jest do dochodzenia całości roszczenia od Reprezentanta z jego majątku osobistego, niezależnie od stanu finansów Podmiotu.</p>
 
                   <p className="font-bold">§ 4. BEZPIECZEŃSTWO I DANE OSOBOWE</p>
@@ -394,26 +392,28 @@ export default function AdminEquipmentPanel() {
                   </table>
                 </div>
 
-                <div className="mt-12 flex justify-between items-end pt-4 page-break-inside-avoid">
-                  <div className="w-1/3 text-center border-t border-black pt-2"><p>(Podpis WYDAJĄCEGO)</p></div>
+                <div className="mt-8 flex justify-between items-end pt-4 gap-4 page-break-inside-avoid">
                   <div className="w-1/2 flex flex-col items-center">
-                    <div className="w-full h-24 border-b border-black relative touch-none bg-blue-50/30 print:bg-transparent" title="Podpisz tutaj">
-                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
-                      {!signatureData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ</div>}
+                    <div className="w-full h-24 border-b border-black relative touch-none bg-blue-50/20 print:bg-transparent rounded-t-xl" title="Podpis Admina">
+                      <canvas ref={canvasAdminRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={250} height={96} onMouseDown={startDrawAdmin} onMouseMove={drawAdmin} onMouseUp={stopDrawAdmin} onTouchStart={startDrawAdmin} onTouchMove={drawAdmin} onTouchEnd={stopDrawAdmin}/>
+                      {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden text-[8px] text-center">PODPIS WYDAJĄCEGO<br/>(ADMIN)</div>}
                     </div>
-                    <p className="mt-2">(Czytelny podpis <strong>KORZYSTAJĄCEGO</strong>)</p>
+                    <p className="mt-2 font-bold">(Podpis WYDAJĄCEGO)</p>
                   </div>
-                </div>
-                
-                <div className="mt-8 text-[7px] text-gray-400 text-center border-t border-gray-200 pt-2">
-                   Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu | ul. Kamienna 43, 53-307 Wrocław | e-mail: kontakt@samorzad.ue.wroc.pl | samorzad.ue.wroc.pl
+                  <div className="w-1/2 flex flex-col items-center">
+                    <div className="w-full h-24 border-b border-black relative touch-none bg-blue-50/40 print:bg-transparent rounded-t-xl" title="Podpis Studenta">
+                      <canvas ref={canvasBorrowerRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={250} height={96} onMouseDown={startDrawBorrower} onMouseMove={drawBorrower} onMouseUp={stopDrawBorrower} onTouchStart={startDrawBorrower} onTouchMove={drawBorrower} onTouchEnd={stopDrawBorrower}/>
+                      {!sigBorrowerData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-black tracking-widest pointer-events-none print:hidden text-[8px] text-center">PODPIS KORZYSTAJĄCEGO<br/>(STUDENT)</div>}
+                    </div>
+                    <p className="mt-2 font-bold">(Podpis KORZYSTAJĄCEGO)</p>
+                  </div>
                 </div>
 
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
-                  <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors">Wyczyść Podpis</button>
-                  <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] flex-1 shadow-lg">🖨️ Zapisz jako PDF</button>
-                  <button onClick={finalizeProtocol} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white py-3 px-4 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg transition-all">
-                    {isVerifying ? 'Zapisywanie...' : 'Zatwierdź Umowę'}
+                  <button onClick={clearSignatures} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpisy</button>
+                  <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] flex-1 shadow-lg">🖨️ Zapisz Kopię Lokalną</button>
+                  <button onClick={finalizeProtocol} disabled={!sigBorrowerData || !sigAdminData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-black uppercase text-[10px] disabled:opacity-50 shadow-lg">
+                    {isVerifying ? 'Generowanie E-Dokumentu...' : 'Zatwierdź i Wyślij na Mail'}
                   </button>
                 </div>
               </div>
@@ -429,116 +429,71 @@ export default function AdminEquipmentPanel() {
         <div className="w-full max-w-5xl animate-fadeIn">
           <h2 className="text-3xl font-black text-white mb-2 tracking-tighter">Wnioski o Rezerwację</h2>
           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Zarządzanie Kalendarzem Majątku (CRW)</p>
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {allReservations.filter(r => r.Status === 'Oczekuje').map(rez => (
               <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-indigo-500 transition-all">
                 <div className="mb-6">
                   <div className="flex justify-between items-start mb-4">
-                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">
-                      {formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}
-                    </span>
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">{formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}</span>
                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Wniosek: {rez.ID}</span>
                   </div>
                   <h3 className="text-xl font-black text-white leading-tight mb-2">{rez.Organizacja_Cel}</h3>
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-6">Dane: {rez.Kontakt}</p>
-                  
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Żądany sprzęt (Kody QR):</p>
-                    <p className="text-xs font-bold text-emerald-400 leading-relaxed">📦 {rez.Sprzet_Kody}</p>
-                  </div>
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Żądany sprzęt (Kody QR):</p><p className="text-xs font-bold text-emerald-400 leading-relaxed">📦 {rez.Sprzet_Kody}</p></div>
                 </div>
-                
                 <div className="flex gap-3">
                   <button onClick={() => handleRejectReservation(rez.ID)} disabled={isUpdatingStatus} className="flex-1 py-3.5 bg-slate-700 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all disabled:opacity-50">Odrzuć</button>
                   <button onClick={() => initiateApproval(rez)} disabled={isUpdatingStatus} className="flex-[2] py-3.5 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-500 transition-all disabled:opacity-50">Zatwierdź ✅</button>
                 </div>
               </div>
             ))}
-            
             {allReservations.filter(r => r.Status === 'Oczekuje').length === 0 && (
-              <div className="col-span-full py-20 text-center flex flex-col items-center">
-                 <span className="text-6xl mb-4 opacity-20">📭</span>
-                 <p className="text-slate-400 font-black text-xl uppercase tracking-widest">Brak nowych wniosków</p>
-                 <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie rezerwacje zostały rozpatrzone.</p>
-              </div>
+              <div className="col-span-full py-20 text-center flex flex-col items-center"><span className="text-6xl mb-4 opacity-20">📭</span><p className="text-slate-400 font-black text-xl uppercase tracking-widest">Brak nowych wniosków</p></div>
             )}
           </div>
         </div>
       )}
 
-      {/* MODAL AKCEPTACJI REZERWACJI (DO KALENDARZA) */}
       {approvalModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl relative">
             <button onClick={() => setApprovalModal(null)} className="absolute top-6 right-6 text-slate-400 font-bold text-xl">✕</button>
             <h3 className="text-2xl font-black text-slate-900 mb-2">Ustal Termin Odbioru</h3>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">Zostanie utworzone spotkanie w Google Calendar</p>
-            
             <div className="space-y-4 mb-8">
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Dzień</label><input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" /></div>
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Godzina</label><input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" /></div>
               </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wydający Zarządca</label>
-                <select value={selectedAdminEmail} onChange={e => setSelectedAdminEmail(e.target.value)} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                  {ADMIN_EMAILS.map(email => <option key={email} value={email}>{email}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mail Wnioskodawcy (Pobrano)</label>
-                <input type="email" value={requesterEmail} onChange={e => setRequesterEmail(e.target.value)} className="w-full bg-indigo-50 border border-indigo-100 text-indigo-700 p-3 rounded-xl font-bold" />
-              </div>
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mail Wnioskodawcy (Pobrano)</label><input type="email" value={requesterEmail} onChange={e => setRequesterEmail(e.target.value)} className="w-full bg-indigo-50 border border-indigo-100 text-indigo-700 p-3 rounded-xl font-bold" /></div>
             </div>
-
-            <button onClick={confirmAndSendInvite} disabled={!pickupDate || !requesterEmail || isUpdatingStatus} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50">
-              {isUpdatingStatus ? 'Tworzenie wydarzenia...' : 'Zatwierdź i Wyślij Zaproszenie'}
-            </button>
+            <button onClick={confirmAndSendInvite} disabled={!pickupDate || !requesterEmail || isUpdatingStatus} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50">{isUpdatingStatus ? 'Tworzenie wydarzenia...' : 'Zatwierdź i Wyślij Zaproszenie'}</button>
           </div>
         </div>
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 3: ZWROTY SPRZĘTU (PANCERNE POBIERANIE DANYCH) */}
+      {/* TRYB 3: ZWROTY SPRZĘTU Z PEŁNYM TEKSTEM PRAWNYM */}
       {/* ========================================================= */}
       {adminMode === 'zwroty' && (
         <div className="w-full max-w-4xl flex flex-col items-center">
           {!selectedReturn ? (
             <div className="w-full bg-slate-800 p-8 rounded-[2rem] shadow-2xl animate-fadeIn">
               <h2 className="text-3xl font-black text-white mb-2">Przyjmowanie Zwrotów</h2>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół wydania z bazy</p>
-              
-              <div className="space-y-4">
-                {activeWydania.map((wyd, idx) => (
+              <div className="space-y-4 mt-6">
+                {allWydania.filter(w => String(w.STATUS || w.Status || w.status || '').trim().toUpperCase() === 'WYDANE').map((wyd, idx) => (
                   <div key={idx} onClick={() => setSelectedReturn(wyd)} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group shadow-md">
                     <div>
-                      <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">
-                        {/* Zabezpieczenie przed zamienionymi nagłówkami w Excelu */}
-                        NR: {wyd['Nr_Porozumienia'] || wyd['Nr Porozumienia'] || wyd['Data']}
-                      </span>
-                      <h3 className="text-lg font-bold text-white leading-tight">
-                        {wyd['Organizator'] || wyd['Organizacja']}
-                      </h3>
-                      <p className="text-xs text-slate-300 mt-1">
-                        Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']}
-                      </p>
+                      <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">NR: {wyd['Nr_Porozumienia'] || wyd['Nr Porozumienia'] || wyd['Data']}</span>
+                      <h3 className="text-lg font-bold text-white leading-tight">{wyd['Organizator'] || wyd['Organizacja']}</h3>
+                      <p className="text-xs text-slate-300 mt-1">Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] text-slate-400 uppercase mb-2">
-                        Sprzęt: {String(wyd['SPRZĘT'] || wyd['Sprzęt (Kody QR)'] || '').substring(0, 15)}...
-                      </p>
+                      <p className="text-[10px] text-slate-400 uppercase mb-2">Sprzęt: {String(wyd['SPRZĘT'] || wyd['Sprzęt (Kody QR)'] || '').substring(0, 15)}...</p>
                       <button className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-lg group-hover:bg-emerald-500 transition-colors">Odbierz</button>
                     </div>
                   </div>
                 ))}
-                {activeWydania.length === 0 && (
-                  <div className="text-center py-16">
-                    <span className="text-6xl mb-4 opacity-20">✅</span>
-                    <p className="text-slate-400 font-black text-xl uppercase tracking-widest">Magazyn pełny</p>
-                    <p className="text-slate-500 font-bold text-sm mt-2">Wszystkie wydane sprzęty zostały poprawnie zwrócone.</p>
-                  </div>
-                )}
               </div>
             </div>
           ) : (
@@ -546,6 +501,7 @@ export default function AdminEquipmentPanel() {
               <button onClick={() => setSelectedReturn(null)} className="mb-6 text-slate-400 font-bold uppercase text-xs hover:text-slate-800 print:hidden transition-colors">← Wróć do listy zwrotów</button>
               
               <div id="printable-document" className="text-black font-sans text-[9px] md:text-[10px] leading-tight">
+                {/* PEŁNY TEKST ZWROTU */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="w-1/2 font-bold"><p>Samorząd Studentów UEW</p></div>
                   <div className="w-1/2 text-right font-bold"><p>ZAŁĄCZNIK NR 3</p><p>DO REGULAMINU GOSPODAROWANIA SSUEW</p></div>
@@ -574,17 +530,17 @@ export default function AdminEquipmentPanel() {
                   <div className="w-1/3 text-center border-t border-black pt-2"><p>(Podpis ZWRACAJĄCEGO)</p></div>
                   <div className="w-1/2 flex flex-col items-center">
                     <div className="w-full h-24 border-b border-black relative touch-none bg-emerald-50/30 print:bg-transparent" title="Podpisz tutaj">
-                      <canvas ref={canvasRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onTouchStart={startDrawing} onTouchMove={draw} onTouchEnd={stopDrawing}/>
-                      {!signatureData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ (PRZYJMUJĄCY SSUEW)</div>}
+                      <canvas ref={canvasAdminRef} className="w-full h-full cursor-crosshair absolute top-0 left-0" width={300} height={96} onMouseDown={startDrawAdmin} onMouseMove={drawAdmin} onMouseUp={stopDrawAdmin} onTouchStart={startDrawAdmin} onTouchMove={drawAdmin} onTouchEnd={stopDrawAdmin}/>
+                      {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-20 font-black tracking-widest pointer-events-none print:hidden">PODPISZ TUTAJ (PRZYJMUJĄCY SSUEW)</div>}
                     </div>
                     <p className="mt-2">(Podpis PRZYJMUJĄCEGO SSUEW)</p>
                   </div>
                 </div>
 
                 <div className="mt-8 flex gap-4 print:hidden border-t-4 border-slate-100 pt-6">
-                  <button onClick={clearSignature} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpis</button>
+                  <button onClick={clearSignatures} className="bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 px-4 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpis</button>
                   <button onClick={() => window.print()} className="bg-slate-800 hover:bg-slate-900 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] flex-1">🖨️ Drukuj PDF</button>
-                  <button onClick={processReturn} disabled={!signatureData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50 shadow-lg">Zakończ Wypożyczenie w Bazie</button>
+                  <button onClick={processReturn} disabled={!sigAdminData || isVerifying} className="bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-bold uppercase text-[10px] disabled:opacity-50 shadow-lg">Zakończ Wypożyczenie w Bazie</button>
                 </div>
               </div>
             </div>
@@ -593,12 +549,11 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 4: WINDYKACJA / WEZWANIA PRZEDSĄDOWE */}
+      {/* TRYB 4: WINDYKACJA (Z PEŁNYM ORYGINALNYM TEKSTEM PRAWNYM) */}
       {/* ========================================================= */}
       {adminMode === 'windykacja' && (
         <div className={`w-full ${showSummonsDocument ? 'max-w-[210mm] p-8 md:p-16' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none animate-fadeIn`}>
-          
-          {!showSummonsDocument ? (
+           {!showSummonsDocument ? (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-4xl">⚖️</span>
@@ -607,7 +562,6 @@ export default function AdminEquipmentPanel() {
                   <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Procedura przedsądowa</p>
                 </div>
               </div>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                 <input type="text" placeholder="Imię i Nazwisko Dłużnika" value={summonsData.perpetrator} onChange={e => setSummonsData({...summonsData, perpetrator: e.target.value})} className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold w-full" />
                 <input type="text" placeholder="Adres zamieszkania Dłużnika" value={summonsData.address} onChange={e => setSummonsData({...summonsData, address: e.target.value})} className="bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold w-full" />
@@ -621,14 +575,7 @@ export default function AdminEquipmentPanel() {
                   </div>
                 </div>
               </div>
-
-              <button 
-                onClick={() => setShowSummonsDocument(true)}
-                disabled={!summonsData.perpetrator || !summonsData.protocolNumber}
-                className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg"
-              >
-                Generuj Ostateczne Wezwanie (A4)
-              </button>
+              <button onClick={() => setShowSummonsDocument(true)} disabled={!summonsData.perpetrator || !summonsData.protocolNumber} className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Generuj Ostateczne Wezwanie (A4)</button>
             </div>
           ) : (
             <div id="printable-document" className="animate-fadeIn text-black font-serif text-[12px] leading-relaxed">
@@ -677,7 +624,6 @@ export default function AdminEquipmentPanel() {
           )}
         </div>
       )}
-
     </div>
   );
 }
