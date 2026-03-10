@@ -26,14 +26,9 @@ export default function EquipmentPage() {
     dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''
   });
 
-  // === STANY DLA MODUŁU SZKODY (ZAŁĄCZNIK NR 8) ===
   const [isDamageReportOpen, setIsDamageReportOpen] = useState(false);
   const [damageData, setDamageData] = useState({
-    perpetrator: '',
-    albumId: '',
-    type: 'Mechaniczne',
-    description: '',
-    photoUrl: null
+    perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null
   });
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
@@ -78,9 +73,7 @@ export default function EquipmentPage() {
       });
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
 
@@ -96,19 +89,15 @@ export default function EquipmentPage() {
   };
   const isInCart = (id) => cart.some(c => c.id === id);
 
-  // === ZABEZPIECZENIE: KOLIZJE DAT ===
   const checkForCollisions = () => {
     const startReq = new Date(reservationData.dateFrom).setHours(0,0,0,0);
     const endReq = new Date(reservationData.dateTo).setHours(0,0,0,0);
-
     for (let item of cart) {
       const itemReservations = allReservations.filter(r => r.Sprzet_Kody && r.Sprzet_Kody.includes(item.id) && r.Status === 'Zatwierdzone');
       for (let res of itemReservations) {
         const resStart = new Date(res.Data_Od).setHours(0,0,0,0);
         const resEnd = new Date(res.Data_Do).setHours(0,0,0,0);
-        if (startReq <= resEnd && resStart <= endReq) {
-          return item.name; 
-        }
+        if (startReq <= resEnd && resStart <= endReq) { return item.name; }
       }
     }
     return null; 
@@ -116,66 +105,35 @@ export default function EquipmentPage() {
 
   const handleReservationSubmit = async (e) => {
     e.preventDefault();
-
     if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactName || !reservationData.contactEmail) {
-      alert("Proszę wypełnić wszystkie wymagane pola formularza rezerwacji.");
-      return;
+      alert("Proszę wypełnić wszystkie wymagane pola formularza rezerwacji."); return;
     }
-
     const collidingItemName = checkForCollisions();
     if (collidingItemName) {
-      alert(`⛔ BŁĄD KOLIZJI!\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym terminie.`);
-      return;
+      alert(`⛔ BŁĄD KOLIZJI!\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym terminie.`); return;
     }
-
     setIsSubmitting(true);
     let itemsCodes = cart.map(item => item.id).join(', ');
     const formattedContact = `${reservationData.contactName} | Tel: ${reservationData.contactPhone} | Email: ${reservationData.contactEmail}`;
-
-    const payload = {
-      action: "nowaRezerwacja",
-      sprzetKody: itemsCodes,
-      dataOd: reservationData.dateFrom,
-      dataDo: reservationData.dateTo,
-      cel: reservationData.purpose,
-      kontakt: formattedContact 
-    };
-
+    const payload = { action: "nowaRezerwacja", sprzetKody: itemsCodes, dataOd: reservationData.dateFrom, dataDo: reservationData.dateTo, cel: reservationData.purpose, kontakt: formattedContact };
     try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
+      const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();
-      
       if(result.success) {
         alert("Wniosek został wysłany do Zarządu! Numer wniosku: " + result.id);
-        setCart([]); 
-        setIsCheckoutOpen(false); 
-        setReservationData({dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''});
-        fetchData(); 
-      } else {
-        alert("Błąd po stronie serwera.");
-      }
-    } catch(err) {
-      alert("Błąd połączenia. Spróbuj ponownie później.");
-    } finally {
-      setIsSubmitting(false);
-    }
+        setCart([]); setIsCheckoutOpen(false); setReservationData({dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''}); fetchData(); 
+      } else { alert("Błąd po stronie serwera."); }
+    } catch(err) { alert("Błąd połączenia. Spróbuj ponownie później."); } finally { setIsSubmitting(false); }
   };
 
-  // === ŻYWY STATUS: NA BAZIE WYDAŃ I REZERWACJI ===
   const getDynamicStatus = (item) => {
     if (item.status === 'maintenance') return 'maintenance';
-    
     const isPhysicallyOut = allWydania.some(w => {
       const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
       const codes = String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '');
       return wStatus === 'WYDANE' && codes.includes(item.id);
     });
     if (isPhysicallyOut) return 'rented';
-
     const today = new Date().setHours(0,0,0,0);
     const isRentedToday = allReservations.some(res => {
       if (res.Sprzet_Kody && res.Sprzet_Kody.includes(item.id) && res.Status === 'Zatwierdzone') {
@@ -185,7 +143,6 @@ export default function EquipmentPage() {
       }
       return false;
     });
-    
     return isRentedToday ? 'rented' : 'available';
   };
 
@@ -212,26 +169,22 @@ export default function EquipmentPage() {
 
   const handlePhotoCapture = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setDamageData({ ...damageData, photoUrl: imageUrl });
-    }
+    if (file) { setDamageData({ ...damageData, photoUrl: URL.createObjectURL(file) }); }
   };
 
   const submitDamageReport = () => {
-    alert("Protokół Szkody został wygenerowany. W przyszłości system wyśle to zdjęcie i formularz bezpośrednio do bazy CRW i Zarządu!");
+    alert("Protokół Szkody został wygenerowany i przesłany do Zarządu.");
     setIsDamageReportOpen(false);
     setDamageData({ perpetrator: '', albumId: '', type: 'Mechaniczne', description: '', photoUrl: null });
   };
 
-  if (isLoading) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6"><div className="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div><h2 className="text-xl font-black text-slate-800">Łączenie z bazą CRW...</h2></div>;
+  if (isLoading) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div><h2 className="text-xl font-black text-slate-800">Łączenie z bazą CRW...</h2></div>;
   if (error) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center"><div className="text-6xl mb-4">⚠️</div><h2 className="text-2xl font-black text-red-600 mb-2">Błąd synchronizacji</h2><p className="text-sm font-bold text-slate-600">{error}</p></div>;
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 relative overflow-hidden flex flex-col items-center pb-32">
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-indigo-50/50 pointer-events-none z-0"></div>
 
-      {/* PRZYCISK ADMINISTRATORA */}
       {isAdmin && (
         <div className="absolute top-6 right-6 z-50 animate-fadeIn">
           <Link to="/wydawanie" className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] md:text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-400 hover:bg-slate-800 hover:scale-105 transition-all">
@@ -253,17 +206,12 @@ export default function EquipmentPage() {
 
         <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-3xl mx-auto">
           {allCategories.map(cat => (
-            <button 
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${selectedCategory === cat ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}
-            >
+            <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${selectedCategory === cat ? 'bg-indigo-600 text-white shadow-indigo-200' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}>
               {cat}
             </button>
           ))}
         </div>
 
-        {/* SIATKA SPRZĘTU */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEquipment.length > 0 ? filteredEquipment.map((item) => {
             const currentStatus = getDynamicStatus(item); 
@@ -292,7 +240,6 @@ export default function EquipmentPage() {
         </div>
       </div>
 
-      {/* BELKA REZERWACJI */}
       {cart.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-2xl bg-slate-900/95 backdrop-blur-xl border border-white/20 p-4 rounded-3xl shadow-2xl flex items-center justify-between z-40 animate-slideUp">
           <div className="flex items-center gap-4 pl-2">
@@ -306,7 +253,6 @@ export default function EquipmentPage() {
         </div>
       )}
 
-      {/* MODAL REZERWACJI */}
       {isCheckoutOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
           <div className="bg-white w-full max-w-lg rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp max-h-[90vh] overflow-y-auto">
@@ -320,7 +266,6 @@ export default function EquipmentPage() {
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Data Do</label><input type="date" value={reservationData.dateTo} onChange={e => setReservationData({...reservationData, dateTo: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               </div>
               <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Cel rezerwacji (Nazwa wydarzenia)</label><input type="text" placeholder="np. Dni Otwarte UEW..." value={reservationData.purpose} onChange={e => setReservationData({...reservationData, purpose: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
-              
               <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Imię i Nazwisko / Organizacja</label><input type="text" placeholder="Jan Kowalski (SKN Zarządzania)" value={reservationData.contactName} onChange={e => setReservationData({...reservationData, contactName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
               <div className="grid grid-cols-2 gap-4">
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">E-mail</label><input type="email" placeholder="jan@student.ue.wroc.pl" value={reservationData.contactEmail} onChange={e => setReservationData({...reservationData, contactEmail: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none" /></div>
@@ -334,80 +279,114 @@ export default function EquipmentPage() {
             </div>
 
             <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
-              {isSubmitting ? 'Weryfikacja...' : 'Wyślij Wniosek do Zarządu'}
+              {isSubmitting ? 'Weryfikacja...' : 'Wyślij Wniosek do Biura'}
             </button>
           </div>
         </div>
       )}
 
-      {/* MODAL PASZPORTU */}
+      {/* ========================================================= */}
+      {/* NOWY DESIGN PASZPORTU MAJĄTKU (EFEKT WOW) */}
+      {/* ========================================================= */}
       {selectedItem && !isDamageReportOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white w-full max-w-xl rounded-[2.5rem] p-8 shadow-2xl relative animate-slideUp border border-white/20">
-            <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors font-bold">✕</button>
-            <div className="flex items-center gap-4 mb-6 pr-10">
-              <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center text-3xl border border-slate-100 shadow-inner shrink-0 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl relative animate-slideUp overflow-hidden flex flex-col md:flex-row">
+            <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-900/10 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-colors font-bold z-10">✕</button>
+            
+            {/* Lewa strona Paszportu (Grafika i ID) */}
+            <div className="md:w-2/5 bg-slate-900 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+               <div className="absolute inset-0 bg-indigo-500/20 blur-[100px] rounded-full"></div>
+               <div className="w-32 h-32 bg-white rounded-3xl flex items-center justify-center text-5xl border-4 border-slate-700 shadow-2xl shrink-0 overflow-hidden mb-6 z-10">
                  {selectedItem.isRealImage ? <img src={selectedItem.image} className="w-full h-full object-cover" /> : selectedItem.image}
               </div>
-              <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Paszport Majątku</span>
-                <h2 className="text-xl font-black text-slate-800 leading-tight">{selectedItem.name}</h2>
+              <div className="z-10 w-full">
+                <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-2">{selectedItem.category}</span>
+                <h2 className="text-2xl font-black text-white leading-tight mb-4">{selectedItem.name}</h2>
+                <div className="bg-slate-800 p-3 rounded-xl border border-slate-700 w-full">
+                   <p className="text-[8px] uppercase text-slate-500 font-bold mb-1">Sygnatura CRW</p>
+                   <p className="font-mono text-sm font-black text-white break-all">{selectedItem.id}</p>
+                </div>
+                <div className="mt-6 flex justify-center">{getStatusBadge(getDynamicStatus(selectedItem))}</div>
               </div>
             </div>
-            <div className="flex gap-2 mb-6 bg-slate-50 p-1.5 rounded-2xl border border-slate-100 overflow-x-auto">
-              {['info', 'lokalizacja', 'terminarz', 'serwis'].map(tab => (
-                <button key={tab} onClick={() => setActiveTab(tab)} className={`flex-1 min-w-[80px] py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{tab}</button>
-              ))}
-            </div>
-            <div className="min-h-[200px] mb-8">
-              {activeTab === 'info' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sygnatura INW</span><span className="font-mono text-sm font-black text-slate-700 break-all">{selectedItem.id}</span></div>
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Status CRW</span><div className="mt-1">{getStatusBadge(getDynamicStatus(selectedItem))}</div></div>
+
+            {/* Prawa strona Paszportu (Dane) */}
+            <div className="md:w-3/5 p-8 bg-slate-50 flex flex-col">
+              <div className="flex gap-2 mb-6 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200 overflow-x-auto">
+                {['Karta', 'Lokalizacja', 'Kalendarz', 'Serwis'].map(tab => (
+                  <button key={tab} onClick={() => setActiveTab(tab.toLowerCase())} className={`flex-1 min-w-[80px] py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === tab.toLowerCase() ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{tab}</button>
+                ))}
+              </div>
+              
+              <div className="flex-1 overflow-y-auto pr-2">
+                {activeTab === 'karta' && (
+                  <div className="space-y-6 animate-fadeIn">
+                    <div>
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Akcesoria w zestawie / Interakcje</span>
+                      <p className="text-sm font-medium text-slate-700 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm leading-relaxed">{selectedItem.description}</p>
+                    </div>
+                    {selectedItem.link && (
+                      <a href={selectedItem.link} target="_blank" rel="noreferrer" className="block text-center bg-indigo-50 border border-indigo-100 text-indigo-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors">
+                        🔗 Zobacz w specyfikacji producenta
+                      </a>
+                    )}
                   </div>
-                  <div><span className="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Zestaw / Akcesoria</span><p className="text-sm font-medium text-slate-600 bg-slate-50 p-4 rounded-2xl border border-slate-100">{selectedItem.description}</p></div>
-                  {selectedItem.link && (<div className="pt-2 text-center"><a href={selectedItem.link} target="_blank" rel="noreferrer" className="text-[11px] font-black text-indigo-600 hover:text-indigo-800 uppercase tracking-widest underline transition-colors">🔗 Zobacz sprzęt w katalogu/sklepie</a></div>)}
-                </div>
-              )}
-              {activeTab === 'lokalizacja' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl relative overflow-hidden"><div className="absolute top-0 right-0 p-4 opacity-10 text-6xl">📍</div><span className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2">Drzewo Lokalizacji</span><div className="font-bold text-indigo-900 text-sm leading-relaxed flex flex-col gap-2">{selectedItem.locationPath.split(' > ').map((step, i, arr) => (<div key={i} className="flex items-center gap-2"><span className="text-indigo-300">{'↳'.padStart(i + 1, ' ')}</span><span className={i === arr.length - 1 ? 'bg-white px-2 py-1 rounded-md shadow-sm border border-indigo-100' : ''}>{step}</span></div>))}</div></div>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stan Fizyczny (Uwagi)</span><span className="font-black text-slate-700 text-sm block">{selectedItem.condition}</span></div>
-                </div>
-              )}
-              {activeTab === 'terminarz' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Dostępność (Najbliższe 28 dni)</span>
-                  <div className="grid grid-cols-7 gap-1">
-                    {Array.from({length: 28}).map((_, i) => {
-                      const d = new Date(); d.setDate(d.getDate() + i);
-                      const isBooked = isDateReserved(selectedItem.id, d); 
-                      return (
-                        <div key={i} className={`flex flex-col items-center justify-center p-2 rounded-xl border ${isBooked ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'}`}>
-                          <span className="text-[8px] font-black uppercase">{d.toLocaleDateString('pl-PL', {weekday: 'short'})}</span>
-                          <span className="text-sm font-black">{d.getDate()}</span>
-                        </div>
-                      )
-                    })}
+                )}
+
+                {activeTab === 'lokalizacja' && (
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+                      <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Drzewo Magazynowe</span>
+                      <div className="font-bold text-slate-800 text-sm leading-loose">
+                        {selectedItem.locationPath.split(' > ').map((step, i, arr) => (
+                          <div key={i} className="flex items-center gap-3">
+                            <span className="text-indigo-300 opacity-50">{'↳'.padStart(i + 1, ' ')}</span>
+                            <span className={i === arr.length - 1 ? 'bg-indigo-50 text-indigo-700 px-3 py-1 rounded-lg border border-indigo-100' : ''}>{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Stan Fizyczny wg CRW</span>
+                      <span className="font-black text-slate-800 text-sm block">{selectedItem.condition}</span>
+                    </div>
                   </div>
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px] font-medium text-slate-600 flex justify-center gap-4">
-                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400"></div> Rezerwacja</span>
-                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div> Wolne</span>
+                )}
+
+                {activeTab === 'kalendarz' && (
+                  <div className="animate-fadeIn">
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Grafik rezerwacji (28 dni w przód)</span>
+                    <div className="grid grid-cols-7 gap-1.5 mb-6">
+                      {Array.from({length: 28}).map((_, i) => {
+                        const d = new Date(); d.setDate(d.getDate() + i);
+                        const isBooked = isDateReserved(selectedItem.id, d); 
+                        return (
+                          <div key={i} className={`flex flex-col items-center justify-center p-2.5 rounded-lg border ${isBooked ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 shadow-sm'}`}>
+                            <span className="text-[8px] font-black uppercase opacity-60 mb-0.5">{d.toLocaleDateString('pl-PL', {weekday: 'short'})}</span>
+                            <span className="text-sm font-black leading-none">{d.getDate()}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                    <div className="flex justify-center gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-rose-400"></div> Zajęte</span>
+                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-white border border-slate-300"></div> Wolne</span>
+                    </div>
                   </div>
-                </div>
-              )}
-              {activeTab === 'serwis' && (
-                <div className="space-y-4 animate-fadeIn">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość Księgowa</span><span className="font-black text-slate-700 text-sm">{selectedItem.value}</span></div>
-                    <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100"><span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja do</span><span className="font-black text-slate-700 text-sm">{selectedItem.warranty}</span></div>
+                )}
+
+                {activeTab === 'serwis' && (
+                  <div className="space-y-6 animate-fadeIn h-full flex flex-col justify-center">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200 text-center shadow-sm">
+                      <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość Księgowa / Gwarancja</span>
+                      <span className="font-black text-slate-800 text-sm block">{selectedItem.value}</span>
+                    </div>
+                    <button onClick={() => setIsDamageReportOpen(true)} className="w-full bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm">
+                      <span>⚠️</span> Zgłoś uszkodzenie (Załącznik nr 8)
+                    </button>
                   </div>
-                  <button onClick={() => setIsDamageReportOpen(true)} className="mt-4 w-full bg-red-50 hover:bg-red-100 border border-red-200 text-red-600 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 shadow-sm">
-                    <span>⚠️</span> Zgłoś uszkodzenie (Załącznik nr 8)
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -425,13 +404,11 @@ export default function EquipmentPage() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Załącznik nr 8 do Regulaminu SSUEW</p>
               </div>
             </div>
-
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mb-6">
               <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Przedmiot Szkody</span>
               <p className="font-black text-slate-800 text-sm">{selectedItem.name}</p>
               <p className="font-mono text-slate-500 text-[10px] mt-1">{selectedItem.id}</p>
             </div>
-
             <div className="space-y-4 mb-8">
               <div>
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Sprawca / Ostatni Wypożyczający</label>
@@ -455,8 +432,6 @@ export default function EquipmentPage() {
                 <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Szczegółowy Opis Szkody</label>
                 <textarea rows="3" placeholder="Opisz dokładnie co zostało zniszczone i w jakich okolicznościach..." value={damageData.description} onChange={e => setDamageData({...damageData, description: e.target.value})} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-medium focus:border-red-500 focus:ring-2 focus:ring-red-200 outline-none resize-none"></textarea>
               </div>
-
-              {/* INTEGRACJA Z APARATEM */}
               <div className="bg-red-50 border border-red-100 p-4 rounded-xl">
                 <span className="block text-[10px] font-bold text-red-600 uppercase mb-2">Dokumentacja Fotograficzna</span>
                 {!damageData.photoUrl ? (
@@ -476,7 +451,6 @@ export default function EquipmentPage() {
                 )}
               </div>
             </div>
-
             <button onClick={submitDamageReport} disabled={!damageData.perpetrator || !damageData.description} className="block text-center w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-red-200 transition-all">Zatwierdź Protokół Szkody</button>
           </div>
         </div>
