@@ -13,7 +13,14 @@ const ALLOWED_EMAILS = [
   "martalisowska04@gmail.com",
   "mateusz.mielczarek@samorzad.ue.wroc.pl",
   "jakub.panas@samorzad.ue.wroc.pl",
-  "martyna.porebska@samorzad.ue.wroc.pl"
+  "martyna.porebska@samorzad.ue.wroc.pl",
+  "hubert.stachowski@samorzad.ue.wroc.pl",
+  "emilia.cwiklinska@samorzad.ue.wroc.pl",
+  "julia.pytel@samorzad.ue.wroc.pl",
+  "marcel.tyrakowski@samorzad.ue.wroc.pl",
+  "karolina.smereczniak@samorzad.ue.wroc.pl",
+  "mikolaj.radlinski@samorzad.ue.wroc.pl",
+  "daria.szewczyk@samorzad.ue.wroc.pl"
   // Dodaj tu siebie, bo zaraz stracisz dostęp!
 ];
 
