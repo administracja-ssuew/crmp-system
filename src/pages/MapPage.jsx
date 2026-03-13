@@ -22,6 +22,7 @@ export default function MapPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [newPoster, setNewPoster] = useState({
+    credId: '', // <--- DODANE: Znak z CRED
     name: '',
     organization: '',
     email: '',
@@ -72,8 +73,8 @@ export default function MapPage() {
   // === LOGIKA ZARZĄDU: WYSYŁKA NOWEGO PLAKATU DO BAZY ===
   const handleAddPoster = async (e) => {
     e.preventDefault();
-    if (!newPoster.name || !newPoster.organization || !newPoster.email || !newPoster.endDate) {
-      alert("Proszę uzupełnić wszystkie pola formularza ewidencyjnego.");
+    if (!newPoster.credId || !newPoster.name || !newPoster.organization || !newPoster.email || !newPoster.endDate) {
+      alert("Proszę uzupełnić wszystkie pola formularza (w tym Znak Zgody).");
       return;
     }
     if (selected.free <= 0) {
@@ -86,6 +87,7 @@ export default function MapPage() {
       action: 'addPoster',
       locationId: selected.id,
       locationType: selected.type,
+      credId: newPoster.credId, // <--- DODANE DO WYSYŁKI
       posterName: newPoster.name,
       organization: newPoster.organization,
       email: newPoster.email,
@@ -101,8 +103,8 @@ export default function MapPage() {
       });
       const result = await response.json();
       if (result.success) {
-        alert(`Plakat oficjalnie powieszony! \nZarejestrowano w systemie pod UID: ${result.uid}\nUruchomiono cykl przypomnień na podany e-mail.`);
-        setNewPoster({ name: '', organization: '', email: '', endDate: '' });
+        alert(`Plakat oficjalnie powieszony! \nUruchomiono cykl przypomnień.`);
+        setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '' });
       }
     } catch (err) {
       console.log(err);
@@ -114,13 +116,13 @@ export default function MapPage() {
   };
 
   // === LOGIKA ZARZĄDU: ZDEJMOWANIE PLAKATU ===
-  const handleRemovePoster = async (posterUid) => {
+  const handleRemovePoster = async (posterCredId) => {
     if(!window.confirm("Czy potwierdzasz zdjęcie plakatu? Spowoduje to zwolnienie miejsca na mapie i zamknięcie statusu w systemie eskalacji Kanclerza.")) return;
     
     setIsSubmitting(true);
     const payload = {
       action: 'removePoster',
-      uid: posterUid
+      credId: posterCredId // <--- WYSYŁAMY ZNAK ABY USUNĄĆ Z EXCELA
     };
 
     try {
@@ -270,15 +272,15 @@ export default function MapPage() {
                   
                   <div className="space-y-3 mb-8">
                     {(selected.activePosters || []).length > 0 ? (
-                      selected.activePosters.map((poster) => (
-                        <div key={poster.uid} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center group shadow-sm">
+                      selected.activePosters.map((poster, idx) => (
+                        <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center group shadow-sm">
                           <div>
-                            <p className="font-bold text-slate-800 text-sm">{poster.name}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{poster.organization}</p>
+                            <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{poster.nazwa} ({poster.org})</p>
                             <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate}</p>
                           </div>
                           <button 
-                            onClick={() => handleRemovePoster(poster.uid)}
+                            onClick={() => handleRemovePoster(poster.credId)}
                             disabled={isSubmitting}
                             className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
                           >
@@ -297,6 +299,10 @@ export default function MapPage() {
                     <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
                       <h3 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-4">➕ Ewidencjonuj Nowy Plakat</h3>
                       <form onSubmit={handleAddPoster} className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Znak Zgody (CRED)</label>
+                          <input type="text" required value={newPoster.credId} onChange={e => setNewPoster({...newPoster, credId: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="np. P.PKT.01/01/2026/SSUEW" />
+                        </div>
                         <div>
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Nazwa Wydarzenia / Plakatu</label>
                           <input type="text" required value={newPoster.name} onChange={e => setNewPoster({...newPoster, name: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="np. Wampiriada Wiosna" />
@@ -332,7 +338,7 @@ export default function MapPage() {
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-slide-up border border-slate-200">
             <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h3 className="text-xl font-black text-slate-800">Procedura Wieszania</h3>
+                <h3 className="text-xl font-black text-slate-800">Procedura</h3>
                 <p className="text-sm text-slate-500 font-bold">Miejscówka: <span className="font-black text-blue-600">{selected.id}</span></p>
               </div>
               <button onClick={() => setIsInfoModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition font-black">✕</button>
@@ -349,7 +355,7 @@ export default function MapPage() {
                 <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center font-black">2</div>
                 <div>
                   <h4 className="font-bold text-slate-800 text-lg leading-tight">Wizyta w Biurze Zarządu</h4>
-                  <p className="text-sm font-medium text-slate-600 mt-1">Przynieś plakat do biura SSUEW. Administrator wpisze go do cyfrowej ewidencji i wyzwoli przypomnienia mailowe na podany adres e-mail.</p>
+                  <p className="text-sm font-medium text-slate-600 mt-1">Przynieś plakat do biura SSUEW i podaj znak CRED z pisma. Administrator wpisze go do cyfrowej ewidencji i wyzwoli przypomnienia mailowe.</p>
                 </div>
               </div>
             </div>
