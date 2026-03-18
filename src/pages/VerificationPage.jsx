@@ -260,6 +260,7 @@ export default function VerificationPage() {
               <button onClick={() => setIsScanning(true)} className="w-full bg-indigo-600 text-white py-5 rounded-xl font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition-all">📸 Uruchom Aparat</button>
             )}
             
+           <button onClick={() => handleScan('SSUEW-16J-SECURE-2026')} className="w-full mt-4 bg-slate-100 text-slate-400 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-slate-600">Dev: Symuluj skan (Sala 16J)</button> **\
           </div>
         )}
 
