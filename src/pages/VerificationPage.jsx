@@ -7,6 +7,9 @@ import { QrReader } from 'react-qr-reader';
 export default function VerificationPage() {
   const { user } = useAuth();
   
+  // UNIWERSALNY IDENTYFIKATOR - Zapobiega błędom 400 (Bad Request)
+  const userIdentifier = user?.email || 'nieznajomy';
+
   // === STANY GŁÓWNE ===
   const [scanResult, setScanResult] = useState(null);
   const [roomData, setRoomData] = useState(null);
@@ -14,9 +17,9 @@ export default function VerificationPage() {
   const [isScanning, setIsScanning] = useState(false);
 
   // === STANY SESJI ===
-  const [activeSession, setActiveSession] = useState(null); // Gdy JA jestem gospodarzem
-  const [occupiedSession, setOccupiedSession] = useState(null); // Gdy KTOŚ INNY jest gospodarzem
-  const [occupantName, setOccupantName] = useState(''); // Imię osoby, która siedzi w sali
+  const [activeSession, setActiveSession] = useState(null); 
+  const [occupiedSession, setOccupiedSession] = useState(null); 
+  const [occupantName, setOccupantName] = useState(''); 
 
   // === STANY FORMULARZY ===
   const [purpose, setPurpose] = useState('');
@@ -24,8 +27,8 @@ export default function VerificationPage() {
   const [checks, setChecks] = useState({ trash: false, dishes: false, lights: false });
 
   // === STANY SUKCESJI (PRZEKAZYWANIA SALI) ===
-  const [handoverData, setHandoverData] = useState(null); // Dla oddającego (PIN)
-  const [enteredPin, setEnteredPin] = useState(''); // Dla przejmującego
+  const [handoverData, setHandoverData] = useState(null); 
+  const [enteredPin, setEnteredPin] = useState(''); 
 
   // 1. Sprawdzenie Czarnej Listy
   useEffect(() => {
@@ -34,7 +37,7 @@ export default function VerificationPage() {
       const { data } = await supabase
         .from('blacklist_violations')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userIdentifier) // <-- POPRAWIONE
         .gte('valid_until', new Date().toISOString());
       
       if (data && data.length > 0) {
@@ -43,7 +46,7 @@ export default function VerificationPage() {
       }
     };
     checkBlacklist();
-  }, [user]);
+  }, [user, userIdentifier]);
 
   // 2. Obsługa zeskanowania kodu
   const handleScan = async (qrHash) => {
@@ -52,7 +55,6 @@ export default function VerificationPage() {
     setIsLoading(true);
 
     try {
-      // Pobranie sali
       const { data: room, error: roomErr } = await supabase
         .from('rooms')
         .select('*')
@@ -63,7 +65,6 @@ export default function VerificationPage() {
       setRoomData(room);
       setScanResult(qrHash);
 
-      // Sprawdzenie, czy ktoś aktualnie urzęduje w sali
       const { data: session } = await supabase
         .from('room_sessions')
         .select('*')
@@ -72,15 +73,13 @@ export default function VerificationPage() {
         .maybeSingle();
 
       if (session) {
-        if (session.host_id === user.email) {
-          // Ja jestem w sali -> Widzę wyjście
+        if (session.host_id === userIdentifier) { // <-- POPRAWIONE
           setActiveSession(session);
         } else {
-          // Ktoś inny jest w sali -> Widzę ekran przejęcia (Sukcesji)
           setOccupiedSession(session);
-          // Pobieramy imię tej osoby do wyświetlenia
-          const { data: hostUser } = await supabase.from('users').select('first_name, last_name').eq('id', session.host_id).single();
-          if (hostUser) setOccupantName(`${hostUser.first_name} ${hostUser.last_name}`);
+          // Zmieniliśmy host_id na maila, więc tu po prostu wyświetlamy maila (lub wyciągamy imię z maila)
+          const nameFromEmail = session.host_id.split('@')[0];
+          setOccupantName(nameFromEmail);
         }
       }
     } catch (err) {
@@ -91,14 +90,14 @@ export default function VerificationPage() {
     }
   };
 
-// Funkcja kompresująca zdjęcia
+  // Funkcja kompresująca zdjęcia
   const uploadPhoto = async (file, type) => {
     const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
     const compressedFile = await imageCompression(file, options);
     
-    // ZMIANA: Pobieramy początek maila zamiast user.id, żeby uniknąć 'undefined'
-    const userIdentifier = user?.email ? user.email.split('@')[0] : 'nieznajomy';
-    const fileName = `${roomData.id}/${userIdentifier}_${type}_${Date.now()}.webp`;
+    // Zabezpieczenie przed znakami specjalnymi w nazwie pliku
+    const safeEmail = userIdentifier.replace(/[^a-zA-Z0-9]/g, '_');
+    const fileName = `${roomData.id}/${safeEmail}_${type}_${Date.now()}.webp`;
     
     const { error } = await supabase.storage.from('room-photos').upload(fileName, compressedFile, { contentType: 'image/webp' });
     if (error) throw error;
@@ -115,15 +114,23 @@ export default function VerificationPage() {
 
     try {
         const photoUrl = await uploadPhoto(photoFile, 'checkin');
-        // ZMIANA: Zamiast user.id, wstawiamy user.email
+        
         const { data, error } = await supabase.from('room_sessions').insert([{
-        room_id: roomData.id, host_id: user.email, purpose: purpose, check_in_photo_url: photoUrl
+          room_id: roomData.id, 
+          host_id: userIdentifier, // <-- POPRAWIONE
+          purpose: purpose, 
+          check_in_photo_url: photoUrl
         }]).select().single();
 
       if (error) throw error;
       alert("Wejście zarejestrowane! Jesteś teraz Gospodarzem sali.");
       setActiveSession(data);
-    } catch (err) { alert("Błąd podczas zapisywania wejścia."); } finally { setIsLoading(false); }
+    } catch (err) { 
+      console.error(err);
+      alert("Błąd podczas zapisywania wejścia."); 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
   // === AKCJA WYJŚCIA ===
@@ -136,31 +143,46 @@ export default function VerificationPage() {
     try {
       const photoUrl = await uploadPhoto(photoFile, 'checkout');
       const { error } = await supabase.from('room_sessions').update({
-        check_out_time: new Date().toISOString(), check_out_photo_url: photoUrl, checklist_completed: true, status: 'COMPLETED'
+        check_out_time: new Date().toISOString(), 
+        check_out_photo_url: photoUrl, 
+        checklist_completed: true, 
+        status: 'COMPLETED'
       }).eq('id', activeSession.id);
 
       if (error) throw error;
       alert("Wyjście zarejestrowane. Dziękujemy za porządek!");
-      window.location.reload(); // Resetuje widok
-    } catch (err) { alert("Błąd wyjścia."); } finally { setIsLoading(false); }
+      window.location.reload(); 
+    } catch (err) { 
+      console.error(err);
+      alert("Błąd wyjścia."); 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
-  // === INICJACJA SUKCESJI (GOSPODARZ UDOSTĘPNIA PIN) ===
+  // === INICJACJA SUKCESJI ===
   const initiateHandover = async () => {
     setIsLoading(true);
-    const pin = Math.floor(1000 + Math.random() * 9000).toString(); // Losowy 4-cyfrowy PIN
+    const pin = Math.floor(1000 + Math.random() * 9000).toString(); 
     
     try {
       const { data, error } = await supabase.from('session_handovers').insert([{
-        original_session_id: activeSession.id, from_user_id: user.id, handover_pin: pin
+        original_session_id: activeSession.id, 
+        from_user_id: userIdentifier, // <-- POPRAWIONE
+        handover_pin: pin
       }]).select().single();
 
       if (error) throw error;
       setHandoverData(data);
-    } catch (err) { alert("Błąd generowania PINu."); } finally { setIsLoading(false); }
+    } catch (err) { 
+      console.error(err);
+      alert("Błąd generowania PINu."); 
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
-  // POLLING: Sprawdzanie czy ktoś wpisał mój PIN (Tylko gdy wyświetlamy PIN)
+  // POLLING SUKCESJI
   useEffect(() => {
     let interval;
     if (handoverData && handoverData.status === 'PENDING') {
@@ -170,41 +192,48 @@ export default function VerificationPage() {
           alert("Sukces! Twój znajomy poprawnie przejął salę. Jesteś oficjalnie zwolniony z odpowiedzialności za tę przestrzeń.");
           window.location.reload(); 
         }
-      }, 3000); // Sprawdza bazę co 3 sekundy
+      }, 3000); 
     }
     return () => clearInterval(interval);
   }, [handoverData]);
 
-  // === PRZEJĘCIE SALI (NASTĘPCA WPISUJE PIN) ===
+  // === PRZEJĘCIE SALI ===
   const acceptHandover = async (e) => {
     e.preventDefault();
     if (enteredPin.length !== 4) return alert("PIN musi mieć 4 cyfry.");
     setIsLoading(true);
 
     try {
-      // 1. Szukamy aktywnej prośby z tym PINem
       const { data: handover, error: handoverErr } = await supabase.from('session_handovers')
         .select('*').eq('original_session_id', occupiedSession.id).eq('handover_pin', enteredPin).eq('status', 'PENDING').single();
 
       if (handoverErr || !handover) throw new Error("Błędny PIN lub brak aktywnej prośby o przejęcie.");
 
-      // 2. Akceptujemy prośbę
-      await supabase.from('session_handovers').update({ status: 'ACCEPTED', to_user_id: user.id, resolved_at: new Date().toISOString() }).eq('id', handover.id);
+      await supabase.from('session_handovers').update({ 
+        status: 'ACCEPTED', 
+        to_user_id: userIdentifier, // <-- POPRAWIONE
+        resolved_at: new Date().toISOString() 
+      }).eq('id', handover.id);
 
-      // 3. Zamykamy starą sesję (Uwalniamy pierwszego studenta)
-      await supabase.from('room_sessions').update({ status: 'HANDED_OVER', check_out_time: new Date().toISOString() }).eq('id', occupiedSession.id);
+      await supabase.from('room_sessions').update({ 
+        status: 'HANDED_OVER', 
+        check_out_time: new Date().toISOString() 
+      }).eq('id', occupiedSession.id);
 
-      // 4. Otwieramy nową sesję dla mnie (Bez wymuszania nowego zdjęcia!)
       const { data: newSession, error: newSessErr } = await supabase.from('room_sessions').insert([{
-        room_id: roomData.id, host_id: user.id, purpose: `Przejęcie sali po: ${occupantName}`, check_in_photo_url: occupiedSession.check_in_photo_url
+        room_id: roomData.id, 
+        host_id: userIdentifier, // <-- POPRAWIONE
+        purpose: `Przejęcie sali po: ${occupantName}`, 
+        check_in_photo_url: occupiedSession.check_in_photo_url
       }]).select().single();
 
       if (newSessErr) throw newSessErr;
 
       alert(`Przejąłeś odpowiedzialność za salę ${roomData.name}! Jesteś nowym Gospodarzem.`);
       setOccupiedSession(null);
-      setActiveSession(newSession); // Automatycznie ładuje widok wyjścia dla nowej osoby
+      setActiveSession(newSession); 
     } catch (err) {
+      console.error(err);
       alert(err.message);
     } finally {
       setIsLoading(false);
@@ -217,9 +246,7 @@ export default function VerificationPage() {
     <div className="min-h-screen bg-slate-900 p-4 pt-20 flex flex-col items-center">
       <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
         
-        {/* ========================================= */}
         {/* EKRAN 1: SKANOWANIE QR */}
-        {/* ========================================= */}
         {!scanResult && (
           <div className="text-center animate-fadeIn">
             <h2 className="text-2xl font-black text-slate-800 mb-2">System Weryfikacji</h2>
@@ -233,14 +260,11 @@ export default function VerificationPage() {
               <button onClick={() => setIsScanning(true)} className="w-full bg-indigo-600 text-white py-5 rounded-xl font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition-all">📸 Uruchom Aparat</button>
             )}
             
-            {/* Dev Helper - Usunąć na produkcji! */}
             <button onClick={() => handleScan('SSUEW-16J-SECURE-2026')} className="w-full mt-4 bg-slate-100 text-slate-400 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-slate-600">Dev: Symuluj skan (Sala 16J)</button>
           </div>
         )}
 
-        {/* ========================================= */}
-        {/* EKRAN 2: WEJŚCIE (SALA JEST PUSTA) */}
-        {/* ========================================= */}
+        {/* EKRAN 2: WEJŚCIE */}
         {scanResult && roomData && !activeSession && !occupiedSession && (
           <div className="animate-slideUp">
             <div className="bg-emerald-50 text-emerald-600 p-3 rounded-xl font-black text-center uppercase tracking-widest text-sm mb-6 border border-emerald-200 shadow-sm">
@@ -261,16 +285,13 @@ export default function VerificationPage() {
           </div>
         )}
 
-        {/* ========================================= */}
-        {/* EKRAN 3: WYJŚCIE LUB PRZEKAZANIE (JA JESTEM GOSPODARZEM) */}
-        {/* ========================================= */}
+        {/* EKRAN 3: WYJŚCIE LUB PRZEKAZANIE */}
         {scanResult && roomData && activeSession && (
           <div className="animate-slideUp">
             <div className="bg-blue-50 text-blue-600 p-3 rounded-xl font-black text-center uppercase tracking-widest text-sm mb-6 border border-blue-200 shadow-sm">
               Jesteś Gospodarzem: {roomData.name}
             </div>
             
-            {/* Tryb Oczekiwania na Sukcesję */}
             {handoverData ? (
               <div className="bg-slate-900 text-white p-8 rounded-3xl text-center shadow-2xl relative overflow-hidden border border-slate-700 animate-fadeIn">
                 <div className="absolute inset-0 bg-blue-500/20 blur-3xl animate-pulse"></div>
@@ -286,7 +307,6 @@ export default function VerificationPage() {
                 <button onClick={() => setHandoverData(null)} className="w-full mt-6 bg-slate-800 text-white py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest border border-slate-700 hover:bg-slate-700 relative z-10">Wróć (Anuluj przekazanie)</button>
               </div>
             ) : (
-              /* Zwykły Tryb Wyjścia */
               <form onSubmit={handleCheckOut} className="space-y-5">
                 <div className="bg-slate-50 p-5 border border-slate-200 rounded-xl">
                   <label className="block text-[11px] font-black text-slate-700 uppercase mb-3">📸 Dowód porządku (Po pracy)</label>
@@ -318,9 +338,7 @@ export default function VerificationPage() {
           </div>
         )}
 
-        {/* ========================================= */}
-        {/* EKRAN 4: PRZEJĘCIE (KTOŚ INNY JEST W SALI) */}
-        {/* ========================================= */}
+        {/* EKRAN 4: PRZEJĘCIE */}
         {scanResult && roomData && occupiedSession && (
           <div className="animate-slideUp border-t-4 border-amber-500 pt-6">
             <h3 className="font-black text-slate-800 text-2xl mb-2 leading-tight">Sala jest aktualnie zajęta</h3>
