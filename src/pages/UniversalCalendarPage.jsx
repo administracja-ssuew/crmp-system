@@ -61,7 +61,6 @@ export default function UniversalCalendarPage() {
     setCurrentDate(d); 
   };
 
-  // Generowanie stringa dla inputa type="date"
   const yyyy = currentDate.getFullYear();
   const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
   const dd = String(currentDate.getDate()).padStart(2, '0');
@@ -151,7 +150,6 @@ export default function UniversalCalendarPage() {
                <button onClick={() => setViewRange(7)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 7 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>TYDZIEŃ</button>
                <button onClick={() => setViewRange(30)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 30 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>MIESIĄC</button>
                <div className="w-px h-4 bg-slate-300 mx-1"></div>
-               {/* NOWOŚĆ: Wybór daty */}
                <input 
                  type="date" 
                  value={dateInputVal}
@@ -231,7 +229,6 @@ export default function UniversalCalendarPage() {
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
                                 const isPending = ev.status === 'OCZEKUJE';
                                 
-                                // NOWOŚĆ: Przezroczysty styl dla wniosków oczekujących
                                 const colorClass = isPending 
                                   ? 'bg-amber-50 border-2 border-dashed border-amber-400' 
                                   : (ev.color || 'bg-indigo-500');
@@ -240,7 +237,16 @@ export default function UniversalCalendarPage() {
                                 return (
                                   <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${colorClass} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10 overflow-hidden`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}>
                                     {isPending && <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#f59e0b_5px,#f59e0b_10px)] pointer-events-none"></div>}
-                                    <span className={`text-[9px] font-black px-1 truncate relative z-10 ${textClass}`}>{ev.title} {isPending && '⏳'}</span>
+                                    
+                                    {/* NOWOŚĆ: WYRAŹNY NAPIS "W TRAKCIE WERYFIKACJI" */}
+                                    {isPending ? (
+                                      <div className={`relative z-10 flex flex-col items-center justify-center w-full px-1 ${textClass}`}>
+                                        <span className="text-[9px] font-black truncate w-full text-center">{ev.title}</span>
+                                        <span className="text-[7px] font-black uppercase tracking-widest opacity-80 truncate w-full text-center mt-0.5">W trakcie weryfikacji</span>
+                                      </div>
+                                    ) : (
+                                      <span className={`text-[9px] font-black px-1 truncate relative z-10 ${textClass}`}>{ev.title}</span>
+                                    )}
                                   </div>
                                 );
                             })}
@@ -272,7 +278,6 @@ export default function UniversalCalendarPage() {
                 </div>
                 <div><label className="text-xs font-bold text-slate-600 ml-1">Organizacja *</label><input type="text" value={bookingForm.org} onChange={e => setBookingForm({...bookingForm, org: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
                 
-                {/* Zmodyfikowana nomenklatura */}
                 <div><label className="text-xs font-bold text-slate-600 ml-1">Nazwa spotkania (widoczna w kalendarzu) *</label><input type="text" placeholder="np. Wykład Otwarty SKN Inwestor" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
@@ -289,7 +294,6 @@ export default function UniversalCalendarPage() {
                 </div>
                 <div><label className="text-xs font-bold text-slate-600 ml-1">Uzasadnienie *</label><textarea value={bookingForm.justification} onChange={e => setBookingForm({...bookingForm, justification: e.target.value})} rows="2" className="w-full bg-slate-50 border p-3 rounded-xl font-medium mt-1"></textarea></div>
                 
-                {/* NOWOŚĆ: Skrzynka z treścią RODO */}
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                    <div className="h-24 overflow-y-auto pr-2 mb-3 text-[10px] text-slate-500 leading-relaxed scrollbar-thin">
                       <strong>KLAUZULA INFORMACYJNA RODO</strong><br/>
