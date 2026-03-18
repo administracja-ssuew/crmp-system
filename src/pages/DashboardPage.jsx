@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
+  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>,
   Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>,
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
@@ -19,7 +20,6 @@ const ADMIN_EMAILS = [
 
 // === TUTAJ WKLEJ LINKI DO SKRYPTÓW GOOGLE ===
 const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9AjGsGh-xtzplOwnHrlXEkqS7ELN2FkRnlRGFgpkAAmZGDeWRkvA/exec";
-// LINK DO SKRYPTU OGŁOSZEŃ (Musi to być ten nowo wdrożony z funkcją doPost!)
 const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
 
 // === INTELIGENTNY FORMATER DATY ===
@@ -32,19 +32,14 @@ const formatDate = (rawDate) => {
     if (isNaN(dateObj.getTime())) return rawDate; 
     
     return dateObj.toLocaleDateString('pl-PL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
+      day: '2-digit', month: '2-digit', year: 'numeric'
     });
-  } catch (e) {
-    return rawDate;
-  }
+  } catch (e) { return rawDate; }
 };
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
-
   const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
 
   // === STANY OGŁOSZEŃ ===
@@ -98,17 +93,13 @@ export default function DashboardPage() {
       const response = await fetch(NOTICES_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(noticeForm)
+        body: JSON.stringify(noticeForm) // Dodaje ogłoszenie
       });
       const result = await response.json();
 
       if (result.success) {
         const newNotice = {
-          id: result.id,
-          target: noticeForm.target,
-          type: noticeForm.type,
-          text: noticeForm.text,
-          date: result.date
+          id: result.id, target: noticeForm.target, type: noticeForm.type, text: noticeForm.text, date: result.date
         };
         setNotices([newNotice, ...notices]);
         setShowNoticeModal(false);
@@ -116,10 +107,26 @@ export default function DashboardPage() {
       } else {
         alert("Błąd zapisu w Google Sheets.");
       }
+    } catch (err) { alert("Wystąpił błąd komunikacji. Spróbuj ponownie."); } 
+    finally { setIsSubmittingNotice(false); }
+  };
+
+  // GLOBALNE USUWANIE OGŁOSZENIA (Tylko Admin)
+  const handleDeleteNoticeGlobal = async (id) => {
+    if (!window.confirm("Czy na pewno chcesz trwale usunąć to ogłoszenie z tablicy wszystkich studentów?")) return;
+    
+    // Usuwamy optymistycznie od razu ze strony
+    setNotices(notices.filter(n => n.id !== id));
+    
+    try {
+      // Wysyłamy sygnał "delete" do Apps Script
+      await fetch(NOTICES_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'delete', id: id })
+      });
     } catch (err) {
-      alert("Wystąpił błąd komunikacji. Spróbuj ponownie.");
-    } finally {
-      setIsSubmittingNotice(false);
+      console.error("Błąd podczas globalnego usuwania:", err);
     }
   };
 
@@ -183,7 +190,7 @@ export default function DashboardPage() {
             Centralny Rejestr <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700 pb-4 break-words whitespace-normal">Administracyjny</span>
           </h1>
           <p className="mt-4 text-sm md:text-base font-medium text-slate-500 max-w-2xl mx-auto hidden md:block">
-            Wybierz moduł poniżej, aby zarządzać zasobami.
+            Wybierz przestrzeń roboczą, aby uzyskać dostęp do narzędzi i zasobów SSUEW.
           </p>
         </header>
 
@@ -261,13 +268,26 @@ export default function DashboardPage() {
                         <p className="text-sm font-semibold leading-snug">{notice.text}</p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleDismiss(notice.id)} 
-                      className="shrink-0 p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
-                      title="Zrozumiałem, ukryj"
-                    >
-                      <Icons.Close />
-                    </button>
+                    
+                    {/* Przyciski kontroli nad ogłoszeniem */}
+                    <div className="shrink-0 flex items-center gap-1">
+                      {isAdmin && (
+                        <button 
+                          onClick={() => handleDeleteNoticeGlobal(notice.id)}
+                          className="p-2 rounded-full hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors"
+                          title="Usuń to ogłoszenie dla wszystkich (Admin)"
+                        >
+                          <Icons.Trash />
+                        </button>
+                      )}
+                      <button 
+                        onClick={() => handleDismiss(notice.id)} 
+                        className="p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
+                        title="Zrozumiałem, ukryj dla mnie"
+                      >
+                        <Icons.Close />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -277,6 +297,11 @@ export default function DashboardPage() {
 
         {/* === WYSZUKIWARKA CRED === */}
         <div className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-blue-900/5 border border-white mb-10 animate-slideUp">
+          
+          <div className="mb-4 pl-2">
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Sprawdź status swojej sprawy w systemie CRED</h3>
+          </div>
+
           <div className="flex flex-col md:flex-row gap-4 items-center">
              <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔎</div>
              <input 
@@ -292,10 +317,16 @@ export default function DashboardPage() {
                disabled={isSearching}
                className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-lg shadow-blue-200 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 whitespace-nowrap"
              >
-               {isSearching ? 'Szukanie...' : 'Sprawdź'}
+               {isSearching ? 'Szukanie...' : 'Szukaj Pisma'}
              </button>
           </div>
           
+          <div className="mt-4 pl-2">
+             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+               * Planowany dzień zakończenia sprawy wlicza w siebie czas niezbędny na uzyskanie podpisów Władz Uczelni.
+             </p>
+          </div>
+
           {searchError && (
             <div className="mt-4 p-4 bg-red-50 text-red-600 text-sm font-bold rounded-2xl border border-red-100 animate-fadeIn text-center">
               ❌ {searchError}
@@ -333,7 +364,7 @@ export default function DashboardPage() {
           <Card to="/mapa" icon="🗺️" title="Mapa Kampusu" subtitle="Banery i Plakaty" colorFrom="from-blue-500" colorTo="to-blue-700" buttonText="Otwórz Mapę" />
           <Card to="/rejestr" icon="📋" title="Rejestr Standów" subtitle="Harmonogram stoisk promocyjnych" colorFrom="from-indigo-600" colorTo="to-purple-800" buttonText="Sprawdź Terminy" />
           <Card to="/kalendarz-wybor" icon="📅" title="Sale i Przestrzenie" subtitle="Rezerwacje samorządowe" colorFrom="from-emerald-500" colorTo="to-teal-700" buttonText="Wybierz Tryb" />
-          <Card to="/dokumenty" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
+          <Card to="/lex" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
           <Card to="/legal-hub" icon="⚖️" title="Zaplecze Prawne" subtitle="Wzory regulaminów i edukacja" colorFrom="from-amber-500" colorTo="to-orange-500" buttonText="Otwórz Akademię" />
         </div>
 
