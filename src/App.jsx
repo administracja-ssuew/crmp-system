@@ -19,6 +19,7 @@ import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
 import ScannerPage from './pages/ScannerPage';
 import LegalHubPage from './pages/LegalHubPage';
 import VerificationPage from './pages/VerificationPage';
+import KwpPage from './pages/KwpPage'; // Upewnij się, że ścieżka do folderu jest poprawna
 
 // === IMPORT BOTA AI (POPRAWIONA ŚCIEŻKA) ===
 import AIBot from './AIBot'; 
@@ -155,6 +156,8 @@ export default function App() {
           <Route path="/legal-hub" element={<LegalHubPage />} />
 
           <Route path="/skaner" element={<VerificationPage />} />
+
+          <Route path="/kwp" element={<KwpPage />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
