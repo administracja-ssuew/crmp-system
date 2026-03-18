@@ -29,22 +29,18 @@ const EMPTY_FORM = {
   date: '', room: '9J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
-// === WKLEJ TO TUTAJ ===
 const formatTime = (timeStr) => {
   if (typeof timeStr === 'string' && timeStr.includes('T')) {
     return timeStr.split('T')[1].substring(0, 5);
   }
   return timeStr;
 };
-// =====================
 
 export default function CalendarSamorzadPage({ userEmail }) {
   const isAdmin = ADMIN_EMAILS.includes(userEmail);
 
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
-  
-  // NOWOŚĆ: Stan przechowujący zakres widoczności kalendarza (3, 7 lub 30 dni)
   const [viewRange, setViewRange] = useState(3);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,7 +78,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
     fetchData(); 
   }, []);
 
-  // Inteligentne przewijanie kalendarza (O 1 dzień w widoku 3D, lub o cały blok w widoku 7D/30D)
   const nextDay = () => { 
     const d = new Date(currentDate); 
     d.setDate(currentDate.getDate() + (viewRange === 3 ? 1 : viewRange)); 
@@ -94,7 +89,12 @@ export default function CalendarSamorzadPage({ userEmail }) {
     setCurrentDate(d); 
   };
 
-  // Dynamiczne generowanie listy dni do wyświetlenia
+  // Generowanie stringa dla inputa type="date"
+  const yyyy = currentDate.getFullYear();
+  const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(currentDate.getDate()).padStart(2, '0');
+  const dateInputVal = `${yyyy}-${mm}-${dd}`;
+
   const daysToShow = Array.from({ length: viewRange }).map((_, offset) => {
     const d = new Date(currentDate);
     d.setDate(currentDate.getDate() + offset);
@@ -262,21 +262,30 @@ export default function CalendarSamorzadPage({ userEmail }) {
 
       <div className="max-w-7xl mx-auto space-y-6 animate-slideUp">
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">←</button>
+          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition shrink-0">←</button>
           
           <div className="text-center flex flex-col items-center">
             <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Zakres widoczności</span>
-            <div className="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-1 mb-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                <button onClick={() => setViewRange(3)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 3 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>3 DNI</button>
                <button onClick={() => setViewRange(7)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 7 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>TYDZIEŃ</button>
                <button onClick={() => setViewRange(30)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 30 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>MIESIĄC</button>
+               <div className="w-px h-4 bg-slate-300 mx-1"></div>
+               {/* NOWOŚĆ: Wybór daty */}
+               <input 
+                 type="date" 
+                 value={dateInputVal}
+                 onChange={(e) => { if(e.target.value) setCurrentDate(new Date(e.target.value)) }}
+                 className="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-md px-2 py-1 outline-none focus:border-indigo-500 cursor-pointer"
+                 title="Skocz do konkretnego dnia"
+               />
             </div>
             <span className="text-lg font-black text-slate-800">
               {new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[daysToShow.length - 1]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
             </span>
           </div>
 
-          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">→</button>
+          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition shrink-0">→</button>
         </div>
 
         {isLoading ? (
@@ -349,9 +358,18 @@ export default function CalendarSamorzadPage({ userEmail }) {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
                                 const isPending = ev.status === 'OCZEKUJE';
-                                const color = isPending ? 'bg-amber-400 opacity-80 border border-amber-600' : (ev.color || 'bg-indigo-500');
+                                
+                                // NOWOŚĆ: Przezroczysty styl dla wniosków oczekujących
+                                const colorClass = isPending 
+                                  ? 'bg-amber-50 border-2 border-dashed border-amber-400' 
+                                  : (ev.color || 'bg-indigo-500');
+                                const textClass = isPending ? 'text-amber-700' : 'text-white';
+
                                 return (
-                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${color} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}><span className="text-[9px] font-black text-white px-1 truncate">{ev.title} {isPending && '⏳'}</span></div>
+                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${colorClass} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10 overflow-hidden`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}>
+                                    {isPending && <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#f59e0b_5px,#f59e0b_10px)] pointer-events-none"></div>}
+                                    <span className={`text-[9px] font-black px-1 truncate relative z-10 ${textClass}`}>{ev.title} {isPending && '⏳'}</span>
+                                  </div>
                                 );
                             })}
                           </div>
@@ -380,7 +398,12 @@ export default function CalendarSamorzadPage({ userEmail }) {
                    <input type="time" value={bookingForm.start} onChange={e => setBookingForm({...bookingForm, start: e.target.value})} className="w-1/2 bg-slate-50 border p-3 rounded-xl font-bold" />
                    <input type="time" value={bookingForm.end} onChange={e => setBookingForm({...bookingForm, end: e.target.value})} className="w-1/2 bg-slate-50 border p-3 rounded-xl font-bold" />
                 </div>
-                <input type="text" placeholder="Cel spotkania np. Zarząd" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
+                
+                {/* NOWOŚĆ: Doprecyzowana nomenklatura */}
+                <div>
+                  <label className="text-xs font-bold text-slate-600 ml-1 block mb-1">Nazwa spotkania (widoczna w kalendarzu) *</label>
+                  <input type="text" placeholder="np. Posiedzenie Zarządu" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
+                </div>
                 
                 {bookingError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200">{bookingError}</p>}
                 

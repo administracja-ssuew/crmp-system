@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
-// !!! UWAGA: Upewnij się, że to Twój najnowszy link po wdrożeniu skryptu! !!!
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
@@ -16,7 +15,6 @@ const EMPTY_FORM = {
   date: '', room: '28J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
-// Funkcja naprawiająca format godziny wysyłany przez Google Sheets (ucinamy datę 1899-12-30)
 const formatTime = (timeStr) => {
   if (typeof timeStr === 'string' && timeStr.includes('T')) {
     return timeStr.split('T')[1].substring(0, 5);
@@ -27,8 +25,6 @@ const formatTime = (timeStr) => {
 export default function UniversalCalendarPage() {
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
-  
-  // NOWOŚĆ: Stan przechowujący zakres widoczności kalendarza (3, 7 lub 30 dni)
   const [viewRange, setViewRange] = useState(3);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -54,7 +50,6 @@ export default function UniversalCalendarPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Nawigacja dat (przeskok o 1 dzień w widoku 3D, lub o cały blok w widoku 7D/30D)
   const nextDay = () => { 
     const d = new Date(currentDate); 
     d.setDate(currentDate.getDate() + (viewRange === 3 ? 1 : viewRange)); 
@@ -65,6 +60,12 @@ export default function UniversalCalendarPage() {
     d.setDate(currentDate.getDate() - (viewRange === 3 ? 1 : viewRange)); 
     setCurrentDate(d); 
   };
+
+  // Generowanie stringa dla inputa type="date"
+  const yyyy = currentDate.getFullYear();
+  const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const dd = String(currentDate.getDate()).padStart(2, '0');
+  const dateInputVal = `${yyyy}-${mm}-${dd}`;
 
   const daysToShow = Array.from({ length: viewRange }).map((_, offset) => {
     const d = new Date(currentDate);
@@ -141,21 +142,30 @@ export default function UniversalCalendarPage() {
 
       <div className="max-w-7xl mx-auto space-y-6 animate-slideUp">
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">←</button>
+          <button onClick={prevDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition shrink-0">←</button>
           
           <div className="text-center flex flex-col items-center">
             <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Zakres widoczności</span>
-            <div className="flex gap-1 mb-2 bg-slate-50 p-1 rounded-lg border border-slate-200">
+            <div className="flex items-center gap-1 mb-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
                <button onClick={() => setViewRange(3)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 3 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>3 DNI</button>
                <button onClick={() => setViewRange(7)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 7 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>TYDZIEŃ</button>
                <button onClick={() => setViewRange(30)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition ${viewRange === 30 ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:bg-slate-200'}`}>MIESIĄC</button>
+               <div className="w-px h-4 bg-slate-300 mx-1"></div>
+               {/* NOWOŚĆ: Wybór daty */}
+               <input 
+                 type="date" 
+                 value={dateInputVal}
+                 onChange={(e) => { if(e.target.value) setCurrentDate(new Date(e.target.value)) }}
+                 className="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold rounded-md px-2 py-1 outline-none focus:border-indigo-500 cursor-pointer"
+                 title="Skocz do konkretnego dnia"
+               />
             </div>
             <span className="text-lg font-black text-slate-800">
               {new Date(daysToShow[0]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })} — {new Date(daysToShow[daysToShow.length - 1]).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
             </span>
           </div>
 
-          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition">→</button>
+          <button onClick={nextDay} className="w-10 h-10 rounded-full bg-slate-100 text-indigo-600 font-bold hover:bg-indigo-100 transition shrink-0">→</button>
         </div>
 
         {isLoading ? (
@@ -184,12 +194,11 @@ export default function UniversalCalendarPage() {
                         <div>
                             <h3 className="font-bold text-slate-700 text-sm">{dateObj.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}</h3>
                             
-                            {/* POPRAWIONY FORMAT GODZINY PRZEDŁUŻENIA */}
-                            {extension && (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
-                                  🌙 {extension.note} (do {formatTime(extension.until)})
-                                </span>
-                            )}
+                          {extension && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded border border-amber-200 mt-1 shadow-sm">
+                            🌙 {extension.note} (do {formatTime(extension.until)})
+                            </span>
+                          )}
                         </div>
                     </div>
                 </div>
@@ -221,9 +230,18 @@ export default function UniversalCalendarPage() {
                                 const startH = parseFloat(ev.start.split(':')[0]) + parseFloat(ev.start.split(':')[1] || 0)/60;
                                 const endH = parseFloat(ev.end.split(':')[0]) + parseFloat(ev.end.split(':')[1] || 0)/60;
                                 const isPending = ev.status === 'OCZEKUJE';
-                                const color = isPending ? 'bg-amber-400 opacity-80 border border-amber-600' : (ev.color || 'bg-indigo-500');
+                                
+                                // NOWOŚĆ: Przezroczysty styl dla wniosków oczekujących
+                                const colorClass = isPending 
+                                  ? 'bg-amber-50 border-2 border-dashed border-amber-400' 
+                                  : (ev.color || 'bg-indigo-500');
+                                const textClass = isPending ? 'text-amber-700' : 'text-white';
+
                                 return (
-                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${color} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}><span className="text-[9px] font-black text-white px-1 truncate">{ev.title} {isPending && '⏳'}</span></div>
+                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${colorClass} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10 overflow-hidden`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}>
+                                    {isPending && <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#f59e0b_5px,#f59e0b_10px)] pointer-events-none"></div>}
+                                    <span className={`text-[9px] font-black px-1 truncate relative z-10 ${textClass}`}>{ev.title} {isPending && '⏳'}</span>
+                                  </div>
                                 );
                             })}
                           </div>
@@ -253,7 +271,10 @@ export default function UniversalCalendarPage() {
                   <div><label className="text-xs font-bold text-slate-600 ml-1">E-mail *</label><input type="email" value={bookingForm.email} onChange={e => setBookingForm({...bookingForm, email: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
                 </div>
                 <div><label className="text-xs font-bold text-slate-600 ml-1">Organizacja *</label><input type="text" value={bookingForm.org} onChange={e => setBookingForm({...bookingForm, org: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
-                <div><label className="text-xs font-bold text-slate-600 ml-1">Wydarzenie *</label><input type="text" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
+                
+                {/* Zmodyfikowana nomenklatura */}
+                <div><label className="text-xs font-bold text-slate-600 ml-1">Nazwa spotkania (widoczna w kalendarzu) *</label><input type="text" placeholder="np. Wykład Otwarty SKN Inwestor" value={bookingForm.title} onChange={e => setBookingForm({...bookingForm, title: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold mt-1" /></div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
                   <div><label className="text-xs font-black text-indigo-800 ml-1 uppercase">Data *</label><input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1" /></div>
                   <div>
@@ -267,10 +288,26 @@ export default function UniversalCalendarPage() {
                   <div><label className="text-xs font-black text-indigo-800 ml-1 uppercase">Koniec *</label><input type="time" value={bookingForm.end} onChange={e => setBookingForm({...bookingForm, end: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1" /></div>
                 </div>
                 <div><label className="text-xs font-bold text-slate-600 ml-1">Uzasadnienie *</label><textarea value={bookingForm.justification} onChange={e => setBookingForm({...bookingForm, justification: e.target.value})} rows="2" className="w-full bg-slate-50 border p-3 rounded-xl font-medium mt-1"></textarea></div>
-                <div className="bg-slate-100 p-4 rounded-xl flex items-start gap-3">
-                  <input type="checkbox" id="rodo" checked={bookingForm.rodo} onChange={e => setBookingForm({...bookingForm, rodo: e.target.checked})} className="mt-1 w-5 h-5 rounded" />
-                  <label htmlFor="rodo" className="text-[10px] text-slate-500 leading-tight">Akceptuję klauzulę informacyjną i wyrażam zgodę na przetwarzanie danych. *</label>
+                
+                {/* NOWOŚĆ: Skrzynka z treścią RODO */}
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                   <div className="h-24 overflow-y-auto pr-2 mb-3 text-[10px] text-slate-500 leading-relaxed scrollbar-thin">
+                      <strong>KLAUZULA INFORMACYJNA RODO</strong><br/>
+                      Zgodnie z art. 13 ust. 1 i 2 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych (RODO), informujemy, że:<br/>
+                      1. Administratorem Twoich danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu.<br/>
+                      2. Dane przetwarzane są wyłącznie w celu obsługi rezerwacji sal i przestrzeni przez Samorząd Studentów UEW.<br/>
+                      3. Podanie danych jest dobrowolne, ale niezbędne do rozpatrzenia wniosku i wpisania do kalendarza.<br/>
+                      4. Posiadasz prawo dostępu do treści swoich danych oraz prawo ich sprostowania, usunięcia, ograniczenia przetwarzania.<br/>
+                      Szczegółowe informacje znajdują się w polityce prywatności UEW.
+                   </div>
+                   <div className="flex items-start gap-3 bg-white p-3 rounded-lg border border-slate-200">
+                     <input type="checkbox" id="rodo" checked={bookingForm.rodo} onChange={e => setBookingForm({...bookingForm, rodo: e.target.checked})} className="mt-0.5 w-4 h-4 accent-indigo-600 rounded cursor-pointer shrink-0" />
+                     <label htmlFor="rodo" className="text-[10px] font-bold text-slate-700 cursor-pointer">
+                       Oświadczam, że zapoznałem/am się z powyższą klauzulą informacyjną i wyrażam zgodę na przetwarzanie moich danych osobowych w celu realizacji tej rezerwacji. *
+                     </label>
+                   </div>
                 </div>
+
                 {bookingError && <p className="text-xs font-bold text-red-600 bg-red-50 p-3 rounded-xl border border-red-200 text-center">{bookingError}</p>}
              </div>
              <div className="p-4 border-t border-slate-100 bg-white rounded-b-[2rem]">
