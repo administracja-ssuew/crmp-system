@@ -277,30 +277,30 @@ export default function DocumentsPage() {
         {/* ==================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 animate-fadeIn">
           
-          {/* BANER KWP */}
-          <Link to="/kwp" className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-700 to-violet-800 rounded-[2rem] p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-900/20 transition-all hover:-translate-y-1 block isolate">
-            <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
-            
-            <div className="relative z-10 flex flex-col h-full justify-between">
-              <div>
-                <span className="inline-block px-3 py-1 mb-4 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
-                  Przewodnik Administracyjny
-                </span>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">
-                  Księga Dokumentów (KWP)
-                </h2>
-                <p className="text-indigo-100/90 font-medium text-sm md:text-base max-w-lg leading-relaxed">
-                  Zanim zaczniesz pisać – poznaj oficjalne zasady, formatowanie, wymogi WCAG i cykl życia dokumentów w Samorządzie. 
-                </p>
-              </div>
-              
-              <div className="mt-6 flex items-center gap-3 text-sm font-bold">
-                <span className="bg-white text-indigo-700 px-5 py-2.5 rounded-xl shadow-md group-hover:bg-indigo-50 transition-colors flex items-center gap-2">
-                  Czytaj Księgę <Icons.ArrowRight />
-                </span>
-              </div>
-            </div>
-          </Link>
+   {/* BANER KSIĘGI DOKUMENTÓW */}
+<Link to="/ksiega-dokumentow" className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-700 to-violet-800 rounded-[2rem] p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-900/20 transition-all hover:-translate-y-1 block isolate">
+  <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
+  
+  <div className="relative z-10 flex flex-col h-full justify-between">
+    <div>
+      <span className="inline-block px-3 py-1 mb-4 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
+        Przewodnik Administracyjny
+      </span>
+      <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">
+        Księga Dokumentów
+      </h2>
+      <p className="text-indigo-100/90 font-medium text-sm md:text-base max-w-lg leading-relaxed">
+        Zanim zaczniesz pisać – poznaj oficjalne zasady, formatowanie, wymogi WCAG i cykl życia dokumentów w Samorządzie. 
+      </p>
+    </div>
+    
+    <div className="mt-6 flex items-center gap-3 text-sm font-bold">
+      <span className="bg-white text-indigo-700 px-5 py-2.5 rounded-xl shadow-md group-hover:bg-indigo-50 transition-colors flex items-center gap-2">
+        Czytaj Księgę <Icons.ArrowRight />
+      </span>
+    </div>
+  </div>
+</Link>
 
           {/* SZYBKIE SZABLONY (Pobieranie Worda) */}
           <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col">

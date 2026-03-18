@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function KwpPage() {
+export default function KsiegaDokumentowPage() {
   const [activeTab, setActiveTab] = useState('rozdzial1');
 
-  // Funkcja pomocnicza do płynnego przewijania
   const scrollToSection = (id) => {
     setActiveTab(id);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -28,8 +27,8 @@ export default function KwpPage() {
       
       {/* GŁÓWNY NAGŁÓWEK */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest mb-6 transition-colors">
-          <span>← Wróć do Dashboardu</span>
+        <Link to="/lex" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-indigo-600 uppercase tracking-widest mb-6 transition-colors">
+          <span>← Wróć do Lex SSUEW</span>
         </Link>
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-2xl shadow-xl flex items-center justify-center text-3xl">
@@ -40,7 +39,7 @@ export default function KwpPage() {
               Księga Dokumentów <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">SSUEW</span>
             </h1>
             <p className="text-slate-500 font-medium mt-1 uppercase tracking-widest text-xs">
-              Kompendium Wiedzy Protokolanta (KWP) • Wersja 1.0
+              Oficjalny Standard Administracyjny • Wersja 1.0
             </p>
           </div>
         </div>
@@ -48,7 +47,7 @@ export default function KwpPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row gap-8">
         
-        {/* LEWE MENU (STICKY SIDEBAR) */}
+        {/* LEWE MENU */}
         <aside className="lg:w-1/4 shrink-0">
           <div className="sticky top-24 bg-white p-4 rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 px-2">Spis Treści</h3>
@@ -63,7 +62,7 @@ export default function KwpPage() {
           </div>
         </aside>
 
-        {/* GŁÓWNA TREŚĆ (CZYTNIK) */}
+        {/* GŁÓWNA TREŚĆ */}
         <main className="lg:w-3/4 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
           <div className="p-8 md:p-12 space-y-16">
 
@@ -249,7 +248,7 @@ export default function KwpPage() {
                   <div className="flex-1 bg-white border-2 border-indigo-500 p-5 rounded-2xl relative shadow-lg shadow-indigo-100">
                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-indigo-600 text-white font-black rounded-full flex items-center justify-center border-4 border-white">2</div>
                     <h4 className="font-bold text-indigo-900 mb-2">Weryfikacja Formalna</h4>
-                    <p className="text-xs text-indigo-700">Plik PDF trafia do kanału. Zespół adm. weryfikuje zgodność z Księgą KWP.</p>
+                    <p className="text-xs text-indigo-700">Plik PDF trafia do kanału. Zespół adm. weryfikuje zgodność z Księgą.</p>
                   </div>
                   <div className="flex-1 bg-white border-2 border-slate-100 p-5 rounded-2xl relative">
                     <div className="absolute -top-3 -left-3 w-8 h-8 bg-indigo-100 text-indigo-700 font-black rounded-full flex items-center justify-center border-4 border-white">3</div>
