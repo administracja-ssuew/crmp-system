@@ -6,7 +6,8 @@ const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
   Shield: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>,
+  ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
 };
 
 // === WHITELISTA ADMINÓW ===
@@ -22,14 +23,13 @@ const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9
 const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
 
 // === INTELIGENTNY FORMATER DATY ===
-// Zamienia brzydkie "2023-03-01T23:00:00.000Z" na ładne "02.03.2023"
 const formatDate = (rawDate) => {
   if (!rawDate) return 'Brak';
   if (rawDate === 'Dzisiaj' || rawDate === 'Wczoraj') return rawDate;
   
   try {
     const dateObj = new Date(rawDate);
-    if (isNaN(dateObj.getTime())) return rawDate; // Jeśli to zwykły tekst, zostaw w spokoju
+    if (isNaN(dateObj.getTime())) return rawDate; 
     
     return dateObj.toLocaleDateString('pl-PL', {
       day: '2-digit',
@@ -95,7 +95,6 @@ export default function DashboardPage() {
 
     setIsSubmittingNotice(true);
     try {
-      // Używamy text/plain aby ominąć restrykcyjny CORS od Google
       const response = await fetch(NOTICES_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -104,7 +103,6 @@ export default function DashboardPage() {
       const result = await response.json();
 
       if (result.success) {
-        // Dodaj pomyślnie zapisane ogłoszenie na szczyt listy (optymistyczny update)
         const newNotice = {
           id: result.id,
           target: noticeForm.target,
@@ -114,7 +112,7 @@ export default function DashboardPage() {
         };
         setNotices([newNotice, ...notices]);
         setShowNoticeModal(false);
-        setNoticeForm({ target: 'ALL', type: 'info', text: '' }); // Reset
+        setNoticeForm({ target: 'ALL', type: 'info', text: '' }); 
       } else {
         alert("Błąd zapisu w Google Sheets.");
       }
@@ -188,6 +186,33 @@ export default function DashboardPage() {
             Wybierz moduł poniżej, aby zarządzać zasobami.
           </p>
         </header>
+
+        {/* ==================================================== */}
+        {/* GŁÓWNY PRZYCISK: SYSTEM WERYFIKACJI (SKANER QR) */}
+        {/* ==================================================== */}
+        <div className="w-full max-w-3xl mb-8 animate-fadeIn">
+          <Link 
+            to="/skaner" 
+            className="group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 rounded-[2rem] p-6 md:p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 w-full"
+          >
+            <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none"></div>
+            
+            <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
+              <span className="text-2xl md:text-3xl">📷</span>
+            </div>
+            
+            <div className="flex-1">
+              <h3 className="text-xl md:text-2xl font-black mb-1 tracking-tight drop-shadow-sm">System Weryfikacji (Skaner QR)</h3>
+              <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-indigo-100">
+                Zamelduj wejście do sali lub przekaż odpowiedzialność
+              </p>
+            </div>
+
+            <div className="shrink-0 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all">
+              <Icons.ArrowRight />
+            </div>
+          </Link>
+        </div>
 
         {/* ==================================================== */}
         {/* PANEL ADMINISTRATORA I TABLICA OGŁOSZEŃ */}

@@ -18,6 +18,7 @@ import EquipmentPage from './pages/EquipmentPage';
 import AdminEquipmentPanel from './pages/AdminEquipmentPanel';
 import ScannerPage from './pages/ScannerPage';
 import LegalHubPage from './pages/LegalHubPage';
+import VerificationPage from './pages/VerificationPage';
 
 // === IMPORT BOTA AI (POPRAWIONA ŚCIEŻKA) ===
 import AIBot from './AIBot'; 
@@ -152,6 +153,8 @@ export default function App() {
           <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
 
           <Route path="/legal-hub" element={<LegalHubPage />} />
+
+          <Route path="/skaner" element={<VerificationPage />} />
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
