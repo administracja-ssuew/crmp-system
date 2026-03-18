@@ -72,7 +72,7 @@ export default function VerificationPage() {
         .maybeSingle();
 
       if (session) {
-        if (session.host_id === user.id) {
+        if (session.host_id === user.email) {
           // Ja jestem w sali -> Widzę wyjście
           setActiveSession(session);
         } else {
@@ -91,11 +91,14 @@ export default function VerificationPage() {
     }
   };
 
-  // Funkcja kompresująca zdjęcia
+// Funkcja kompresująca zdjęcia
   const uploadPhoto = async (file, type) => {
     const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
     const compressedFile = await imageCompression(file, options);
-    const fileName = `${roomData.id}/${user.id}_${type}_${Date.now()}.webp`;
+    
+    // ZMIANA: Pobieramy początek maila zamiast user.id, żeby uniknąć 'undefined'
+    const userIdentifier = user?.email ? user.email.split('@')[0] : 'nieznajomy';
+    const fileName = `${roomData.id}/${userIdentifier}_${type}_${Date.now()}.webp`;
     
     const { error } = await supabase.storage.from('room-photos').upload(fileName, compressedFile, { contentType: 'image/webp' });
     if (error) throw error;
@@ -111,10 +114,11 @@ export default function VerificationPage() {
     setIsLoading(true);
 
     try {
-      const photoUrl = await uploadPhoto(photoFile, 'checkin');
-      const { data, error } = await supabase.from('room_sessions').insert([{
-        room_id: roomData.id, host_id: user.id, purpose: purpose, check_in_photo_url: photoUrl
-      }]).select().single();
+        const photoUrl = await uploadPhoto(photoFile, 'checkin');
+        // ZMIANA: Zamiast user.id, wstawiamy user.email
+        const { data, error } = await supabase.from('room_sessions').insert([{
+        room_id: roomData.id, host_id: user.email, purpose: purpose, check_in_photo_url: photoUrl
+        }]).select().single();
 
       if (error) throw error;
       alert("Wejście zarejestrowane! Jesteś teraz Gospodarzem sali.");
