@@ -4,7 +4,7 @@
 // WPISZ TUTAJ SWÓJ PRAWDZIWY MAIL, KTÓRYM LOGUJESZ SIĘ DO SYSTEMU!
 export const ADMIN_EMAILS = [
   'administracja@samorzad.ue.wroc.pl', 
-  'biuro@samorzad.uew.edu.pl'
+  'bartosz.buczkowski@samorzad.ue.wroc.pl'
 ];
 
 // 2. Link do bazy CRW (żeby nie kopiować go wszędzie)
