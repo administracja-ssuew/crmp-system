@@ -7,7 +7,6 @@ import { QrReader } from 'react-qr-reader';
 export default function VerificationPage() {
   const { user } = useAuth();
   
-  // UNIWERSALNY IDENTYFIKATOR - Zapobiega błędom 400 (Bad Request)
   const userIdentifier = user?.email || 'nieznajomy';
 
   // === STANY GŁÓWNE ===
@@ -15,6 +14,7 @@ export default function VerificationPage() {
   const [roomData, setRoomData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [hasAcceptedTerms, setHasAcceptedTerms] = useState(false); // <-- NOWOŚĆ: Regulamin
 
   // === STANY SESJI ===
   const [activeSession, setActiveSession] = useState(null); 
@@ -23,21 +23,20 @@ export default function VerificationPage() {
 
   // === STANY FORMULARZY ===
   const [purpose, setPurpose] = useState('');
-  const [photoFile, setPhotoFile] = useState(null);
+  const [mediaFiles, setMediaFiles] = useState([]); // <-- NOWOŚĆ: Tablica plików zamiast jednego
   const [checks, setChecks] = useState({ trash: false, dishes: false, lights: false });
 
-  // === STANY SUKCESJI (PRZEKAZYWANIA SALI) ===
+  // === STANY SUKCESJI ===
   const [handoverData, setHandoverData] = useState(null); 
   const [enteredPin, setEnteredPin] = useState(''); 
 
-  // 1. Sprawdzenie Czarnej Listy
   useEffect(() => {
     const checkBlacklist = async () => {
       if (!user) return;
       const { data } = await supabase
         .from('blacklist_violations')
         .select('*')
-        .eq('user_id', userIdentifier) // <-- POPRAWIONE
+        .eq('user_id', userIdentifier) 
         .gte('valid_until', new Date().toISOString());
       
       if (data && data.length > 0) {
@@ -48,7 +47,6 @@ export default function VerificationPage() {
     checkBlacklist();
   }, [user, userIdentifier]);
 
-  // 2. Obsługa zeskanowania kodu
   const handleScan = async (qrHash) => {
     if (!qrHash) return;
     setIsScanning(false);
@@ -73,11 +71,10 @@ export default function VerificationPage() {
         .maybeSingle();
 
       if (session) {
-        if (session.host_id === userIdentifier) { // <-- POPRAWIONE
+        if (session.host_id === userIdentifier) { 
           setActiveSession(session);
         } else {
           setOccupiedSession(session);
-          // Zmieniliśmy host_id na maila, więc tu po prostu wyświetlamy maila (lub wyciągamy imię z maila)
           const nameFromEmail = session.host_id.split('@')[0];
           setOccupantName(nameFromEmail);
         }
@@ -90,61 +87,81 @@ export default function VerificationPage() {
     }
   };
 
-  // Funkcja kompresująca zdjęcia
-  const uploadPhoto = async (file, type) => {
-    const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
-    const compressedFile = await imageCompression(file, options);
-    
-    // Zabezpieczenie przed znakami specjalnymi w nazwie pliku
+  // === NOWOŚĆ: Funkcja do wgrywania wielu plików (zdjęcia skompresowane, wideo do 20MB) ===
+  const uploadMediaFiles = async (files, type) => {
+    const uploadedUrls = [];
     const safeEmail = userIdentifier.replace(/[^a-zA-Z0-9]/g, '_');
-    const fileName = `${roomData.id}/${safeEmail}_${type}_${Date.now()}.webp`;
+
+    for (let file of files) {
+      let fileToUpload = file;
+      let ext = file.name.split('.').pop() || 'webp';
+
+      if (file.type.startsWith('image/')) {
+        const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1280, useWebWorker: true };
+        fileToUpload = await imageCompression(file, options);
+        ext = 'webp';
+      } else if (file.type.startsWith('video/')) {
+        // Wideo nie kompresujemy w przeglądarce, ale blokujemy gigantyczne pliki
+        if (file.size > 20 * 1024 * 1024) {
+          throw new Error("Plik wideo jest za duży. Maksymalny rozmiar to 20MB (około 10-15 sekund).");
+        }
+      }
+
+      const fileName = `${roomData.id}/${safeEmail}_${type}_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+      
+      const { error } = await supabase.storage.from('room-photos').upload(fileName, fileToUpload, { contentType: fileToUpload.type });
+      if (error) throw error;
+      
+      const { data: publicUrlData } = supabase.storage.from('room-photos').getPublicUrl(fileName);
+      uploadedUrls.push(publicUrlData.publicUrl);
+    }
     
-    const { error } = await supabase.storage.from('room-photos').upload(fileName, compressedFile, { contentType: 'image/webp' });
-    if (error) throw error;
-    
-    const { data: publicUrlData } = supabase.storage.from('room-photos').getPublicUrl(fileName);
-    return publicUrlData.publicUrl;
+    // Zwracamy połączone linki jako jeden string
+    return uploadedUrls.join(','); 
   };
 
-  // === AKCJA WEJŚCIA ===
+  const handleMediaChange = (e) => {
+    setMediaFiles(Array.from(e.target.files));
+  };
+
   const handleCheckIn = async (e) => {
     e.preventDefault();
-    if (!purpose || !photoFile) return alert("Wypełnij cel i zrób zdjęcie.");
+    if (!purpose || mediaFiles.length === 0) return alert("Wypełnij cel i dodaj przynajmniej jedno zdjęcie/wideo.");
     setIsLoading(true);
 
     try {
-        const photoUrl = await uploadPhoto(photoFile, 'checkin');
+        const mediaUrlsString = await uploadMediaFiles(mediaFiles, 'checkin');
         
         const { data, error } = await supabase.from('room_sessions').insert([{
           room_id: roomData.id, 
-          host_id: userIdentifier, // <-- POPRAWIONE
+          host_id: userIdentifier, 
           purpose: purpose, 
-          check_in_photo_url: photoUrl
+          check_in_photo_url: mediaUrlsString // Zapisujemy złączone linki
         }]).select().single();
 
       if (error) throw error;
       alert("Wejście zarejestrowane! Jesteś teraz Gospodarzem sali.");
       setActiveSession(data);
+      setMediaFiles([]); // Resetujemy formularz
     } catch (err) { 
       console.error(err);
-      alert("Błąd podczas zapisywania wejścia."); 
+      alert(err.message || "Błąd podczas zapisywania wejścia."); 
     } finally { 
       setIsLoading(false); 
     }
   };
 
-  // === AKCJA WYJŚCIA ===
   const handleCheckOut = async (e) => {
     e.preventDefault();
-    if (!photoFile) return alert("Musisz zrobić zdjęcie po zakończeniu pracy!");
+    if (mediaFiles.length === 0) return alert("Musisz dodać zdjęcia lub wideo po zakończeniu pracy!");
     if (!checks.trash || !checks.dishes || !checks.lights) return alert("Zaznacz wszystkie pola kontrolne!");
     setIsLoading(true);
 
     try {
-      const photoUrl = await uploadPhoto(photoFile, 'checkout');
+      const mediaUrlsString = await uploadMediaFiles(mediaFiles, 'checkout');
       const { error } = await supabase.from('room_sessions').update({
         check_out_time: new Date().toISOString(), 
-        check_out_photo_url: photoUrl, 
+        check_out_photo_url: mediaUrlsString, // Zapisujemy złączone linki
         checklist_completed: true, 
         status: 'COMPLETED'
       }).eq('id', activeSession.id);
@@ -154,13 +171,12 @@ export default function VerificationPage() {
       window.location.reload(); 
     } catch (err) { 
       console.error(err);
-      alert("Błąd wyjścia."); 
+      alert(err.message || "Błąd wyjścia."); 
     } finally { 
       setIsLoading(false); 
     }
   };
 
-  // === INICJACJA SUKCESJI ===
   const initiateHandover = async () => {
     setIsLoading(true);
     const pin = Math.floor(1000 + Math.random() * 9000).toString(); 
@@ -168,7 +184,7 @@ export default function VerificationPage() {
     try {
       const { data, error } = await supabase.from('session_handovers').insert([{
         original_session_id: activeSession.id, 
-        from_user_id: userIdentifier, // <-- POPRAWIONE
+        from_user_id: userIdentifier, 
         handover_pin: pin
       }]).select().single();
 
@@ -182,7 +198,6 @@ export default function VerificationPage() {
     }
   };
 
-  // POLLING SUKCESJI
   useEffect(() => {
     let interval;
     if (handoverData && handoverData.status === 'PENDING') {
@@ -197,7 +212,6 @@ export default function VerificationPage() {
     return () => clearInterval(interval);
   }, [handoverData]);
 
-  // === PRZEJĘCIE SALI ===
   const acceptHandover = async (e) => {
     e.preventDefault();
     if (enteredPin.length !== 4) return alert("PIN musi mieć 4 cyfry.");
@@ -211,7 +225,7 @@ export default function VerificationPage() {
 
       await supabase.from('session_handovers').update({ 
         status: 'ACCEPTED', 
-        to_user_id: userIdentifier, // <-- POPRAWIONE
+        to_user_id: userIdentifier, 
         resolved_at: new Date().toISOString() 
       }).eq('id', handover.id);
 
@@ -222,7 +236,7 @@ export default function VerificationPage() {
 
       const { data: newSession, error: newSessErr } = await supabase.from('room_sessions').insert([{
         room_id: roomData.id, 
-        host_id: userIdentifier, // <-- POPRAWIONE
+        host_id: userIdentifier, 
         purpose: `Przejęcie sali po: ${occupantName}`, 
         check_in_photo_url: occupiedSession.check_in_photo_url
       }]).select().single();
@@ -240,31 +254,54 @@ export default function VerificationPage() {
     }
   };
 
-  if (isLoading) return <div className="flex h-screen w-full items-center justify-center bg-slate-900 fixed top-0 z-50 text-white font-black uppercase tracking-widest text-xs animate-pulse">Łączenie z serwerem CRA...</div>;
+  if (isLoading) return <div className="flex h-screen w-full items-center justify-center bg-slate-900 fixed top-0 z-50 text-white font-black uppercase tracking-widest text-xs animate-pulse">Przetwarzanie danych CRA...</div>;
 
   return (
     <div className="min-h-screen bg-slate-900 p-4 pt-20 flex flex-col items-center">
       <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl">
         
-        {/* EKRAN 1: SKANOWANIE QR */}
+        {/* ========================================= */}
+        {/* EKRAN 1: SKANOWANIE QR I REGULAMIN */}
+        {/* ========================================= */}
         {!scanResult && (
           <div className="text-center animate-fadeIn">
             <h2 className="text-2xl font-black text-slate-800 mb-2">System Weryfikacji</h2>
             <p className="text-sm font-bold text-slate-500 mb-6 uppercase tracking-widest">Zeskanuj kod QR z drzwi sali</p>
             
+            {/* BOX Z REGULAMINEM */}
+            <div className="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200 text-left">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked={hasAcceptedTerms}
+                  onChange={(e) => setHasAcceptedTerms(e.target.checked)}
+                  className="mt-1 w-5 h-5 accent-indigo-600 rounded shrink-0" 
+                />
+                <span className="text-[10px] md:text-xs font-bold text-slate-600 leading-tight">
+                  Akceptuję Regulamin Korzystania z Przestrzeni Przeznaczonej pod Działalność Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu.
+                </span>
+              </label>
+            </div>
+
             {isScanning ? (
               <div className="rounded-2xl overflow-hidden mb-4 border-4 border-indigo-500 shadow-xl shadow-indigo-900/50">
                 <QrReader onResult={(result) => { if (result) handleScan(result?.text); }} constraints={{ facingMode: 'environment' }} style={{ width: '100%' }} />
               </div>
             ) : (
-              <button onClick={() => setIsScanning(true)} className="w-full bg-indigo-600 text-white py-5 rounded-xl font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition-all">📸 Uruchom Aparat</button>
+              <button 
+                onClick={() => setIsScanning(true)} 
+                disabled={!hasAcceptedTerms}
+                className="w-full bg-indigo-600 text-white py-5 rounded-xl font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:bg-slate-400 disabled:cursor-not-allowed"
+              >
+                📸 Uruchom Aparat
+              </button>
             )}
-            
-           <button onClick={() => handleScan('SSUEW-16J-SECURE-2026')} className="w-full mt-4 bg-slate-100 text-slate-400 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest hover:text-slate-600">Dev: Symuluj skan (Sala 16J)</button> **\
           </div>
         )}
 
-        {/* EKRAN 2: WEJŚCIE */}
+        {/* ========================================= */}
+        {/* EKRAN 2: WEJŚCIE (SALA JEST PUSTA) */}
+        {/* ========================================= */}
         {scanResult && roomData && !activeSession && !occupiedSession && (
           <div className="animate-slideUp">
             <div className="bg-emerald-50 text-emerald-600 p-3 rounded-xl font-black text-center uppercase tracking-widest text-sm mb-6 border border-emerald-200 shadow-sm">
@@ -277,15 +314,28 @@ export default function VerificationPage() {
                 <input type="text" required value={purpose} onChange={e => setPurpose(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl font-bold outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm" placeholder="np. Praca nad Wampiriadą" />
               </div>
               <div className="bg-slate-50 p-5 border border-slate-200 rounded-xl">
-                <label className="block text-[11px] font-black text-slate-700 uppercase mb-3">📸 Zdjęcie stanu sali (Przed pracą)</label>
-                <input type="file" accept="image/*" capture="environment" required onChange={e => setPhotoFile(e.target.files[0])} className="w-full text-sm font-bold text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 transition-all cursor-pointer" />
+                <label className="block text-[11px] font-black text-slate-700 uppercase mb-1">📸 Zdjęcia lub Wideo (Przed pracą)</label>
+                <p className="text-[9px] text-slate-500 mb-3 font-medium">Możesz zaznaczyć kilka zdjęć lub nakręcić wideo (max 20MB).</p>
+                <input 
+                  type="file" 
+                  accept="image/*,video/*" 
+                  multiple 
+                  required 
+                  onChange={handleMediaChange} 
+                  className="w-full text-sm font-bold text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-indigo-100 file:text-indigo-700 hover:file:bg-indigo-200 transition-all cursor-pointer" 
+                />
+                {mediaFiles.length > 0 && (
+                  <p className="mt-3 text-xs font-bold text-indigo-600">Wybrano plików: {mediaFiles.length}</p>
+                )}
               </div>
               <button type="submit" disabled={isLoading} className="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-xl mt-4 active:scale-95 transition-all">Wejdź i weź odpowiedzialność</button>
             </form>
           </div>
         )}
 
+        {/* ========================================= */}
         {/* EKRAN 3: WYJŚCIE LUB PRZEKAZANIE */}
+        {/* ========================================= */}
         {scanResult && roomData && activeSession && (
           <div className="animate-slideUp">
             <div className="bg-blue-50 text-blue-600 p-3 rounded-xl font-black text-center uppercase tracking-widest text-sm mb-6 border border-blue-200 shadow-sm">
@@ -309,8 +359,19 @@ export default function VerificationPage() {
             ) : (
               <form onSubmit={handleCheckOut} className="space-y-5">
                 <div className="bg-slate-50 p-5 border border-slate-200 rounded-xl">
-                  <label className="block text-[11px] font-black text-slate-700 uppercase mb-3">📸 Dowód porządku (Po pracy)</label>
-                  <input type="file" accept="image/*" capture="environment" required onChange={e => setPhotoFile(e.target.files[0])} className="w-full text-sm font-bold text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition-all cursor-pointer" />
+                  <label className="block text-[11px] font-black text-slate-700 uppercase mb-1">📸 Dowód porządku (Po pracy)</label>
+                  <p className="text-[9px] text-slate-500 mb-3 font-medium">Możesz zaznaczyć kilka zdjęć lub nakręcić wideo (max 20MB).</p>
+                  <input 
+                    type="file" 
+                    accept="image/*,video/*" 
+                    multiple 
+                    required 
+                    onChange={handleMediaChange} 
+                    className="w-full text-sm font-bold text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 transition-all cursor-pointer" 
+                  />
+                  {mediaFiles.length > 0 && (
+                    <p className="mt-3 text-xs font-bold text-blue-600">Wybrano plików: {mediaFiles.length}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
@@ -338,7 +399,9 @@ export default function VerificationPage() {
           </div>
         )}
 
+        {/* ========================================= */}
         {/* EKRAN 4: PRZEJĘCIE */}
+        {/* ========================================= */}
         {scanResult && roomData && occupiedSession && (
           <div className="animate-slideUp border-t-4 border-amber-500 pt-6">
             <h3 className="font-black text-slate-800 text-2xl mb-2 leading-tight">Sala jest aktualnie zajęta</h3>
