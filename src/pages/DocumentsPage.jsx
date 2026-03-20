@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 // !!! TUTAJ WKLEJ LINK DO TWOJEGO SKRYPTU BAZY DOKUMENTÓW Z GOOGLE SHEETS !!!
 const DOCS_API_URL = 'https://script.google.com/macros/s/AKfycby06P_0sI4H0PMMrBQgTwp9fF_ftGrNFUMpEdYcWOrQMqPqdsT9-CmbE1Ir-2a1DlldiQ/exec';
 
+// ZBIÓR WSZYSTKICH IKON (Upewnij się, że kopiujesz całość!)
 const Icons = {
   Search: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>,
   Document: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>,
+  File: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>,
   Copy: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" /></svg>,
   External: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
@@ -60,10 +62,8 @@ const Accordion = ({ title, badge, icon, children, isOpen, onClick }) => (
 );
 
 export default function DocumentsPage() {
-  // GŁÓWNY STAN WIDOKU (3 ZAKŁADKI)
   const [activeView, setActiveView] = useState('LEX'); 
 
-  // STANY DLA BAZY LEX
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,14 +77,12 @@ export default function DocumentsPage() {
   const [aiStage, setAiStage] = useState(0);
   const [showQR, setShowQR] = useState(false);
 
-  // STANY DLA STUDIA AI
   const [editorText, setEditorText] = useState('');
   const [aiOutput, setAiOutput] = useState('');
   const [isDrafting, setIsDrafting] = useState(false);
   const aiOutputRef = useRef(null);
 
-  // STANY DLA STREFY WIEDZY (ZAKŁADKA 3)
-  const [knowledgeTab, setKnowledgeTab] = useState('KSIEGA'); // KSIEGA lub KWP
+  const [knowledgeTab, setKnowledgeTab] = useState('KSIEGA'); 
   const [openAccordion, setOpenAccordion] = useState(null);
 
   useEffect(() => {
@@ -129,9 +127,6 @@ export default function DocumentsPage() {
     } catch(e) {}
   };
   
-  // ==========================================
-  // ABSOLUTNY PANCERZ DLA MODALA
-  // ==========================================
   const openModal = (rawDoc) => { 
     if (!rawDoc) return;
     setSelectedDoc(rawDoc); 
@@ -226,9 +221,6 @@ export default function DocumentsPage() {
   const activeDocsCount = documents.filter(d => d.status === 'Obowiązujący').length;
   const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
 
-  // ==========================================
-  // STUDIO LEGISLACYJNE - WZORY
-  // ==========================================
   const simulateAiTyping = (fullText) => {
     setIsDrafting(true);
     setAiOutput('');
@@ -277,7 +269,6 @@ export default function DocumentsPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
-      {/* NAGŁÓWEK GŁÓWNY */}
       <div className="max-w-7xl mx-auto mb-8 text-center md:text-left animate-fadeIn">
         <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest mb-4 transition-colors">
           <span>← Wróć do Dashboardu</span>
@@ -305,12 +296,8 @@ export default function DocumentsPage() {
 
       <div className="max-w-7xl mx-auto">
         
-        {/* ==================================================== */}
-        {/* STREFA EDUKACYJNA I SZABLONY (BANERY) */}
-        {/* ==================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 animate-fadeIn">
           
-          {/* BANER PRZENOSZĄCY DO ZAKŁADKI KNOWLEDGE */}
           <div onClick={() => setActiveView('KNOWLEDGE')} className="cursor-pointer lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-700 to-violet-800 rounded-[2rem] p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-900/20 transition-all hover:-translate-y-1 block isolate">
             <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
             
@@ -335,7 +322,6 @@ export default function DocumentsPage() {
             </div>
           </div>
 
-          {/* SZYBKIE SZABLONY (Pobieranie Worda) */}
           <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Icons.Download /> Szybkie Szablony (Word)
@@ -367,12 +353,8 @@ export default function DocumentsPage() {
               </a>
             </div>
           </div>
-
         </div>
 
-        {/* ==================================================== */}
-        {/* GŁÓWNA NAWIGACJA ZAKŁADEK (3 OPCJE) */}
-        {/* ==================================================== */}
         <div className="mb-6 flex flex-wrap gap-6 border-b border-slate-200">
           <button onClick={() => setActiveView('LEX')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all ${activeView === 'LEX' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             📚 Baza Aktów Prawnych
@@ -385,9 +367,6 @@ export default function DocumentsPage() {
           </button>
         </div>
 
-        {/* ==================================================== */}
-        {/* WIDOK 1: LEX BAZA */}
-        {/* ==================================================== */}
         {activeView === 'LEX' && (
           <div className="max-w-7xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
             <div className="p-6 border-b border-slate-100">
@@ -470,9 +449,6 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* ==================================================== */}
-        {/* WIDOK 2: STUDIO LEGISLACYJNE */}
-        {/* ==================================================== */}
         {activeView === 'STUDIO' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
             <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[850px] overflow-hidden">
@@ -515,7 +491,6 @@ export default function DocumentsPage() {
                    Wybierz oficjalny szablon pisma do władz Uczelni. W każdym z nich zaszyłem już wymagane przez konkretnych dyrektorów paragrafy (BHP, oświadczenia itd.).
                  </div>
 
-                 {/* GRUPA 1: DO PROREKTORA */}
                  <div>
                    <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Do Prorektora ds. Studenckich</span>
                    <div className="grid grid-cols-1 gap-2">
@@ -543,7 +518,6 @@ export default function DocumentsPage() {
                    </div>
                  </div>
 
-                 {/* GRUPA 2: DO KANCLERZA */}
                  <div>
                    <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3">Do Zastępcy Kanclerza (Administracja)</span>
                    <div className="grid grid-cols-1 gap-2">
@@ -606,7 +580,6 @@ export default function DocumentsPage() {
                    <span className="text-blue-400 group-hover:text-blue-300 transition-colors"><Icons.ArrowRight /></span>
                  </button>
 
-                 {/* Odpowiedź AI (Pisanie) */}
                  {aiOutput && (
                    <div className="mt-4 animate-slideUp">
                       <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -635,7 +608,6 @@ export default function DocumentsPage() {
         {activeView === 'KNOWLEDGE' && (
           <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
             
-            {/* Nagłówek i Toggle */}
             <div className="bg-slate-50 border-b border-slate-100 p-8 md:p-10 text-center relative overflow-hidden">
               <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-amber-100 rounded-full blur-3xl opacity-50"></div>
               <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
@@ -647,7 +619,7 @@ export default function DocumentsPage() {
                 <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6">Centrum Wiedzy SSUEW</h2>
                 
                 <div className="flex justify-center mt-4">
-                  <div className="flex bg-slate-200/50 p-1.5 rounded-2xl shadow-inner border border-slate-200">
+                  <div className="flex bg-slate-200/50 p-1.5 rounded-2xl shadow-inner border border-slate-200 flex-wrap justify-center">
                     <button 
                       onClick={() => setKnowledgeTab('KSIEGA')}
                       className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-2 ${knowledgeTab === 'KSIEGA' ? 'bg-white text-indigo-700 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
@@ -667,7 +639,6 @@ export default function DocumentsPage() {
 
             <div className="p-6 md:p-10">
               
-              {/* === ZAWARTOŚĆ: KSIĘGA DOKUMENTÓW === */}
               {knowledgeTab === 'KSIEGA' && (
                 <div className="space-y-4 animate-fadeIn max-w-4xl mx-auto">
                   <p className="text-slate-500 mb-8 font-medium text-center">Oficjalny zbiór zasad dotyczących formatowania, marginesów, nazewnictwa plików i cyklu życia dokumentów obowiązujących w całej organizacji.</p>
@@ -750,7 +721,6 @@ export default function DocumentsPage() {
                 </div>
               )}
 
-              {/* === ZAWARTOŚĆ: AKADEMIA PROTOKOLANTA (KWP) === */}
               {knowledgeTab === 'KWP' && (
                 <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -861,20 +831,15 @@ export default function DocumentsPage() {
 
       </div>
 
-      {/* MODAL LEX (Pozostaje bez zmian dla zakładki Bazy Aktów) */}
-      {/* ... Reszta modalu ... */}
       {safeModalData && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDoc(null)}></div>
-           
            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh] animate-bounceIn overflow-hidden border border-slate-100">
-             
              {copiedAlert && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-5 py-2.5 rounded-full text-xs font-bold shadow-xl z-50 flex items-center gap-2 animate-slideDown">
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span> {copiedAlert}
                 </div>
              )}
-
              <div className="p-8 pb-6 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
                <div className="pr-6">
                   <div className="flex items-center gap-3 mb-2">
@@ -882,123 +847,67 @@ export default function DocumentsPage() {
                     <span className="w-1 h-1 rounded-full bg-slate-200"></span>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeModalData.category}</p>
                   </div>
-                  <h2 className={`text-2xl font-black leading-tight ${safeModalData.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
-                    {safeModalData.title}
-                  </h2>
+                  <h2 className={`text-2xl font-black leading-tight ${safeModalData.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>{safeModalData.title}</h2>
                </div>
-               <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors">
-                  <Icons.Close />
-               </button>
+               <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"><Icons.Close /></button>
              </div>
-
              <div className="p-8 overflow-y-auto bg-slate-50/50 flex-grow">
-                
                 <div className="flex flex-wrap gap-3 mb-6">
-                  <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}>
-                    <Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}
-                  </button>
-                  <button onClick={() => handleCopyCitation(safeModalData.signature, safeModalData.title, safeModalData.issuer, safeModalData.date)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-                    <Icons.Copy /> Skopiuj przypis
-                  </button>
-                  <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm">
-                    <Icons.QR /> Kod QR do druku
-                  </button>
+                  <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}><Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}</button>
+                  <button onClick={() => handleCopyCitation(safeModalData.signature, safeModalData.title, safeModalData.issuer, safeModalData.date)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.Copy /> Skopiuj przypis</button>
+                  <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.QR /> Kod QR do druku</button>
                 </div>
-
                 {isAiActive && (
                   <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
                     <div className="space-y-3">
-                      <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4">
-                         <span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span>
-                         <span className="text-emerald-400 font-bold">{aiProgress}%</span>
-                      </div>
+                      <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4"><span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span><span className="text-emerald-400 font-bold">{aiProgress}%</span></div>
                       <div className="text-slate-500 text-xs tracking-widest mb-4">[{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]</div>
                       {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
                       {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
                       {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
                       {aiStage === 4 && (
                         <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-1 md:grid-cols-3 gap-4 animate-slideUp">
-                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                             <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span>
-                             <span className="font-bold text-white">{aiReportData.target}</span>
-                           </div>
-                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                             <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span>
-                             <span className={`font-bold flex items-center gap-1 ${aiReportData.rigorColor}`}><Icons.Shield /> {aiReportData.rigor}</span>
-                           </div>
-                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                             <span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas</span>
-                             <span className="font-bold text-sky-400 flex items-center gap-1"><Icons.Timer /> ok. {aiReportData.readTime} min</span>
-                           </div>
+                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span><span className="font-bold text-white">{aiReportData.target}</span></div>
+                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span><span className={`font-bold flex items-center gap-1 ${aiReportData.rigorColor}`}><Icons.Shield /> {aiReportData.rigor}</span></div>
+                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Szacowany Czas</span><span className="font-bold text-sky-400 flex items-center gap-1"><Icons.Timer /> ok. {aiReportData.readTime} min</span></div>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
-
                 {showQR && (
                   <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
-                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl">
-                      <img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeModalData.link)}`} alt="QR Code" className="w-32 h-32" />
-                    </div>
+                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeModalData.link)}`} alt="QR Code" className="w-32 h-32" /></div>
                   </div>
                 )}
-
                 <div className="mb-8">
                   <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
-                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
-                    <p className="text-slate-600 text-sm leading-relaxed">{safeModalData.desc}</p>
-                  </div>
+                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-slate-600 text-sm leading-relaxed">{safeModalData.desc}</p></div>
                 </div>
-
                 {safeModalData.attachments && safeModalData.attachments.length > 0 && (
                   <div className="mb-8">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-                      <Icons.Paperclip /> Powiązane Załączniki
-                    </h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2"><Icons.Paperclip /> Powiązane Załączniki</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {safeModalData.attachments.map((att, idx) => (
-                        <a key={idx} href={att.link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group">
-                          <div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div>
-                          <span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{att.name}</span>
-                        </a>
+                        <a key={idx} href={att.link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group"><div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div><span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{att.name}</span></a>
                       ))}
                     </div>
                   </div>
                 )}
-
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span>
-                    <span className="font-bold text-slate-800 text-sm">{safeModalData.date}</span>
-                  </div>
-                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span>
-                    <button onClick={() => handleCopyLink(safeModalData.link)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button>
-                  </div>
-                  <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span>
-                    <span className="font-bold text-slate-800 text-sm">{safeModalData.issuer}</span>
-                  </div>
-                  
+                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span><span className="font-bold text-slate-800 text-sm">{safeModalData.date}</span></div>
+                  <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span><button onClick={() => handleCopyLink(safeModalData.link)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button></div>
+                  <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span><span className="font-bold text-slate-800 text-sm">{safeModalData.issuer}</span></div>
                   {safeModalData.repeals && (
-                    <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span>
-                      <span className="font-bold text-rose-700 text-sm">{safeModalData.repeals}</span>
-                    </div>
+                    <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span><span className="font-bold text-rose-700 text-sm">{safeModalData.repeals}</span></div>
                   )}
                 </div>
-
              </div>
-             
              <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-                <a href={safeModalData.link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">
-                  Otwórz oryginał dokumentu <Icons.External />
-                </a>
+                <a href={safeModalData.link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">Otwórz oryginał dokumentu <Icons.External /></a>
              </div>
-
            </div>
         </div>
       )}
