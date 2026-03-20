@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 // !!! TUTAJ WKLEJ LINK DO TWOJEGO SKRYPTU BAZY DOKUMENTÓW Z GOOGLE SHEETS !!!
 const DOCS_API_URL = 'https://script.google.com/macros/s/AKfycby06P_0sI4H0PMMrBQgTwp9fF_ftGrNFUMpEdYcWOrQMqPqdsT9-CmbE1Ir-2a1DlldiQ/exec';
 
-// ZBIÓR WSZYSTKICH IKON (Upewnij się, że kopiujesz całość!)
 const Icons = {
   Search: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>,
   Document: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>,
@@ -639,27 +638,24 @@ export default function DocumentsPage() {
 
             <div className="p-6 md:p-10">
               
+              {/* === ZAWARTOŚĆ: KSIĘGA DOKUMENTÓW (NOWA WERSJA) === */}
               {knowledgeTab === 'KSIEGA' && (
                 <div className="space-y-4 animate-fadeIn max-w-4xl mx-auto">
                   <p className="text-slate-500 mb-8 font-medium text-center">Oficjalny zbiór zasad dotyczących formatowania, marginesów, nazewnictwa plików i cyklu życia dokumentów obowiązujących w całej organizacji.</p>
                   
                   <Accordion title="Rozdział I: Konstytucja Dokumentów" badge="Fundamenty" icon={<Icons.Shield />} isOpen={openAccordion === 'rozdzial1'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial1' ? null : 'rozdzial1')}>
                     <h4 className="font-bold text-slate-800 mb-2">§1. Cel i zakres obowiązywania</h4>
-                    <p className="mb-3 text-slate-600">Istotą Księgi jest zapewnienie spójnego wyglądu dokumentów SSUEW. Obejmuje wszystkie dokumenty (uchwały, protokoły, zaświadczenia). Stosowanie Księgi jest <strong>obowiązkowe</strong>. Dokumenty niespełniające wymogów podlegają zwrotowi do poprawy przez System Weryfikacji.</p>
+                    <p className="mb-3 text-slate-600">Istotą Księgi jest zapewnienie spójnego wyglądu dokumentów SSUEW. Wdrożenie przedmiotowych standardów ma na celu kategoryczne ograniczenie uchybień formalnych. Stosowanie norm jest <strong>obligatoryjne</strong> dla wszystkich organów.</p>
                     
-                    <h4 className="font-bold text-slate-800 mt-4 mb-2">§2. Podstawy formalne i nazewnictwo</h4>
+                    <h4 className="font-bold text-slate-800 mt-4 mb-2">§3. Nomenklatura i tożsamość prawna</h4>
                     <ul className="list-disc pl-5 space-y-1 mb-3 text-slate-600">
                       <li><strong>Pełna nazwa polska:</strong> Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.</li>
                       <li><strong>Skrócona nazwa polska:</strong> SSUEW.</li>
                       <li><strong>Pełna nazwa angielska:</strong> Student Government of Wroclaw University of Economics and Business.</li>
                     </ul>
-                    <p className="text-slate-600">Zabrania się tworzenia form błędnych (np. "Samorząd Studencki UEW", "Przewodniczący Rady SSUEW").</p>
-
-                    <h4 className="font-bold text-slate-800 mt-4 mb-2">§3. Własność i odstępstwa</h4>
-                    <p className="text-slate-600">Właścicielem dokumentu jest Członek Zarządu ds. Administracji. Wszelkie wyjątki od zasad są niedozwolone bez jego pisemnej zgody.</p>
                   </Accordion>
 
-                  <Accordion title="Rozdział II: Architektura i WCAG" badge="Typografia" icon={<Icons.Pen />} isOpen={openAccordion === 'rozdzial2'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial2' ? null : 'rozdzial2')}>
+                  <Accordion title="Rozdział II: Architektura i Typografia" badge="Typografia" icon={<Icons.Pen />} isOpen={openAccordion === 'rozdzial2'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial2' ? null : 'rozdzial2')}>
                     <h4 className="font-bold text-slate-800 mb-2">§5. Format i siatka</h4>
                     <ul className="list-disc pl-5 space-y-1 mb-4 text-slate-600">
                       <li><strong>Format:</strong> A4 (210 x 297 mm)</li>
@@ -667,62 +663,89 @@ export default function DocumentsPage() {
                       <li><strong>Układ:</strong> Jednokolumnowy. Akty normatywne mają lewy margines redakcyjny (35 mm).</li>
                     </ul>
 
-                    <h4 className="font-bold text-slate-800 mb-2">§6. Typografia i Skład</h4>
-                    <ul className="list-disc pl-5 space-y-1 mb-4 text-slate-600">
-                      <li><strong>Font:</strong> Calibri lub Lato (Treść: 11 pt).</li>
-                      <li><strong>H1 (Tytuły):</strong> 18 pt, Bold. <strong>H2:</strong> 14 pt, Bold.</li>
-                      <li><strong>Światło:</strong> Interlinia 1,15. Odstępy: 12 pt przed nagłówkiem, 6 pt po.</li>
-                      <li><strong>Sieroty:</strong> Bezwzględny zakaz "w", "z", "i" na końcu linii (używaj twardej spacji).</li>
-                    </ul>
+                    <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-4">
+                      <p className="font-bold text-indigo-900 mb-1">§6. Typografia bazowa (Żelazna Reguła)</p>
+                      <p className="text-indigo-800 text-sm">Urzędowym i <strong>jedynym dopuszczalnym</strong> krojem pisma dla wszelkiej dokumentacji oficjalnej SSUEW jest czcionka <strong>Times New Roman</strong>.</p>
+                      <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-indigo-800">
+                        <li><strong>Treść:</strong> 12 pt, Standard.</li>
+                        <li><strong>H1 (Tytuły):</strong> 18 pt, Bold. <strong>H2:</strong> 14 pt, Bold. <strong>H3:</strong> 12 pt, Bold.</li>
+                      </ul>
+                    </div>
 
-                    <h4 className="font-bold text-slate-800 mb-2">§8. Dostępność cyfrowa</h4>
-                    <p className="text-slate-600">Obowiązkowa numeracja stron. Każda grafika musi posiadać tekst alternatywny (alt-text).</p>
+                    <h4 className="font-bold text-slate-800 mb-2">§7. Skład i łamanie tekstu</h4>
+                    <p className="text-slate-600">Obowiązuje interlinia 1,15 (lub 1,5). Zakazuje się pozostawiania pojedynczych znaków (tzw. sierot) na końcu wersów – wady te należy korygować twardą spacją (Shift+Enter).</p>
                   </Accordion>
 
-                  <Accordion title="Rozdział III: Pieczęcie i Podpisy" badge="Autoryzacja" icon={<Icons.Hardware />} isOpen={openAccordion === 'rozdzial3'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial3' ? null : 'rozdzial3')}>
-                    <h4 className="font-bold text-slate-800 mb-2">§9. Nienaruszalność stopek</h4>
-                    <p className="text-slate-600 mb-4">Nagłówki i stopki w szablonach są zablokowane. Zabrania się usuwania logo, zmiany proporcji oraz adresu (ul. Komandorska 118/120).</p>
-
-                    <h4 className="font-bold text-slate-800 mb-2">§10. Bloki podpisu</h4>
+                  <Accordion title="Rozdział III: Pieczęcie i Autoryzacja" badge="Autoryzacja" icon={<Icons.Hardware />} isOpen={openAccordion === 'rozdzial3'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial3' ? null : 'rozdzial3')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§8. Bloki podpisu</h4>
                     <p className="text-slate-600 mb-4">Obowiązuje układ: <strong>Imię Nazwisko - Funkcja - Organ</strong>. Podpis osoby o najwyższej randze zawsze po prawej stronie.</p>
 
-                    <h4 className="font-bold text-slate-800 mb-2">§11-12. Pieczęcie i e-podpisy</h4>
-                    <p className="text-slate-600">Umowy wymagają "pieczęci na wąsie". Dopuszcza się i rekomenduje podpisy elektroniczne (ePUAP, Kwalifikowane) - nie trzeba ich wtedy drukować.</p>
+                    <h4 className="font-bold text-slate-800 mb-2">§9. Gospodarka pieczęciami</h4>
+                    <p className="text-slate-600">Pieczęć nagłówkowa (podłużna) przystawiana jest w lewym górnym rogu dokumentów wychodzących. Umowy wymagają "pieczęci na wąsie".</p>
                   </Accordion>
 
                   <Accordion title="Rozdział IV: Lingwistyka Urzędowa" badge="Słownik" icon={<Icons.Book />} isOpen={openAccordion === 'rozdzial4'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial4' ? null : 'rozdzial4')}>
-                    <h4 className="font-bold text-slate-800 mb-2">§13. Tone of Voice</h4>
-                    <p className="text-slate-600 mb-4">Pisma do Władz: język ściśle formalny. Do studentów: dynamiczny i skracający dystans. Akty normatywne: suchy język prawniczy.</p>
+                    <h4 className="font-bold text-slate-800 mb-2">§10. Tone of Voice</h4>
+                    <p className="text-slate-600 mb-4">Pisma do Władz Rektorskich i administracji kategorycznie wymagają najwyższego standardu języka formalnego. Akty normatywne winny charakteryzować się precyzją i brakiem ozdobników.</p>
 
-                    <h4 className="font-bold text-slate-800 mb-2">§14. Zapisy i Kwoty</h4>
-                    <p className="text-slate-600 mb-4">Daty: <em>9 marca 2026 r.</em> Kwoty: ze skrótem waluty (<em>1500,00 PLN</em>), w umowach z dopiskiem słownym.</p>
-
-                    <h4 className="font-bold text-slate-800 mb-2">§16. Akty Normatywne</h4>
-                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-800 italic text-sm mb-2">
-                      "Na podstawie art. [X] ust. [Y] Regulaminu Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu, uchwala się / zarządza się, co następuje:"
-                    </div>
-                    <p className="text-slate-600">Struktura: Paragraf (§), Ustęp (ust.), Punkt (pkt), Litera (lit.).</p>
+                    <h4 className="font-bold text-slate-800 mb-2">§11. Zapis dat i kwot</h4>
+                    <p className="text-slate-600">Daty: <em>9 marca 2026 r.</em> Kwoty w umowach należy podawać liczbowo z walutą oraz uzupełniać zapisem słownym w nawiasie.</p>
                   </Accordion>
 
-                  <Accordion title="Rozdział V i VI: Cykl Życia" badge="System Weryfikacji" icon={<Icons.Check />} isOpen={openAccordion === 'rozdzial5'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial5' ? null : 'rozdzial5')}>
-                    <h4 className="font-bold text-slate-800 mb-2">§18-20. Macierz Szablonów</h4>
-                    <p className="text-slate-600 mb-4">A: Normatywne (Uchwały), B: Operacyjne (Protokoły), C: Finansowe (Kosztorysy), D: Wizerunkowe (Pisma z logo), E: Prawne (Umowy RODO).</p>
+                  <Accordion title="Rozdział V: Katalog Administracja i Projekty" badge="Katalog Aktów" icon={<Icons.Document />} isOpen={openAccordion === 'rozdzial5'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial5' ? null : 'rozdzial5')}>
+                    <p className="text-slate-600 mb-4"><strong>§12.</strong> Sekcja obejmuje wszelkie dokumenty regulujące wewnętrzne funkcjonowanie organizacji oraz wymianę pism z Władzami. Ustalony katalog:</p>
+                    <ul className="list-[square] pl-8 space-y-2 text-slate-600">
+                      <li><strong>Podania (każdej maści):</strong> m.in. o zwolnienie z zajęć, organizację wydarzenia, udostępnienie sali, rozwieszenie plakatów, banery, wjazd na kampus, stoiska, grille, umeblowanie.</li>
+                      <li><strong>Akty Normatywne (wszystkie):</strong> Uchwały Zarządu, Uchwały RUSS, Zarządzenia Przewodniczącego, Regulaminy, Ordynacje.</li>
+                      <li><strong>Korespondencja:</strong> Pisma Przewodnie, Listy Intencyjne.</li>
+                      <li><strong>Akty Operacyjne:</strong> Pełnomocnictwa, Zaświadczenia, Klauzule RODO.</li>
+                      <li><strong>Obieg Informacji:</strong> Protokoły (RUSS, SKS, Absolutoryjne) oraz Raporty.</li>
+                    </ul>
+                  </Accordion>
 
-                    <h4 className="font-bold text-slate-800 mb-2">§21. System Weryfikacji (SWD)</h4>
-                    <ol className="list-decimal pl-5 space-y-1 mb-4 text-slate-600">
-                      <li><strong>Autokontrola:</strong> Twórca sprawdza literówki.</li>
-                      <li><strong>Weryfikacja Formalna:</strong> Administracja sprawdza zgodność z Księgą.</li>
-                      <li><strong>Akceptacja:</strong> Dokument trafia do podpisu i rejestru.</li>
+                  <Accordion title="Rozdział VI: Katalog Finanse (Wyłączenia)" badge="Wyłączenia Prawne" icon={<Icons.Document />} isOpen={openAccordion === 'rozdzial6'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial6' ? null : 'rozdzial6')}>
+                    <div className="bg-rose-50 border-l-4 border-rose-800 p-4 mb-4">
+                      <p className="font-bold text-rose-900 text-sm">Klauzula Odrębności Prawnej</p>
+                      <p className="text-rose-800 text-xs">Dokumentacja finansowo-księgowa podlega wymogom Prawa Finansów Publicznych i Zarządzeniom Kwestora UEW. Księga <strong>nie narzuca im formy wizualnej</strong>. Obowiązujące wzory należy pobierać z LEX UEW.</p>
+                    </div>
+                    <ul className="list-[square] pl-8 space-y-1 text-slate-600 text-sm">
+                      <li>Budżet Główny, Prowizoria, Sprawozdania Budżetowe, Wnioski Grantowe.</li>
+                      <li>Wniosek o Zgodę na Wydatek, Zamówienia (Usługi/Komputery), Wyjaśnienia do Zakupu.</li>
+                      <li>Umowy Zlecenia / o Dzieło, Rachunki do Umów Zlecenia.</li>
+                      <li>Karta Przekazania Danych (autowypłaty), Zlecenia Podróży, Rozchód Wewnętrzny.</li>
+                      <li>Faktury, Noty Korygujące, Centralny Rejestr Faktur.</li>
+                    </ul>
+                  </Accordion>
+
+                  <Accordion title="Rozdział VII: Katalog Fundacja" badge="Katalog Aktów" icon={<Icons.Document />} isOpen={openAccordion === 'rozdzial7'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial7' ? null : 'rozdzial7')}>
+                    <p className="text-slate-600 mb-4"><strong>§17. Akty Sektora Pozarządowego</strong><br/>Gdy podmiotem reprezentującym interesy jest Fundacja przy UEW, obowiązuje odrębna ścieżka:</p>
+                    <ul className="list-[square] pl-8 space-y-2 text-slate-600">
+                      <li><strong>Kontraktacja:</strong> Umowa Barterowa, Finansowa, Mieszana, Formularze Zamówień.</li>
+                      <li><strong>Realizacja:</strong> Protokół Realizacji Świadczeń Sponsorskich.</li>
+                      <li><strong>Kadry:</strong> Umowy Zlecenia / o Dzieło z funduszy Fundacji.</li>
+                      <li><strong>Księgowość:</strong> Opisy Faktur Fundacyjnych, Noty Korygujące.</li>
+                    </ul>
+                  </Accordion>
+
+                  <Accordion title="Rozdział VIII: System Weryfikacji (SWD)" badge="System Weryfikacji" icon={<Icons.Check />} isOpen={openAccordion === 'rozdzial8'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial8' ? null : 'rozdzial8')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§18. Nomenklatura Archiwalna</h4>
+                    <code className="block bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs mb-4">RRRR-MM-DD_TypDokumentu_Organ_SygnaturaWewnetrzna</code>
+                    
+                    <h4 className="font-bold text-slate-800 mb-2">§19. Etapy SWD</h4>
+                    <ol className="list-[upper-roman] pl-8 space-y-2 text-slate-600">
+                      <li><strong>Autokontrola (Wnioskodawca):</strong> Twórca sprawdza redakcję i wymuszoną czcionkę (Times New Roman).</li>
+                      <li><strong>Nadzór Formalny (Administracja):</strong> Badanie zgodności z Księgą. Plik wadliwy zostaje odrzucony.</li>
+                      <li><strong>Akceptacja i Kodyfikacja:</strong> Dokument po wizycie formalnej trafia do podpisu i Rejestru Prawa SSUEW.</li>
                     </ol>
-
-                    <h4 className="font-bold text-slate-800 mb-2">§22. Nomenklatura Plików</h4>
-                    <code className="block bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs">2026-03-09_Uchwala_Zarzad_Nr12.pdf</code>
                   </Accordion>
                 </div>
               )}
 
+              {/* === ZAWARTOŚĆ: AKADEMIA PROTOKOLANTA (KWP) === */}
               {knowledgeTab === 'KWP' && (
                 <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto">
+                  
+                  {/* Karty Warsztatowe KWP */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100">
                       <div className="w-12 h-12 bg-white text-amber-600 shadow-sm rounded-xl flex items-center justify-center mb-6"><Icons.Hardware /></div>
@@ -767,12 +790,18 @@ export default function DocumentsPage() {
                     </div>
                   </div>
 
+                  {/* Anatomia Protokołów z WZORAMI */}
                   <div className="space-y-4 mt-8">
-                    <p className="text-slate-500 mb-6 font-medium text-center">Każde spotkanie ma inny ciężar gatunkowy. Poniżej znajdziesz wytyczne dla 5 kluczowych typów dokumentów. Wybierz panel, aby rozwinąć szczegóły.</p>
+                    <p className="text-slate-500 mb-6 font-medium text-center">Każde spotkanie ma inny ciężar gatunkowy. Poniżej znajdziesz wytyczne dla 5 kluczowych typów dokumentów oraz oficjalne Szablony.</p>
                     
                     <Accordion title="Raport Projektowy (Team Meeting)" badge="Operacyjne" icon={<Icons.File />} isOpen={openAccordion === 'raport'} onClick={() => setOpenAccordion(openAccordion === 'raport' ? null : 'raport')}>
+                      <div className="mb-4">
+                        <a href="#" className="inline-flex items-center gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                          <Icons.Download /> Pobierz Wzór Raportu
+                        </a>
+                      </div>
                       <p className="mb-4 text-slate-700 font-medium">To najlżejsza forma. Raport ma być krótki, zwięzły i służyć szybkiej wymianie informacji w zespole.</p>
-                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500 text-slate-600">
                         <li><strong>Nagłówek:</strong> Nazwa projektu, data spotkania oraz lista uczestników.</li>
                         <li><strong>Podsumowanie Działań:</strong> Konkretne wypunktowanie "zrobionego" z podziałem na osoby.</li>
                         <li><strong>Plany na tydzień:</strong> Action points, czyli jasne przypisanie zadań na kolejne dni.</li>
@@ -781,8 +810,13 @@ export default function DocumentsPage() {
                     </Accordion>
 
                     <Accordion title="Protokół SKS (Spotkanie Komisji)" badge="Ewaluacyjne" icon={<Icons.File />} isOpen={openAccordion === 'sks'} onClick={() => setOpenAccordion(openAccordion === 'sks' ? null : 'sks')}>
+                      <div className="mb-4">
+                        <a href="#" className="inline-flex items-center gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                          <Icons.Download /> Pobierz Wzór Protokołu SKS
+                        </a>
+                      </div>
                       <p className="mb-4 text-slate-700 font-medium">SKS to serce operacyjne. Protokół monitoruje bieżące projekty i służy edukacji zespołu.</p>
-                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500 text-slate-600">
                         <li><strong>Metryczka:</strong> Numer sprawy, dokładna data, miejsce i czas.</li>
                         <li><strong>Status projektów:</strong> Krótkie raporty o działających projektach.</li>
                         <li>
@@ -795,8 +829,13 @@ export default function DocumentsPage() {
                     </Accordion>
 
                     <Accordion title="Protokół RUSS (Rada Uczelniana)" badge="Legislacyjne" icon={<Icons.File />} isOpen={openAccordion === 'russ'} onClick={() => setOpenAccordion(openAccordion === 'russ' ? null : 'russ')}>
+                      <div className="mb-4">
+                        <a href="#" className="inline-flex items-center gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                          <Icons.Download /> Pobierz Wzór Protokołu RUSS
+                        </a>
+                      </div>
                       <p className="mb-4 text-slate-700 font-medium">Wchodzimy na poziom legislacyjny. Protokół musi być rygorystyczny, suchy i faktograficzny.</p>
-                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500 text-slate-600">
                         <li><strong>Otwarcie obrad:</strong> Stwierdzenie prawomocności obrad (quorum) na podstawie obecności.</li>
                         <li><strong>Lista obecności:</strong> Imienna tabela z zaznaczeniem obecności każdego Radnego.</li>
                         <li>
@@ -806,8 +845,13 @@ export default function DocumentsPage() {
                     </Accordion>
 
                     <Accordion title="Protokół z Absolutorium" badge="Roczne" icon={<Icons.File />} isOpen={openAccordion === 'absolutorium'} onClick={() => setOpenAccordion(openAccordion === 'absolutorium' ? null : 'absolutorium')}>
+                      <div className="mb-4">
+                        <a href="#" className="inline-flex items-center gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                          <Icons.Download /> Pobierz Wzór Protokołu Absolutoryjnego
+                        </a>
+                      </div>
                       <p className="mb-4 text-slate-700 font-medium">Najważniejszy dokument w kadencji. Dowód oceny działalności Samorządu.</p>
-                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500 text-slate-600">
                         <li><strong>Sprawozdania Osobowe:</strong> Cele strategiczne, podjęte działania i twarde liczby osoby funkcyjnej.</li>
                         <li><strong>Panel Q&A:</strong> Zapis dyskusji wskazujący Radnego pytającego i odpowiedź (w 3. osobie).</li>
                         <li><strong>Wynik Absolutorium:</strong> Werdykt ogłoszony przez Komisję Skrutacyjną.</li>
@@ -815,8 +859,13 @@ export default function DocumentsPage() {
                     </Accordion>
 
                     <Accordion title="Standard KPUE (Forum)" badge="Zewnętrzne" icon={<Icons.File />} isOpen={openAccordion === 'kpue'} onClick={() => setOpenAccordion(openAccordion === 'kpue' ? null : 'kpue')}>
+                      <div className="mb-4">
+                        <a href="#" className="inline-flex items-center gap-2 text-amber-600 font-bold text-xs bg-amber-50 px-3 py-2 rounded-lg border border-amber-200 hover:bg-amber-100 transition-colors shadow-sm">
+                          <Icons.Download /> Pobierz Wzór Protokołu FUE
+                        </a>
+                      </div>
                       <p className="mb-4 text-slate-700 font-medium">Wizytówka Samorządu na wyjazdach. Wymaga ścisłego trzymania się standardów FUE.</p>
-                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500 text-slate-600">
                         <li><strong>Wyróżnienia:</strong> Punkty obrad oraz imiona/funkcje wypowiadających się <strong>bezwzględnie pogrubione</strong>.</li>
                         <li><strong>Tabele Głosowań:</strong> Kolumny: <em>Ilość głosujących</em>, <em>Ważne</em>, <em>Za</em>, <em>Wstrzymane</em>, <em>Przeciw</em>.</li>
                         <li><strong>Komentarze techniczne:</strong> Przerwy zapisujemy <span className="italic">wyśrodkowaną kursywą</span> z dokładną godziną.</li>
