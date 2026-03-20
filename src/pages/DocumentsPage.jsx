@@ -16,9 +16,12 @@ const Icons = {
   Paperclip: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" /></svg>,
   Pen: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" /></svg>,
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" /></svg>,
-  Check: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>,
+  Check: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>,
   QR: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" /><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" /></svg>,
-  Download: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+  Download: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>,
+  Book: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" /></svg>,
+  Hardware: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25zm.75-12h9v9h-9v-9z" /></svg>,
+  ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
 };
 
 const CATEGORY_STYLES = {
@@ -29,7 +32,35 @@ const CATEGORY_STYLES = {
   'Default': { icon: '⚖️', ring: 'ring-slate-100', text: 'text-slate-700' }
 };
 
+// === KOMPONENT AKORDEONU DLA WIEDZY ===
+const Accordion = ({ title, badge, icon, children, isOpen, onClick }) => (
+  <div className={`border border-slate-200 rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'bg-white shadow-xl shadow-amber-900/5 ring-1 ring-amber-500/20' : 'bg-slate-50 hover:bg-white hover:shadow-md'}`}>
+    <button onClick={onClick} className="w-full flex items-center justify-between p-5 md:p-6 text-left focus:outline-none">
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-colors ${isOpen ? 'bg-amber-100 text-amber-600' : 'bg-white border border-slate-200 text-slate-400'}`}>
+          {icon}
+        </div>
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">{badge}</span>
+          </div>
+          <h3 className={`text-lg font-black transition-colors ${isOpen ? 'text-slate-900' : 'text-slate-700'}`}>{title}</h3>
+        </div>
+      </div>
+      <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${isOpen ? 'bg-amber-50 text-amber-600 rotate-180' : 'bg-slate-100 text-slate-400'}`}>
+        <Icons.ChevronDown />
+      </div>
+    </button>
+    <div className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+      <div className="overflow-hidden">
+        <div className="p-5 md:p-6 pt-0 border-t border-slate-100 text-slate-600 text-sm leading-relaxed">{children}</div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function DocumentsPage() {
+  // GŁÓWNY STAN WIDOKU (3 ZAKŁADKI)
   const [activeView, setActiveView] = useState('LEX'); 
 
   // STANY DLA BAZY LEX
@@ -51,6 +82,10 @@ export default function DocumentsPage() {
   const [aiOutput, setAiOutput] = useState('');
   const [isDrafting, setIsDrafting] = useState(false);
   const aiOutputRef = useRef(null);
+
+  // STANY DLA STREFY WIEDZY (ZAKŁADKA 3)
+  const [knowledgeTab, setKnowledgeTab] = useState('KSIEGA'); // KSIEGA lub KWP
+  const [openAccordion, setOpenAccordion] = useState(null);
 
   useEffect(() => {
     const fetchDocs = async () => {
@@ -95,7 +130,7 @@ export default function DocumentsPage() {
   };
   
   // ==========================================
-  // ABSOLUTNY PANCERZ DLA MODALA - PRZETWARZANIE DANYCH POZA JSX
+  // ABSOLUTNY PANCERZ DLA MODALA
   // ==========================================
   const openModal = (rawDoc) => { 
     if (!rawDoc) return;
@@ -146,7 +181,6 @@ export default function DocumentsPage() {
     };
   }
 
-  // 2. Bezpieczne przetwarzanie dla Lex AI
   let aiReportData = { target: '-', rigor: '-', rigorColor: 'text-slate-400', readTime: 0 };
   if (selectedDoc && isAiActive && aiStage === 4) {
     try {
@@ -193,7 +227,7 @@ export default function DocumentsPage() {
   const lastUpdate = documents.length > 0 ? (documents[0].date || '-') : 'Brak danych';
 
   // ==========================================
-  // STUDIO LEGISLACYJNE - 11 OFICJALNYCH WZORÓW
+  // STUDIO LEGISLACYJNE - WZORY
   // ==========================================
   const simulateAiTyping = (fullText) => {
     setIsDrafting(true);
@@ -215,7 +249,6 @@ export default function DocumentsPage() {
     const today = new Date().toLocaleDateString('pl-PL');
     
     switch(type) {
-      // Wzory... (pozostawione z Twojego kodu)
       case 'zwolnienie': template = `Wrocław, ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n... (podanie o zwolnienie)`; break;
       case 'wydarzenie': template = `Wrocław, ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n... (podanie o wydarzenie)`; break;
       case 'sala_uew': template = `Wrocław, ${today} r.\n\n[Zgłaszający - Imię i Nazwisko]\n... (podanie o salę)`; break;
@@ -273,34 +306,34 @@ export default function DocumentsPage() {
       <div className="max-w-7xl mx-auto">
         
         {/* ==================================================== */}
-        {/* STREFA EDUKACYJNA I SZABLONY (NOWE DODATKI) */}
+        {/* STREFA EDUKACYJNA I SZABLONY (BANERY) */}
         {/* ==================================================== */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10 animate-fadeIn">
           
-   {/* BANER KSIĘGI DOKUMENTÓW */}
-<Link to="/ksiega-dokumentow" className="lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-700 to-violet-800 rounded-[2rem] p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-900/20 transition-all hover:-translate-y-1 block isolate">
-  <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
-  
-  <div className="relative z-10 flex flex-col h-full justify-between">
-    <div>
-      <span className="inline-block px-3 py-1 mb-4 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
-        Przewodnik Administracyjny
-      </span>
-      <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">
-        Księga Dokumentów
-      </h2>
-      <p className="text-indigo-100/90 font-medium text-sm md:text-base max-w-lg leading-relaxed">
-        Zanim zaczniesz pisać – poznaj oficjalne zasady, formatowanie, wymogi WCAG i cykl życia dokumentów w Samorządzie. 
-      </p>
-    </div>
-    
-    <div className="mt-6 flex items-center gap-3 text-sm font-bold">
-      <span className="bg-white text-indigo-700 px-5 py-2.5 rounded-xl shadow-md group-hover:bg-indigo-50 transition-colors flex items-center gap-2">
-        Czytaj Księgę <Icons.ArrowRight />
-      </span>
-    </div>
-  </div>
-</Link>
+          {/* BANER PRZENOSZĄCY DO ZAKŁADKI KNOWLEDGE */}
+          <div onClick={() => setActiveView('KNOWLEDGE')} className="cursor-pointer lg:col-span-2 group relative overflow-hidden bg-gradient-to-r from-indigo-700 to-violet-800 rounded-[2rem] p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-900/20 transition-all hover:-translate-y-1 block isolate">
+            <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-700"></div>
+            
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <span className="inline-block px-3 py-1 mb-4 bg-white/20 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
+                  Przewodnik i Warsztat
+                </span>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">
+                  Strefa Wiedzy SSUEW
+                </h2>
+                <p className="text-indigo-100/90 font-medium text-sm md:text-base max-w-lg leading-relaxed">
+                  Zanim zaczniesz pisać – poznaj zasady Księgi Dokumentów, formatowanie, wymogi WCAG oraz weź udział w Akademii Protokolanta. 
+                </p>
+              </div>
+              
+              <div className="mt-6 flex items-center gap-3 text-sm font-bold">
+                <span className="bg-white text-indigo-700 px-5 py-2.5 rounded-xl shadow-md group-hover:bg-indigo-50 transition-colors flex items-center gap-2">
+                  Otwórz Moduł <Icons.ArrowRight />
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* SZYBKIE SZABLONY (Pobieranie Worda) */}
           <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col">
@@ -309,7 +342,6 @@ export default function DocumentsPage() {
             </h3>
             
             <div className="flex flex-col gap-3 flex-grow justify-center">
-              {/* Tutaj w przyszłości podmienisz 'href' na linki do dysku Google / SharePointa */}
               <a href="#" className="group flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-colors">
                 <div className="w-10 h-10 bg-white shadow-sm border border-slate-200 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"><Icons.Document /></div>
                 <div>
@@ -339,18 +371,23 @@ export default function DocumentsPage() {
         </div>
 
         {/* ==================================================== */}
-        {/* ZAKŁADKI: BAZA vs STUDIO */}
+        {/* GŁÓWNA NAWIGACJA ZAKŁADEK (3 OPCJE) */}
         {/* ==================================================== */}
-        <div className="mb-6 flex gap-6 border-b border-slate-200">
+        <div className="mb-6 flex flex-wrap gap-6 border-b border-slate-200">
           <button onClick={() => setActiveView('LEX')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all ${activeView === 'LEX' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             📚 Baza Aktów Prawnych
           </button>
           <button onClick={() => setActiveView('STUDIO')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all flex items-center gap-2 ${activeView === 'STUDIO' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             <Icons.Brain /> Studio Legislacyjne (AI)
           </button>
+          <button onClick={() => setActiveView('KNOWLEDGE')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all flex items-center gap-2 ${activeView === 'KNOWLEDGE' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+            <Icons.Book /> Strefa Wiedzy
+          </button>
         </div>
 
-        {/* WIDOK LEX BAZY */}
+        {/* ==================================================== */}
+        {/* WIDOK 1: LEX BAZA */}
+        {/* ==================================================== */}
         {activeView === 'LEX' && (
           <div className="max-w-7xl mx-auto bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
             <div className="p-6 border-b border-slate-100">
@@ -433,7 +470,9 @@ export default function DocumentsPage() {
           </div>
         )}
 
-        {/* WIDOK STUDIO LEGISLACYJNE */}
+        {/* ==================================================== */}
+        {/* WIDOK 2: STUDIO LEGISLACYJNE */}
+        {/* ==================================================== */}
         {activeView === 'STUDIO' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
             <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[850px] overflow-hidden">
@@ -590,9 +629,240 @@ export default function DocumentsPage() {
           </div>
         )}
 
+        {/* ==================================================== */}
+        {/* WIDOK 3: STREFA WIEDZY (Księga + KWP) */}
+        {/* ==================================================== */}
+        {activeView === 'KNOWLEDGE' && (
+          <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden animate-slideUp">
+            
+            {/* Nagłówek i Toggle */}
+            <div className="bg-slate-50 border-b border-slate-100 p-8 md:p-10 text-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-amber-100 rounded-full blur-3xl opacity-50"></div>
+              <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
+              
+              <div className="relative z-10">
+                <span className="inline-block px-3 py-1 mb-4 bg-white border border-slate-200 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                  Oficjalne Standardy SSUEW
+                </span>
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-6">Centrum Wiedzy SSUEW</h2>
+                
+                <div className="flex justify-center mt-4">
+                  <div className="flex bg-slate-200/50 p-1.5 rounded-2xl shadow-inner border border-slate-200">
+                    <button 
+                      onClick={() => setKnowledgeTab('KSIEGA')}
+                      className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-2 ${knowledgeTab === 'KSIEGA' ? 'bg-white text-indigo-700 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      <Icons.Document /> Księga Dokumentów
+                    </button>
+                    <button 
+                      onClick={() => setKnowledgeTab('KWP')}
+                      className={`px-6 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center gap-2 ${knowledgeTab === 'KWP' ? 'bg-white text-amber-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                      <Icons.Book /> Akademia Protokolanta (KWP)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 md:p-10">
+              
+              {/* === ZAWARTOŚĆ: KSIĘGA DOKUMENTÓW === */}
+              {knowledgeTab === 'KSIEGA' && (
+                <div className="space-y-4 animate-fadeIn max-w-4xl mx-auto">
+                  <p className="text-slate-500 mb-8 font-medium text-center">Oficjalny zbiór zasad dotyczących formatowania, marginesów, nazewnictwa plików i cyklu życia dokumentów obowiązujących w całej organizacji.</p>
+                  
+                  <Accordion title="Rozdział I: Konstytucja Dokumentów" badge="Fundamenty" icon={<Icons.Shield />} isOpen={openAccordion === 'rozdzial1'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial1' ? null : 'rozdzial1')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§1. Cel i zakres obowiązywania</h4>
+                    <p className="mb-3 text-slate-600">Istotą Księgi jest zapewnienie spójnego wyglądu dokumentów SSUEW. Obejmuje wszystkie dokumenty (uchwały, protokoły, zaświadczenia). Stosowanie Księgi jest <strong>obowiązkowe</strong>. Dokumenty niespełniające wymogów podlegają zwrotowi do poprawy przez System Weryfikacji.</p>
+                    
+                    <h4 className="font-bold text-slate-800 mt-4 mb-2">§2. Podstawy formalne i nazewnictwo</h4>
+                    <ul className="list-disc pl-5 space-y-1 mb-3 text-slate-600">
+                      <li><strong>Pełna nazwa polska:</strong> Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.</li>
+                      <li><strong>Skrócona nazwa polska:</strong> SSUEW.</li>
+                      <li><strong>Pełna nazwa angielska:</strong> Student Government of Wroclaw University of Economics and Business.</li>
+                    </ul>
+                    <p className="text-slate-600">Zabrania się tworzenia form błędnych (np. "Samorząd Studencki UEW", "Przewodniczący Rady SSUEW").</p>
+
+                    <h4 className="font-bold text-slate-800 mt-4 mb-2">§3. Własność i odstępstwa</h4>
+                    <p className="text-slate-600">Właścicielem dokumentu jest Członek Zarządu ds. Administracji. Wszelkie wyjątki od zasad są niedozwolone bez jego pisemnej zgody.</p>
+                  </Accordion>
+
+                  <Accordion title="Rozdział II: Architektura i WCAG" badge="Typografia" icon={<Icons.Pen />} isOpen={openAccordion === 'rozdzial2'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial2' ? null : 'rozdzial2')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§5. Format i siatka</h4>
+                    <ul className="list-disc pl-5 space-y-1 mb-4 text-slate-600">
+                      <li><strong>Format:</strong> A4 (210 x 297 mm)</li>
+                      <li><strong>Marginesy:</strong> Górny 20 mm, Dolny 18 mm, Lewy 22 mm, Prawy 18 mm.</li>
+                      <li><strong>Układ:</strong> Jednokolumnowy. Akty normatywne mają lewy margines redakcyjny (35 mm).</li>
+                    </ul>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§6. Typografia i Skład</h4>
+                    <ul className="list-disc pl-5 space-y-1 mb-4 text-slate-600">
+                      <li><strong>Font:</strong> Calibri lub Lato (Treść: 11 pt).</li>
+                      <li><strong>H1 (Tytuły):</strong> 18 pt, Bold. <strong>H2:</strong> 14 pt, Bold.</li>
+                      <li><strong>Światło:</strong> Interlinia 1,15. Odstępy: 12 pt przed nagłówkiem, 6 pt po.</li>
+                      <li><strong>Sieroty:</strong> Bezwzględny zakaz "w", "z", "i" na końcu linii (używaj twardej spacji).</li>
+                    </ul>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§8. Dostępność cyfrowa</h4>
+                    <p className="text-slate-600">Obowiązkowa numeracja stron. Każda grafika musi posiadać tekst alternatywny (alt-text).</p>
+                  </Accordion>
+
+                  <Accordion title="Rozdział III: Pieczęcie i Podpisy" badge="Autoryzacja" icon={<Icons.Hardware />} isOpen={openAccordion === 'rozdzial3'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial3' ? null : 'rozdzial3')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§9. Nienaruszalność stopek</h4>
+                    <p className="text-slate-600 mb-4">Nagłówki i stopki w szablonach są zablokowane. Zabrania się usuwania logo, zmiany proporcji oraz adresu (ul. Komandorska 118/120).</p>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§10. Bloki podpisu</h4>
+                    <p className="text-slate-600 mb-4">Obowiązuje układ: <strong>Imię Nazwisko - Funkcja - Organ</strong>. Podpis osoby o najwyższej randze zawsze po prawej stronie.</p>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§11-12. Pieczęcie i e-podpisy</h4>
+                    <p className="text-slate-600">Umowy wymagają "pieczęci na wąsie". Dopuszcza się i rekomenduje podpisy elektroniczne (ePUAP, Kwalifikowane) - nie trzeba ich wtedy drukować.</p>
+                  </Accordion>
+
+                  <Accordion title="Rozdział IV: Lingwistyka Urzędowa" badge="Słownik" icon={<Icons.Book />} isOpen={openAccordion === 'rozdzial4'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial4' ? null : 'rozdzial4')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§13. Tone of Voice</h4>
+                    <p className="text-slate-600 mb-4">Pisma do Władz: język ściśle formalny. Do studentów: dynamiczny i skracający dystans. Akty normatywne: suchy język prawniczy.</p>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§14. Zapisy i Kwoty</h4>
+                    <p className="text-slate-600 mb-4">Daty: <em>9 marca 2026 r.</em> Kwoty: ze skrótem waluty (<em>1500,00 PLN</em>), w umowach z dopiskiem słownym.</p>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§16. Akty Normatywne</h4>
+                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-800 italic text-sm mb-2">
+                      "Na podstawie art. [X] ust. [Y] Regulaminu Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu, uchwala się / zarządza się, co następuje:"
+                    </div>
+                    <p className="text-slate-600">Struktura: Paragraf (§), Ustęp (ust.), Punkt (pkt), Litera (lit.).</p>
+                  </Accordion>
+
+                  <Accordion title="Rozdział V i VI: Cykl Życia" badge="System Weryfikacji" icon={<Icons.Check />} isOpen={openAccordion === 'rozdzial5'} onClick={() => setOpenAccordion(openAccordion === 'rozdzial5' ? null : 'rozdzial5')}>
+                    <h4 className="font-bold text-slate-800 mb-2">§18-20. Macierz Szablonów</h4>
+                    <p className="text-slate-600 mb-4">A: Normatywne (Uchwały), B: Operacyjne (Protokoły), C: Finansowe (Kosztorysy), D: Wizerunkowe (Pisma z logo), E: Prawne (Umowy RODO).</p>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§21. System Weryfikacji (SWD)</h4>
+                    <ol className="list-decimal pl-5 space-y-1 mb-4 text-slate-600">
+                      <li><strong>Autokontrola:</strong> Twórca sprawdza literówki.</li>
+                      <li><strong>Weryfikacja Formalna:</strong> Administracja sprawdza zgodność z Księgą.</li>
+                      <li><strong>Akceptacja:</strong> Dokument trafia do podpisu i rejestru.</li>
+                    </ol>
+
+                    <h4 className="font-bold text-slate-800 mb-2">§22. Nomenklatura Plików</h4>
+                    <code className="block bg-slate-900 text-emerald-400 p-3 rounded-lg text-xs">2026-03-09_Uchwala_Zarzad_Nr12.pdf</code>
+                  </Accordion>
+                </div>
+              )}
+
+              {/* === ZAWARTOŚĆ: AKADEMIA PROTOKOLANTA (KWP) === */}
+              {knowledgeTab === 'KWP' && (
+                <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100">
+                      <div className="w-12 h-12 bg-white text-amber-600 shadow-sm rounded-xl flex items-center justify-center mb-6"><Icons.Hardware /></div>
+                      <h3 className="text-xl font-black text-slate-800 mb-4">1. Ekwipunek (Hardware)</h3>
+                      <p className="text-slate-500 mb-6 text-sm">Nie siadaj do pisania z pustymi rękami. Dobre przygotowanie to połowa sukcesu.</p>
+                      <ul className="space-y-4 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Dyktafon / Telefon:</strong> Nagrywaj długie posiedzenia. Nagranie służy weryfikacji luk, a nie pisaniu od zera.</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Szablon (Template):</strong> Wzór dokumentu przygotuj przed spotkaniem. Wklej do niego agendę – to Twój szkielet.</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Zasilanie i komfort:</strong> Ładowarka, przedłużacz i woda to Twoi najlepsi przyjaciele podczas długich obrad.</span></li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100">
+                      <div className="w-12 h-12 bg-white text-amber-600 shadow-sm rounded-xl flex items-center justify-center mb-6"><Icons.Pen /></div>
+                      <h3 className="text-xl font-black text-slate-800 mb-4">2. Sztuka "Tłumaczenia"</h3>
+                      <p className="text-slate-500 mb-6 text-sm">Protokół to nie transkrypcja. Jesteś tłumaczem, który zamienia chaos dyskusji na uporządkowany tekst.</p>
+                      <ul className="space-y-4 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Sens zamiast cytatów:</strong> Wystarczy oddać sens i najważniejsze informacje dla kontekstu, bez pisania "słowo w słowo".</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Odpowiednia forma:</strong> Zapisuj w formie bezosobowej lub w trzeciej osobie z zachowaniem spójności.</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Identyfikacja mówcy:</strong> Przed wypowiedzią musi znaleźć się: Imię, Nazwisko oraz pełniona funkcja.</span></li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100">
+                      <div className="w-12 h-12 bg-white text-amber-600 shadow-sm rounded-xl flex items-center justify-center mb-6"><Icons.Brain /></div>
+                      <h3 className="text-xl font-black text-slate-800 mb-4">3. Pełny Obiektywizm</h3>
+                      <p className="text-slate-500 mb-6 text-sm">Jako protokolant jesteś obserwatorem, a nie stroną w dyskusji. Dokument musi być neutralny.</p>
+                      <ul className="space-y-4 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Brak ocen:</strong> Rzetelność to przedstawienie faktów w sposób obiektywny, bez podkoloryzowania.</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Neutralność językowa:</strong> Twórz bez osobistych osądów lub wprowadzania opinii osób trzecich jako faktów.</span></li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-amber-50 rounded-3xl p-8 border border-amber-100">
+                      <div className="w-12 h-12 bg-white text-amber-600 shadow-sm rounded-xl flex items-center justify-center mb-6"><Icons.Book /></div>
+                      <h3 className="text-xl font-black text-slate-800 mb-4">4. Szlifowanie Diamentu</h3>
+                      <p className="text-slate-500 mb-6 text-sm">Ostatni etap to dbałość o formę, która świadczy o Twoim profesjonalizmie przed Zarządem.</p>
+                      <ul className="space-y-4 text-sm text-slate-600">
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Ton i poprawność:</strong> Dbaj o formalny ton, interpunkcję oraz wielkie litery w nazwach organów.</span></li>
+                        <li className="flex items-start gap-3"><span className="text-amber-500 mt-0.5"><Icons.Check /></span><span><strong>Terminowość:</strong> Zewnętrzne protokoły do miesiąca. Wewnętrzne (RUSS, SKS) wysyłaj póki pamiętasz kontekst!</span></li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 mt-8">
+                    <p className="text-slate-500 mb-6 font-medium text-center">Każde spotkanie ma inny ciężar gatunkowy. Poniżej znajdziesz wytyczne dla 5 kluczowych typów dokumentów. Wybierz panel, aby rozwinąć szczegóły.</p>
+                    
+                    <Accordion title="Raport Projektowy (Team Meeting)" badge="Operacyjne" icon={<Icons.File />} isOpen={openAccordion === 'raport'} onClick={() => setOpenAccordion(openAccordion === 'raport' ? null : 'raport')}>
+                      <p className="mb-4 text-slate-700 font-medium">To najlżejsza forma. Raport ma być krótki, zwięzły i służyć szybkiej wymianie informacji w zespole.</p>
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                        <li><strong>Nagłówek:</strong> Nazwa projektu, data spotkania oraz lista uczestników.</li>
+                        <li><strong>Podsumowanie Działań:</strong> Konkretne wypunktowanie "zrobionego" z podziałem na osoby.</li>
+                        <li><strong>Plany na tydzień:</strong> Action points, czyli jasne przypisanie zadań na kolejne dni.</li>
+                        <li><strong>SRIWW:</strong> Sprawy Różne i Wolne Wnioski – miejsce na luźne wrzutki.</li>
+                      </ul>
+                    </Accordion>
+
+                    <Accordion title="Protokół SKS (Spotkanie Komisji)" badge="Ewaluacyjne" icon={<Icons.File />} isOpen={openAccordion === 'sks'} onClick={() => setOpenAccordion(openAccordion === 'sks' ? null : 'sks')}>
+                      <p className="mb-4 text-slate-700 font-medium">SKS to serce operacyjne. Protokół monitoruje bieżące projekty i służy edukacji zespołu.</p>
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                        <li><strong>Metryczka:</strong> Numer sprawy, dokładna data, miejsce i czas.</li>
+                        <li><strong>Status projektów:</strong> Krótkie raporty o działających projektach.</li>
+                        <li>
+                          <strong>Ewaluacja (Must-have):</strong> Dla zakończonych projektów podajemy twarde metryki: koszt, liczbę członków, frekwencję i średnią ocenę.<br/>
+                          <span className="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg mt-2 inline-block border border-amber-100">
+                            💡 Wskazówka: Wypisujemy "Plusy ujemne" (do poprawy) i "Plusy dodatnie" (sukcesy) z rekomendacjami.
+                          </span>
+                        </li>
+                      </ul>
+                    </Accordion>
+
+                    <Accordion title="Protokół RUSS (Rada Uczelniana)" badge="Legislacyjne" icon={<Icons.File />} isOpen={openAccordion === 'russ'} onClick={() => setOpenAccordion(openAccordion === 'russ' ? null : 'russ')}>
+                      <p className="mb-4 text-slate-700 font-medium">Wchodzimy na poziom legislacyjny. Protokół musi być rygorystyczny, suchy i faktograficzny.</p>
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                        <li><strong>Otwarcie obrad:</strong> Stwierdzenie prawomocności obrad (quorum) na podstawie obecności.</li>
+                        <li><strong>Lista obecności:</strong> Imienna tabela z zaznaczeniem obecności każdego Radnego.</li>
+                        <li>
+                          <strong className="text-slate-900">Głosowania:</strong> Wyniki uchwał z podaniem trybu (jawny/tajny) oraz rozbiciem na <em>"za"</em>, <em>"przeciw"</em>, <em>"wstrzymujące"</em>.
+                        </li>
+                      </ul>
+                    </Accordion>
+
+                    <Accordion title="Protokół z Absolutorium" badge="Roczne" icon={<Icons.File />} isOpen={openAccordion === 'absolutorium'} onClick={() => setOpenAccordion(openAccordion === 'absolutorium' ? null : 'absolutorium')}>
+                      <p className="mb-4 text-slate-700 font-medium">Najważniejszy dokument w kadencji. Dowód oceny działalności Samorządu.</p>
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                        <li><strong>Sprawozdania Osobowe:</strong> Cele strategiczne, podjęte działania i twarde liczby osoby funkcyjnej.</li>
+                        <li><strong>Panel Q&A:</strong> Zapis dyskusji wskazujący Radnego pytającego i odpowiedź (w 3. osobie).</li>
+                        <li><strong>Wynik Absolutorium:</strong> Werdykt ogłoszony przez Komisję Skrutacyjną.</li>
+                      </ul>
+                    </Accordion>
+
+                    <Accordion title="Standard KPUE (Forum)" badge="Zewnętrzne" icon={<Icons.File />} isOpen={openAccordion === 'kpue'} onClick={() => setOpenAccordion(openAccordion === 'kpue' ? null : 'kpue')}>
+                      <p className="mb-4 text-slate-700 font-medium">Wizytówka Samorządu na wyjazdach. Wymaga ścisłego trzymania się standardów FUE.</p>
+                      <ul className="space-y-3 list-disc list-inside pl-4 marker:text-amber-500">
+                        <li><strong>Wyróżnienia:</strong> Punkty obrad oraz imiona/funkcje wypowiadających się <strong>bezwzględnie pogrubione</strong>.</li>
+                        <li><strong>Tabele Głosowań:</strong> Kolumny: <em>Ilość głosujących</em>, <em>Ważne</em>, <em>Za</em>, <em>Wstrzymane</em>, <em>Przeciw</em>.</li>
+                        <li><strong>Komentarze techniczne:</strong> Przerwy zapisujemy <span className="italic">wyśrodkowaną kursywą</span> z dokładną godziną.</li>
+                      </ul>
+                    </Accordion>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
 
-      {/* MODAL LEX */}
+      {/* MODAL LEX (Pozostaje bez zmian dla zakładki Bazy Aktów) */}
+      {/* ... Reszta modalu ... */}
       {safeModalData && activeView === 'LEX' && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedDoc(null)}></div>
