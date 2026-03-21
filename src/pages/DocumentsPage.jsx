@@ -706,7 +706,7 @@ export default function DocumentsPage() {
                       <li>Opracowanie robocze (w odpowiednim Szablonie).</li>
                       <li><strong>Weryfikacja formalna:</strong> Zgodność z Księgą (czcionka, układ, marginesy).</li>
                       <li>Akceptacja merytoryczna.</li>
-                      <li>Zatwierdzenie (podpis) -> Status finalny.</li>
+                      <li>Zatwierdzenie (podpis) - Status finalny.</li>
                       <li>Archiwizacja w Repozytorium.</li>
                     </ol>
 
@@ -844,7 +844,7 @@ export default function DocumentsPage() {
                           <h4 className="font-bold text-slate-800">4. Protokół Absolutoryjny</h4>
                           <button className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-200 transition-colors shadow-sm"><Icons.Download /> Pobierz Wzór</button>
                         </div>
-                        <p className="text-xs text-slate-600">Szczegółowy dokument na koniec kadencji. Obejmuje sprawozdania funkcyjne, Panel Q&A (Kto pyta -> Kto odpowiada) i wynik głosowania Rewizyjnej.</p>
+                        <p className="text-xs text-slate-600">Szczegółowy dokument na koniec kadencji. Obejmuje sprawozdania funkcyjne, Panel Q&A (Kto pyta - Kto odpowiada) i wynik głosowania Rewizyjnej.</p>
                       </div>
 
                       <div>

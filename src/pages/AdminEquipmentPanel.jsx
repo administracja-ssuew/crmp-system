@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ADMIN_EMAILS } from '../config';
 
@@ -42,9 +42,11 @@ export default function AdminEquipmentPanel() {
   const [returnStep, setReturnStep] = useState(1);
 
   const [summonsData, setSummonsData] = useState({
-    perpetrator: '', address: '', protocolNumber: '', equipmentName: '', brand: '', model: ''
+    perpetrator: '', albumId: '', organization: '', address: '', protocolNumber: '', equipmentName: '', brand: '', model: '', damageType: 'Mechaniczne', description: ''
   });
   const [showSummonsDocument, setShowSummonsDocument] = useState(false);
+
+  const [firstAidReports, setFirstAidReports] = useState([]);
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
@@ -63,6 +65,7 @@ export default function AdminEquipmentPanel() {
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []); 
+          if (data.apteczkiBraki) setFirstAidReports(data.apteczkiBraki);
         }
       });
   };
@@ -76,12 +79,11 @@ export default function AdminEquipmentPanel() {
         .then(res => res.json())
         .then(data => {
           if (data.docNumber) setDocNumber(data.docNumber);
-          else setDocNumber(`AWARYJNY/SSUEW/${new Date().getMonth()+1}/2026`);
+          else setDocNumber(`01/SSUEW/03/2026`);
         });
     }
   }, [step, adminMode]);
 
-  // === INTELIGENTNE ODCZYTYWANIE DANYCH Z EXCELA (FIX CZESKIEGO BŁĘDU) ===
   const getAgreementNumber = (wyd) => {
     const val1 = String(wyd['Nr_Porozumienia'] || wyd['Nr Porozumienia'] || '');
     const val2 = String(wyd['Data'] || '');
@@ -121,38 +123,28 @@ export default function AdminEquipmentPanel() {
     };
     try {
       const response = await fetch(API_URL, { 
-        method: 'POST', 
-        redirect: 'follow', // OMIJA BŁĘDY WTYCZEK CHROME
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-        body: JSON.stringify(payload) 
+        method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) 
       });
       const result = await response.json();
       alert(`Wniosek Zatwierdzony!\nKalendarz: ${result.message || 'Zapisano'}`); 
-    } catch (err) { 
-      console.log(err); 
-      alert("Wniosek został przetworzony, odświeżam system."); 
-    } finally { 
-      setApprovalModal(null); 
-      fetchAllData(); 
-      setIsUpdatingStatus(false); 
-    }
+    } catch (err) { alert("Wniosek został przetworzony, odświeżam system."); } 
+    finally { setApprovalModal(null); fetchAllData(); setIsUpdatingStatus(false); }
   };
 
   const handleRejectReservation = async (id) => {
     setIsUpdatingStatus(true);
     try {
-      await fetch(API_URL, { 
-        method: 'POST', 
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-        body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" }) 
-      });
-    } catch (err) { 
-      console.log(err); 
-    } finally { 
-      fetchAllData(); 
-      setIsUpdatingStatus(false); 
-    }
+      await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" }) });
+    } catch (err) {} finally { fetchAllData(); setIsUpdatingStatus(false); }
+  };
+
+  const resolveFirstAidReport = async (reportId) => {
+    setIsUpdatingStatus(true);
+    try {
+      await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "zamknijZgloszenieApteczki", id: reportId, adminOsoba: user?.email }) });
+      alert("Zgłoszenie zamknięte! Dziękujemy za uzupełnienie apteczki.");
+      setFirstAidReports(firstAidReports.filter(r => r.ID !== reportId));
+    } catch (err) {} finally { setIsUpdatingStatus(false); }
   };
 
   const formatResDate = (rawDate) => {
@@ -204,48 +196,32 @@ export default function AdminEquipmentPanel() {
   };
 
   const finalizeProtocol = async () => {
-    if(!sigBorrowerData || !sigAdminData) {
-      alert("Protokół musi zostać podpisany przez obie strony (Studenta i Dysponenta)!"); return;
-    }
+    if(!sigBorrowerData || !sigAdminData) { alert("Protokół musi zostać podpisany przez obie strony!"); return; }
     setIsVerifying(true);
     const equipmentList = selectedItems.map(item => item.id).join(', ');
     const payload = {
       action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, albumId: borrower.albumId, organizacja: borrower.organization, sprzet: equipmentList, dateFrom: `${borrower.dateFrom.replace('T', ' ')}`, dateTo: `${borrower.dateTo.replace('T', ' ')}`, location: borrower.location || "Brak", address: borrower.address || "Brak", phone: borrower.phone || "Brak", email: borrower.email, adminName: `${borrower.adminName} (${borrower.adminRole})`, sigBorrower: sigBorrowerData, sigAdmin: sigAdminData
     };
-
     try {
       const response = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const resData = await response.json();
       alert(`Wydanie sfinalizowane! \nCyfrowy PDF został zapisany na Dysku.\nLink: ${resData.link}`);
-    } catch (error) { 
-      alert("Pomyślnie przetworzono procedurę wydania."); 
-    } finally { 
+    } catch (error) { alert("Pomyślnie przetworzono procedurę wydania."); } finally { 
       setStep(1); setSelectedItems([]); setBorrower({name: '', albumId: '', organization: '', address: '', phone: '', email: '', dateFrom: '', dateTo: '', location: '', adminName: '', adminRole: 'Członek Zarządu SSUEW'}); clearSignatures(); setDocNumber('GENEROWANIE...');
-      setTimeout(() => fetchAllData(), 500);
-      setIsVerifying(false); 
+      setTimeout(() => fetchAllData(), 500); setIsVerifying(false); 
     }
   };
 
   const processReturn = async () => {
-    if(!sigBorrowerData || !sigAdminData) { alert("Podpisz protokół zwrotu (Obie strony)!"); return; }
+    if(!sigBorrowerData || !sigAdminData) { alert("Podpisz protokół zwrotu!"); return; }
     setIsVerifying(true);
-    
     const targetId = getAgreementNumber(selectedReturn);
-
     try {
-      await fetch(API_URL, { 
-        method: 'POST', 
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-        body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: targetId }) 
-      });
+      await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: targetId }) });
       alert(`Sprzęt z porozumienia ${targetId} został poprawnie zwrócony na stan!`);
-    } catch (err) { 
-      alert("Zakończono proces zwrotu."); 
-    } finally { 
+    } catch (err) { alert("Zakończono proces zwrotu."); } finally { 
       setSelectedReturn(null); setReturnStep(1); clearSignatures(); setBorrower({...borrower, adminName: ''});
-      setTimeout(() => fetchAllData(), 500);
-      setIsVerifying(false); 
+      setTimeout(() => fetchAllData(), 500); setIsVerifying(false); 
     }
   };
 
@@ -264,37 +240,59 @@ export default function AdminEquipmentPanel() {
   return (
     <div className="min-h-screen bg-slate-900 p-4 md:p-6 flex flex-col items-center pb-20 print:bg-white print:p-0">
       
-      <div className="w-full max-w-4xl flex flex-wrap bg-slate-800 rounded-2xl p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
-        <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[120px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
-        <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[120px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
-        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[120px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
-        <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[120px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
+      <div className="w-full max-w-5xl flex flex-wrap bg-slate-800 rounded-2xl p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
+        <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
+        <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
+        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
+        <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
+        <button onClick={() => setAdminMode('apteczki')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'apteczki' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white relative'}`}>
+          🚑 Apteczki {firstAidReports.length > 0 && adminMode !== 'apteczki' && <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>}
+        </button>
       </div>
 
       {/* ========================================================= */}
-      {/* TRYB 1: WYDAWANIE SPRZĘTU (Z URZĘDOWYM DESIGNEM PDF) */}
+      {/* 5. APTECZKI ZARZĄDZANIE */}
+      {/* ========================================================= */}
+      {adminMode === 'apteczki' && (
+        <div className="w-full max-w-5xl animate-fadeIn">
+          <div className="flex items-center gap-4 mb-6 border-b border-slate-700 pb-4">
+            <span className="text-4xl">🚑</span>
+            <div><h2 className="text-3xl font-black text-white tracking-tighter">Zgłoszenia Braków w Apteczkach</h2><p className="text-rose-400 font-bold uppercase tracking-widest text-xs">Uzupełnianie wg normy DIN 13169</p></div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {firstAidReports.map(report => (
+              <div key={report.ID} className="bg-slate-800 border border-rose-500/30 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-rose-500 transition-all">
+                <div className="mb-6">
+                  <div className="flex justify-between items-start mb-4"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-3 py-1 bg-rose-900/50 rounded-lg">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">ID: {report.ID}</span></div>
+                  <h3 className="text-xl font-black text-white leading-tight mb-2">{report.Apteczka_Nazwa}</h3>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-4">Zgłosił: {report.Osoba}</p>
+                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Krótki opis zdarzenia:</p><p className="text-sm font-medium text-slate-300 italic">"{report.Powod}"</p></div>
+                  <div className="bg-rose-950/30 p-4 rounded-xl border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-2 block">Zużyte materiały (Do uzupełnienia):</p><ul className="text-xs font-bold text-rose-200 leading-relaxed list-disc list-inside">{report.Zuzyte_Materialy.split(',').map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
+                </div>
+                <button onClick={() => resolveFirstAidReport(report.ID)} disabled={isUpdatingStatus} className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
+              </div>
+            ))}
+            {firstAidReports.length === 0 && (
+              <div className="col-span-full py-20 text-center flex flex-col items-center"><span className="text-6xl mb-4 opacity-20">🏥</span><p className="text-slate-400 font-black text-xl uppercase tracking-widest">Wszystkie apteczki są pełne</p></div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* 1. WYDAWANIE (Z URZĘDOWYM DESIGNEM PDF - ZAŁ 1, ZAŁ 2A, ZAŁ 11) */}
       {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
-          {step === 1 && (
-            <Link to="/skaner-ski" className="group relative overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 w-full max-w-xl mb-8 print:hidden animate-fadeIn">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none"></div>
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
-                <span className="text-2xl">📷</span>
-              </div>
-              <div className="flex-1"><h3 className="text-xl font-black mb-0.5 tracking-tight drop-shadow-sm">Skaner Inwentaryzacji</h3><p className="text-[10px] font-bold uppercase tracking-widest text-emerald-100">Uruchom moduł SKI (QR / Barcode)</p></div>
-            </Link>
-          )}
-
           <div className="w-full max-w-4xl flex justify-between items-center mb-8 bg-slate-800 p-4 rounded-3xl border border-slate-700 print:hidden animate-fadeIn">
             <div className={`text-xs font-black uppercase tracking-widest ${step >= 1 ? 'text-blue-400' : 'text-slate-500'}`}>1. Koszyk</div>
             <div className="h-px bg-slate-600 flex-1 mx-4"></div>
             <div className={`text-xs font-black uppercase tracking-widest ${step >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>2. Formularz</div>
             <div className="h-px bg-slate-600 flex-1 mx-4"></div>
-            <div className={`text-xs font-black uppercase tracking-widest ${step >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>3. Dokument Urzędowy</div>
+            <div className={`text-xs font-black uppercase tracking-widest ${step >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>3. Protokół</div>
           </div>
 
-          <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none`}>
+          <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none print:p-0`}>
             
             {step === 1 && (
               <div className="animate-fadeIn">
@@ -318,7 +316,7 @@ export default function AdminEquipmentPanel() {
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Wypełnij precyzyjnie dane obu stron</p>
                 
                 <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl mb-6">
-                  <h3 className="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-3">1. Dane Wydającego (Twoje dane)</h3>
+                  <h3 className="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-3">1. Dane Wydającego (SSUEW)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" placeholder="Imię i Nazwisko Wydającego" value={borrower.adminName} onChange={e => setBorrower({...borrower, adminName: e.target.value})} className="bg-white border border-indigo-200 p-3 rounded-xl text-sm font-bold w-full" />
                     <input type="text" placeholder="Funkcja (np. Członek Zarządu)" value={borrower.adminRole} onChange={e => setBorrower({...borrower, adminRole: e.target.value})} className="bg-white border border-indigo-200 p-3 rounded-xl text-sm font-bold w-full" />
@@ -326,12 +324,14 @@ export default function AdminEquipmentPanel() {
                 </div>
 
                 <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl mb-6">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">2. Dane Korzystającego (Studenta)</h3>
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">2. Dane Korzystającego (Studenta/Organizacji)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input type="text" placeholder="Imię i Nazwisko Reprezentanta" value={borrower.name} onChange={e => setBorrower({...borrower, name: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
                     <input type="text" placeholder="Nr albumu (legitymacji)" value={borrower.albumId} onChange={e => setBorrower({...borrower, albumId: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
                     <input type="text" placeholder="Pełna nazwa Organizacji / Projektu" value={borrower.organization} onChange={e => setBorrower({...borrower, organization: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
-                    <input type="email" placeholder="E-mail (Do wysyłki PDF umowy)" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2 focus:ring-2 focus:ring-indigo-300 outline-none" />
+                    <input type="text" placeholder="Adres zamieszkania / korespondencyjny" value={borrower.address} onChange={e => setBorrower({...borrower, address: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
+                    <input type="text" placeholder="Nr Telefonu" value={borrower.phone} onChange={e => setBorrower({...borrower, phone: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
+                    <input type="email" placeholder="E-mail" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
                     
                     <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
                       <div><label className="text-[10px] font-bold text-slate-500 ml-1">Od kiedy</label><input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" /></div>
@@ -343,97 +343,167 @@ export default function AdminEquipmentPanel() {
                 <div className="flex gap-4">
                   <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase tracking-widest w-1/3">Wróć</button>
                   <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1">
-                    {isVerifying ? 'Weryfikacja...' : 'Generuj Dokument'}
+                    {isVerifying ? 'Weryfikacja...' : 'Generuj PDF'}
                   </button>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <div id="printable-document" className="animate-fadeIn text-black font-serif text-[11px] leading-relaxed">
-                {/* NOWY, URZĘDOWY STYL DOKUMENTÓW WZOROWANY NA ZAŁ. NR 1 */}
-                <div className="flex justify-end mb-4">
-                  <div className="text-right text-[10px] font-bold uppercase w-1/2 border-b border-black pb-2">
-                    <p>Załącznik nr 1 do Regulaminu</p>
-                    <p>Gospodarowania Składnikami Majątku</p>
-                    <p>Ruchomego SSUEW</p>
-                  </div>
-                </div>
-
-                <div className="text-center mb-8 mt-6">
-                  <h1 className="text-lg font-black uppercase tracking-widest mb-1">Porozumienie Sprzętowe</h1>
-                  <p className="font-bold text-gray-700">(Umowa Użyczenia Mienia Ruchomego) Nr {docNumber}</p>
-                </div>
+              <div id="printable-document" className="animate-fadeIn text-black font-serif text-[11px] leading-snug">
                 
-                <div className="mb-6">
-                  <p className="mb-4">Zawarte w dniu <strong>{today}</strong> we Wrocławiu, pomiędzy:</p>
-                  
-                  <p className="font-bold">1. WYDAJĄCYM:</p>
-                  <p className="ml-4 mb-2">Samorządem Studentów Uniwersytetu Ekonomicznego we Wrocławiu,</p>
-                  <p className="ml-4">reprezentowanym przez Dysponenta: <strong>{borrower.adminName}</strong> ({borrower.adminRole})</p>
-                  
-                  <p className="font-bold text-center my-4">a</p>
-                  
-                  <p className="font-bold">2. KORZYSTAJĄCYM:</p>
-                  <p className="ml-4 mb-2">Organizacją / Projektem: <strong>{borrower.organization || '...........................................'}</strong></p>
-                  <p className="ml-4">reprezentowaną przez: <strong>{borrower.name}</strong></p>
-                  <p className="ml-4">Nr albumu: <strong>{borrower.albumId}</strong> | E-mail: <strong>{borrower.email}</strong></p>
-                </div>
-                
-                <div className="text-justify space-y-4 border-t-2 border-b-2 border-black py-6 mb-8 mt-6">
-                  <div>
-                    <p className="font-bold mb-1">§ 1. Przedmiot umowy i oświadczenia</p>
-                    <p>Wydający oddaje Korzystającemu w bezpłatne używanie na czas oznaczony Sprzęt określony szczegółowo w Protokole (Załącznik nr 2). Korzystający akceptuje Regulamin SSUEW i jego postanowienia.</p>
-                  </div>
-                  <div>
-                    <p className="font-bold mb-1">§ 2. Okres obowiązywania</p>
-                    <p>Sprzęt zostaje wydany od: <strong>{fromDT.date} {fromDT.time}</strong> do: <strong>{toDT.date} {toDT.time}</strong>.</p>
-                  </div>
-                  <div>
-                    <p className="font-bold mb-1">§ 3. Zasady odpowiedzialności (Solidarność)</p>
-                    <p>Reprezentant podpisujący niniejszą umowę oświadcza, iż jest umocowany do działania w imieniu wskazanego Podmiotu. Przyjmuje on na siebie odpowiedzialność solidarną (art. 366 § 1 k.c.) za wszelkie zobowiązania wynikające z umowy, w tym za szkodę wynikłą z utraty lub uszkodzenia Sprzętu.</p>
-                  </div>
-                </div>
-
-                <div className="mb-10 page-break-inside-avoid">
-                  <h2 className="font-bold mb-3 uppercase text-[10px]">Załącznik nr 2: Protokół Zdawczo-Odbiorczy</h2>
-                  <table className="w-full border-collapse border border-black text-left">
-                    <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-10 text-center">L.P.</th><th className="border border-black p-2">NAZWA SPRZĘTU</th><th className="border border-black p-2">KOD INWENTARZOWY</th></tr></thead>
-                    <tbody>
-                      {selectedItems.map((item, idx) => (
-                        <tr key={item.id}>
-                          <td className="border border-black p-2 text-center font-bold">{idx + 1}</td>
-                          <td className="border border-black p-2">{item.name}</td>
-                          <td className="border border-black p-2 font-mono text-[10px]">{item.id}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                <div className="flex justify-between items-end gap-6 page-break-inside-avoid mt-12">
-                  <div className="w-1/2 flex flex-col items-center">
-                    <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Admina">
-                      <canvas ref={canvasAdminRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onMouseMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onMouseUp={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onTouchMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onTouchEnd={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}}/>
-                      {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS WYDAJĄCEGO</div>}
+                {/* --- STRONA 1: UMOWA UŻYCZENIA (ZAŁ 1) --- */}
+                <div className="print:min-h-[297mm] print:break-after-page">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="w-1/2">
+                      <p className="font-bold">Samorząd Studentów</p>
+                      <p className="font-bold">Uniwersytetu Ekonomicznego</p>
+                      <p className="font-bold">we Wrocławiu</p>
                     </div>
-                    <p className="mt-2 font-bold text-[10px] uppercase">(Podpis WYDAJĄCEGO SSUEW)</p>
+                    <div className="text-right text-[10px] font-bold uppercase w-1/2">
+                      <p>ZAŁĄCZNIK NR 1</p>
+                      <p>DO REGULAMINU GOSPODAROWANIA</p>
+                      <p>SKŁADNIKAMI MAJĄTKU RUCHOMEGO SAMORZĄDU</p>
+                      <p>STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center mb-6 mt-8">
+                    <h1 className="text-xl font-black uppercase tracking-widest mb-1">POROZUMIENIE SPRZĘTOWE</h1>
+                    <p className="font-bold text-gray-800">(UMOWA UŻYCZENIA MIENIA RUCHOMEGO) NR {docNumber}</p>
                   </div>
                   
-                  <div className="w-1/2 flex flex-col items-center">
-                    <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Studenta">
-                      <canvas ref={canvasBorrowerRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onMouseMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onMouseUp={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onTouchMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onTouchEnd={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}}/>
-                      {!sigBorrowerData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS KORZYSTAJĄCEGO</div>}
+                  <div className="mb-6">
+                    <p className="mb-4">Zawarte w dniu <strong>{today}</strong> we Wrocławiu, pomiędzy:</p>
+                    <p className="font-bold">1. SAMORZĄDEM STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU,</p>
+                    <p className="ml-4 mb-2">reprezentowanym przez Dysponenta / Operatora Systemu:</p>
+                    <p className="ml-4"><strong>{borrower.adminName}, {borrower.adminRole}</strong></p>
+                    <p className="ml-4">zwanym dalej „WYDAJĄCYM",</p>
+                    
+                    <p className="font-bold text-center my-4">a</p>
+                    
+                    <p className="font-bold">2. PODMIOT:</p>
+                    <p className="ml-4 mb-2"><strong>{borrower.organization || '...........................................'}</strong></p>
+                    <p className="ml-4">reprezentowaną przez Pana/Panią: <strong>{borrower.name}</strong></p>
+                    <p className="ml-4">Nr albumu (legitymacji): <strong>{borrower.albumId}</strong></p>
+                    <p className="ml-4">Adres zamieszkania/korespondencyjny: <strong>{borrower.address}</strong></p>
+                    <p className="ml-4">Nr telefonu: <strong>{borrower.phone}</strong> | E-mail: <strong>{borrower.email}</strong></p>
+                    <p className="ml-4 mt-2">zwanym dalej „KORZYSTAJĄCYM".</p>
+                  </div>
+                  
+                  <div className="text-justify space-y-4 border-t-2 border-black pt-6 mb-6">
+                    <div>
+                      <p className="font-bold mb-1 text-center uppercase">§ 1. PRZEDMIOT UMOWY I OŚWIADCZENIA</p>
+                      <p>1. Wydający oddaje Korzystającemu w bezpłatne używanie na czas oznaczony Sprzęt określony szczegółowo w Protokole Zdawczo-Odbiorczym (Załącznik nr 2), stanowiącym integralną część niniejszej umowy.</p>
+                      <p>2. Korzystający oświadcza, że zapoznał się z treścią "Regulaminu Gospodarowania Składnikami Majątku Ruchomego SSUEW" (dalej: Regulamin), w pełni akceptuje jego postanowienia, w tym zasady odpowiedzialności materialnej, i zobowiązuje się do ich ścisłego przestrzegania.</p>
                     </div>
-                    <p className="mt-2 font-bold text-[10px] uppercase">(Podpis KORZYSTAJĄCEGO)</p>
+                    <div>
+                      <p className="font-bold mb-1 text-center uppercase mt-4">§ 2. OKRES OBOWIĄZYWANIA I MIEJSCE</p>
+                      <p>1. Sprzęt zostaje wydany na okres:</p>
+                      <p className="ml-4">OD dnia: <strong>{fromDT.date}</strong> godz. <strong>{fromDT.time}</strong></p>
+                      <p className="ml-4">DO dnia: <strong>{toDT.date}</strong> godz. <strong>{toDT.time}</strong></p>
+                      <p>2. Miejscem docelowym użytkowania Sprzętu jest: <strong>{borrower.location || 'Zgodnie z celem statutowym'}</strong>.</p>
+                      <p>3. Termin zwrotu określony w ust. 1 jest terminem zawitym. Przekroczenie terminu bez uprzedniej pisemnej zgody Wydającego skutkuje: a) Natychmiastowym rozwiązaniem umowy; b) Nałożeniem blokady na wypożyczenia; c) Powstaniem roszczenia o naprawienie szkody poprzez zapłatę pełnej wartości odtworzeniowej przedmiotu.</p>
+                    </div>
+                    <div>
+                      <p className="font-bold mb-1 text-center uppercase mt-4">§ 3. ZASADY ODPOWIEDZIALNOŚCI (SOLIDARNOŚĆ)</p>
+                      <p>1. Korzystający ponosi pełną odpowiedzialność materialną za powierzone mienie na zasadzie ryzyka, od momentu jego wydania do momentu zwrotu.</p>
+                      <p>2. Reprezentant podpisujący niniejszą umowę oświadcza, iż jest umocowany do działania w imieniu wskazanego Podmiotu.</p>
+                      <p>3. Na podstawie art. 366 § 1 Kodeksu cywilnego, Reprezentant przyjmuje na siebie odpowiedzialność solidarną za wszelkie zobowiązania wynikające z niniejszej umowy, w tym w szczególności za naprawienie szkody wynikłej z utraty, kradzieży lub uszkodzenia Sprzętu.</p>
+                      <p>4. Wydający uprawniony jest do dochodzenia całości roszczenia od Reprezentanta z jego majątku osobistego, niezależnie od stanu finansów Podmiotu.</p>
+                    </div>
+                    <div>
+                      <p className="font-bold mb-1 text-center uppercase mt-4">§ 4. BEZPIECZEŃSTWO I DANE OSOBOWE</p>
+                      <p>1. Korzystający zobowiązuje się do używania Sprzętu zgodnie z jego przeznaczeniem oraz zasadami BHP.</p>
+                      <p>2. W przypadku powstania szkody lub utraty Sprzętu, Korzystający zobowiązuje się do niezwłocznego uzupełnienia danych osobowych niezbędnych do dochodzenia roszczeń, na wezwanie Wydającego w Protokole Szkody.</p>
+                    </div>
+                    <div>
+                      <p className="font-bold mb-1 text-center uppercase mt-4">§ 5. DORĘCZENIA I POSTANOWIENIA KOŃCOWE</p>
+                      <p>1. Korzystający zobowiązuje się do informowania Wydającego o każdej zmianie adresu pod rygorem uznania doręczenia na adres wskazany w komparycji umowy za skuteczne po upływie 7 dni od nadania (fikcja doręczenia).</p>
+                      <p>2. W sprawach nieuregulowanych zastosowanie mają przepisy Regulaminu oraz Kodeksu cywilnego.</p>
+                      <p>3. Sądem właściwym do rozstrzygania sporów jest Sąd powszechny właściwy miejscowo dla siedziby Wydającego.</p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-12 flex gap-4 print:hidden border-t border-slate-200 pt-6">
-                  <button onClick={clearSignatures} className="bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors">Wyczyść</button>
-                  <button onClick={finalizeProtocol} disabled={!sigBorrowerData || !sigAdminData || isVerifying} className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest text-xs flex-1 shadow-2xl transition-all">
-                    {isVerifying ? 'Generowanie Dokumentu...' : 'Zatwierdź Dokument'}
-                  </button>
+                {/* --- STRONA 2: PROTOKÓŁ WYDANIA I RODO (ZAŁ 2A i ZAŁ 11) --- */}
+                <div className="print:min-h-[297mm] pt-8">
+                  <div className="flex justify-end mb-6 text-[10px] font-bold uppercase">
+                    <div className="text-right border-b border-black pb-2 w-1/2">
+                      <p>ZAŁĄCZNIK NR 2</p>
+                      <p>DO REGULAMINU GOSPODAROWANIA</p>
+                      <p>SKŁADNIKAMI MAJĄTKU RUCHOMEGO SSUEW</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center mb-6">
+                    <h2 className="text-xl font-black uppercase tracking-widest mb-1">PROTOKÓŁ ZDAWCZO-ODBIORCZY</h2>
+                    <p className="font-bold text-gray-700">(INTEGRALNA CZĘŚĆ POROZUMIENIA SPRZĘTOWEGO NR {docNumber})</p>
+                  </div>
+
+                  <h3 className="font-black underline mb-2 text-sm">CZĘŚĆ A: WYDANIE SPRZĘTU</h3>
+                  <p className="mb-4">Data wydania: <strong>{today}</strong> Godzina: <strong>{new Date().toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}</strong></p>
+
+                  <div className="mb-6">
+                    <p className="font-bold mb-2 text-xs">TABELA WYDANIA:</p>
+                    <table className="w-full border-collapse border border-black text-left text-[10px]">
+                      <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-8 text-center">Lp.</th><th className="border border-black p-2">NAZWA SPRZĘTU</th><th className="border border-black p-2">NR INWENTARZOWY</th><th className="border border-black p-2">OPIS STANU WIZUALNEGO</th><th className="border border-black p-2">AKCESORIA W ZESTAWIE</th></tr></thead>
+                      <tbody>
+                        {selectedItems.map((item, idx) => (
+                          <tr key={item.id}>
+                            <td className="border border-black p-2 text-center font-bold">{idx + 1}</td>
+                            <td className="border border-black p-2 font-bold">{item.name}</td>
+                            <td className="border border-black p-2 font-mono">{item.id}</td>
+                            <td className="border border-black p-2">{item.condition}</td>
+                            <td className="border border-black p-2">{item.accessories}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mb-8">
+                    <p className="font-bold mb-2">OŚWIADCZENIE KORZYSTAJĄCEGO (DOMNIEMANIE SPRAWNOŚCI):</p>
+                    <p>1. Potwierdzam odbiór wyżej wymienionego Sprzętu.</p>
+                    <p>2. Oświadczam, że w obecności Wydającego dokonałem oględzin Sprzętu oraz weryfikacji jego działania.</p>
+                    <p>3. Stwierdzam, że Sprzęt jest kompletny, czysty, w pełni sprawny technicznie i nie wnoszę do jego stanu żadnych zastrzeżeń (z wyłączeniem wad wyraźnie opisanych w kolumnie "Opis stanu wizualnego").</p>
+                    <p>4. Zobowiązuję się do zwrotu Sprzętu w stanie niepogorszonym.</p>
+                  </div>
+
+                  <div className="border-t border-black pt-6 mb-8 mt-6 text-[10px]">
+                    <p className="font-black text-center mb-2">ZAŁĄCZNIK NR 11 - KLAUZULA INFORMACYJNA RODO</p>
+                    <p className="text-center mb-4">(DLA KORZYSTAJĄCYCH ZE SPRZĘTU SSUEW)</p>
+                    <p>Zgodnie z art. 13 RODO informujemy, że:</p>
+                    <p>1. Administratorem Twoich danych osobowych jest Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.</p>
+                    <p>2. Dane (Imię, Nazwisko, Nr albumu, a w przypadku wystąpienia szkody - PESEL) przetwarzane są w celu realizacji umowy użyczenia sprzętu oraz ewentualnego dochodzenia roszczeń z tytułu zniszczenia mienia publicznego (prawnie uzasadniony interes art. 6 ust. 1 lit. f RODO) - przez czas trwania umowy użyczenia i dochodzenia roszczeń z tytułu zniszczenia mienia publicznego.</p>
+                    <p>3. Dane mogą być przekazywane organom Uczelni (Rzecznik Dyscyplinarny) oraz organom ścigania.</p>
+                    <p>4. Masz prawo wglądu do danych i ich sprostowania. Podanie danych jest warunkiem wydania sprzętu.</p>
+                  </div>
+
+                  <div className="flex justify-between items-end gap-6 mt-16 page-break-inside-avoid">
+                    <div className="w-1/2 flex flex-col items-center">
+                      <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Admina">
+                        <canvas ref={canvasAdminRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onMouseMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onMouseUp={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onTouchMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onTouchEnd={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}}/>
+                        {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS WYDAJĄCEGO</div>}
+                      </div>
+                      <p className="mt-2 font-bold text-[10px] uppercase text-center">(Podpis WYDAJĄCEGO SSUEW)</p>
+                    </div>
+                    
+                    <div className="w-1/2 flex flex-col items-center">
+                      <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Studenta">
+                        <canvas ref={canvasBorrowerRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onMouseMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onMouseUp={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onTouchMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onTouchEnd={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}}/>
+                        {!sigBorrowerData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS KORZYSTAJĄCEGO</div>}
+                      </div>
+                      <p className="mt-2 font-bold text-[10px] uppercase text-center">(Podpis KORZYSTAJĄCEGO - Akceptacja Umowy, Protokołu A i RODO)</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-12 flex gap-4 print:hidden border-t border-slate-200 pt-6">
+                    <button onClick={clearSignatures} className="bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-colors">Wyczyść Podpisy</button>
+                    <button onClick={finalizeProtocol} disabled={!sigBorrowerData || !sigAdminData || isVerifying} className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest text-xs flex-1 shadow-2xl transition-all">
+                      {isVerifying ? 'Generowanie...' : 'Zatwierdź Wydanie (Wyślij PDF)'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -442,7 +512,7 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 2: SKRZYNKA WNIOSKÓW Z KALENDARZEM */}
+      {/* TRYB REZERWACJI Z KALENDARZA */}
       {/* ========================================================= */}
       {adminMode === 'rezerwacje' && (
         <div className="w-full max-w-5xl animate-fadeIn">
@@ -492,14 +562,14 @@ export default function AdminEquipmentPanel() {
       )}
 
       {/* ========================================================= */}
-      {/* TRYB 3: ZWROTY SPRZĘTU (ZAŁĄCZNIK 3 - DWA PODPISY) */}
+      {/* TRYB 3: ZWROTY SPRZĘTU (ZAŁĄCZNIK 2B - SAFE WIPE) */}
       {/* ========================================================= */}
       {adminMode === 'zwroty' && (
         <div className="w-full max-w-4xl flex flex-col items-center">
           {!selectedReturn ? (
             <div className="w-full bg-slate-800 p-8 rounded-[2rem] shadow-2xl animate-fadeIn">
               <h2 className="text-3xl font-black text-white mb-2">Przyjmowanie Zwrotów</h2>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół z bazy (Zabezpieczone)</p>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół z bazy</p>
               
               <div className="space-y-4">
                 {activeWydania.map((wyd, idx) => (
@@ -540,29 +610,50 @@ export default function AdminEquipmentPanel() {
 
               {returnStep === 2 && (
                 <div id="printable-document" className="animate-fadeIn text-black font-serif text-[11px] leading-relaxed">
-                  <div className="flex justify-end mb-4 text-[9px] text-gray-600 font-bold uppercase">
-                    <div className="text-right border-b border-black pb-2 w-1/2">Załącznik Nr 3 do Regulaminu SSUEW</div>
+                  <div className="flex justify-between mb-4 text-[9px] text-gray-600 font-bold uppercase border-b border-black pb-2">
+                    <div className="w-1/2">
+                      <p>Samorząd Studentów</p>
+                      <p>Uniwersytetu Ekonomicznego we Wrocławiu</p>
+                    </div>
+                    <div className="w-1/2 text-right">
+                      <p>ZAŁĄCZNIK NR 2</p>
+                      <p>DO REGULAMINU GOSPODAROWANIA</p>
+                      <p>SKŁADNIKAMI MAJĄTKU RUCHOMEGO SSUEW</p>
+                    </div>
                   </div>
 
                   <div className="text-center mb-8 mt-6">
-                    <h1 className="text-lg font-black uppercase tracking-widest mb-1">Protokół Zwrotu Sprzętu</h1>
+                    <h1 className="text-lg font-black uppercase tracking-widest mb-1">CZĘŚĆ B: ZWROT SPRZĘTU</h1>
                     <p className="font-bold text-gray-700 mt-1">DO POROZUMIENIA NR {getAgreementNumber(selectedReturn)}</p>
                   </div>
 
-                  <div className="text-justify space-y-4 mb-8">
-                    <p>W dniu <strong>{today}</strong>, następuje zwrot majątku użyczonego Organizacji/Projektowi: <strong>{selectedReturn['Organizator'] || selectedReturn['Organizacja']}</strong>.</p>
-                    
-                    <div className="bg-gray-50 p-6 border border-gray-300 my-6">
-                      <p className="font-black text-xs mb-3 border-b border-gray-300 pb-2">ZWRACANY SPRZĘT (KODY INWENTARZOWE):</p>
-                      <p className="font-mono text-sm tracking-wide leading-relaxed">{selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']}</p>
-                    </div>
+                  <p className="mb-6">Data zwrotu: <strong>{today}</strong> Godzina: <strong>{new Date().toLocaleTimeString('pl-PL', {hour: '2-digit', minute:'2-digit'})}</strong></p>
 
-                    <p className="font-bold mt-6">OŚWIADCZENIA STRON:</p>
-                    <p>1. Wydający (Przedstawiciel SSUEW: <strong>{borrower.adminName}</strong>) przyjmuje wyżej wymieniony sprzęt od Korzystającego.</p>
-                    <p>2. Wydający oświadcza, że w momencie fizycznego przyjęcia sprzętu:</p>
-                    <p className="ml-4 font-bold text-sm">☑ Sprzęt nie nosi widocznych śladów uszkodzeń poza wynikającymi z normalnego zużycia.</p>
-                    <p className="mt-4 text-[10px] text-gray-500 italic">W przypadku stwierdzenia uszkodzeń należy zaniechać podpisywania niniejszego załącznika i niezwłocznie sporządzić Załącznik nr 8 - Protokół Szkody.</p>
-                    <p className="mt-4">3. Z chwilą obustronnego podpisania niniejszego protokołu ustaje odpowiedzialność materialna Korzystającego (chyba że wady ukryte zostaną wykryte podczas pełnego testu technicznego w terminie 7 dni).</p>
+                  <div className="mb-6">
+                    <p className="font-bold mb-2 text-xs">TABELA ZWROTU:</p>
+                    <table className="w-full border-collapse border border-black text-left text-[10px]">
+                      <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-8 text-center">Lp.</th><th className="border border-black p-2 w-1/3">NAZWA SPRZĘTU</th><th className="border border-black p-2 w-1/3">STAN PRZY ZWROCIE (OPIS)</th><th className="border border-black p-2">DECYZJA WYDAJĄCEGO</th></tr></thead>
+                      <tbody>
+                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']).split(',').map((itemCode, idx) => (
+                          <tr key={idx}>
+                            <td className="border border-black p-2 text-center font-bold">{idx + 1}</td>
+                            <td className="border border-black p-2 font-mono">{itemCode.trim()}</td>
+                            <td className="border border-black p-2">.....................................</td>
+                            <td className="border border-black p-2 leading-tight">
+                              ☐ PRZYJĘTO BEZ ZASTRZEŻEŃ<br/>
+                              ☐ BRUDNY (DO CZYSZCZENIA)<br/>
+                              ☐ USZKODZONY (PROTOKÓŁ SZKODY)
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="mb-8 border border-black p-4 bg-gray-50">
+                    <p className="font-bold mb-2 text-xs uppercase underline">KLAUZULA DANYCH (SAFE-WIPE):</p>
+                    <p>Oświadczam, że ze zwracanych nośników pamięci (laptopy, dyski, pendrive'y, karty SD) usunąłem trwale wszelkie dane.</p>
+                    <p>Przyjmuję do wiadomości, że SSUEW dokona niezwłocznego formatowania nośników. Zrzekam się wszelkich roszczeń z tytułu utraty pozostawionych danych.</p>
                   </div>
 
                   <div className="mt-12 flex justify-between items-end pt-4 gap-6 page-break-inside-avoid">
@@ -585,7 +676,7 @@ export default function AdminEquipmentPanel() {
 
                   <div className="mt-12 flex gap-4 print:hidden border-t border-slate-200 pt-6">
                     <button onClick={clearSignatures} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpisy</button>
-                    <button onClick={processReturn} disabled={!sigAdminData || !sigBorrowerData || isVerifying} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase text-xs disabled:opacity-50 shadow-xl flex-1 transition-all">Zakończ Wypożyczenie w Bazie</button>
+                    <button onClick={processReturn} disabled={!sigAdminData || !sigBorrowerData || isVerifying} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase text-xs disabled:opacity-50 shadow-xl flex-1 transition-all">Zatwierdź Zwrot (Wyślij PDF)</button>
                   </div>
                 </div>
               )}
@@ -595,58 +686,117 @@ export default function AdminEquipmentPanel() {
       )}
       
       {/* ========================================================= */}
-      {/* TRYB 4: WINDYKACJA (URZĘDOWE WEZWANIE PRZEDSĄDOWE) */}
+      {/* TRYB 4: WINDYKACJA / SZKODA (ZAŁĄCZNIK 8) */}
       {/* ========================================================= */}
       {adminMode === 'windykacja' && (
         <div className={`w-full ${showSummonsDocument ? 'max-w-[210mm] p-8 md:p-16' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none animate-fadeIn`}>
           {!showSummonsDocument ? (
             <div className="animate-fadeIn">
               <div className="flex items-center gap-4 mb-6">
-                <span className="text-4xl">⚖️</span>
+                <span className="text-4xl">🚨</span>
                 <div>
-                  <h2 className="text-3xl font-black text-red-600">Generator Wezwań</h2>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Procedura przedsądowa</p>
+                  <h2 className="text-3xl font-black text-red-600">Protokół Szkody / Incydentu</h2>
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Generator Załącznika Nr 8</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <input type="text" placeholder="Imię i Nazwisko Dłużnika" value={summonsData.perpetrator} onChange={e => setSummonsData({...summonsData, perpetrator: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full" />
-                <input type="text" placeholder="Adres zamieszkania Dłużnika" value={summonsData.address} onChange={e => setSummonsData({...summonsData, address: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full" />
-                <input type="text" placeholder="Numer Protokołu Szkody (np. PS/12/2026)" value={summonsData.protocolNumber} onChange={e => setSummonsData({...summonsData, protocolNumber: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full md:col-span-2" />
+                <input type="text" placeholder="Imię i Nazwisko Sprawcy" value={summonsData.perpetrator} onChange={e => setSummonsData({...summonsData, perpetrator: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full" />
+                <input type="text" placeholder="Nr albumu" value={summonsData.albumId} onChange={e => setSummonsData({...summonsData, albumId: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full" />
+                <input type="text" placeholder="Organizacja Studencka / Projekt" value={summonsData.organization} onChange={e => setSummonsData({...summonsData, organization: e.target.value})} className="bg-slate-50 border p-4 rounded-xl font-bold w-full md:col-span-2" />
+                
                 <div className="md:col-span-2 bg-red-50 p-4 rounded-xl border border-red-100">
-                  <p className="text-[10px] font-black text-red-600 uppercase mb-2">Zniszczony / Utracony Sprzęt</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                  <p className="text-[10px] font-black text-red-600 uppercase mb-2">Przedmiot Szkody i Opis</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                     <input type="text" placeholder="Nazwa sprzętu" value={summonsData.equipmentName} onChange={e => setSummonsData({...summonsData, equipmentName: e.target.value})} className="bg-white border border-red-200 p-3 rounded-lg text-sm font-bold w-full" />
-                    <input type="text" placeholder="Marka" value={summonsData.brand} onChange={e => setSummonsData({...summonsData, brand: e.target.value})} className="bg-white border border-red-200 p-3 rounded-lg text-sm font-bold w-full" />
-                    <input type="text" placeholder="Model" value={summonsData.model} onChange={e => setSummonsData({...summonsData, model: e.target.value})} className="bg-white border border-red-200 p-3 rounded-lg text-sm font-bold w-full" />
+                    <input type="text" placeholder="Nr inwentarzowy (KOD QR)" value={summonsData.brand} onChange={e => setSummonsData({...summonsData, brand: e.target.value})} className="bg-white border border-red-200 p-3 rounded-lg text-sm font-bold w-full" />
                   </div>
+                  <select value={summonsData.damageType} onChange={e => setSummonsData({...summonsData, damageType: e.target.value})} className="w-full bg-white border border-red-200 p-3 rounded-lg text-sm font-bold mb-3">
+                    <option value="Uszkodzenie mechaniczne">Uszkodzenie mechaniczne</option>
+                    <option value="Zalanie">Zalanie</option>
+                    <option value="Zgubienie/Kradzież">Zgubienie / Kradzież</option>
+                    <option value="Inne">Inne</option>
+                  </select>
+                  <textarea rows="2" placeholder="Szczegółowy opis uszkodzeń..." value={summonsData.description} onChange={e => setSummonsData({...summonsData, description: e.target.value})} className="w-full bg-white border border-red-200 p-3 rounded-lg text-sm font-medium resize-none"></textarea>
                 </div>
               </div>
-              <button onClick={() => setShowSummonsDocument(true)} disabled={!summonsData.perpetrator || !summonsData.protocolNumber} className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Generuj Ostateczne Wezwanie (A4)</button>
+              <button onClick={() => setShowSummonsDocument(true)} disabled={!summonsData.perpetrator || !summonsData.equipmentName} className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Generuj Protokół (PDF)</button>
             </div>
           ) : (
             <div id="printable-document" className="text-black font-serif text-[12px] leading-relaxed">
-              <div className="text-right mb-12"><p>Wrocław, dnia {today} r.</p></div>
-              <div className="text-center mb-16">
-                <h1 className="text-2xl font-black underline mb-2">OSTATECZNE PRZEDSĄDOWE WEZWANIE</h1>
-                <p className="text-lg font-bold tracking-widest">DO NAPRAWIENIA SZKODY W MIENIU UCZELNI</p>
+              <div className="flex justify-between mb-8 text-[10px] font-bold uppercase border-b border-black pb-2">
+                <div className="w-1/2">
+                  <p>Samorząd Studentów</p>
+                  <p>Uniwersytetu Ekonomicznego we Wrocławiu</p>
+                </div>
+                <div className="w-1/2 text-right">
+                  <p>ZAŁĄCZNIK NR 8</p>
+                  <p>DO REGULAMINU GOSPODAROWANIA</p>
+                  <p>SKŁADNIKAMI MAJĄTKU RUCHOMEGO SSUEW</p>
+                </div>
               </div>
-              <div className="mb-12"><p className="font-bold underline mb-2">WEZWANY (SPRAWCA):</p><p>Pan/Pani <strong>{summonsData.perpetrator}</strong></p><p>Adres: <strong>{summonsData.address}</strong></p></div>
-              <div className="mb-8"><p><strong>DOTYCZY:</strong> Braku realizacji zobowiązania z Protokołu Szkody nr <strong>{summonsData.protocolNumber}</strong></p></div>
-              <div className="text-justify space-y-4 mb-12">
-                <p>W związku z bezskutecznym upływem terminu na naprawienie szkody polegającej na zniszczeniu/utracie sprzętu: <strong>{summonsData.equipmentName}</strong>, niniejszym <strong>WZYWAM DO NATYCHMIASTOWEGO</strong>:</p>
-                <div className="pl-6 space-y-4 font-bold my-6"><p>1. Dostarczenia fabrycznie nowego urządzenia (marki: {summonsData.brand}, modelu: {summonsData.model});</p><p className="text-center">LUB</p><p>2. Przedłożenia dowodu opłacenia naprawy serwisowej.</p></div>
-                <p>Wyznacza się ostateczny termin wykonania zobowiązania: <strong className="underline">7 dni</strong> od daty otrzymania niniejszego pisma.</p>
+
+              <div className="text-center mb-8">
+                <h1 className="text-xl font-black uppercase tracking-widest mb-1">PROTOKÓŁ SZKODY / INCYDENTU</h1>
+                <p className="font-bold text-gray-700 mt-1">(WRAZ Z UZNANIEM DŁUGU I ZOBOWIĄZANIEM DO NAPRAWIENIA SZKODY)</p>
+                <p className="font-bold mt-2">NR SZKODA/....../2026</p>
               </div>
-              <div className="bg-gray-100 p-6 border border-gray-400 mb-16">
-                <p className="font-black underline mb-2">POUCZENIE:</p>
-                <p className="mb-2">Niewykonanie powyższego zobowiązania skutkować będzie:</p>
-                <ol className="list-decimal pl-5 space-y-2 font-bold text-[11px]">
-                  <li>Skierowaniem oficjalnego wniosku do Rzecznika Dyscyplinarnego dla Studentów o wszczęcie postępowania.</li>
-                  <li>Przekazaniem sprawy do Działu Prawnego Uniwersytetu celem skierowania powództwa cywilnego o naprawienie szkody.</li>
-                </ol>
+
+              <div className="space-y-4 text-justify">
+                <p><strong>1. DATA I MIEJSCE ZDARZENIA:</strong> {today}, Wrocław, Kampus UEW</p>
+                
+                <div>
+                  <p className="font-bold">2. SPRAWCA / OSOBA ODPOWIEDZIALNA:</p>
+                  <p className="ml-4">Imię i Nazwisko: <strong>{summonsData.perpetrator}</strong></p>
+                  <p className="ml-4">Nr albumu: <strong>{summonsData.albumId}</strong></p>
+                  <p className="ml-4">Organizacja: <strong>{summonsData.organization}</strong></p>
+                </div>
+
+                <div>
+                  <p className="font-bold">3. PRZEDMIOT SZKODY:</p>
+                  <p className="ml-4">Nazwa: <strong>{summonsData.equipmentName}</strong></p>
+                  <p className="ml-4">Nr inwentarzowy: <strong>{summonsData.brand}</strong></p>
+                </div>
+
+                <div>
+                  <p className="font-bold">4. OPIS STANU FAKTYCZNEGO:</p>
+                  <p className="ml-4">Rodzaj: <strong>☑ {summonsData.damageType}</strong></p>
+                  <p className="ml-4">Opis uszkodzeń: <em>{summonsData.description}</em></p>
+                </div>
+
+                <div>
+                  <p className="font-bold">5. SPOSÓB NAPRAWIENIA SZKODY (UZGODNIENIE STRON):</p>
+                  <p className="mb-2">Strony ustalają, że naprawienie szkody nastąpi poprzez (zaznaczyć właściwe):</p>
+                  <p className="ml-4">☐ Zakup i dostarczenie przez Sprawcę fabrycznie nowego urządzenia (ten sam model lub nowszy o nie gorszych parametrach) w terminie do 7 dni.</p>
+                  <p className="ml-4">☐ Oddanie sprzętu do autoryzowanego serwisu i bezpośrednie pokrycie kosztów naprawy (opłacenie faktury serwisu) przez Sprawcę.</p>
+                  <p className="ml-4">☐ Zakup i dostarczenie niezbędnych części zamiennych wskazanych przez Dysponenta.</p>
+                </div>
+
+                <div className="bg-gray-100 p-4 border border-black mt-6">
+                  <p className="font-bold underline mb-2">6. UZNANIE DŁUGU (OŚWIADCZENIE SPRAWCY):</p>
+                  <p>Ja, niżej podpisany, działając świadomie i dobrowolnie, <strong>UZNAJĘ SWOJĄ ODPOWIEDZIALNOŚĆ</strong> za wyżej opisaną szkodę w mieniu Uniwersytetu Ekonomicznego we Wrocławiu.</p>
+                  <p className="mt-2">Zobowiązuję się do naprawienia szkody w sposób wskazany w pkt 5, w nieprzekraczalnym terminie do dnia: .................................. Oświadczam, że w przypadku niedotrzymania tego terminu, wyrażam zgodę na skierowanie sprawy na drogę postępowania dyscyplinarnego lub sądowego.</p>
+                </div>
               </div>
-              <div className="flex justify-end pt-8"><div className="text-center border-t border-black w-1/2 pt-2"><p className="font-bold">(Podpis PRZEWODNICZĄCEGO SSUEW)</p></div></div>
-              <div className="mt-16 flex gap-4 print:hidden"><button onClick={() => setShowSummonsDocument(false)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">Wróć do edycji</button><button onClick={() => window.print()} className="bg-red-600 text-white py-4 px-6 rounded-xl font-black uppercase text-xs flex-1">🖨️ Drukuj / Zapisz Wezwanie (PDF)</button></div>
+              
+              <div className="flex justify-between items-end pt-4 gap-6 mt-16 page-break-inside-avoid">
+                <div className="w-1/2 flex flex-col items-center">
+                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent">
+                    {/* Miejsce na fizyczny lub cyfrowy podpis Admina */}
+                  </div>
+                  <p className="mt-3 font-bold text-[10px] uppercase">(Podpis DYSPONENTA - SSUEW)</p>
+                </div>
+                <div className="w-1/2 flex flex-col items-center">
+                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent">
+                    {/* Miejsce na podpis Sprawcy */}
+                  </div>
+                  <p className="mt-3 font-bold text-[10px] uppercase">(Podpis SPRAWCY - UZNANIE DŁUGU)</p>
+                </div>
+              </div>
+
+              <div className="mt-16 flex gap-4 print:hidden border-t border-slate-200 pt-6">
+                <button onClick={() => setShowSummonsDocument(false)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">Wróć</button>
+                <button onClick={() => window.print()} className="bg-red-600 text-white py-4 px-6 rounded-xl font-black uppercase text-xs flex-1">🖨️ Podpisz i Zapisz (PDF)</button>
+              </div>
             </div>
           )}
         </div>
