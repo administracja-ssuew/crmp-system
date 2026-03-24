@@ -28,7 +28,10 @@ const ALLOWED_EMAILS = [
   "yuliia.hural.kpbit@gmail.com",
   "mikolaj.jankowski.kpbit@gmail.com",
   "aleksandra.plonka@samorzad.ue.wroc.pl",
-  "anna.skrzypczak@samorzad.ue.wroc.pl"
+  "anna.skrzypczak@samorzad.ue.wroc.pl",
+  "maciej.kulik@samorzad.ue.wroc.pl",
+  "jakub.jasinski@samorzad.ue.wroc.pl",
+  "kamil.szponar.zsp@gmail.com"
   // Dodaj tu siebie, bo zaraz stracisz dostęp!
 ];
 
