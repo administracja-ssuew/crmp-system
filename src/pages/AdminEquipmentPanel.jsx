@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ADMIN_EMAILS } from '../config';
 
 export default function AdminEquipmentPanel() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+  const [selectedAdminEmail, setSelectedAdminEmail] = useState(user?.email || 'administracja@samorzad.ue.wroc.pl');
   const [adminMode, setAdminMode] = useState('wydawanie'); 
 
   const [allReservations, setAllReservations] = useState([]);
@@ -14,7 +14,6 @@ export default function AdminEquipmentPanel() {
   const [approvalModal, setApprovalModal] = useState(null); 
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('12:00');
-  const [selectedAdminEmail, setSelectedAdminEmail] = useState(user?.email || ADMIN_EMAILS[0]);
   const [requesterEmail, setRequesterEmail] = useState('');
 
   const [step, setStep] = useState(1);

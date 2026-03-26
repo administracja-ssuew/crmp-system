@@ -12,11 +12,7 @@ const Icons = {
 };
 
 // === WHITELISTA ADMINÓW ===
-const ADMIN_EMAILS = [
-  'twoj.mail@samorzad.ue.wroc.pl',
-  'inny.admin@samorzad.ue.wroc.pl',
-  'administracja@samorzad.ue.wroc.pl' // Zmień na swój mail
-];
+const { user, userRole } = useAuth();
 
 // === TUTAJ WKLEJ LINKI DO SKRYPTÓW GOOGLE ===
 const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9AjGsGh-xtzplOwnHrlXEkqS7ELN2FkRnlRGFgpkAAmZGDeWRkvA/exec";
@@ -40,7 +36,7 @@ const formatDate = (rawDate) => {
 export default function DashboardPage() {
   const { user } = useAuth();
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
-  const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+  const isAdmin = userRole === 'admin';
 
   // === STANY OGŁOSZEŃ ===
   const [notices, setNotices] = useState([]);

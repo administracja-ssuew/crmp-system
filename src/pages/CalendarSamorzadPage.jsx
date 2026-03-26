@@ -10,12 +10,7 @@ const CAMPUS_ROOMS = {
   '214 Z': { days: [1, 5], start: 18, end: 22 }
 };
 
-// 🔒 BIAŁA LISTA ADMINISTRATORÓW (Zmień na Wasze maile)
-const ADMIN_EMAILS = [
-  'twoj.mail@uew.edu.pl',
-  'inny.czlonek.zarzadu@uew.edu.pl',
-  'administracja@samorzad.ue.wroc.pl'
-];
+const { user, userRole } = useAuth();
 
 const PALETTE = [
   'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
@@ -37,7 +32,7 @@ const formatTime = (timeStr) => {
 };
 
 export default function CalendarSamorzadPage({ userEmail }) {
-  const isAdmin = ADMIN_EMAILS.includes(userEmail);
+  const isAdmin = userRole === 'admin';
 
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
