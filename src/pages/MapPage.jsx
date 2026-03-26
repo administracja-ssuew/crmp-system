@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { ADMIN_EMAILS } from '../config';
 
 // === TWÓJ NOWY LINK DO SKRYPTU ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbyO_eJLtdAs63yScKpVuIzbkCQoQKqQTcWgBN_nlfjg__nAkzXXVYuuisKm_MHmoQ5rNw/exec";
 
 export default function MapPage() {
-  const { user } = useAuth();
-  const isAdmin = user && user.email && ADMIN_EMAILS.some(email => email.toLowerCase() === user.email.toLowerCase());
+  const { user, userRole } = useAuth();
+  const isAdmin = userRole === 'admin';
 
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
