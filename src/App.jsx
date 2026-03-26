@@ -145,8 +145,6 @@ export default function App() {
 
           <Route path="/dokumenty" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
 
-          <Route path="/ksiega-dokumentow" element={<KsiegaDokumentowPage />} />
-
           <Route path="/zaplecze-prawne" element={<ProtectedRoute><PlaceholderPage title="Zaplecze Prawne Projektów" /></ProtectedRoute>} />
 
           <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
@@ -155,7 +153,8 @@ export default function App() {
           
           <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
 
-          <Route path="/legal-hub" element={<LegalHubPage />} />
+          <Route path="/ksiega-dokumentow" element={<ProtectedRoute><KsiegaDokumentowPage /></ProtectedRoute>} />
+          <Route path="/legal-hub" element={<ProtectedRoute><LegalHubPage /></ProtectedRoute>} />
 
           <Route path="/skaner" element={<VerificationPage />} />
 

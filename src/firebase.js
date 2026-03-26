@@ -9,13 +9,12 @@ import { getFirestore } from "firebase/firestore";
 
 // Dane znajdziesz w Firebase Console -> Project Settings
 const firebaseConfig = {
-  apiKey: "AIzaSyBsKTsr-p1-najTnG3MlKUTZCGStKHGl8w",
-  authDomain: "crmp-uew.firebaseapp.com",
-  projectId: "crmp-uew",
-  storageBucket: "crmp-uew.firebasestorage.app",
-  messagingSenderId: "185755994538",
-  appId: "1:185755994538:web:813d556cc4356debe0c3d3",
-  measurementId: "G-TTH3EDGTXE"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
