@@ -6,11 +6,6 @@ const DATA_URL = "https://script.google.com/macros/s/AKfycbwNtQx8na9KJnx6Rvdwgzc
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1A63PV5WAj5B6jkbgurENB2sZ9ncGaEOQftkCzDBZKsM/edit"; 
 const ITEMS_PER_PAGE = 6; 
 
-// === WHITELISTA ADMINÓW ===
-const ADMIN_EMAILS = [
-  'twoj.mail@samorzad.ue.wroc.pl',
-  'administracja@samorzad.ue.wroc.pl' // Zmień na swój e-mail
-];
 
 const BUILDING_INFO = {
   'Z': { name: 'Budynek Z', capacity: 2, color: 'bg-blue-100 text-blue-700' },
@@ -22,8 +17,8 @@ const BUILDING_INFO = {
 };
 
 export default function StandsPage() {
-  const { user } = useAuth();
-  const isAdmin = user?.email ? ADMIN_EMAILS.includes(user.email.toLowerCase()) : false;
+  const { user, userRole } = useAuth();
+  const isAdmin = userRole === 'admin';
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);

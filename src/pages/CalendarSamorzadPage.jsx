@@ -10,8 +10,6 @@ const CAMPUS_ROOMS = {
   '214 Z': { days: [1, 5], start: 18, end: 22 }
 };
 
-const { user, userRole } = useAuth();
-
 const PALETTE = [
   'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
   'bg-emerald-500', 'bg-lime-500', 'bg-fuchsia-500', 

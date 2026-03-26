@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-const { user, userRole } = useAuth();
 
 const DIN_13169_ITEMS = [
   "Przylepiec na szpuli (5m x 2,5cm) - 2 szt.",
@@ -20,7 +19,7 @@ const DIN_13169_ITEMS = [
 ];
 
 export default function EquipmentPage() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const isAdmin = userRole === 'logitech';
 
   const [equipmentData, setEquipmentData] = useState([]);
