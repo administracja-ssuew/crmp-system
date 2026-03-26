@@ -68,15 +68,19 @@ const ProtectedRoute = ({ children }) => {
 
 // === KOMPONENT OCHRONY (TYLKO DLA ADMINISTRATORÓW) ===
 const AdminRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, userRole, loading } = useAuth();
   if (loading) return null;
-  
   if (!user) return <Navigate to="/login" />;
-  
-  if (!ADMIN_EMAILS.includes(user.email)) {
-    return <Navigate to="/" />;
-  }
-  
+  if (userRole !== 'admin') return <Navigate to="/" />;
+  return children;
+};
+
+// === KOMPONENT OCHRONY (TYLKO DLA LOGITECHU) ===
+const LogitechRoute = ({ children }) => {
+  const { user, userRole, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" />;
+  if (userRole !== 'admin' && userRole !== 'logitech') return <Navigate to="/" />;
   return children;
 };
 
@@ -149,7 +153,7 @@ export default function App() {
 
           <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
           
-          <Route path="/wydawanie" element={<AdminRoute><AdminEquipmentPanel /></AdminRoute>} />
+          <Route path="/wydawanie" element={<LogitechRoute><AdminEquipmentPanel /></LogitechRoute>} />
           
           <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
 
