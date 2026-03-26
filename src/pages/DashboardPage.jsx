@@ -11,9 +11,6 @@ const Icons = {
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
 };
 
-// === WHITELISTA ADMINÓW ===
-const { user, userRole } = useAuth();
-
 // === TUTAJ WKLEJ LINKI DO SKRYPTÓW GOOGLE ===
 const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9AjGsGh-xtzplOwnHrlXEkqS7ELN2FkRnlRGFgpkAAmZGDeWRkvA/exec";
 const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
@@ -34,7 +31,7 @@ const formatDate = (rawDate) => {
 };
 
 export default function DashboardPage() {
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
   const isAdmin = userRole === 'admin';
 
