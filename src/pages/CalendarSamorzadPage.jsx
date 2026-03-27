@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
@@ -9,6 +10,7 @@ const CAMPUS_ROOMS = {
   '213 Z': { days: [4, 5], start: 18, end: 22 }, 
   '214 Z': { days: [1, 5], start: 18, end: 22 }
 };
+
 
 const PALETTE = [
   'bg-indigo-600', 'bg-blue-500', 'bg-sky-400', 
@@ -30,6 +32,7 @@ const formatTime = (timeStr) => {
 };
 
 export default function CalendarSamorzadPage({ userEmail }) {
+  const { userRole } = useAuth();
   const isAdmin = userRole === 'admin';
 
   const [filterRoom, setFilterRoom] = useState('ALL');
