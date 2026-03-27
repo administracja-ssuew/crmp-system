@@ -20,6 +20,7 @@ import LegalHubPage from './pages/LegalHubPage';
 import VerificationPage from './pages/VerificationPage';
 import KsiegaDokumentowPage from './pages/KsiegaDokumentowPage';
 import AccessRequestPage from './pages/AccessRequestPage';
+import AccessRequestsPanel from './pages/AccessRequestsPanel';
 import AIBot from './AIBot'; 
 
 function BackButton() {
@@ -122,6 +123,7 @@ function AppContent() {
         {/* PUBLICZNE */}
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
         <Route path="/wniosek" element={<AccessRequestPage />} />
+        <Route path="/wnioski" element={<AdminRoute><AccessRequestsPanel /></AdminRoute>} />
         <Route path="/skaner" element={<VerificationPage />} />
 
         {/* CHRONIONE */}

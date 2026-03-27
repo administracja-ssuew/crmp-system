@@ -57,7 +57,7 @@ export default async function handler(req, res) {
           <tr><td><b>Uzasadnienie:</b></td><td>${justification}</td></tr>
         </table>
         <br/>
-         <a href="https://cra-system.vercel.app/wniosek"
+         <a href="https://cra-system.vercel.app/wnioski"
            style="background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
           Przejdź do panelu wniosków →
         </a>
