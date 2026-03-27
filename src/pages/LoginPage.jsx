@@ -68,9 +68,7 @@ export default function LoginPage() {
               <div className="flex flex-col items-center pt-2">
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Brak uprawnień?</p>
                 <a 
-                  href="https://tally.so/r/RGz9B9" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                  href="/wniosek" 
                   className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full border border-blue-100"
                 >
                   <span>📝</span> Złóż wniosek do administratora
