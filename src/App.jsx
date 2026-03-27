@@ -20,12 +20,10 @@ import ScannerPage from './pages/ScannerPage';
 import LegalHubPage from './pages/LegalHubPage';
 import VerificationPage from './pages/VerificationPage';
 import KsiegaDokumentowPage from './pages/KsiegaDokumentowPage';
+import AccessRequestPage from './pages/AccessRequestPage';
 
 // === IMPORT BOTA AI (POPRAWIONA ŚCIEŻKA) ===
 import AIBot from './AIBot'; 
-
-// === LISTA ADMINISTRATORÓW ===
-import { ADMIN_EMAILS } from './config';
 
 // === KOMPONENT POWROTU ===
 function BackButton() {
@@ -137,6 +135,7 @@ export default function App() {
           <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/mapa" element={<ProtectedRoute><MapPage /></ProtectedRoute>} />
           <Route path="/rejestr" element={<ProtectedRoute><StandsPage /></ProtectedRoute>} />
+          <Route path="/wniosek" element={<AccessRequestPage />} />
           
           {/* Ekran wyboru */}
           <Route path="/kalendarz-wybor" element={<ProtectedRoute><CalendarSelectionPage /></ProtectedRoute>} />

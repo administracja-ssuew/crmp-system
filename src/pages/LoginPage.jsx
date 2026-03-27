@@ -40,9 +40,7 @@ export default function LoginPage() {
                 <p className="text-slate-500 text-xs mb-4 font-medium">Nie masz dostępu? Złóż wniosek do administratora.</p>
                 
                 <a 
-                  href="https://tally.so/r/RGz9B9" 
-                  target="_blank"
-                  rel="noreferrer"
+                  href="/wniosek" 
                   className="block w-full bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg mb-3"
                 >
                   📝 Złóż wniosek o dostęp
