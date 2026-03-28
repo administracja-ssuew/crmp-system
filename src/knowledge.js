@@ -680,6 +680,183 @@ ORGANIZACJA KSZTAŁCENIA (Rozdział V):
 - Opłaty za studia wymagają zasięgnięcia opinii samorządu
 - Legitymacja studencka: 50% ulga w komunikacji miejskiej
 
+======================================================
+DOKUMENT 10: REGULAMIN ŚWIADCZEŃ DLA STUDENTÓW UEW
+(Załącznik do Zarządzenia Rektora nr 123/2025, obowiązuje od 01.10.2025 r.)
+Ustalony w porozumieniu z Samorządem Studentów UEW.
+======================================================
+
+§2. RODZAJE ŚWIADCZEŃ
+1) Stypendium socjalne
+2) Stypendium dla osób niepełnosprawnych
+3) Zapomoga
+4) Stypendium rektora
++ Stypendium ministra za wybitne osiągnięcia (odrębne przepisy)
+
+§3. KOMU PRZYSŁUGUJĄ
+- Studia I i II stopnia (nie podyplomowe)
+- Tylko na JEDNYM kierunku (przy kilku kierunkach student wskazuje który)
+- NIE przysługują osobie posiadającej tytuł magistra lub równorzędny
+- NIE przysługują osobie z tytułem licencjata/inżyniera podejmującej ponownie studia I stopnia
+- Łączny okres świadczeń: max 12 semestrów (I stopień max 9 sem., II stopień max 7 sem.)
+- Urlop: semestry urlopowe WLICZAJĄ SIĘ do limitu 12 semestrów
+- Wyjątek dla niepełnosprawności powstałej w trakcie studiów: dodatkowe 12 semestrów
+
+§4. KOMISJA STYPENDIALNA
+- Na wniosek samorządu studenckiego świadczenia przyznaje Komisja Stypendialna (KS) i Odwoławcza Komisja Stypendialna (OKS)
+- Skład każdej komisji: 5 osób — 3 studentów delegowanych przez samorząd + 2 pracowników delegowanych przez rektora
+- Decyzje: zwykłą większością głosów, jawnie
+- Rektor może uchylić decyzję KS/OKS niezgodną z prawem
+
+§5. OKRESY WYPŁAT
+- Stypendium socjalne: co miesiąc przez max 5 miesięcy (sem. zimowy: X-II, sem. letni: III-VI)
+- Stypendium dla niepełnosprawnych: co miesiąc przez max 9 miesięcy (X-VI), do końca ważności orzeczenia
+- Zapomoga: jednorazowa, max 2 razy w roku akademickim
+- Stypendium rektora: co miesiąc przez max 9 miesięcy (X-VI)
+- Wypłata: przelewem na konto do końca danego miesiąca (stypendia za X i XI mogą być w XII, za III w IV)
+
+§6. SZCZEGÓLNE PRZYPADKI
+- Na urlopie: można ubiegać się o WSZYSTKIE świadczenia
+- Wpisany warunkowo: można pobierać już przyznane stypendium
+- Oczekujący na powtarzanie: brak stypendiów (poza zapomogą)
+- Powtarzający semestr/rok: NIE może dostać stypendium rektora
+- Utrata świadczeń: od miesiąca następującego po obronie pracy / skreśleniu
+
+§9. TERMINY SKŁADANIA WNIOSKÓW (WAŻNE!)
+STYPENDIUM SOCJALNE:
+- Semestr zimowy: 25 września - 8 października
+- Semestr letni: 7-21 marca
+- USOS (rejestracja elektroniczna): sem. zimowy od 24 IX godz. 15:00 do 7 X godz. 23:59; sem. letni od 6 III godz. 0:00 do 20 III godz. 23:59
+
+STYPENDIUM DLA NIEPEŁNOSPRAWNYCH:
+- Cały rok akademicki: 1 października - 15 czerwca
+
+ZAPOMOGA:
+- Cały rok akademicki: 1 października - 14 września (następnego roku)
+- Wniosek należy złożyć do 3 miesięcy od zdarzenia uzasadniającego zapomogę!
+
+STYPENDIUM REKTORA:
+- 21-31 października (sem. zimowy)
+- 7-21 marca (dla rozpoczynających w sem. letnim)
+- USOS: od 20 X godz. 0:00 do 30 X godz. 23:59
+
+WAŻNE: Samo zarejestrowanie w USOSweb NIE jest złożeniem wniosku!
+Wniosek = rejestracja w USOS + wydruk + podpis + złożenie w DŚS (Dział Świadczeń Stypendialnych) lub Biurze Filii.
+Kontakt z DŚS: WYŁĄCZNIE przez uczelnianą pocztę @student.ue.wroc.pl
+
+§12-13. STYPENDIUM SOCJALNE — SZCZEGÓŁY
+Kryterium dochodowe: dochód netto ≤ 45% minimalnego wynagrodzenia za pracę (od 1 stycznia roku poprzedzającego rok akademicki) na osobę w rodzinie.
+Dochód liczony z roku podatkowego poprzedzającego rok akademicki.
+
+Do rodziny zalicza się: studenta, małżonka, rodziców/opiekunów, dzieci do 26 lat (lub niepełnosprawne bez względu na wiek).
+
+STUDENT SAMODZIELNY (bez uwzględniania dochodów rodziców) jeśli spełnia jeden z warunków:
+- ukończył 26 lat
+- jest w związku małżeńskim
+- ma na utrzymaniu dzieci
+- wychowywał się w pieczy zastępczej
+- ma stałe dochody ≥ 40% minimalnego wynagrodzenia
+
+UWAGA: Student z bardzo niskim dochodem (poniżej kryterium z ustawy o pomocy społecznej) musi dołączyć zaświadczenie z MOPS/OPS o korzystaniu ze świadczeń pomocy społecznej. Brak zaświadczenia = odmowa stypendium!
+
+§18. STYPENDIUM DLA NIEPEŁNOSPRAWNYCH
+Wymagane: aktualne orzeczenie o niepełnosprawności lub stopniu niepełnosprawności.
+Wysokość zależy od stopnia niepełnosprawności (lekki/umiarkowany/znaczny).
+Gdy brak określonego stopnia: przyjmuje się stopień lekki.
+Gdy orzeczenie traci ważność w trakcie roku: stypendium do końca ważności orzeczenia.
+Po uzyskaniu nowego orzeczenia: nowy wniosek, stypendium od miesiąca złożenia wniosku.
+
+§19-22. STYPENDIUM REKTORA — SZCZEGÓŁY
+Kryterium: wyróżniające wyniki (średnia ≥ 4,00) LUB osiągnięcia naukowe/artystyczne LUB osiągnięcia sportowe min. na poziomie krajowym.
+Przyznawane max 10% studentów na kierunku (lista rankingowa).
+Średnia: z ostatnich 2 semestrów (bez proseminarium, sem. dyplomowego, WF, praktyk, egzaminu dyplomowego).
+
+NIE może dostać stypendium rektora student który:
+- oczekuje na powtarzanie semestru
+- powtarza semestr
+- jest wpisany warunkowo
+- był ukarany karą zawieszenia w prawach lub wydalenia w poprzednim sem./roku
+
+Student I roku II stopnia: może ubiegać się na podstawie wyników z ostatnich 2 semestrów studiów I stopnia.
+
+§24. ZAPOMOGA — SZCZEGÓŁY
+Zdarzenia uzasadniające zapomogę:
+- śmierć najbliższego członka rodziny
+- ciężka choroba studenta lub bliskiej rodziny
+- zdarzenie losowe z poważnymi konsekwencjami (pożar, powódź, wypadek)
+- klęski żywiołowe
+- urodzenie dziecka
+- inne udokumentowane trudne okoliczności
+
+Max 2 razy w roku akademickim. Z tego samego tytułu tylko RAZ.
+Wniosek: do 3 miesięcy od zdarzenia!
+Wymaga dokumentacji (faktury, zaświadczenia lekarskie, policyjne itp.)
+
+§26. TRYB ODWOŁAWCZY
+- Od decyzji Rektora: wniosek o ponowne rozpatrzenie sprawy w ciągu 14 dni od doręczenia
+- Od decyzji KS: odwołanie do OKS za pośrednictwem KS w ciągu 14 dni od doręczenia
+- Decyzja doręczana przez uczelnianą pocztę e-mail (@ue.wroc.pl)
+- Termin wydania decyzji: max 1 miesiąc (w sprawach skomplikowanych 2 miesiące)
+
+UTRATA PRAWA DO ŚWIADCZEŃ:
+- Obrona pracy dyplomowej: od miesiąca następującego po obronie
+- Skreślenie z listy: od miesiąca następującego po skreśleniu
+- Kara dyscyplinarna zawieszenia: z dniem wskazanym w orzeczeniu
+- Fałszywe dane: zwrot pobranych świadczeń + postępowanie dyscyplinarne!
+
+======================================================
+DOKUMENT 11: KODEKS ETYKI STUDENTA/STUDENTKI UEW
+======================================================
+
+WSTĘP I ZAKRES:
+Kodeks uzupełnia przepisy prawne i regulaminy — nie zastępuje ich.
+Obowiązuje wszystkich studentów niezależnie od formy, stopnia i kierunku studiów.
+Za upowszechnienie odpowiadają: Rektor i Przewodniczący Samorządu Studenckiego (§25).
+
+ROZDZIAŁ I — POSTANOWIENIA OGÓLNE:
+§3. Student zobowiązany jest zapoznać się z Kodeksem, przestrzegać go i szerzyć w środowisku.
+§4. Poza Uczelnią student dba o jej dobre imię i godnie ją reprezentuje.
+§5. W kontaktach z innymi: szacunek, uczciwość, kultura osobista, poszanowanie godności.
+§6. Student współtworzy środowisko oparte na zaufaniu i bezpieczeństwie.
+§7. Student powinien pomagać innym studentom — szczególnie w adaptacji i poznawaniu zasad.
+§8. Student ponosi odpowiedzialność za swoje postępowanie i nie unika konsekwencji.
+§9. ZAKAZANE: dyskryminacja, nierówne traktowanie, wykluczenie, naruszanie godności — ze względu na wiek, kolor skóry, narodowość, wyznanie, przekonania, tożsamość płciową/seksualną lub jakąkolwiek inną cechę.
+§10. ZAKAZANE: agresja, przemoc, nieuczciwość, hejt, tolerowanie patologii społecznej.
+§11. Student nie pozostaje bierny wobec naruszeń Kodeksu — zgłasza władzom Uczelni. Zgłoszenie jest poufne, zgłaszający nie ponosi negatywnych konsekwencji jeśli działał w dobrej wierze.
+
+ROZDZIAŁ II — PRAWA STUDENTA:
+§12. Student ma prawo do:
+- respektowania praw wynikających z Ustawy i przepisów UEW, uzyskiwania informacji o uprawnieniach
+- poszanowania godności, prywatności, wolności osobistej, ochrony danych osobowych
+- uczciwego postępowania w procesie kształcenia — sprawiedliwej i bezstronnej oceny
+- wyrażania opinii w sposób kulturalny i odpowiedzialny
+- równego traktowania, wolnego od dyskryminacji
+- uczestniczenia w życiu akademickim w atmosferze współpracy i dialogu
+- zrzeszania się w organizacjach studenckich i kołach naukowych
+
+ROZDZIAŁ III — OBOWIĄZKI STUDENTA:
+§13. Student zobowiązany jest do:
+- przestrzegania ustaw i przepisów UEW, w szczególności Regulaminu Studiów
+- uczciwego i samodzielnego wykonywania prac
+- kultury osobistej w relacjach ze studentami i pracownikami
+- powstrzymywania się od działań naruszających godność innych
+- odpowiedzialnego korzystania z zasobów informatycznych (cyberbezpieczeństwo, ochrona haseł)
+- poszanowania mienia Uczelni i zasad bezpieczeństwa
+- dbałości o środowisko i przestrzeń wspólną kampusu
+
+ROZDZIAŁ IV — ZACHOWANIA NIEETYCZNE:
+§15. NIEETYCZNE: ściąganie na egzaminach i kolokwiach, wprowadzanie w błąd co do samodzielności prac (plagiat), inne działania sprzeczne z prawem.
+§16. NARUSZENIE: oferowanie, wręczanie, przyjmowanie lub pośredniczenie w przekazywaniu korzyści majątkowych/osobistych w związku z kształceniem lub ocenianiem (korupcja akademicka).
+§17. NAGANNE: agresja, hejt, brak szacunku wobec studentów i pracowników, zakłócanie zajęć, niszczenie zasobów Uczelni.
+§18. NARUSZENIE: nieuprawniony dostęp do systemów, kont lub danych, ich modyfikowanie lub niszczenie.
+§19. NAGANNE: zaśmiecanie kampusu, niszczenie zieleni lub infrastruktury.
+§20. Relacje osobiste student-pracownik nie mogą naruszać zasady bezstronności i równego traktowania. Przy konflikcie interesów należy podjąć działania minimalizujące ryzyko.
+
+ROZDZIAŁ V — ODPOWIEDZIALNOŚĆ:
+§21. Naruszenie Kodeksu podlega ocenie etycznej — niezależnie od innych przepisów.
+§22. Za naruszenie Kodeksu (naruszenie przepisów Uczelni lub czyn uchybiający godności studenta) student ponosi odpowiedzialność dyscyplinarną przed Komisją Dyscyplinarną dla Studentów.
+§23. Od orzeczenia Komisji Dyscyplinarnej przysługuje odwołanie do Odwoławczej Komisji Dyscyplinarnej — jej decyzja jest OSTATECZNA. Nie przysługuje dalszy środek odwoławczy w ramach Uczelni, w szczególności odwołanie do Rektora.
+
 
 
 ======================================================
