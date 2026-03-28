@@ -464,6 +464,225 @@ ODWOŁANIA I SKARGI:
 - Sprawy dyscyplinarne → Rzecznik Dyscyplinarny → Komisja Dyscyplinarna dla Studentów
 
 ======================================================
+DOKUMENT 8: UCZELNIANY REGULAMIN STUDIÓW UEW
+(Uchwała Senatu nr R.0000.21.2025 z dnia 27 marca 2025 r., obowiązuje od roku akademickiego 2025/2026)
+======================================================
+
+§1. ZAKRES
+Dotyczy studiów stacjonarnych i niestacjonarnych I i II stopnia. Nie dotyczy studiów podyplomowych.
+
+§2. KLUCZOWE DEFINICJE
+- Rektor = Prorektor ds. Studenckich i Kształcenia (w zakresie organizacji kształcenia)
+- Dziekan = Dziekan ds. Studenckich lub Prodziekan ds. Studenckich
+- Dziekanat = Dziekanat lub Dziekanat Filii lub Biuro Programu EMBA
+- USOS = Uniwersytecki System Obsługi Studiów
+- Ocena cząstkowa = ocena z jednej formy zajęć lub egzaminu
+- Ocena łączna = ocena końcowa z przedmiotu
+
+§3. ŚLUBOWANIE
+Student nabywa prawa z chwilą złożenia ślubowania: „Wstępując w poczet studentów UEW ślubuję: zdobywać wytrwale wiedzę i umiejętności, dbać o godność studenta i dobre imię Uczelni, szanować tradycje, przestrzegać zasad współżycia koleżeńskiego i przepisów obowiązujących w Uczelni."
+
+§4. PRAWA STUDENTA
+Student ma prawo do:
+- rzetelnej wiedzy i poszanowania godności
+- przenoszenia i uznawania punktów ECTS
+- indywidualnej organizacji studiów (IOS) i indywidualnego programu studiów (IPS)
+- usprawiedliwiania nieobecności i urlopów
+- zmiany kierunku studiów i formy (stacjonarne/niestacjonarne)
+- egzaminu/zaliczenia komisyjnego z obserwatorem
+- powtarzania zajęć z powodu niezadowalających wyników
+- korzystania z infrastruktury Uczelni (biblioteka, oprogramowanie)
+- konsultacji z nauczycielami akademickimi
+- udziału w wymianie studenckiej (Erasmus+)
+- pomocy materialnej
+- zaskarżania rozstrzygnięć w sprawach studenckich
+
+§5. OBOWIĄZKI STUDENTA
+- postępowanie zgodnie z przepisami Uczelni
+- uczestnictwo we wszystkich formach zajęć (poza wykładami, chyba że jest na nich zaliczenie)
+- frekwencja na wykładach NIE MOŻE wpływać na końcową ocenę
+- terminowe zaliczanie przedmiotów i egzaminy
+- komunikacja z pracownikami WYŁĄCZNIE przez konto uczelniane w domenie UEW
+- weryfikacja danych w USOS i zgłaszanie błędów
+
+§6. BEZPIECZEŃSTWO INFORMACJI
+Obowiązkowe uwierzytelnianie wieloskładnikowe MFA przy logowaniu do kont uczelnianych.
+
+§7. POSTANOWIENIA SZCZEGÓŁOWE
+- Rzecznik Praw Studenta powoływany na wniosek samorządu studenckiego przez Rektora
+- Na początku roku akademickiego samorząd prowadzi szkolenie z praw i obowiązków studenta dla pierwszoroczniaków
+
+§8-9. ORGANIZACJA STUDIÓW
+- Studia I stopnia: 6 lub 7 semestrów
+- Studia II stopnia: 3 lub 4 semestry
+- Tytuły: licencjat, inżynier, magister
+- Rok akademicki: 2 semestry + 2 sesje (podstawowa + poprawkowa, łącznie min. 6 tygodni) + przerwy (min. 6 tygodni)
+
+§10. HARMONOGRAM ZAJĘĆ
+- Stacjonarne: pon-pt, max do 20:00, max 30h/tydzień
+- Niestacjonarne: sb-nd
+- Terminy zjazdów niestacjonarnych: zatwierdza Dziekan W POROZUMIENIU z właściwym organem samorządu studenckiego, publikowane max 4 tygodnie przed zajęciami
+- Harmonogramy zajęć: 1 tydzień przed (I semestr) lub 2 tygodnie przed (pozostałe)
+
+§11-14. ROZSTRZYGNIĘCIA W SPRAWACH STUDENCKICH
+WAŻNE: Wszystkie sprawy studenckie załatwia się WYŁĄCZNIE przez system USOS (podania, odwołania, załączniki, rozstrzygnięcia).
+Instancje:
+1. I instancja: Dziekan (rozstrzygnięcie do 14 dni od złożenia podania, w sprawach skomplikowanych do 1 miesiąca)
+2. Odwołanie: do Rektora w ciągu 7 dni od doręczenia rozstrzygnięcia
+3. Rozstrzygnięcie Rektora: ostateczne, bez dalszego odwołania
+
+Podanie musi zawierać: zwięzły wniosek + uzasadnienie merytoryczne + dokumenty potwierdzające fakty.
+Braki formalne: student ma min. 7 dni na uzupełnienie. Brak uzupełnienia = pozostawienie bez rozpoznania.
+Doręczenie rozstrzygnięcia = chwila udostępnienia w systemie USOS.
+
+§15. INDYWIDUALNA ORGANIZACJA STUDIÓW (IOS)
+Wniosek do Dziekana. Polega na zmianie grupy administracyjnej (bez zmiany programu) lub indywidualnym trybie zaliczania.
+Uprawnieni w szczególności: działacze samorządu studenckiego, osoby z niepełnosprawnościami, kobiety w ciąży, rodzice, opiekunowie rodziny.
+Zmiana grupy: max 2 tygodnie od wydania zezwolenia, za zgodą prowadzącego.
+
+§16. INDYWIDUALNY PROGRAM STUDIÓW (IPS)
+Wniosek do Dziekana. Wymiana nieobowiązkowych przedmiotów na inne zajęcia, pod nadzorem promotora lub wskazanego nauczyciela.
+
+§17. PRZENIESIENIE
+- Na Uczelnię: wniosek do Rektora, max 2 semestry przed ukończeniem studiów
+- Na inny kierunek/formę/grupę: wniosek do Dziekana
+- Na studia stacjonarne: min. po 2. semestrze (I stopień) lub po 1. semestrze (II stopień), max 2 semestry przed końcem, przy wymaganej średniej
+
+§18. USPRAWIEDLIWIANIE NIEOBECNOŚCI
+- Nieobecność na zajęciach/zaliczeniu: usprawiedliwia prowadzący, dokumenty w ciągu 14 dni od ustania przyczyny
+- Nieobecność na egzaminie: usprawiedliwia egzaminator, dokumenty w ciągu 3 dni od ustania przyczyny
+- Egzamin dyplomowy: usprawiedliwia Dziekan i wyznacza nowy termin
+
+§19-20. URLOPY
+Rodzaje: krótkoterminowy (do 1 miesiąca) lub długoterminowy (2 semestry, wyjątkowo 1 semestr)
+Przyczyny:
+1. zdrowotne
+2. edukacyjne lub naukowe
+3. ciąża lub rodzicielstwo (studentce w ciąży do urodzenia dziecka; rodzicowi do 1 roku od urodzenia dziecka, wniosek w ciągu roku od urodzenia)
+4. trudna sytuacja materialna
+5. losowe (nagłe i istotne okoliczności)
+
+Ograniczenia: nie można udzielić na semestr już zakończony. Urlopy krótkoterminowe z powodów materialnych/losowych: max 1 miesiąc w semestrze. Urlopy długoterminowe z powodów materialnych/losowych: max 2 razy w całym okresie studiów.
+
+§21. SKREŚLENIE Z LISTY STUDENTÓW
+OBLIGATORYJNE (MUSI):
+- niepodjęcie studiów (brak ślubowania, brak BHP, brak zaświadczeń lekarskich w 14 dni, brak dokumentów)
+- rezygnacja ze studiów (oświadczenie w USOS lub pisemnie w Dziekanacie)
+- niezłożenie pracy dyplomowej/egzaminu dyplomowego w terminie
+- kara dyscyplinarna wydalenia
+
+FAKULTATYWNE (MOŻE, po wezwaniu studenta do wyjaśnień):
+- brak udziału w obowiązkowych zajęciach (zgłoszenie przez prowadzącego min. 3 nieusprawiedliwionych nieobecności)
+- brak postępów w nauce (min. 6 niezaliczonych przedmiotów ze wszystkich dotychczasowych semestrów)
+- nieuzyskanie zaliczenia semestru w terminie
+- brak opłat
+
+Skreślenie = decyzja administracyjna (można się odwołać!).
+
+§22. WZNOWIENIE STUDIÓW
+Wniosek do Dziekana. NIEDOPUSZCZALNE gdy:
+- skreślenie z powodu niezaliczenia 1. semestru
+- od skreślenia minęło ponad 3 lata
+- 2 wcześniejsze wznowienia na tym kierunku
+- niezapłacone zobowiązania wobec Uczelni
+- Uczelnia nie prowadzi już tego kierunku
+- kara wydalenia bez zatarcia
+
+§25-31. ZALICZENIA I EGZAMINY
+Skala ocen: 2,0 / 3,0 / 3,5 / 4,0 / 4,5 / 5,0
+Ocena łączna = średnia ważona ocen cząstkowych (wagi określa sylabus).
+Prowadzący na PIERWSZYCH zajęciach informuje o zasadach zaliczenia i egzaminu.
+Student ma prawo do 2 terminów egzaminu w sesji (podstawowy + poprawkowy).
+Wyniki egzaminów/zaliczeń: wpisywane do USOS w ciągu 3 dni roboczych od przeprowadzenia.
+
+§30. TERMINY EGZAMINÓW
+Egzaminy w sesji poprawkowej: wyznaczane przez egzaminatora, min. 7 dni po ogłoszeniu wyników z sesji podstawowej.
+Dziekan może wyrazić zgodę na egzamin poza sesją z ważnych przyczyn.
+
+§36-38. EGZAMIN/ZALICZENIE KOMISYJNE
+Wniosek do Dziekana w ciągu 7 dni od dnia egzaminu/zaliczenia.
+Przesłanki: naruszenie przepisów przez egzaminatora, uzasadnione wątpliwości co do obiektywności oceny, niepełnosprawność lub szczególne potrzeby.
+Komisja: min. 3 osoby, w tym przewodniczący (min. dr hab.) + egzaminator + specjalista z zakresu przedmiotu.
+Wynik: wyższy z dwóch ocen (pierwotnej i komisyjnej) lub ocena komisji (przy naruszeniu przepisów).
+Obserwator wskazany przez studenta: ma prawo być obecny.
+
+§39-40. POWTARZANIE PRZEDMIOTU I SEMESTRU
+Wniosek do Dziekana.
+Warunki powtarzania semestru: niezaliczone zajęcia wymagane programem, student nie korzystał wcześniej z urlopu długoterminowego z tytułu trudnej sytuacji materialnej lub powodów losowych w tym semestrze.
+Maksymalna liczba powtarzań: określana zarządzeniem Rektora.
+
+§41-43. DYPLOMOWANIE
+Praca dyplomowa: przygotowywana pod kierunkiem promotora (min. dr).
+Złożenie pracy: w systemie APD w terminie ustalonym przez Dziekana.
+Egzamin dyplomowy: komisja min. 3-osobowa (przewodniczący + promotor + recenzent).
+Ocena końcowa pracy: średnia ocen promotora i recenzenta (lub komisyjna gdy rozbieżność).
+
+§44-45. UKOŃCZENIE STUDIÓW I WYNIK STUDIÓW
+Ukończenie: zdanie egzaminu dyplomowego.
+Wynik studiów = (0,6 x średnia ocen ze studiów) + (0,2 x ocena pracy) + (0,2 x ocena egzaminu dyplomowego)
+Tytuł zawodowy uzyskuje się z dniem zdania egzaminu dyplomowego.
+
+§46-47. PRZEPISY KOŃCOWE
+Terminy: jeśli ostatni dzień terminu wypada w dzień wolny, termin upływa w następny dzień roboczy.
+Interpretacje: Rektor (tj. Prorektor ds. Studenckich i Kształcenia) dokonuje wiążącej wykładni Regulaminu.
+
+======================================================
+DOKUMENT 9: STATUT UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU
+(Tekst jednolity z dnia 1 października 2022 r.)
+======================================================
+
+PODSTAWY OGÓLNE:
+UEW jest publiczną uczelnią akademicką. Rok akademicki: 1 października --> 30 września, 2 semestry.
+Skrót: UEW. Języki obce: ang. "Wroclaw University of Economics and Business".
+Wspólnota Uczelni: pracownicy + studenci + doktoranci (status do ukończenia studiów lub skreślenia).
+
+ORGANY UEW ISTOTNE DLA STUDENTÓW:
+- Rada Uczelni: organ kolegialny, w składzie zasiada Przewodniczący Samorządu Studenckiego
+- Senat: min. 20% składu to studenci i doktoranci (8 reprezentantów studentów)
+- Kolegium Elektorów: min. 20% to studenci i doktoranci (19 reprezentantów studentów)
+- Rektor: zatwierdza Regulamin Samorządu Studenckiego
+
+REKTOR (§10):
+Kompetencje dotyczące studentów:
+- tworzenie studiów na kierunku, poziomie i profilu
+- zatwierdzanie Regulaminu Samorządu Studenckiego i Samorządu Doktorantów
+- powoływanie Rzecznika Praw Studenta
+- nadzór nad Komisją Dyscyplinarną dla Studentów
+
+DZIEKAN DS. STUDENCKICH i PRODZIEKAN DS. STUDENCKICH (§ Rozdział VIII):
+- Podejmuje decyzje w indywidualnych sprawach studenckich
+- Rozstrzyga spory między studentami a pracownikami
+- Mediacje w sprawach spornych
+- Zatwierdza terminy egzaminów w porozumieniu z Samorządem Studenckim
+
+DZIAŁ IV --> STUDIA I STUDENCI:
+§ Rozdział III --> Prawa i obowiązki studentów:
+- Student nabywa prawa z chwilą złożenia ślubowania
+- Prawa: IOS, IPS, urlopy, egzamin komisyjny, pomoc materialna, zaskarżanie decyzji
+- Obowiązki: ślubowanie, uczestnictwo w zajęciach, terminowe opłaty
+
+§ Rozdział IV --> Odpowiedzialność dyscyplinarna studentów:
+- Za naruszenie przepisów Uczelni i czyny uchybiające godności studenta
+- Kary: upomnienie, nagana, nagana z ostrzeżeniem, zawieszenie w prawach (do 1 roku), wydalenie
+- Komisja Dyscyplinarna: nauczyciele + studenci w równej liczbie
+- Odwołanie: do Odwoławczej Komisji Dyscyplinarnej
+
+SAMORZĄD STUDENCKI W STATUCIE:
+- Regulamin SSUEW zatwierdza Rektor (kontrola zgodności z prawem)
+- Rektor może uchylić uchwałę samorządu niezgodną z prawem w ciągu 14 dni
+- SSUEW może odwołać się do sądu administracyjnego w ciągu 3 miesięcy
+- Samorząd wyłącznym reprezentantem ogółu studentów
+- Samorząd decyduje o rozdziale środków na sprawy studenckie
+
+ORGANIZACJA KSZTAŁCENIA (Rozdział V):
+- Programy studiów uchwala Senat
+- Regulamin studiów wymaga uzgodnienia z samorządem studenckim
+- Opłaty za studia wymagają zasięgnięcia opinii samorządu
+- Legitymacja studencka: 50% ulga w komunikacji miejskiej
+
+
+
+======================================================
 ZASADY DODATKOWE DLA ASYSTENTA
 ======================================================
 1. System CRA (Centralny Rejestr Administracyjny) to oficjalny system cyfrowy wsparcia dla SSUEW.
