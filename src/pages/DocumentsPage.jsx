@@ -282,7 +282,7 @@ export default function DocumentsPage() {
     };
   }
 
-  let aiReportData = { target: '-', rigor: '-', rigorColor: 'text-slate-400', readTime: 0, readTimeLabel: 'ok. 1 min czytania', importance: 'Standardowa', importanceColor: 'text-emerald-400' };
+  let aiReportData = { target: '-', rigor: '-', rigorColor: 'text-slate-400', readTimeLabel: 'ok. 5–10 min czytania', importance: 'Standardowa', importanceColor: 'text-slate-400', importanceBg: 'bg-slate-700/40 border border-slate-600/40' };
   if (selectedDoc && isAiActive && aiStage === 4) {
     try {
       const text = `${selectedDoc.title || ''} ${selectedDoc.desc || ''}`.toLowerCase();
@@ -292,28 +292,48 @@ export default function DocumentsPage() {
       aiReportData.rigor = text.includes('regulamin') || text.includes('uchwała') ? "Bardzo Wysoki" : (text.includes('zarządzenie') ? "Średni" : "Niski");
       aiReportData.rigorColor = aiReportData.rigor === "Bardzo Wysoki" ? "text-rose-500" : (aiReportData.rigor === "Średni" ? "text-amber-400" : "text-emerald-400");
 
-      // Realny czas czytania: 200 słów/min, śr. słowo = 5 znaków → 1000 znaków/min
-      const docText = String(selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || '');
-      const charCount = docText.length;
-      const readMin = Math.max(1, Math.round(charCount / 1000));
+      // Czas czytania — deterministyczny, bez losowości
+      const pages = parseInt(selectedDoc.strony || selectedDoc.pages || '', 10);
+      const category = String(selectedDoc.category || '');
+      const titleLen = String(selectedDoc.title || '').length;
+      let readTimeLabel;
+      if (!isNaN(pages) && pages > 0) {
+        const mins = Math.ceil(pages * 1.5);
+        readTimeLabel = `ok. ${mins} min czytania`;
+      } else if (category === 'Uchwały') {
+        // proxy: krótka nazwa → 3 min, długa → 8 min
+        const mins = titleLen < 40 ? 3 : titleLen < 80 ? 5 : 8;
+        readTimeLabel = `ok. ${mins} min czytania`;
+      } else if (category === 'Zarządzenia') {
+        const mins = titleLen < 40 ? 5 : titleLen < 80 ? 10 : 15;
+        readTimeLabel = `ok. ${mins} min czytania`;
+      } else if (category === 'Regulaminy') {
+        const mins = titleLen < 40 ? 10 : titleLen < 80 ? 18 : 25;
+        readTimeLabel = `ok. ${mins} min czytania`;
+      } else if (category === 'Szablony' || category === 'Instrukcje') {
+        const mins = titleLen < 40 ? 2 : 5;
+        readTimeLabel = `ok. ${mins} min czytania`;
+      } else {
+        readTimeLabel = 'ok. 5–10 min czytania';
+      }
+      aiReportData.readTimeLabel = readTimeLabel;
 
-      // Czas za załączniki: ~2 min za każdy
-      let attachCount = 0;
-      try {
-        const atts = String(selectedDoc.attachments || '').trim();
-        if (atts && atts.toLowerCase() !== 'brak' && atts !== 'undefined') {
-          attachCount = atts.split(';').filter(Boolean).length;
-        }
-      } catch (_) {}
-      const attachMin = attachCount > 0 ? attachCount * 2 : 0;
-
-      aiReportData.readTime = readMin;
-      aiReportData.readTimeLabel = `ok. ${readMin} min czytania${attachMin > 0 ? ` +${attachMin} min za zał.` : ''}`;
-
-      // Ważność na podstawie kategorii
-      const importanceMap = { 'Uchwały': 'Wysoka', 'Zarządzenia': 'Wysoka', 'Szablony': 'Średnia', 'Instrukcje': 'Średnia' };
-      aiReportData.importance = importanceMap[String(selectedDoc.category || '')] || 'Standardowa';
-      aiReportData.importanceColor = aiReportData.importance === 'Wysoka' ? 'text-rose-400' : (aiReportData.importance === 'Średnia' ? 'text-amber-400' : 'text-emerald-400');
+      // Ważność na podstawie kategorii z badge kolorem
+      const importanceHigh = ['Uchwały', 'Zarządzenia', 'Regulaminy'];
+      const importanceMid = ['Szablony', 'Instrukcje'];
+      if (importanceHigh.includes(category)) {
+        aiReportData.importance = 'Wysoka';
+        aiReportData.importanceColor = 'text-rose-400';
+        aiReportData.importanceBg = 'bg-rose-500/20 border border-rose-500/40';
+      } else if (importanceMid.includes(category)) {
+        aiReportData.importance = 'Średnia';
+        aiReportData.importanceColor = 'text-amber-400';
+        aiReportData.importanceBg = 'bg-amber-500/20 border border-amber-500/40';
+      } else {
+        aiReportData.importance = 'Standardowa';
+        aiReportData.importanceColor = 'text-slate-400';
+        aiReportData.importanceBg = 'bg-slate-700/40 border border-slate-600/40';
+      }
 
     } catch (e) { console.error("Ignorowany błąd AI", e); }
   }
@@ -1265,7 +1285,7 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez \`\`\`json, bez żadneg
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span><span className="font-bold text-white text-sm">{aiReportData.target}</span></div>
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span><span className={`font-bold flex items-center gap-1 text-sm ${aiReportData.rigorColor}`}><Icons.Shield /> {aiReportData.rigor}</span></div>
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Czas Czytania</span><span className="font-bold text-sky-400 flex items-center gap-1 text-sm"><Icons.Timer /> {aiReportData.readTimeLabel}</span></div>
-                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Ważność Dokumentu</span><span className={`font-bold text-sm ${aiReportData.importanceColor}`}>{aiReportData.importance}</span></div>
+                           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Ważność Dokumentu</span><span className={`inline-block font-bold text-sm px-2 py-0.5 rounded-md ${aiReportData.importanceColor} ${aiReportData.importanceBg}`}>{aiReportData.importance}</span></div>
                         </div>
                       )}
                     </div>
