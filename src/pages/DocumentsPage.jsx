@@ -34,111 +34,93 @@ const CATEGORY_STYLES = {
 };
 
 const PETITION_TYPES = [
-  { id: 'zwolnienie', label: 'Podanie dot. zwolnienia z zajęć dydaktycznych', recipient: 'Prorektora ds. Studenckich' },
-  { id: 'wydarzenie', label: 'Podanie o możliwość organizacji wydarzenia', recipient: 'Prorektora ds. Studenckich' },
-  { id: 'sala_uew', label: 'Podanie o rezerwację pomieszczenia UEW', recipient: 'Prorektora ds. Studenckich' },
-  { id: 'banerowanie', label: 'Podanie dot. możliwości banerowania', recipient: 'Zastępcy Kanclerza' },
-  { id: 'plakatowanie', label: 'Podanie o możliwość plakatowania', recipient: 'Zastępcy Kanclerza' },
-  { id: 'przedluzenie', label: 'Podanie o przedłużenie godzin otwarcia', recipient: 'Zastępcy Kanclerza' },
-  { id: 'wjazd', label: 'Podanie o możliwość wjazdu na kampus', recipient: 'Zastępcy Kanclerza' },
-  { id: 'stoisko', label: 'Podanie o organizację stoiska promocyjnego', recipient: 'Zastępcy Kanclerza' },
-  { id: 'grill', label: 'Podanie o możliwość grilla na Zaprzęgubiu', recipient: 'Zastępcy Kanclerza' },
-  { id: 'przestrzen', label: 'Podanie o rezerwację przestrzeni na Kampusie', recipient: 'Zastępcy Kanclerza' },
-  { id: 'umeblowanie', label: 'Podanie o doposażenie w umeblowanie', recipient: 'Zastępcy Kanclerza' },
+  { id: 'wydarzenie', label: 'Organizacja wydarzenia', recipientTitle: 'Prorektor ds. Studenckich', recipientName: 'Dr hab. inż. Andrzej Okruszek, prof. UEW' },
+  { id: 'rezerwacja_sali', label: 'Rezerwacja sali/pomieszczenia', recipientTitle: 'Prorektor ds. Studenckich', recipientName: 'Dr hab. inż. Andrzej Okruszek, prof. UEW' },
+  { id: 'przestrzen', label: 'Rezerwacja przestrzeni na kampusie', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'plakatowanie', label: 'Plakatowanie', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'banerowanie', label: 'Banerowanie', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'grill', label: 'Organizacja grilla / Zaprzęgubie', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'stoisko', label: 'Stoisko promocyjne', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'wjazd', label: 'Wjazd na kampus', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'umeblowanie', label: 'Doposażenie w umeblowanie', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'przedluzenie', label: 'Przedłużenie dostępu do pomieszczeń', recipientTitle: 'Zastępca Kanclerza ds. Technicznych', recipientName: 'Mgr inż. Wiesław Witter' },
+  { id: 'zwolnienie', label: 'Zwolnienie z zajęć dydaktycznych', recipientTitle: 'Prorektor ds. Studenckich', recipientName: 'Dr hab. inż. Andrzej Okruszek, prof. UEW' },
 ];
 
 const PETITION_FIELDS = {
-  zwolnienie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nr_indeksu', label: 'Nr indeksu', type: 'text', placeholder: '123456' },
-    { id: 'kierunek', label: 'Kierunek i rok studiów', type: 'text', placeholder: 'Zarządzanie, II rok' },
-    { id: 'data_od', label: 'Zwolnienie od daty', type: 'text', placeholder: 'dd.mm.rrrr' },
-    { id: 'data_do', label: 'Zwolnienie do daty', type: 'text', placeholder: 'dd.mm.rrrr' },
-    { id: 'zajecia', label: 'Zajęcia / przedmioty', type: 'text', placeholder: 'np. Marketing, Finanse przedsiębiorstw' },
-    { id: 'uzasadnienie', label: 'Uzasadnienie (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Krótki opis powodu...' },
-  ],
   wydarzenie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nr_indeksu', label: 'Nr indeksu', type: 'text', placeholder: '123456' },
-    { id: 'nazwa_komisji', label: 'Nazwa komisji / organizacji', type: 'text', placeholder: 'Komisja Kultury SSUEW' },
     { id: 'nazwa_wydarzenia', label: 'Nazwa wydarzenia', type: 'text', placeholder: 'np. TEDxUEW 2026' },
-    { id: 'data_wydarzenia', label: 'Data i godzina', type: 'text', placeholder: 'np. 15.05.2026, godz. 18:00' },
-    { id: 'miejsce', label: 'Proponowane miejsce', type: 'text', placeholder: 'np. Aula B, Budynek J' },
-    { id: 'liczba_uczestnikow', label: 'Szacowana liczba uczestników', type: 'text', placeholder: 'np. 200' },
-    { id: 'uzasadnienie', label: 'Uzasadnienie / opis (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Cel i krótki opis wydarzenia...' },
+    { id: 'daty', label: 'Data/daty', type: 'text', placeholder: 'np. 15.05.2026' },
+    { id: 'miejsce', label: 'Miejsce', type: 'text', placeholder: 'np. Aula B, Budynek J' },
+    { id: 'cel', label: 'Opis celu', type: 'textarea', placeholder: 'Cel i charakter wydarzenia...' },
+    { id: 'liczba_uczestnikow', label: 'Liczba uczestników', type: 'text', placeholder: 'np. 200' },
+    { id: 'koordynator', label: 'Koordynator', type: 'text', placeholder: 'Imię Nazwisko' },
+    { id: 'budzet', label: 'Budżet (opcjonalne)', type: 'text', placeholder: 'np. 5000 zł' },
   ],
-  sala_uew: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nr_indeksu', label: 'Nr indeksu', type: 'text', placeholder: '123456' },
-    { id: 'nazwa_komisji', label: 'Nazwa komisji', type: 'text', placeholder: 'np. Komisja Administracji SSUEW' },
-    { id: 'sala_preferowana', label: 'Preferowana sala / pomieszczenie', type: 'text', placeholder: 'np. Sala 104, Budynek B' },
-    { id: 'data_rezerwacji', label: 'Data rezerwacji', type: 'text', placeholder: 'dd.mm.rrrr' },
-    { id: 'godzina_od', label: 'Godzina od', type: 'text', placeholder: 'np. 16:00' },
-    { id: 'godzina_do', label: 'Godzina do', type: 'text', placeholder: 'np. 20:00' },
-    { id: 'uzasadnienie', label: 'Cel spotkania (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Charakter merytoryczny spotkania...' },
-  ],
-  banerowanie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Nazwa komisji / projektu', type: 'text', placeholder: 'Komisja Kultury / Bal UEW' },
-    { id: 'lokalizacja', label: 'Proponowana lokalizacja banerów', type: 'text', placeholder: 'np. Główne wejście, budynek B' },
-    { id: 'wymiary', label: 'Wymiary banerów', type: 'text', placeholder: 'np. 1m x 2m, 3 sztuki' },
-    { id: 'termin', label: 'Termin ekspozycji', type: 'text', placeholder: 'np. 10.05–20.05.2026' },
-    { id: 'uzasadnienie', label: 'Cel promocyjny (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Opis promowanego wydarzenia...' },
-  ],
-  plakatowanie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Nazwa komisji / projektu', type: 'text', placeholder: 'Komisja Kultury / Bal UEW' },
-    { id: 'liczba_plakatow', label: 'Liczba i format plakatów', type: 'text', placeholder: 'np. 15 szt. A3' },
-    { id: 'lokalizacja', label: 'Lokalizacje plakatowania', type: 'text', placeholder: 'np. tablice ogłoszeń B i J' },
-    { id: 'termin', label: 'Termin ekspozycji', type: 'text', placeholder: 'np. 10.05–20.05.2026' },
-    { id: 'uzasadnienie', label: 'Cel kampanii (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Opis promowanego wydarzenia...' },
-  ],
-  przedluzenie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Nazwa komisji', type: 'text', placeholder: 'np. Komisja Administracji SSUEW' },
-    { id: 'budynek', label: 'Budynek / pomieszczenie', type: 'text', placeholder: 'np. Pokój SSUEW, Budynek B' },
-    { id: 'godzina_do', label: 'Wnioskowana godzina zamknięcia', type: 'text', placeholder: 'np. 22:00' },
-    { id: 'termin', label: 'Termin (data lub zakres dat)', type: 'text', placeholder: 'np. 15.05.2026 lub 01–31.05.2026' },
-    { id: 'uzasadnienie', label: 'Uzasadnienie (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Cel pracy w wydłużonych godzinach...' },
-  ],
-  wjazd: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Komisja / organizacja', type: 'text', placeholder: 'Komisja Logistyki SSUEW' },
-    { id: 'marka_rejestracja', label: 'Marka i nr rejestracyjny pojazdu', type: 'text', placeholder: 'np. Ford Transit, DW 12345' },
-    { id: 'termin', label: 'Termin i godzina wjazdu', type: 'text', placeholder: 'np. 15.05.2026, 10:00–14:00' },
-    { id: 'cel', label: 'Cel wjazdu / ładunek', type: 'text', placeholder: 'np. dostawa sprzętu nagłośnieniowego' },
-    { id: 'uzasadnienie', label: 'Uzasadnienie (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Szczegóły związane z potrzebą wjazdu...' },
-  ],
-  stoisko: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Komisja / projekt', type: 'text', placeholder: 'Komisja Kultury / Targi Projektów' },
-    { id: 'lokalizacja', label: 'Proponowana lokalizacja stoiska', type: 'text', placeholder: 'np. Hol główny, Budynek B' },
-    { id: 'wymiary', label: 'Wymagana przestrzeń / wymiary', type: 'text', placeholder: 'np. 3m x 2m, z dostępem do prądu' },
-    { id: 'termin', label: 'Termin funkcjonowania stoiska', type: 'text', placeholder: 'np. 20.05.2026, 10:00–18:00' },
-    { id: 'uzasadnienie', label: 'Cel i opis stoiska (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Co będzie prezentowane/oferowane...' },
-  ],
-  grill: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Komisja / projekt', type: 'text', placeholder: 'Komisja Integracji SSUEW' },
-    { id: 'termin', label: 'Termin i godziny grilla', type: 'text', placeholder: 'np. 15.05.2026, 14:00–20:00' },
-    { id: 'liczba_uczestnikow', label: 'Szacowana liczba uczestników', type: 'text', placeholder: 'np. 80' },
-    { id: 'zapotrzebowanie', label: 'Zapotrzebowanie na zasilanie', type: 'text', placeholder: 'np. 1 gniazdko 230V, 2kW' },
-    { id: 'uzasadnienie', label: 'Cel i charakter imprezy (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Opis integracyjnego charakteru...' },
+  rezerwacja_sali: [
+    { id: 'sala', label: 'Numer sali i budynek', type: 'text', placeholder: 'np. Sala 104, Budynek B' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. 16:00–20:00' },
+    { id: 'cel', label: 'Cel spotkania', type: 'textarea', placeholder: 'Charakter merytoryczny spotkania...' },
+    { id: 'osoba_odpowiedzialna', label: 'Osoba odpowiedzialna', type: 'text', placeholder: 'Imię Nazwisko' },
   ],
   przestrzen: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Komisja / projekt', type: 'text', placeholder: 'Komisja Kultury / Bal UEW' },
-    { id: 'lokalizacja', label: 'Wnioskowana lokalizacja', type: 'text', placeholder: 'np. Zaprzęgubie, dziedziniec B' },
-    { id: 'termin', label: 'Termin i godziny', type: 'text', placeholder: 'np. 25.05.2026, 12:00–23:00' },
-    { id: 'liczba_uczestnikow', label: 'Szacowana liczba uczestników', type: 'text', placeholder: 'np. 300' },
-    { id: 'uzasadnienie', label: 'Opis i cel wydarzenia (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Charakter i plan eventu...' },
+    { id: 'lokalizacja', label: 'Przestrzeń/lokalizacja', type: 'text', placeholder: 'np. Zaprzęgubie, dziedziniec B' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. 12:00–23:00' },
+    { id: 'cel', label: 'Cel', type: 'textarea', placeholder: 'Opis i cel wydarzenia...' },
+  ],
+  plakatowanie: [
+    { id: 'nazwa_inicjatywy', label: 'Nazwa inicjatywy', type: 'text', placeholder: 'np. Bal Absolwentów 2026' },
+    { id: 'lokalizacje', label: 'Lokalizacje plakatów', type: 'textarea', placeholder: 'np. tablice B, J, hol główny' },
+    { id: 'format_liczba', label: 'Format i liczba plakatów', type: 'text', placeholder: 'np. 15 szt. A3' },
+    { id: 'termin', label: 'Termin ekspozycji', type: 'text', placeholder: 'np. 10.05–20.05.2026' },
+  ],
+  banerowanie: [
+    { id: 'nazwa_projektu', label: 'Nazwa projektu', type: 'text', placeholder: 'np. Bal UEW 2026' },
+    { id: 'cel', label: 'Cel', type: 'textarea', placeholder: 'Opis celu banerowania...' },
+    { id: 'lokalizacja', label: 'Lokalizacja baneru', type: 'text', placeholder: 'np. Główne wejście, budynek B' },
+    { id: 'termin', label: 'Termin ekspozycji', type: 'text', placeholder: 'np. 10.05–20.05.2026' },
+  ],
+  grill: [
+    { id: 'nazwa_wydarzenia', label: 'Nazwa wydarzenia', type: 'text', placeholder: 'np. Grill SSUEW 2026' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. 14:00–20:00' },
+    { id: 'opis', label: 'Opis działań', type: 'textarea', placeholder: 'Opis planowanych działań...' },
+    { id: 'zasilanie', label: 'Czy potrzebne zasilanie?', type: 'text', placeholder: 'np. Tak, 1 gniazdko 230V' },
+  ],
+  stoisko: [
+    { id: 'nazwa_wydarzenia', label: 'Nazwa wydarzenia', type: 'text', placeholder: 'np. Targi Projektów SSUEW' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. 10:00–18:00' },
+    { id: 'lokalizacja', label: 'Lokalizacja', type: 'text', placeholder: 'np. Hol główny, Budynek B' },
+    { id: 'wyposazenie', label: 'Potrzebne wyposażenie (stoły, krzesła)', type: 'text', placeholder: 'np. 2 stoły, 4 krzesła' },
+  ],
+  wjazd: [
+    { id: 'nr_rejestracyjny', label: 'Nr rejestracyjny', type: 'text', placeholder: 'np. DW 12345' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'wydarzenie_powod', label: 'Wydarzenie/powód', type: 'text', placeholder: 'np. dostawa sprzętu na event' },
+    { id: 'budynek', label: 'Budynek docelowy', type: 'text', placeholder: 'np. Budynek B' },
   ],
   umeblowanie: [
-    { id: 'imie_nazwisko', label: 'Imię i nazwisko', type: 'text', placeholder: 'Jan Kowalski' },
-    { id: 'nazwa_komisji', label: 'Komisja / pion', type: 'text', placeholder: 'Komisja Administracji SSUEW' },
-    { id: 'pomieszczenie', label: 'Pomieszczenie docelowe', type: 'text', placeholder: 'np. Pokój SSUEW 204, Budynek B' },
-    { id: 'lista_mebli', label: 'Lista wnioskowanych mebli / wyposażenia', type: 'text', placeholder: 'np. 2 krzesła biurowe, 1 szafa na dokumenty' },
-    { id: 'uzasadnienie', label: 'Uzasadnienie potrzeby (AI uzupełni jeśli puste)', type: 'textarea', placeholder: 'Dlaczego wyposażenie jest niezbędne...' },
+    { id: 'nazwa_wydarzenia', label: 'Nazwa wydarzenia', type: 'text', placeholder: 'np. Konferencja SSUEW' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'miejsce', label: 'Miejsce', type: 'text', placeholder: 'np. Aula B' },
+    { id: 'liczba_stolow', label: 'Liczba stołów', type: 'text', placeholder: 'np. 5' },
+    { id: 'liczba_krzesel', label: 'Liczba krzeseł', type: 'text', placeholder: 'np. 30' },
+    { id: 'cel', label: 'Cel użycia', type: 'textarea', placeholder: 'Do czego będą potrzebne meble...' },
+  ],
+  przedluzenie: [
+    { id: 'pomieszczenia', label: 'Numery pomieszczeń i budynek', type: 'text', placeholder: 'np. Pokój 204, Budynek B' },
+    { id: 'daty', label: 'Daty', type: 'text', placeholder: 'np. 15.05–20.05.2026' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. do godz. 22:00' },
+    { id: 'cel', label: 'Cel', type: 'textarea', placeholder: 'Cel pracy w wydłużonych godzinach...' },
+  ],
+  zwolnienie: [
+    { id: 'wydarzenie', label: 'Nazwa wydarzenia/powód', type: 'text', placeholder: 'np. Konferencja Regionalna SSUEW' },
+    { id: 'data', label: 'Data', type: 'text', placeholder: 'dd.mm.rrrr' },
+    { id: 'godziny', label: 'Godziny', type: 'text', placeholder: 'np. 8:00–16:00' },
+    { id: 'lista_studentow', label: 'Lista studentów (imię nazwisko + nr indeksu)', type: 'textarea', placeholder: 'Jan Kowalski 123456\nAnna Nowak 654321' },
   ],
 };
 
@@ -197,6 +179,13 @@ export default function DocumentsPage() {
   const [selectedPetitionType, setSelectedPetitionType] = useState('');
   const [petitionFormData, setPetitionFormData] = useState({});
   const [isGeneratingPetition, setIsGeneratingPetition] = useState(false);
+  const [applicantData, setApplicantData] = useState({
+    imie_nazwisko: '',
+    email: '',
+    telefon: '',
+    funkcja: '',
+    nr_indeksu: '',
+  });
 
   // Document summaries — keyed by doc identifier
   const [docSummaries, setDocSummaries] = useState({});
@@ -399,14 +388,18 @@ export default function DocumentsPage() {
 
   const copyToEditor = () => { setEditorText(aiOutput); };
 
-  const callGeminiAPI = async (prompt) => {
+  const callGeminiAPI = async (prompt, systemPrompt = null) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const body = { contents: [{ parts: [{ text: prompt }] }] };
+    if (systemPrompt) {
+      body.system_instruction = { parts: [{ text: systemPrompt }] };
+    }
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        body: JSON.stringify(body)
       }
     );
     const data = await res.json();
@@ -423,12 +416,14 @@ export default function DocumentsPage() {
       .map(([k, v]) => `${k}: ${v}`)
       .join('\n');
 
-    const prompt = `Jesteś ekspertem prawnym Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu. Zaproponuj profesjonalne, przekonujące uzasadnienie do formalnego podania.
+    const systemPrompt = `Jesteś asystentem Samorządu Studentów UEW (SSUEW) generującym formalne podania. Styl: oficjalny, rzeczowy, bez slangu. Nie używaj słów: 'pragnę nadmienić', 'w związku z powyższym', 'mając na uwadze'.`;
+
+    const prompt = `Zaproponuj profesjonalne uzasadnienie do podania SSUEW.
 
 Typ podania: ${petitionType?.label}
-Adresat: ${petitionType?.recipient}, UEW
+Adresat: ${petitionType?.recipientName}, ${petitionType?.recipientTitle}, UEW
 Data: ${today}
-Dane wnioskodawcy:
+Dane:
 ${formSummary || '[brak danych — zaproponuj ogólne uzasadnienie]'}
 
 Napisz 2–4 zdania uzasadnienia, które:
@@ -440,8 +435,12 @@ Napisz 2–4 zdania uzasadnienia, które:
 Odpowiedz TYLKO samym tekstem uzasadnienia, bez wstępów ani komentarzy.`;
 
     try {
-      const result = await callGeminiAPI(prompt);
-      setPetitionFormData(prev => ({ ...prev, uzasadnienie: result.trim() }));
+      const result = await callGeminiAPI(prompt, systemPrompt);
+      const fields = PETITION_FIELDS[selectedPetitionType] || [];
+      const targetField = fields.find(f => (f.id === 'cel' || f.id === 'opis') && f.type === 'textarea');
+      if (targetField) {
+        setPetitionFormData(prev => ({ ...prev, [targetField.id]: result.trim() }));
+      }
     } catch (e) {
       console.error('Błąd Gemini (uzasadnienie):', e);
     }
@@ -449,68 +448,70 @@ Odpowiedz TYLKO samym tekstem uzasadnienia, bez wstępów ani komentarzy.`;
   };
 
   const handleGenerateAIPetition = async () => {
-    const today = new Date().toLocaleDateString('pl-PL');
-
-    if (selectedPetitionType === 'formalize') {
-      if (!editorText || editorText.length < 10) {
-        setAiOutput('BŁĄD: Zbyt mało tekstu w edytorze po lewej. Napisz chociaż jedno robocze zdanie, a AI ubierze to w formalne pismo.');
-        return;
-      }
-      setIsGeneratingPetition(true);
-      const prompt = `Jesteś ekspertem od formalnej korespondencji urzędniczej w Polsce. Przekształć poniższy tekst roboczy w kompletne, profesjonalne pismo urzędnicze do władz Uczelni. Zachowaj sens i intencje oryginału, nadając mu styl formalny i akademicki.
-
-Data: ${today}
-Miejsce: Wrocław
-
-Tekst roboczy:
-"${editorText}"
-
-Napisz kompletne formalne pismo z: nagłówkiem z danymi wnioskodawcy, datą, adresatem, tytułem, treścią z uzasadnieniem i blokiem podpisów. Język: polski, styl: formalny, akademicki.`;
-      try {
-        const result = await callGeminiAPI(prompt);
-        simulateAiTyping(result);
-      } catch (e) {
-        setAiOutput('BŁĄD: Nie udało się połączyć z API Gemini. Sprawdź klucz VITE_GEMINI_API_KEY.');
-      }
-      setIsGeneratingPetition(false);
-      return;
-    }
-
     const petitionType = PETITION_TYPES.find(p => p.id === selectedPetitionType);
     if (!petitionType) return;
 
     setIsGeneratingPetition(true);
+    const today = new Date().toLocaleDateString('pl-PL');
     const formFields = PETITION_FIELDS[selectedPetitionType] || [];
     const filledFields = formFields.map(f => `${f.label}: ${petitionFormData[f.id] || '[nie podano]'}`).join('\n');
-    const justification = petitionFormData.uzasadnienie || '';
-    const justificationNote = justification.length < 20
-      ? '\n\nUZASADNIENIE jest puste lub bardzo krótkie — zaproponuj profesjonalne, przekonujące uzasadnienie pasujące do tego typu podania i danych wnioskodawcy.'
+
+    const systemPrompt = `Jesteś asystentem Samorządu Studentów UEW (SSUEW) generującym formalne podania. Piszesz w imieniu Samorządu Studentów. Styl: oficjalny, rzeczowy, bez slangu, zdania długie ale zrozumiałe. Uzasadnienia muszą być konkretne i merytoryczne — nie ogólnikowe. Nie używaj słów: 'pragnę nadmienić', 'w związku z powyższym', 'mając na uwadze'. Podanie ma wyglądać jak napisane przez doświadczonego działacza samorządowego, nie przez chatbota. Format wyjściowy: czysty tekst podania gotowy do skopiowania, z zachowaniem układu (data, blok danych, adresat, PODANIE, treść, zamknięcie, podpis).`;
+
+    const zwolnieniePersonNote = selectedPetitionType === 'zwolnienie'
+      ? `\nOsoba odpowiedzialna: ${applicantData.imie_nazwisko || '[imię nazwisko]'} (nr indeksu: ${applicantData.nr_indeksu || '[numer]'}, tel. ${applicantData.telefon || '[telefon]'}).`
       : '';
 
-    const prompt = `Jesteś ekspertem w pisaniu formalnych podań i pism urzędniczych do władz polskich uczelni. Napisz kompletne, profesjonalne podanie do Uniwersytetu Ekonomicznego we Wrocławiu.
+    const prompt = `Napisz formalne podanie SSUEW według poniższych danych.
 
-Typ podania: ${petitionType.label}
-Adresat: ${petitionType.recipient}, Uniwersytet Ekonomiczny we Wrocławiu
-Data: ${today}
+DANE SKŁADAJĄCEGO:
+Imię i Nazwisko: ${applicantData.imie_nazwisko || '[nie podano]'}
+Email: ${applicantData.email || '[nie podano]'}
+Telefon: ${applicantData.telefon || '[nie podano]'}
+Funkcja w Samorządzie: ${applicantData.funkcja || '[nie podano]'}
+Nr indeksu: ${applicantData.nr_indeksu || '[nie podano]'}
 
-Dane i informacje podane przez wnioskodawcę:
-${filledFields}${justificationNote}
+ADRESAT:
+${petitionType.recipientName}
+${petitionType.recipientTitle}
+Uniwersytet Ekonomiczny we Wrocławiu
 
-Napisz podanie zawierające:
-1. Dane wnioskodawcy (imię, nazwisko, nr indeksu jeśli podany, kierunek jeśli podany) — prawy górny róg
-2. Datę i miejsce: Wrocław, dnia ${today}
-3. Dane adresata (pełne stanowisko i Uczelnia)
-4. Tytuł pisma (np. PODANIE / WNIOSEK)
-5. Zwrot grzecznościowy (Szanowny Panie Prorektorze / Szanowna Pani Kanclerz / itp.)
-6. Treść podania z profesjonalnym uzasadnieniem — jeśli uzasadnienie nie zostało podane lub jest za krótkie, zaproponuj własne stosowne uzasadnienie
-7. Grzecznościowe zakończenie z prośbą o pozytywne rozpatrzenie
-8. Blok podpisu z funkcją wnioskodawcy w SSUEW
+TYP PODANIA: ${petitionType.label}
 
-Styl: formalny, akademicki, profesjonalny. Język: polski.`;
+SZCZEGÓŁY:
+${filledFields}
+
+Zastosuj dokładnie tę strukturę:
+
+                                                    Wrocław, ${today} r.
+
+${applicantData.imie_nazwisko || '[Imię i Nazwisko]'}
+${applicantData.email || '[email@samorzad.ue.wroc.pl]'}
+${applicantData.telefon || '[numer telefonu]'}
+
+${petitionType.recipientName}
+${petitionType.recipientTitle}
+Uniwersytet Ekonomiczny we Wrocławiu
+
+PODANIE
+
+W imieniu Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu zwracam się z uprzejmą prośbą o [konkretna prośba wynikająca z danych — rozwiń stosownie do typu podania].
+
+[uzasadnienie — 2–4 akapity, formalne, konkretne, bez slangu]${zwolnieniePersonNote}
+
+Uprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.
+
+Z wyrazami szacunku,
+
+[odręczny podpis, ${today}]
+
+${applicantData.imie_nazwisko || '[Imię i Nazwisko]'}
+${applicantData.funkcja || '[funkcja w Samorządzie Studentów UEW]'}`;
 
     try {
-      const result = await callGeminiAPI(prompt);
+      const result = await callGeminiAPI(prompt, systemPrompt);
       simulateAiTyping(result);
+      setEditorText(result);
     } catch (e) {
       setAiOutput('BŁĄD: Nie udało się połączyć z API Gemini. Sprawdź klucz VITE_GEMINI_API_KEY.');
     }
@@ -725,168 +726,179 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez \`\`\`json, bez żadneg
 
         {activeView === 'STUDIO' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[850px] overflow-hidden">
-              <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><Icons.Pen /></div>
-                   <div>
-                     <h3 className="font-bold text-slate-800 text-sm leading-none">Twój Edytor</h3>
-                     <span className="text-[10px] text-slate-400 font-medium">Miejsce robocze na pisma</span>
-                   </div>
-                 </div>
-                 <button onClick={() => {try{navigator.clipboard.writeText(editorText); showAlert('Skopiowano treść!');}catch(e){}}} className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors">
-                   Kopiuj Całość
-                 </button>
-              </div>
-              <textarea 
-                value={editorText}
-                onChange={(e) => setEditorText(e.target.value)}
-                placeholder="Zacznij pisać swój dokument tutaj... Albo po prawej wybierz gotowy wzór podania, który spełnia wszystkie wewnątrzuczelniane wymogi!"
-                className="flex-grow p-8 outline-none resize-none text-sm text-slate-800 leading-relaxed font-medium"
-              />
-            </div>
 
-            <div className="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 flex flex-col h-[850px] relative overflow-hidden">
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-slate-900 to-slate-900 z-0"></div>
-              <div className="relative z-10 p-5 border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-sm flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30">
-                    <Icons.Brain />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-sm leading-none">Lex AI Assistant</h3>
-                    <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 11 URZĘDOWYCH WZORÓW + GEMINI AI</span>
-                  </div>
+            {/* LEWA: Formularz */}
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[900px] overflow-hidden">
+              <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><Icons.Pen /></div>
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm leading-none">Generator Podań SSUEW</h3>
+                  <span className="text-[10px] text-slate-400 font-medium">Wypełnij formularz i wygeneruj formalne pismo</span>
                 </div>
               </div>
 
-              <div className="relative z-10 flex-grow p-5 overflow-y-auto flex flex-col gap-4 scrollbar-hide" ref={aiOutputRef}>
+              <div className="flex-grow overflow-y-auto p-5 flex flex-col gap-4">
 
-                {/* Wybór typu podania */}
+                {/* Dane składającego */}
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Krok 1 — Wybierz typ podania</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Dane składającego</label>
+                  <div className="flex flex-col gap-2">
+                    {[
+                      { key: 'imie_nazwisko', label: 'Imię i Nazwisko', placeholder: 'Jan Kowalski' },
+                      { key: 'email', label: 'Email', placeholder: 'jan.kowalski@samorzad.ue.wroc.pl' },
+                      { key: 'telefon', label: 'Telefon', placeholder: '+48 123 456 789' },
+                      { key: 'funkcja', label: 'Funkcja w Samorządzie', placeholder: 'np. Przewodniczący Komisji Kultury' },
+                      { key: 'nr_indeksu', label: 'Nr indeksu', placeholder: '123456' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{f.label}</label>
+                        <input
+                          type="text"
+                          value={applicantData[f.key] || ''}
+                          onChange={(e) => setApplicantData(prev => ({ ...prev, [f.key]: e.target.value }))}
+                          placeholder={f.placeholder}
+                          className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 placeholder:text-slate-400"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Typ podania */}
+                <div className="border-t border-slate-100 pt-4">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Typ podania</label>
                   <select
                     value={selectedPetitionType}
                     onChange={(e) => { setSelectedPetitionType(e.target.value); setPetitionFormData({}); setAiOutput(''); }}
-                    className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
                   >
                     <option value="">— wybierz typ podania —</option>
                     {PETITION_TYPES.map(pt => (
                       <option key={pt.id} value={pt.id}>{pt.label}</option>
                     ))}
-                    <option value="formalize">✏️ Sformatuj własny tekst z Edytora</option>
                   </select>
                 </div>
 
-                {/* Pomocnicza informacja gdy nic nie wybrano */}
-                {!selectedPetitionType && (
-                  <div className="bg-slate-800/80 border border-slate-700 p-4 rounded-2xl text-xs text-slate-300 leading-relaxed">
-                    Wybierz typ podania z listy powyżej. Wypełnij formularz, a Gemini AI wygeneruje kompletne, formalne pismo urzędnicze — wraz z uzasadnieniem jeśli zostawisz to pole puste.
-                  </div>
-                )}
-
-                {/* Formularz podania */}
-                {selectedPetitionType && selectedPetitionType !== 'formalize' && (
-                  <div className="flex flex-col gap-3">
-                    <div className="bg-slate-800/50 border border-slate-700 px-3 py-2 rounded-lg text-xs text-slate-400">
-                      <span className="font-bold text-blue-400">Adresat: </span>
-                      {PETITION_TYPES.find(p => p.id === selectedPetitionType)?.recipient}, UEW
-                    </div>
-
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Krok 2 — Wypełnij dane</label>
-
-                    {(PETITION_FIELDS[selectedPetitionType] || []).map(field => (
-                      <div key={field.id}>
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{field.label}</label>
-                        {field.type === 'textarea' ? (
-                          <div>
-                            <textarea
-                              value={petitionFormData[field.id] || ''}
-                              onChange={(e) => setPetitionFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
-                              placeholder={field.placeholder}
-                              rows={3}
-                              className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 resize-none placeholder:text-slate-600"
-                            />
-                            {field.id === 'uzasadnienie' && (
-                              <button
-                                onClick={handleSuggestJustification}
-                                disabled={isGeneratingPetition}
-                                className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-amber-400 hover:text-amber-300 disabled:opacity-50 transition-colors"
-                              >
-                                {isGeneratingPetition ? (
-                                  <><span className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin"></span> Sugeruję...</>
-                                ) : (
-                                  <><Icons.Brain /> Sugeruj uzasadnienie AI</>
+                {/* Pola dynamiczne */}
+                {selectedPetitionType && (() => {
+                  const pt = PETITION_TYPES.find(p => p.id === selectedPetitionType);
+                  return (
+                    <>
+                      <div className="bg-blue-50 border border-blue-100 px-3 py-2 rounded-lg text-xs text-blue-800">
+                        <span className="font-bold">Adresat: </span>
+                        {pt?.recipientName}, {pt?.recipientTitle}, UEW
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400">Szczegóły podania</label>
+                        {(PETITION_FIELDS[selectedPetitionType] || []).map(field => (
+                          <div key={field.id}>
+                            <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{field.label}</label>
+                            {field.type === 'textarea' ? (
+                              <div>
+                                <textarea
+                                  value={petitionFormData[field.id] || ''}
+                                  onChange={(e) => setPetitionFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                  placeholder={field.placeholder}
+                                  rows={3}
+                                  className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 resize-none placeholder:text-slate-400"
+                                />
+                                {(field.id === 'cel' || field.id === 'opis') && (
+                                  <button
+                                    onClick={handleSuggestJustification}
+                                    disabled={isGeneratingPetition}
+                                    className="mt-1.5 flex items-center gap-1.5 text-[10px] font-bold text-amber-600 hover:text-amber-500 disabled:opacity-50 transition-colors"
+                                  >
+                                    {isGeneratingPetition ? (
+                                      <><span className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-500 rounded-full animate-spin"></span> Sugeruję...</>
+                                    ) : (
+                                      <><Icons.Brain /> Sugeruj uzasadnienie AI</>
+                                    )}
+                                  </button>
                                 )}
-                              </button>
+                              </div>
+                            ) : (
+                              <input
+                                type="text"
+                                value={petitionFormData[field.id] || ''}
+                                onChange={(e) => setPetitionFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
+                                placeholder={field.placeholder}
+                                className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 placeholder:text-slate-400"
+                              />
                             )}
                           </div>
-                        ) : (
-                          <input
-                            type="text"
-                            value={petitionFormData[field.id] || ''}
-                            onChange={(e) => setPetitionFormData(prev => ({ ...prev, [field.id]: e.target.value }))}
-                            placeholder={field.placeholder}
-                            className="w-full bg-slate-800 border border-slate-700 text-white text-xs rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
-                          />
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    </>
+                  );
+                })()}
 
-                    <button
-                      onClick={handleGenerateAIPetition}
-                      disabled={isGeneratingPetition || isDrafting}
-                      className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-900/50 disabled:opacity-50 mt-1"
-                    >
-                      {isGeneratingPetition ? (
-                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Generuję podanie...</>
-                      ) : (
-                        <><Icons.Brain /> Generuj z AI</>
-                      )}
-                    </button>
+                {!selectedPetitionType && (
+                  <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-xs text-slate-500 leading-relaxed">
+                    Wybierz typ podania z listy powyżej. Wypełnij formularz, a Gemini AI wygeneruje kompletne, formalne pismo urzędnicze w stylu SSUEW.
                   </div>
                 )}
+              </div>
 
-                {/* Tryb formatowania własnego tekstu */}
-                {selectedPetitionType === 'formalize' && (
-                  <div className="flex flex-col gap-3">
-                    <div className="bg-slate-800/50 border border-slate-700 p-4 rounded-xl text-xs text-slate-300 leading-relaxed">
-                      Tekst wpisany w edytorze po lewej zostanie przekształcony w kompletne, formalne pismo urzędnicze przez Gemini AI.
-                    </div>
-                    <button
-                      onClick={handleGenerateAIPetition}
-                      disabled={isGeneratingPetition || isDrafting}
-                      className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-900/50 disabled:opacity-50"
-                    >
-                      {isGeneratingPetition ? (
-                        <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Formatuję...</>
-                      ) : (
-                        <><Icons.Brain /> Sformatuj tekst z Edytora</>
-                      )}
-                    </button>
-                  </div>
-                )}
-
-                {/* Wynik AI */}
-                {aiOutput && (
-                  <div className="mt-2 animate-slideUp">
-                    <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 flex items-center gap-2">
-                      <Icons.Brain /> {isDrafting ? 'Generowanie pisma...' : 'Podanie gotowe'}
-                    </span>
-                    <div className="bg-slate-950 border border-slate-700 p-5 rounded-2xl text-xs text-slate-300 leading-relaxed font-mono shadow-inner whitespace-pre-wrap">
-                      {aiOutput}
-                      {isDrafting && <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>}
-                    </div>
-                    {!isDrafting && (
-                      <button onClick={copyToEditor} className="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-900/50">
-                        <Icons.Copy /> Przenieś do Edytora
-                      </button>
-                    )}
-                  </div>
-                )}
-
+              <div className="p-4 border-t border-slate-100 bg-slate-50/50">
+                <button
+                  onClick={handleGenerateAIPetition}
+                  disabled={isGeneratingPetition || isDrafting || !selectedPetitionType}
+                  className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-blue-900/20 disabled:opacity-50"
+                >
+                  {isGeneratingPetition || isDrafting ? (
+                    <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span> Generuję podanie...</>
+                  ) : (
+                    <><Icons.Brain /> Generuj podanie</>
+                  )}
+                </button>
               </div>
             </div>
+
+            {/* PRAWA: Podgląd */}
+            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/40 border border-slate-200 flex flex-col h-[900px] overflow-hidden">
+              <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><Icons.Document /></div>
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-sm leading-none">Podgląd Podania</h3>
+                    <span className="text-[10px] text-slate-400 font-medium">
+                      {aiOutput ? (isDrafting ? 'Generowanie...' : 'Gotowe do kopiowania') : 'Wygenerowane podanie pojawi się tutaj'}
+                    </span>
+                  </div>
+                </div>
+                {aiOutput && !isDrafting && (
+                  <button
+                    onClick={() => { try { navigator.clipboard.writeText(aiOutput); showAlert('Skopiowano podanie!'); } catch(e) {} }}
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors border border-slate-200 hover:border-blue-200"
+                  >
+                    <Icons.Copy /> Kopiuj
+                  </button>
+                )}
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-6" ref={aiOutputRef}>
+                {!aiOutput && !isGeneratingPetition ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
+                      <Icons.Document />
+                    </div>
+                    <p className="text-slate-400 text-sm font-medium">Wypełnij formularz i kliknij<br />"Generuj podanie"</p>
+                    <p className="text-slate-300 text-xs mt-2">Gotowe podanie pojawi się tutaj<br />i zostanie skopiowane do edytora</p>
+                  </div>
+                ) : isGeneratingPetition && !aiOutput ? (
+                  <div className="h-full flex flex-col items-center justify-center">
+                    <span className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></span>
+                    <p className="text-slate-400 text-sm font-medium">Gemini generuje podanie...</p>
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-800 leading-relaxed font-mono whitespace-pre-wrap">
+                    {aiOutput}
+                    {isDrafting && <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>}
+                  </div>
+                )}
+              </div>
+            </div>
+
           </div>
         )}
 
