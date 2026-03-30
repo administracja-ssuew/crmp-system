@@ -60,12 +60,13 @@ export default function AdminEquipmentPanel() {
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
             accessories: item.INTERAKCJA || 'Brak',
-            isFirstAid: item.RODZAJ === 'Apteczka'
+            isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
           }));
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []); 
-          if (data.apteczkiBraki) setFirstAidReports(data.apteczkiBraki);
+          const reports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
+          setFirstAidReports(reports);
         }
       });
   };
@@ -247,19 +248,19 @@ export default function AdminEquipmentPanel() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-900 p-4 md:p-6 flex flex-col items-center pb-20 print:bg-white print:p-0">
+    <div className="min-h-screen bg-slate-900 p-3 md:p-4 flex flex-col items-center pb-16 print:bg-white print:p-0">
       
       <div className="w-full max-w-5xl mb-2 flex justify-start print:hidden">
         <Link to="/sprzet" className="text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest py-2 px-4 rounded-xl hover:bg-slate-800 transition-all">← Wróć do katalogu</Link>
       </div>
 
-      <div className="w-full max-w-5xl flex flex-wrap bg-slate-800 rounded-2xl p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
-        <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
-        <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
-        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
-        <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
-        <button onClick={() => setAdminMode('apteczki')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'apteczki' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white relative'}`}>
-          🚑 Apteczki {firstAidReports.length > 0 && adminMode !== 'apteczki' && <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>}
+      <div className="w-full max-w-5xl flex flex-wrap bg-slate-800 rounded-xl p-1.5 mb-4 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
+        <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
+        <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
+        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
+        <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
+        <button onClick={() => setAdminMode('apteczki')} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'apteczki' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
+          🚑 Apteczki {firstAidReports.length > 0 && adminMode !== 'apteczki' && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>}
         </button>
       </div>
 
@@ -268,25 +269,25 @@ export default function AdminEquipmentPanel() {
       {/* ========================================================= */}
       {adminMode === 'apteczki' && (
         <div className="w-full max-w-5xl animate-fadeIn">
-          <div className="flex items-center gap-4 mb-6 border-b border-slate-700 pb-4">
-            <span className="text-4xl">🚑</span>
-            <div><h2 className="text-3xl font-black text-white tracking-tighter">Zgłoszenia Braków w Apteczkach</h2><p className="text-rose-400 font-bold uppercase tracking-widest text-xs">Uzupełnianie wg normy DIN 13169</p></div>
+          <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-3">
+            <span className="text-2xl">🚑</span>
+            <div><h2 className="text-xl font-black text-white tracking-tight">Zgłoszenia Braków w Apteczkach</h2><p className="text-rose-400 font-bold uppercase tracking-widest text-[10px]">Uzupełnianie wg normy DIN 13169</p></div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {firstAidReports.map(report => (
-              <div key={report.ID} className="bg-slate-800 border border-rose-500/30 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-rose-500 transition-all">
-                <div className="mb-6">
-                  <div className="flex justify-between items-start mb-4"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-3 py-1 bg-rose-900/50 rounded-lg">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">ID: {report.ID}</span></div>
-                  <h3 className="text-xl font-black text-white leading-tight mb-2">{report.Apteczka_Nazwa}</h3>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-4">Zgłosił: {report.Osoba}</p>
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Krótki opis zdarzenia:</p><p className="text-sm font-medium text-slate-300 italic">"{report.Powod}"</p></div>
-                  <div className="bg-rose-950/30 p-4 rounded-xl border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-2 block">Zużyte materiały (Do uzupełnienia):</p><ul className="text-xs font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
+              <div key={report.ID} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
+                <div className="mb-4">
+                  <div className="flex justify-between items-start mb-3"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID}</span></div>
+                  <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Zgłosił: {report.Osoba}</p>
+                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-3"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Opis zdarzenia:</p><p className="text-xs font-medium text-slate-300 italic">"{report.Powod}"</p></div>
+                  <div className="bg-rose-950/30 p-3 rounded-lg border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Zużyte materiały:</p><ul className="text-[10px] font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
                 </div>
-                <button onClick={() => resolveFirstAidReport(report.ID)} disabled={isUpdatingStatus} className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
+                <button onClick={() => resolveFirstAidReport(report.ID)} disabled={isUpdatingStatus} className="w-full py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
               </div>
             ))}
             {firstAidReports.length === 0 && (
-              <div className="col-span-full py-20 text-center flex flex-col items-center"><span className="text-6xl mb-4 opacity-20">🏥</span><p className="text-slate-400 font-black text-xl uppercase tracking-widest">Wszystkie apteczki są pełne</p></div>
+              <div className="col-span-full py-12 text-center flex flex-col items-center"><span className="text-4xl mb-3 opacity-20">🏥</span><p className="text-slate-400 font-black text-base uppercase tracking-widest">Wszystkie apteczki są pełne</p></div>
             )}
           </div>
         </div>
@@ -297,70 +298,69 @@ export default function AdminEquipmentPanel() {
       {/* ========================================================= */}
       {adminMode === 'wydawanie' && (
         <>
-          <div className="w-full max-w-4xl flex justify-between items-center mb-8 bg-slate-800 p-4 rounded-3xl border border-slate-700 print:hidden animate-fadeIn">
-            <div className={`text-xs font-black uppercase tracking-widest ${step >= 1 ? 'text-blue-400' : 'text-slate-500'}`}>1. Koszyk</div>
-            <div className="h-px bg-slate-600 flex-1 mx-4"></div>
-            <div className={`text-xs font-black uppercase tracking-widest ${step >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>2. Formularz</div>
-            <div className="h-px bg-slate-600 flex-1 mx-4"></div>
-            <div className={`text-xs font-black uppercase tracking-widest ${step >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>3. Protokół</div>
+          <div className="w-full max-w-4xl flex justify-between items-center mb-4 bg-slate-800 p-3 rounded-2xl border border-slate-700 print:hidden animate-fadeIn">
+            <div className={`text-[10px] font-black uppercase tracking-widest ${step >= 1 ? 'text-blue-400' : 'text-slate-500'}`}>1. Koszyk</div>
+            <div className="h-px bg-slate-600 flex-1 mx-3"></div>
+            <div className={`text-[10px] font-black uppercase tracking-widest ${step >= 2 ? 'text-blue-400' : 'text-slate-500'}`}>2. Formularz</div>
+            <div className="h-px bg-slate-600 flex-1 mx-3"></div>
+            <div className={`text-[10px] font-black uppercase tracking-widest ${step >= 3 ? 'text-blue-400' : 'text-slate-500'}`}>3. Protokół</div>
           </div>
 
-          <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-8'} bg-white rounded-[2rem] shadow-2xl print:shadow-none print:max-w-none print:w-full print:rounded-none print:p-0`}>
+          <div className={`w-full ${step === 3 ? 'max-w-[210mm] p-6 md:p-10' : 'max-w-3xl p-5'} bg-white rounded-2xl shadow-xl print:shadow-none print:max-w-none print:w-full print:rounded-none print:p-0`}>
             
             {step === 1 && (
               <div className="animate-fadeIn">
-                <h2 className="text-3xl font-black text-slate-900 mb-2">Wydanie z Magazynu</h2>
-                <input type="text" placeholder="Skanuj Kod QR lub wpisz..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold mb-4 focus:ring-2 focus:ring-blue-500 outline-none" />
-                <div className="max-h-80 overflow-y-auto bg-slate-50 border border-slate-100 rounded-2xl p-2 mb-6">
+                <h2 className="text-xl font-black text-slate-900 mb-3">Wydanie z Magazynu</h2>
+                <input type="text" placeholder="Skanuj Kod QR lub wpisz nazwę..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold mb-3 focus:ring-2 focus:ring-blue-500 outline-none" />
+                <div className="max-h-72 overflow-y-auto bg-slate-50 border border-slate-100 rounded-xl p-2 mb-4">
                   {equipmentData.filter(i =>
                     i.status === 'available' &&
                     !i.isFirstAid &&
                     !issuedItemIds.has(i.id) &&
                     (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.id.toLowerCase().includes(searchQuery.toLowerCase()))
                   ).map(item => (
-                    <div key={item.id} onClick={() => toggleItem(item)} className={`flex justify-between items-center p-4 mb-2 rounded-xl cursor-pointer transition-colors ${selectedItems.find(i => i.id === item.id) ? 'bg-blue-100 border border-blue-300' : 'bg-white hover:bg-slate-100 border border-slate-200'}`}>
+                    <div key={item.id} onClick={() => toggleItem(item)} className={`flex justify-between items-center p-3 mb-1.5 rounded-lg cursor-pointer transition-colors ${selectedItems.find(i => i.id === item.id) ? 'bg-blue-100 border border-blue-300' : 'bg-white hover:bg-slate-100 border border-slate-200'}`}>
                       <div><p className="text-sm font-black text-slate-800">{item.name}</p><p className="text-[10px] font-mono text-slate-500">{item.id}</p></div>
-                      <div className="text-xl">{selectedItems.find(i => i.id === item.id) ? '✅' : '☐'}</div>
+                      <div className="text-base">{selectedItems.find(i => i.id === item.id) ? '✅' : '☐'}</div>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => setStep(2)} disabled={selectedItems.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Dalej: Formularz ({selectedItems.length} szt.)</button>
+                <button onClick={() => setStep(2)} disabled={selectedItems.length === 0} className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white py-3 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg text-xs">Dalej: Formularz ({selectedItems.length} szt.)</button>
               </div>
             )}
 
             {step === 2 && (
               <div className="animate-fadeIn">
-                <h2 className="text-3xl font-black text-slate-900 mb-2">Dane do Porozumienia</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Wypełnij precyzyjnie dane obu stron</p>
+                <h2 className="text-xl font-black text-slate-900 mb-1">Dane do Porozumienia</h2>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Wypełnij precyzyjnie dane obu stron</p>
                 
-                <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl mb-6">
-                  <h3 className="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-3">1. Dane Wydającego (SSUEW)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" placeholder="Imię i Nazwisko Wydającego" value={borrower.adminName} onChange={e => setBorrower({...borrower, adminName: e.target.value})} className="bg-white border border-indigo-200 p-3 rounded-xl text-sm font-bold w-full" />
-                    <input type="text" placeholder="Funkcja (np. Członek Zarządu)" value={borrower.adminRole} onChange={e => setBorrower({...borrower, adminRole: e.target.value})} className="bg-white border border-indigo-200 p-3 rounded-xl text-sm font-bold w-full" />
+                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl mb-4">
+                  <h3 className="text-[10px] font-black text-indigo-800 uppercase tracking-widest mb-2">1. Dane Wydającego (SSUEW)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" placeholder="Imię i Nazwisko Wydającego" value={borrower.adminName} onChange={e => setBorrower({...borrower, adminName: e.target.value})} className="bg-white border border-indigo-200 p-2.5 rounded-lg text-sm font-bold w-full" />
+                    <input type="text" placeholder="Funkcja (np. Członek Zarządu)" value={borrower.adminRole} onChange={e => setBorrower({...borrower, adminRole: e.target.value})} className="bg-white border border-indigo-200 p-2.5 rounded-lg text-sm font-bold w-full" />
                   </div>
                 </div>
 
-                <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl mb-6">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">2. Dane Korzystającego (Studenta/Organizacji)</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" placeholder="Imię i Nazwisko Reprezentanta" value={borrower.name} onChange={e => setBorrower({...borrower, name: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
-                    <input type="text" placeholder="Nr albumu (legitymacji)" value={borrower.albumId} onChange={e => setBorrower({...borrower, albumId: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
-                    <input type="text" placeholder="Pełna nazwa Organizacji / Projektu" value={borrower.organization} onChange={e => setBorrower({...borrower, organization: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
-                    <input type="text" placeholder="Adres zamieszkania / korespondencyjny" value={borrower.address} onChange={e => setBorrower({...borrower, address: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full md:col-span-2" />
-                    <input type="text" placeholder="Nr Telefonu" value={borrower.phone} onChange={e => setBorrower({...borrower, phone: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
-                    <input type="email" placeholder="E-mail" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold w-full" />
-                    
-                    <div className="md:col-span-2 grid grid-cols-2 gap-4 mt-2">
-                      <div><label className="text-[10px] font-bold text-slate-500 ml-1">Od kiedy</label><input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" /></div>
-                      <div><label className="text-[10px] font-bold text-slate-500 ml-1">Do kiedy</label><input type="datetime-local" value={borrower.dateTo} onChange={e => setBorrower({...borrower, dateTo: e.target.value})} className="bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold w-full mt-1" /></div>
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-4">
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">2. Dane Korzystającego (Studenta/Organizacji)</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="text" placeholder="Imię i Nazwisko Reprezentanta" value={borrower.name} onChange={e => setBorrower({...borrower, name: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full" />
+                    <input type="text" placeholder="Nr albumu (legitymacji)" value={borrower.albumId} onChange={e => setBorrower({...borrower, albumId: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full" />
+                    <input type="text" placeholder="Pełna nazwa Organizacji / Projektu" value={borrower.organization} onChange={e => setBorrower({...borrower, organization: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full md:col-span-2" />
+                    <input type="text" placeholder="Adres zamieszkania / korespondencyjny" value={borrower.address} onChange={e => setBorrower({...borrower, address: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full md:col-span-2" />
+                    <input type="text" placeholder="Nr Telefonu" value={borrower.phone} onChange={e => setBorrower({...borrower, phone: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full" />
+                    <input type="email" placeholder="E-mail" value={borrower.email} onChange={e => setBorrower({...borrower, email: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full" />
+                    <div className="md:col-span-2 grid grid-cols-2 gap-3">
+                      <div><label className="text-[10px] font-bold text-slate-500 ml-1">Od kiedy</label><input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-2.5 rounded-lg text-sm font-bold w-full mt-1" /></div>
+                      <div><label className="text-[10px] font-bold text-slate-500 ml-1">Do kiedy</label><input type="datetime-local" value={borrower.dateTo} onChange={e => setBorrower({...borrower, dateTo: e.target.value})} className="bg-white border border-slate-300 p-2.5 rounded-lg text-sm font-bold w-full mt-1" /></div>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex gap-4">
-                  <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase tracking-widest w-1/3">Wróć</button>
-                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1">
+                <div className="flex gap-3">
+                  <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 px-5 rounded-xl font-black uppercase tracking-widest text-xs w-1/3">Wróć</button>
+                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-2.5 px-5 rounded-xl font-black uppercase tracking-widest text-xs flex-1">
                     {isVerifying ? 'Weryfikacja...' : 'Generuj PDF'}
                   </button>
                 </div>
@@ -534,28 +534,28 @@ export default function AdminEquipmentPanel() {
       {/* ========================================================= */}
       {adminMode === 'rezerwacje' && (
         <div className="w-full max-w-5xl animate-fadeIn">
-          <h2 className="text-3xl font-black text-white mb-2 tracking-tighter">Wnioski o Rezerwację</h2>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Zarządzanie Kalendarzem Majątku (CRW)</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="text-xl font-black text-white mb-1 tracking-tight">Wnioski o Rezerwację</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-4">Zarządzanie Kalendarzem Majątku (CRW)</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {allReservations.filter(r => r.Status === 'Oczekuje').map(rez => (
-              <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-6 rounded-[2rem] shadow-2xl flex flex-col justify-between group hover:border-indigo-500 transition-all">
-                <div className="mb-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-3 py-1 bg-indigo-900/50 rounded-lg">{formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}</span>
-                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Wniosek: {rez.ID}</span>
+              <div key={rez.ID} className="bg-slate-800 border border-slate-700 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-indigo-500 transition-all">
+                <div className="mb-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest px-2 py-0.5 bg-indigo-900/50 rounded">{formatResDate(rez.Data_Od)} ➔ {formatResDate(rez.Data_Do)}</span>
+                    <span className="text-[9px] font-black text-slate-500 opacity-60">#{rez.ID}</span>
                   </div>
-                  <h3 className="text-xl font-black text-white leading-tight mb-2">{rez.Organizacja_Cel}</h3>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-6">Dane: {rez.Kontakt}</p>
-                  <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Żądany sprzęt (Kody QR):</p><p className="text-xs font-bold text-emerald-400 leading-relaxed">📦 {rez.Sprzet_Kody}</p></div>
+                  <h3 className="text-base font-black text-white leading-tight mb-1">{rez.Organizacja_Cel}</h3>
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Dane: {rez.Kontakt}</p>
+                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Żądany sprzęt:</p><p className="text-xs font-bold text-emerald-400 leading-relaxed">📦 {rez.Sprzet_Kody}</p></div>
                 </div>
-                <div className="flex gap-3">
-                  <button onClick={() => handleRejectReservation(rez.ID)} disabled={isUpdatingStatus} className="flex-1 py-3.5 bg-slate-700 text-slate-300 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all disabled:opacity-50">Odrzuć</button>
-                  <button onClick={() => initiateApproval(rez)} disabled={isUpdatingStatus} className="flex-[2] py-3.5 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-500 transition-all disabled:opacity-50">Zatwierdź ✅</button>
+                <div className="flex gap-2">
+                  <button onClick={() => handleRejectReservation(rez.ID)} disabled={isUpdatingStatus} className="flex-1 py-2.5 bg-slate-700 text-slate-300 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all disabled:opacity-50">Odrzuć</button>
+                  <button onClick={() => initiateApproval(rez)} disabled={isUpdatingStatus} className="flex-[2] py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-indigo-500 transition-all disabled:opacity-50">Zatwierdź ✅</button>
                 </div>
               </div>
             ))}
             {allReservations.filter(r => r.Status === 'Oczekuje').length === 0 && (
-              <div className="col-span-full py-20 text-center flex flex-col items-center"><span className="text-6xl mb-4 opacity-20">📭</span><p className="text-slate-400 font-black text-xl uppercase tracking-widest">Brak nowych wniosków</p></div>
+              <div className="col-span-full py-12 text-center flex flex-col items-center"><span className="text-4xl mb-3 opacity-20">📭</span><p className="text-slate-400 font-black text-base uppercase tracking-widest">Brak nowych wniosków</p></div>
             )}
           </div>
         </div>
@@ -585,25 +585,25 @@ export default function AdminEquipmentPanel() {
       {adminMode === 'zwroty' && (
         <div className="w-full max-w-4xl flex flex-col items-center">
           {!selectedReturn ? (
-            <div className="w-full bg-slate-800 p-8 rounded-[2rem] shadow-2xl animate-fadeIn">
-              <h2 className="text-3xl font-black text-white mb-2">Przyjmowanie Zwrotów</h2>
-              <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-8">Wybierz aktywny protokół z bazy</p>
-              
-              <div className="space-y-4">
+            <div className="w-full bg-slate-800 p-5 rounded-2xl shadow-xl animate-fadeIn">
+              <h2 className="text-xl font-black text-white mb-1">Przyjmowanie Zwrotów</h2>
+              <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-4">Wybierz aktywny protokół z bazy</p>
+
+              <div className="space-y-2">
                 {activeWydania.map((wyd, idx) => (
-                  <div key={idx} onClick={() => {setSelectedReturn(wyd); setReturnStep(1);}} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-5 rounded-2xl cursor-pointer transition-all flex justify-between items-center group shadow-md">
+                  <div key={idx} onClick={() => {setSelectedReturn(wyd); setReturnStep(1);}} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group shadow">
                     <div>
                       <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">NR: {getAgreementNumber(wyd)}</span>
-                      <h3 className="text-lg font-bold text-white leading-tight mt-1">{wyd['Organizator'] || wyd['Organizacja']}</h3>
-                      <p className="text-xs text-slate-300 mt-1">Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']} | Pobrane: {getRealDate(wyd)}</p>
+                      <h3 className="text-sm font-bold text-white leading-tight mt-0.5">{wyd['Organizator'] || wyd['Organizacja']}</h3>
+                      <p className="text-xs text-slate-400 mt-0.5">Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']} | Pobrane: {getRealDate(wyd)}</p>
                     </div>
                     <div className="text-right">
-                      <button className="px-6 py-3 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase shadow-lg group-hover:bg-emerald-500 transition-colors">Odbierz Sprzęt</button>
+                      <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow group-hover:bg-emerald-500 transition-colors">Odbierz Sprzęt</button>
                     </div>
                   </div>
                 ))}
                 {activeWydania.length === 0 && (
-                  <div className="text-center py-16"><span className="text-6xl mb-4 opacity-20">✅</span><p className="text-slate-400 font-black text-xl uppercase tracking-widest">Magazyn pełny</p></div>
+                  <div className="text-center py-12"><span className="text-4xl mb-3 opacity-20">✅</span><p className="text-slate-400 font-black text-base uppercase tracking-widest mt-3">Magazyn pełny</p></div>
                 )}
               </div>
             </div>

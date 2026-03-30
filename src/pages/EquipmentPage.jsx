@@ -78,7 +78,7 @@ export default function EquipmentPage() {
 
           // Czyste formatowanie kategorii — bez wiszącego " / " gdy brakuje pola
           const categoryParts = [item.RODZAJ, item.TYP].filter(Boolean);
-          const category = item.RODZAJ === 'Apteczka'
+          const category = String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
             ? 'Apteczki'
             : categoryParts.join(' / ') || 'Inne';
 
@@ -86,7 +86,7 @@ export default function EquipmentPage() {
             id: stableId,
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
             category,
-            isFirstAid: item.RODZAJ === 'Apteczka',
+            isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka',
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
             locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
@@ -122,6 +122,7 @@ export default function EquipmentPage() {
   });
 
   const toggleCart = (item) => {
+    if (item.isFirstAid) return;
     if (cart.find(c => c.id === item.id)) setCart(cart.filter(c => c.id !== item.id));
     else setCart([...cart, item]);
   };
