@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(node -e \":*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(npx --yes acorn --ecma2020 --module src/pages/AdminEquipmentPanel.jsx)"
     ]
   }
 }

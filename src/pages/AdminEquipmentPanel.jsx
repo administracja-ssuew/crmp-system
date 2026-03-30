@@ -59,7 +59,8 @@ export default function AdminEquipmentPanel() {
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
-            accessories: item.INTERAKCJA || 'Brak'
+            accessories: item.INTERAKCJA || 'Brak',
+            isFirstAid: item.RODZAJ === 'Apteczka'
           }));
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
@@ -110,6 +111,8 @@ export default function AdminEquipmentPanel() {
   const initiateApproval = (rez) => {
     const emailMatch = rez.Kontakt.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
     setRequesterEmail(emailMatch ? emailMatch[1] : '');
+    setPickupDate('');
+    setPickupTime('12:00');
     setApprovalModal({ id: rez.ID, organizacja: rez.Organizacja_Cel, sprzetKody: rez.Sprzet_Kody });
   };
 
@@ -161,13 +164,14 @@ export default function AdminEquipmentPanel() {
   };
 
   const verifyBorrower = () => {
-    setIsVerifying(true); setVerificationStatus(null);
-    setTimeout(() => {
-      if (borrower.albumId === '123456') { setVerificationStatus('blocked'); } 
-      else if (borrower.albumId.length >= 3 && borrower.name.length > 2 && borrower.adminName.length > 2) { setVerificationStatus('ok'); setStep(3); } 
-      else { alert("Wypełnij poprawnie podstawowe pola (Imię, Nazwisko, Nr albumu oraz Dane Dysponenta)."); }
-      setIsVerifying(false);
-    }, 800);
+    if (!borrower.adminName || borrower.adminName.length < 3) {
+      alert("Wpisz dane Dysponenta (Imię i Nazwisko Wydającego)."); return;
+    }
+    if (!borrower.name || borrower.name.length < 3 || !borrower.albumId || borrower.albumId.length < 3) {
+      alert("Wypełnij poprawnie dane Korzystającego (Imię, Nazwisko, Nr albumu)."); return;
+    }
+    setIsVerifying(true);
+    setTimeout(() => { setStep(3); setIsVerifying(false); }, 400);
   };
 
   const handleStartDraw = (e, ref, setDrawingState) => {
@@ -236,9 +240,19 @@ export default function AdminEquipmentPanel() {
     return status === 'WYDANE';
   });
 
+  const issuedItemIds = new Set(
+    activeWydania.flatMap(w =>
+      String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '').split(',').map(s => s.trim()).filter(Boolean)
+    )
+  );
+
   return (
     <div className="min-h-screen bg-slate-900 p-4 md:p-6 flex flex-col items-center pb-20 print:bg-white print:p-0">
       
+      <div className="w-full max-w-5xl mb-2 flex justify-start print:hidden">
+        <Link to="/sprzet" className="text-slate-500 hover:text-white text-[10px] font-black uppercase tracking-widest py-2 px-4 rounded-xl hover:bg-slate-800 transition-all">← Wróć do katalogu</Link>
+      </div>
+
       <div className="w-full max-w-5xl flex flex-wrap bg-slate-800 rounded-2xl p-2 mb-6 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
         <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
         <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[100px] py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
@@ -266,7 +280,7 @@ export default function AdminEquipmentPanel() {
                   <h3 className="text-xl font-black text-white leading-tight mb-2">{report.Apteczka_Nazwa}</h3>
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-4">Zgłosił: {report.Osoba}</p>
                   <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-700 mb-4"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 block">Krótki opis zdarzenia:</p><p className="text-sm font-medium text-slate-300 italic">"{report.Powod}"</p></div>
-                  <div className="bg-rose-950/30 p-4 rounded-xl border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-2 block">Zużyte materiały (Do uzupełnienia):</p><ul className="text-xs font-bold text-rose-200 leading-relaxed list-disc list-inside">{report.Zuzyte_Materialy.split(',').map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
+                  <div className="bg-rose-950/30 p-4 rounded-xl border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-2 block">Zużyte materiały (Do uzupełnienia):</p><ul className="text-xs font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
                 </div>
                 <button onClick={() => resolveFirstAidReport(report.ID)} disabled={isUpdatingStatus} className="w-full py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
               </div>
@@ -298,7 +312,12 @@ export default function AdminEquipmentPanel() {
                 <h2 className="text-3xl font-black text-slate-900 mb-2">Wydanie z Magazynu</h2>
                 <input type="text" placeholder="Skanuj Kod QR lub wpisz..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold mb-4 focus:ring-2 focus:ring-blue-500 outline-none" />
                 <div className="max-h-80 overflow-y-auto bg-slate-50 border border-slate-100 rounded-2xl p-2 mb-6">
-                  {equipmentData.filter(i => i.status === 'available' && (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.id.toLowerCase().includes(searchQuery.toLowerCase()))).map(item => (
+                  {equipmentData.filter(i =>
+                    i.status === 'available' &&
+                    !i.isFirstAid &&
+                    !issuedItemIds.has(i.id) &&
+                    (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.id.toLowerCase().includes(searchQuery.toLowerCase()))
+                  ).map(item => (
                     <div key={item.id} onClick={() => toggleItem(item)} className={`flex justify-between items-center p-4 mb-2 rounded-xl cursor-pointer transition-colors ${selectedItems.find(i => i.id === item.id) ? 'bg-blue-100 border border-blue-300' : 'bg-white hover:bg-slate-100 border border-slate-200'}`}>
                       <div><p className="text-sm font-black text-slate-800">{item.name}</p><p className="text-[10px] font-mono text-slate-500">{item.id}</p></div>
                       <div className="text-xl">{selectedItems.find(i => i.id === item.id) ? '✅' : '☐'}</div>
@@ -633,10 +652,13 @@ export default function AdminEquipmentPanel() {
                     <table className="w-full border-collapse border border-black text-left text-[10px]">
                       <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-8 text-center">Lp.</th><th className="border border-black p-2 w-1/3">NAZWA SPRZĘTU</th><th className="border border-black p-2 w-1/3">STAN PRZY ZWROCIE (OPIS)</th><th className="border border-black p-2">DECYZJA WYDAJĄCEGO</th></tr></thead>
                       <tbody>
-                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']).split(',').map((itemCode, idx) => (
+                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']).split(',').map((itemCode, idx) => {
+                          const code = itemCode.trim();
+                          const resolvedName = equipmentData.find(e => e.id === code)?.name;
+                          return (
                           <tr key={idx}>
                             <td className="border border-black p-2 text-center font-bold">{idx + 1}</td>
-                            <td className="border border-black p-2 font-mono">{itemCode.trim()}</td>
+                            <td className="border border-black p-2">{resolvedName || code}</td>
                             <td className="border border-black p-2">.....................................</td>
                             <td className="border border-black p-2 leading-tight">
                               ☐ PRZYJĘTO BEZ ZASTRZEŻEŃ<br/>
@@ -644,7 +666,7 @@ export default function AdminEquipmentPanel() {
                               ☐ USZKODZONY (PROTOKÓŁ SZKODY)
                             </td>
                           </tr>
-                        ))}
+                        ); })}
                       </tbody>
                     </table>
                   </div>
