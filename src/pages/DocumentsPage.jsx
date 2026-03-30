@@ -541,22 +541,39 @@ ${applicantData.funkcja || '[funkcja w Samorządzie Studentów UEW]'}`;
   const handleGenerateSummary = async (docKey) => {
     if (!selectedDoc) return;
     setIsGeneratingSummary(true);
-    const prompt = `Jesteś asystentem prawnym Samorządu Studentów UEW. Przeanalizuj ten dokument i podaj streszczenie w 3 punktach.
 
-Tytuł: ${selectedDoc.title || ''}
+    const systemPrompt = `Jesteś asystentem Samorządu Studentów UEW (SSUEW). Twoim zadaniem jest streszczenie dokumentów uczelnianych dla członków Samorządu — aktywnych studentów działających w komisjach, którzy potrzebują szybko zrozumieć co dany dokument oznacza dla ich pracy i dla studentów.
+
+Otrzymujesz nazwę dokumentu, kategorię i opis. Na ich podstawie wygeneruj streszczenie w dokładnie 3 sekcjach:
+
+🎯 O czym jest dokument
+Jedno-dwa zdania konkretnie opisujące temat. Bez ogólników typu 'dokument reguluje kwestie'. Napisz CO konkretnie reguluje.
+
+👥 Kogo dotyczy
+Wymień konkretnie: studentów (jakich — wszystkich, pierwszego roku, niepełnosprawnych?), Samorząd, konkretne komisje, pracowników, organizacje studenckie. Jeśli dotyczy Samorządu bezpośrednio — podkreśl to.
+
+⚡ Co musisz wiedzieć
+2-3 najważniejsze punkty które członek Samorządu powinien zapamiętać. Konkretne terminy, kwoty, prawa, obowiązki, procedury. To ma być praktyczna wiedza, nie streszczenie treści.
+
+Pisz po polsku, zwięźle, bez urzędowego języka. Używaj aktywnych zdań.`;
+
+    const prompt = `Tytuł: ${selectedDoc.title || ''}
 Kategoria: ${selectedDoc.category || ''}
-Opis/Treść: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu.'}
-
-Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez \`\`\`json, bez żadnego dodatkowego tekstu):
-{"czego_dotyczy": "1-2 zdania co reguluje lub czego dotyczy dokument", "kogo_dotyczy": "kto jest adresatem lub kogo ten dokument obowiązuje", "co_musisz_wiedziec": "najważniejsza praktyczna informacja dla studenta lub działacza samorządu"}`;
+Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu.'}`;
 
     try {
-      const result = await callGeminiAPI(prompt);
-      const cleaned = result.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '');
-      const parsed = JSON.parse(cleaned);
-      setDocSummaries(prev => ({ ...prev, [docKey]: parsed }));
+      const result = await callGeminiAPI(prompt, systemPrompt);
+      // Parsuj 3 sekcje z plain-text odpowiedzi
+      const sections = { o_czym: '', kogo: '', co_wiedziec: '' };
+      const oCzymMatch = result.match(/🎯[^\n]*\n([\s\S]*?)(?=👥|$)/);
+      const kogoMatch = result.match(/👥[^\n]*\n([\s\S]*?)(?=⚡|$)/);
+      const coWiedziecMatch = result.match(/⚡[^\n]*\n([\s\S]*?)$/);
+      sections.o_czym = oCzymMatch ? oCzymMatch[1].trim() : result.trim();
+      sections.kogo = kogoMatch ? kogoMatch[1].trim() : '';
+      sections.co_wiedziec = coWiedziecMatch ? coWiedziecMatch[1].trim() : '';
+      setDocSummaries(prev => ({ ...prev, [docKey]: sections }));
     } catch (e) {
-      setDocSummaries(prev => ({ ...prev, [docKey]: { czego_dotyczy: 'Nie udało się wygenerować streszczenia. Spróbuj ponownie.', kogo_dotyczy: '-', co_musisz_wiedziec: '-' } }));
+      setDocSummaries(prev => ({ ...prev, [docKey]: { o_czym: 'Nie udało się wygenerować streszczenia. Spróbuj ponownie.', kogo: '', co_wiedziec: '' } }));
     }
     setIsGeneratingSummary(false);
   };
@@ -1314,16 +1331,33 @@ Odpowiedz WYŁĄCZNIE w formacie JSON (bez markdown, bez \`\`\`json, bez żadneg
                       {summary ? (
                         <div className="space-y-3">
                           <div className="p-4 rounded-xl border-l-4 border-l-blue-500 bg-blue-50">
-                            <span className="block text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">📌 Czego dotyczy</span>
-                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.czego_dotyczy}</p>
+                            <span className="block text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">🎯 O czym jest dokument</span>
+                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.o_czym}</p>
                           </div>
-                          <div className="p-4 rounded-xl border-l-4 border-l-indigo-500 bg-indigo-50">
-                            <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">👥 Kogo dotyczy</span>
-                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.kogo_dotyczy}</p>
-                          </div>
-                          <div className="p-4 rounded-xl border-l-4 border-l-amber-500 bg-amber-50">
-                            <span className="block text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">⚡ Co musisz wiedzieć</span>
-                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.co_musisz_wiedziec}</p>
+                          {summary.kogo && (
+                            <div className="p-4 rounded-xl border-l-4 border-l-indigo-500 bg-indigo-50">
+                              <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">👥 Kogo dotyczy</span>
+                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.kogo}</p>
+                            </div>
+                          )}
+                          {summary.co_wiedziec && (
+                            <div className="p-4 rounded-xl border-l-4 border-l-amber-500 bg-amber-50">
+                              <span className="block text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">⚡ Co musisz wiedzieć</span>
+                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.co_wiedziec}</p>
+                            </div>
+                          )}
+                          <div className="flex justify-end">
+                            <button
+                              onClick={() => handleGenerateSummary(docKey)}
+                              disabled={isGeneratingSummary}
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg border border-slate-200 hover:border-indigo-200 transition-all disabled:opacity-50"
+                            >
+                              {isGeneratingSummary ? (
+                                <><span className="w-3 h-3 border-2 border-slate-300 border-t-indigo-500 rounded-full animate-spin"></span> Generuję...</>
+                              ) : (
+                                <>↺ Odśwież</>
+                              )}
+                            </button>
                           </div>
                         </div>
                       ) : (
