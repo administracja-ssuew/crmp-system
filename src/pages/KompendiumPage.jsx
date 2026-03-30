@@ -1,0 +1,1111 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  BookOpen, CheckSquare, Square, ChevronRight, ArrowUp,
+  Clock, AlertTriangle, CheckCircle, XCircle, Users, FileText
+} from 'lucide-react';
+
+// ===================== DANE NAWIGACJI =====================
+const NAV_ITEMS = [
+  { id: 'wstep', label: 'Wstęp' },
+  { id: 'slownik', label: 'Słownik pojęć i osób' },
+  { id: 'przed', label: 'Przed spotkaniem' },
+  { id: 'podczas', label: 'Podczas spotkania' },
+  { id: 'po', label: 'Po spotkaniu' },
+  {
+    id: 'typy',
+    label: 'Typy protokołów',
+    children: [
+      { id: 'typ-sks', label: 'SKS' },
+      { id: 'typ-russ', label: 'RUSS' },
+      { id: 'typ-absolutoryjny', label: 'Absolutoryjny' },
+      { id: 'typ-komisyjny', label: 'Komisyjny' },
+      { id: 'typ-projektowy', label: 'Projektowy' },
+      { id: 'typ-roboczy', label: 'Roboczy' },
+      { id: 'typ-kpue', label: 'KPUE' },
+    ],
+  },
+  { id: 'bledy', label: 'Częste błędy' },
+];
+
+const ALL_SECTION_IDS = [
+  'wstep', 'slownik', 'przed', 'podczas', 'po',
+  'typy', 'typ-sks', 'typ-russ', 'typ-absolutoryjny',
+  'typ-komisyjny', 'typ-projektowy', 'typ-roboczy', 'typ-kpue',
+  'bledy',
+];
+
+const TYPE_CHILD_IDS = ['typ-sks', 'typ-russ', 'typ-absolutoryjny', 'typ-komisyjny', 'typ-projektowy', 'typ-roboczy', 'typ-kpue'];
+
+// ===================== CHECKLISTY =====================
+const BEFORE_ITEMS = [
+  { id: 'b1', text: 'Pobierz wzór protokołu właściwy dla danego typu spotkania' },
+  { id: 'b2', text: 'Uzupełnij nagłówek — numer spotkania, data, miejsce, godzina rozpoczęcia (zostaw puste), prowadzący, protokolant' },
+  { id: 'b3', text: 'Przepisz porządek obrad do protokołu (otrzymasz od prowadzącego)' },
+  { id: 'b4', text: 'Przygotuj listę obecności z pełnymi imionami, nazwiskami i funkcjami uczestników' },
+  { id: 'b5', text: 'Dla RUSS: sprawdź pełen skład Rady, policz wymagane quorum (minimum 8 Radnych)' },
+  { id: 'b6', text: 'Dla absolutorium: sprawdź kto prowadzi (SKW, nie Zarząd) i skład Komisji Rewizyjnej pełniącej funkcję Komisji Skrutacyjnej' },
+  { id: 'b7', text: 'Naładuj urządzenie — laptop lub tablet do notatek' },
+  { id: 'b8', text: 'Jeśli planujesz nagrywać — przygotuj komunikat dla uczestników na początku spotkania' },
+];
+
+const AFTER_ITEMS = [
+  { id: 'a1', text: 'Sporządź protokół na podstawie notatek (i nagrania jeśli robiłeś)' },
+  { id: 'a2', text: 'Sprawdź wszystkie tytuły i funkcje osób — korzystaj z tabeli w Rozdziale 1' },
+  { id: 'a3', text: 'Sprawdź interpunkcję i ortografię — zwróć uwagę na przecinki i wielkie litery' },
+  { id: 'a4', text: 'Sprawdź czy wszystkie wyniki głosowań są kompletne (za / przeciw / wstrzymujący się)' },
+  { id: 'a5', text: 'Sprawdź czy godziny otwarcia i zamknięcia są wpisane' },
+  { id: 'a6', text: 'Sprawdź czy nie ma nieformalnych notatek redakcyjnych w treści' },
+  { id: 'a7', text: 'Wyślij do prowadzącego obrady do weryfikacji' },
+  { id: 'a8', text: 'Po akceptacji — przekaż do archiwum zgodnie z procedurami SSUEW' },
+  { id: 'a9', text: 'Usuń nagranie jeśli robiłeś' },
+];
+
+// ===================== ORGANY (Akordeony 1C) =====================
+const ORGANS = [
+  {
+    id: 'org-russ',
+    title: 'RUSS — Rada Uczelniana Samorządu Studentów',
+    content: 'Najwyższy organ uchwałodawczy SSUEW. Składa się z Radnych wybieranych przez studentów w wyborach. Podejmuje uchwały, zatwierdza budżet, udziela absolutorium Zarządowi. Posiedzenia RUSS są jedynymi gdzie obowiązuje formalne quorum — minimum 8 Radnych (ponad połowa regulaminowego składu). Nie mylić z Zarządem — RUSS sprawuje funkcję kontrolną wobec Zarządu. Protokolant RUSS figuruje na liście obecności ze statusem "—" (jest protokolantem, nie Radnym).',
+  },
+  {
+    id: 'org-sks',
+    title: 'SKS — Spotkanie Komisji Samorządu',
+    content: 'Comiesięczne, otwarte spotkanie wszystkich działaczy Samorządu. Charakter informacyjno-roboczy — nie uchwałodawczy. Prowadzi je Przewodnicząca SSUEW. Nie obowiązuje formalne quorum. To tu omawia się projekty, komunikaty Zarządu i sprawy bieżące.',
+  },
+  {
+    id: 'org-skw',
+    title: 'SKW — Studencka Komisja Wyborcza',
+    content: 'Organ przeprowadzający wybory w SSUEW. Prowadzi również posiedzenia absolutoryjne — ze względu na neutralność wobec Zarządu (to Zarząd jest oceniany, więc nie może sam prowadzić posiedzenia).',
+  },
+  {
+    id: 'org-kr',
+    title: 'Komisja Rewizyjna',
+    content: 'Organ kontrolny SSUEW. Na absolutoriach pełni funkcję Komisji Skrutacyjnej — ogłasza wyniki głosowań po każdej prezentacji sprawozdawczej.',
+  },
+  {
+    id: 'org-ke',
+    title: 'Kolegium Elektorów',
+    content: 'Organ wyborczy UEW (nie SSUEW). Wybiera Rektora Uczelni. W jego skład wchodzą m.in. przedstawiciele studentów wybierani przez społeczność studencką.',
+  },
+  {
+    id: 'org-kd',
+    title: 'Komisja Dyscyplinarna dla Studentów',
+    content: 'Organ UEW (nie SSUEW) rozpatrujący sprawy dyscyplinarne studentów. Działa na podstawie Ustawy Prawo o szkolnictwie wyższym. Nie mylić z organami Samorządu.',
+  },
+  {
+    id: 'org-kwest',
+    title: 'Kwestura',
+    content: 'Jednostka finansowo-księgowa UEW. Obsługuje rozliczenia finansowe Uczelni, w tym dotacje i rozliczenia z SSUEW. Na czele stoi Kwestor. Korespondencja finansowa między SSUEW a UEW przechodzi przez Kwesturę.',
+  },
+  {
+    id: 'org-dzn',
+    title: 'Dział Zarządzania Nieruchomościami',
+    content: 'Odpowiada za udostępnianie sal, przestrzeni kampusu i sprzętu technicznego. Do nich kierowane są podania o rezerwację pomieszczeń, plakatowanie, banerowanie i wjazd na kampus. Podlega Zastępcy Kanclerza ds. Technicznych.',
+  },
+  {
+    id: 'org-dss',
+    title: 'Dział Świadczeń Stypendialnych (DŚS)',
+    content: 'Obsługuje stypendia studenckie: socjalne, rektora, dla osób niepełnosprawnych oraz zapomogi. Studenci składają wnioski przez USOSweb, a fizycznie w DŚS.',
+  },
+  {
+    id: 'org-cods',
+    title: 'Centrum Obsługi Dydaktyki i Spraw Studenckich',
+    content: 'Administracyjna obsługa toku studiów. Nadzoruje systemy USOS, POL-on, APD. Tu trafiają sprawy związane z przebiegiem studiów.',
+  },
+  {
+    id: 'org-cku',
+    title: 'Centrum Kształcenia Ustawicznego (CKU)',
+    content: 'Studia podyplomowe i kursy dokształcające. W budynku CKU mieści się Sala Audytoryjna — Aula, gdzie odbywają się największe wydarzenia uczelniane.',
+  },
+  {
+    id: 'org-fue',
+    title: 'FUE — Forum Uczelni Ekonomicznych',
+    content: 'Ogólnopolska organizacja zrzeszająca samorządy polskich uczelni ekonomicznych. SSUEW jest jej aktywnym członkiem. FUE organizuje Zjazdy, na których obradują przedstawiciele wszystkich uczelni członkowskich.',
+  },
+  {
+    id: 'org-kpue',
+    title: 'KPUE — Konferencja Polskich Uczelni Ekonomicznych',
+    content: 'Cykliczne spotkanie przedstawicieli samorządów uczelni ekonomicznych, organizowane rotacyjnie przez kolejne uczelnie. SSUEW organizuje KPUE gdy przychodzi jej kolej.',
+  },
+  {
+    id: 'org-joss',
+    title: 'JOSS — Jednostki Organizacyjne Samorządu Studentów',
+    content: 'Organizacje studenckie działające w ramach lub przy SSUEW. Uczestniczą m.in. w posiedzeniach absolutoryjnych (sprawozdają się przed RUSS).',
+  },
+];
+
+// ===================== CZĘSTE BŁĘDY =====================
+const ERRORS = [
+  {
+    n: 1,
+    title: 'Błędne tytuły i funkcje osób',
+    desc: 'Pisanie "Rektor Okruszek" zamiast "Prorektor ds. Studenckich i Kształcenia dr hab. inż. Andrzej Okruszek, prof. UEW". To nie jest kwestia uprzejmości — to błąd merytoryczny. Protokół z błędnym tytułem osoby jest dokumentem z wadą.',
+    fix: 'Zawsze korzystaj z tabeli w Rozdziale 1 przed oddaniem protokołu.',
+  },
+  {
+    n: 2,
+    title: 'Niekompletne wyniki głosowań',
+    desc: '"Uchwała została przyjęta" lub "przyjęto jednogłośnie" bez podania ile osób głosowało za, przeciw i wstrzymało się. To błąd krytyczny — uchwała może być podważona.',
+    fix: 'Zawsze zapisuj trzy liczby oddzielnie: za / przeciw / wstrzymujących się.',
+  },
+  {
+    n: 3,
+    title: 'Zbyt wąski opis punktów',
+    desc: '"Omówiono sprawy bieżące" lub "dyskutowano o projekcie X". To nagłówek, nie protokół.',
+    fix: 'Każdy punkt musi mieć treść — kto co powiedział, jakie ustalenia, jakie decyzje.',
+  },
+  {
+    n: 4,
+    title: 'Zbyt szeroki opis — stenografia dyskusji',
+    desc: 'Zapisywanie każdego zdania każdej osoby sprawia że protokół jest nieczytelny i nikt przez niego nie przebrnął.',
+    fix: 'Wyodrębniaj decyzje, ustalenia i zobowiązania — resztę syntetyzuj w kilku zdaniach.',
+  },
+  {
+    n: 5,
+    title: 'Nieformalny ton językowy',
+    desc: '"Emilka stwierdziła że to nie ma sensu" zamiast "Przewodnicząca SSUEW Emilia Ćwiklińska wyraziła sprzeciw wobec proponowanego rozwiązania". Protokół jest dokumentem urzędowym — zdrobnienia, pseudonimy i wykrzykniki go dyskwalifikują.',
+    fix: 'Przed oddaniem przeczytaj protokół i zamień każde imiesłowo, zdrobnienie i potoczne określenie na formę urzędową.',
+  },
+  {
+    n: 6,
+    title: 'Informacje prywatne w treści',
+    desc: '"Karlos → był u fryzjera" lub "Ala zdała excela na czwórkę" — informacje prywatne uczestników nie mają miejsca w żadnym protokole, nawet roboczym.',
+    fix: 'Zapisuj tylko to co dotyczy przedmiotu spotkania.',
+  },
+  {
+    n: 7,
+    title: 'Brak godzin otwarcia i zamknięcia',
+    desc: 'Godziny są obowiązkowym elementem każdego protokołu bez wyjątku. Protokół bez godzin jest niekompletny.',
+    fix: 'Zapisz godziny od razu na początku spotkania i na końcu — nie polegaj na pamięci.',
+  },
+  {
+    n: 8,
+    title: 'Brak podpisów i daty sporządzenia',
+    desc: 'Protokół bez podpisu protokolanta (i przewodniczącego obrad w przypadku RUSS) nie jest dokumentem.',
+    fix: 'Dodaj podpis i datę sporządzenia zanim wyślesz do weryfikacji.',
+  },
+  {
+    n: 9,
+    title: 'Spóźnione oddanie',
+    desc: 'Protokół oddany po terminie traci swoją wartość. Ustalenia wychładzają się — po dwóch tygodniach trudno odtworzyć kontekst.',
+    fix: 'Traktuj termin z Rozdziału 4 jako nieprzekraczalny. Sporządzaj protokół najlepiej w ciągu 24–48h od spotkania kiedy pamięć jest świeża.',
+  },
+  {
+    n: 10,
+    title: 'Notatki redakcyjne w treści',
+    desc: '"tu sprawdzić", "uzupełnić później", "WAŻNE!!!" lub "PRZEKAZANO GORĄCE ZAPROSZENIE!" w treści protokołu.',
+    fix: 'Jeśli czegoś nie jesteś pewien — zostaw pusty nawias [???] i zapytaj prowadzącego przed oddaniem. Żadne osobiste notatki nie mogą trafić do finalnego dokumentu.',
+  },
+  {
+    n: 11,
+    title: 'Niespójność formalna w obrębie dokumentu',
+    desc: 'Raz "Przewodnicząca SSUEW", raz "Emilia", raz "Pani Przewodnicząca" — w odniesieniu do tej samej osoby w tym samym protokole.',
+    fix: 'Wybierz jeden sposób i stosuj go konsekwentnie. Standard: pełna funkcja + imię i nazwisko przy pierwszym użyciu, sama funkcja przy kolejnych.',
+  },
+];
+
+// ===================== GŁÓWNY KOMPONENT =====================
+export default function KompendiumPage() {
+  const [activeSection, setActiveSection] = useState('wstep');
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [openAccordion, setOpenAccordion] = useState(null);
+  const [checklistState, setChecklistState] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('kompendium_checklist_v1');
+      return saved ? JSON.parse(saved) : { before: [], after: [] };
+    } catch {
+      return { before: [], after: [] };
+    }
+  });
+
+  // IntersectionObserver — aktywna sekcja
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: '-15% 0px -75% 0px', threshold: 0 }
+    );
+    ALL_SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  // Scroll to top detector
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const toggleCheck = (group, itemId) => {
+    const newState = { ...checklistState };
+    const arr = newState[group] || [];
+    newState[group] = arr.includes(itemId) ? arr.filter((x) => x !== itemId) : [...arr, itemId];
+    setChecklistState(newState);
+    sessionStorage.setItem('kompendium_checklist_v1', JSON.stringify(newState));
+  };
+
+  const isTypActive = TYPE_CHILD_IDS.includes(activeSection) || activeSection === 'typy';
+  const isActive = (id) => activeSection === id || (id === 'typy' && isTypActive);
+
+  // Wszystkie sekcje dla mobile select
+  const allSelectOptions = NAV_ITEMS.flatMap((item) =>
+    item.children
+      ? [{ id: item.id, label: item.label, depth: 0 }, ...item.children.map((c) => ({ id: c.id, label: '  ' + c.label, depth: 1 }))]
+      : [{ id: item.id, label: item.label, depth: 0 }]
+  );
+
+  // ===================== SUB-KOMPONENTY =====================
+  const DeadlineBadge = ({ text, color }) => {
+    const colors = {
+      blue: 'bg-blue-100 text-blue-700 border border-blue-200',
+      orange: 'bg-orange-100 text-orange-700 border border-orange-200',
+      red: 'bg-red-100 text-red-700 border border-red-200',
+      green: 'bg-green-100 text-green-700 border border-green-200',
+      gray: 'bg-slate-100 text-slate-600 border border-slate-200',
+    };
+    return (
+      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${colors[color] || colors.gray}`}>
+        <Clock className="w-3 h-3" />
+        {text}
+      </span>
+    );
+  };
+
+  const Checklist = ({ group, items }) => (
+    <div className="space-y-2">
+      {items.map((item) => {
+        const checked = (checklistState[group] || []).includes(item.id);
+        return (
+          <button
+            key={item.id}
+            onClick={() => toggleCheck(group, item.id)}
+            className={`w-full flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
+              checked
+                ? 'bg-green-50 border-green-200 text-green-800'
+                : 'bg-white border-slate-200 text-slate-700 hover:border-violet-300 hover:bg-violet-50/30'
+            }`}
+          >
+            {checked ? (
+              <CheckSquare className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+            ) : (
+              <Square className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+            )}
+            <span className={`text-sm font-medium leading-snug ${checked ? 'line-through opacity-60' : ''}`}>
+              {item.text}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const Accordion = ({ id, title, content }) => {
+    const open = openAccordion === id;
+    return (
+      <div className="border border-slate-200 rounded-xl overflow-hidden">
+        <button
+          onClick={() => setOpenAccordion(open ? null : id)}
+          className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors text-left"
+        >
+          <span className="font-semibold text-slate-800 text-sm">{title}</span>
+          <ChevronRight
+            className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+          />
+        </button>
+        {open && (
+          <div className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100">
+            <p className="text-sm text-slate-600 leading-relaxed pt-3">{content}</p>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ProtocolCard = ({ id, title, deadline, deadlineColor, children }) => (
+    <section id={id} className="scroll-mt-20 mb-12">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center">
+              <FileText className="w-5 h-5 text-violet-600" />
+            </div>
+            <h3 className="text-lg font-black text-slate-800">{title}</h3>
+          </div>
+          <DeadlineBadge text={deadline} color={deadlineColor} />
+        </div>
+        <div className="p-6">{children}</div>
+      </div>
+    </section>
+  );
+
+  const SectionTitle = ({ icon: Icon, chapter, title }) => (
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && (
+        <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-violet-600" />
+        </div>
+      )}
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-0.5">{chapter}</p>
+        <h2 className="text-2xl font-black text-slate-800">{title}</h2>
+      </div>
+    </div>
+  );
+
+  // ===================== RENDER =====================
+  return (
+    <div className="min-h-screen bg-slate-50">
+
+      {/* BREADCRUMB */}
+      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
+        <div className="max-w-screen-2xl mx-auto px-6 py-3 pl-40 md:pl-8">
+          <nav className="flex items-center gap-1.5 text-sm">
+            <Link to="/" className="text-slate-500 hover:text-slate-800 font-medium transition-colors">
+              Dashboard
+            </Link>
+            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-slate-800 font-semibold flex items-center gap-1.5">
+              <BookOpen className="w-4 h-4 text-violet-600" />
+              Kompendium Wiedzy Protokolanta
+            </span>
+          </nav>
+        </div>
+      </div>
+
+      {/* MOBILE SELECT */}
+      <div className="lg:hidden sticky top-[49px] z-30 bg-white border-b border-slate-200 px-4 py-2.5">
+        <select
+          value={activeSection}
+          onChange={(e) => scrollTo(e.target.value)}
+          className="w-full text-sm font-semibold text-slate-700 bg-violet-50 border border-violet-200 rounded-xl px-3 py-2 outline-none focus:ring-2 focus:ring-violet-400"
+        >
+          {allSelectOptions.map((opt) => (
+            <option key={opt.id} value={opt.id}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* GŁÓWNY UKŁAD */}
+      <div className="flex max-w-screen-2xl mx-auto">
+
+        {/* SIDEBAR */}
+        <aside className="hidden lg:block w-[260px] shrink-0 sticky top-[49px] h-[calc(100vh-49px)] overflow-y-auto border-r border-slate-200 bg-white py-6">
+          <nav className="px-3 space-y-0.5">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item.id);
+              if (item.children) {
+                return (
+                  <div key={item.id}>
+                    <button
+                      onClick={() => scrollTo(item.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                        active
+                          ? 'bg-violet-100 text-violet-700'
+                          : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                      }`}
+                    >
+                      <span>Typy protokołów</span>
+                      <ChevronRight className={`w-3.5 h-3.5 transition-transform ${isTypActive ? 'rotate-90' : ''}`} />
+                    </button>
+                    {isTypActive && (
+                      <div className="ml-3 mt-0.5 space-y-0.5 border-l-2 border-violet-200 pl-3">
+                        {item.children.map((child) => (
+                          <button
+                            key={child.id}
+                            onClick={() => scrollTo(child.id)}
+                            className={`w-full text-left px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                              activeSection === child.id
+                                ? 'bg-violet-100 text-violet-700 font-bold'
+                                : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                            }`}
+                          >
+                            {child.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => scrollTo(item.id)}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    active
+                      ? 'bg-violet-100 text-violet-700'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-800'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* TREŚĆ GŁÓWNA */}
+        <main className="flex-1 min-w-0 p-6 lg:p-10 pb-24">
+
+          {/* ===== ROZDZIAŁ 0 — WSTĘP ===== */}
+          <section id="wstep" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={BookOpen} chapter="Rozdział 0" title="Wstęp" />
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+              <p className="text-slate-700 leading-relaxed">
+                Protokół to nie biurokratyczny obowiązek — to <strong>pamięć instytucjonalna Samorządu</strong>. Za trzy lata ktoś sięgnie po protokół z dzisiejszego posiedzenia RUSS i będzie chciał wiedzieć co dokładnie postanowiono i dlaczego. Jeśli protokół jest zły — tej wiedzy nie ma. Przepada razem z kadencją.
+              </p>
+              <p className="text-slate-700 leading-relaxed">
+                Rolą protokolanta jest nie stenografować każde słowo, ale <strong>uchwycić to co ważne</strong>: decyzje, głosowania, zobowiązania, stanowiska. Reszta to szum.
+              </p>
+              <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mt-2">
+                <p className="text-sm text-violet-800 leading-relaxed">
+                  Niniejsze Kompendium zostało opracowane przez <strong>Komisję ds. Administracji SSUEW</strong> jako jedyne rzetelne źródło wiedzy protokolantów Samorządu Studentów UEW. Znajdziesz tu wszystko — od słownika pojęć przez checklisty aż po omówienie każdego typu protokołu z osobna. Jeśli masz wątpliwości których tu nie rozstrzygamy — skontaktuj się z Komisją ds. Administracji.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== ROZDZIAŁ 1 — SŁOWNIK ===== */}
+          <section id="slownik" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={Users} chapter="Rozdział 1" title="Słownik pojęć i osób" />
+
+            {/* 1A */}
+            <div className="mb-8">
+              <h3 className="text-base font-black text-slate-700 uppercase tracking-widest mb-3">1A — Władze UEW: jak pisać poprawnie</h3>
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="text-left px-5 py-3 font-bold text-slate-500 uppercase tracking-wider text-xs">Jak się mówi potocznie</th>
+                        <th className="text-left px-5 py-3 font-bold text-slate-500 uppercase tracking-wider text-xs">Jak należy pisać w protokole</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {[
+                        ['"Rektor Zając"', 'prof. dr hab. Czesław Zając — Rektor Uniwersytetu Ekonomicznego we Wrocławiu'],
+                        ['"Prorektor Okruszek" lub "Rektor Okruszek"', 'dr hab. inż. Andrzej Okruszek, prof. UEW — Prorektor ds. Studenckich i Kształcenia'],
+                        ['"Prorektor Bednarek"', 'dr hab. Piotr Bednarek, prof. UEW — Prorektor ds. Finansów'],
+                        ['"Pani Prorektor Drelich"', 'prof. dr hab. Bogusława Drelich-Skulska — Prorektor ds. Współpracy Międzynarodowej'],
+                        ['"Prorektor Kośny"', 'prof. dr hab. Marek Kośny — Prorektor ds. Nauki'],
+                        ['"Pani Kanclerz"', 'dr Agnieszka Strońska-Rembisz — Kanclerz UEW'],
+                        ['"Pan Kwestor"', 'dr Wojciech Krzeszowski — Kwestor UEW'],
+                        ['"Zastępca Kanclerza Witter"', 'Mgr inż. Wiesław Witter — Zastępca Kanclerza ds. Technicznych'],
+                        ['"RPS" lub "Rzecznik"', 'Jakub Buchta — Rzecznik Praw Studenta SSUEW'],
+                      ].map(([potocznie, oficjalnie], i) => (
+                        <tr key={i} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-3 text-slate-500 italic">{potocznie}</td>
+                          <td className="px-5 py-3 text-slate-800 font-medium">{oficjalnie}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-5 py-3 bg-amber-50 border-t border-amber-100">
+                  <p className="text-xs text-amber-800 font-medium">
+                    <strong>Uwaga:</strong> Przy pierwszym użyciu w protokole zawsze podaj pełną formę. Przy kolejnych użyciach możesz stosować samą funkcję (np. "Prorektor ds. Studenckich i Kształcenia").
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 1B */}
+            <div className="mb-8">
+              <h3 className="text-base font-black text-slate-700 uppercase tracking-widest mb-3">1B — Władze SSUEW: aktualne funkcje</h3>
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="text-left px-5 py-3 font-bold text-slate-500 uppercase tracking-wider text-xs">Imię i nazwisko</th>
+                        <th className="text-left px-5 py-3 font-bold text-slate-500 uppercase tracking-wider text-xs">Pełna funkcja</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {[
+                        ['Emilia Ćwiklińska', 'Przewodnicząca Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu'],
+                        ['Magdalena Skoczylas', 'Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych'],
+                        ['Daria Szewczyk', 'Wiceprzewodnicząca ds. Projektów'],
+                        ['Jakub Panas', 'Wiceprzewodniczący ds. Public Relations'],
+                        ['Marcel Tyrakowski', 'Członek Zarządu ds. Human Resources'],
+                        ['Hubert Stachowski', 'Członek Zarządu ds. Finansów'],
+                        ['Karol Vogel', 'Członek Zarządu ds. Kontaktów Zewnętrznych'],
+                        ['Julia Pytel', 'Członek Zarządu ds. Promocji'],
+                        ['Karolina Smereczniak', 'Członek Zarządu ds. Dydaktyki i Jakości Kształcenia'],
+                        ['Mikołaj Radliński', 'Członek Zarządu ds. Administracji / Przewodniczący Komisji ds. Administracji'],
+                      ].map(([name, func], i) => (
+                        <tr key={i} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-5 py-3 font-semibold text-slate-800">{name}</td>
+                          <td className="px-5 py-3 text-slate-600">{func}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* 1C */}
+            <div>
+              <h3 className="text-base font-black text-slate-700 uppercase tracking-widest mb-3">1C — Organy i jednostki: co to właściwie jest</h3>
+              <div className="space-y-2">
+                {ORGANS.map((org) => (
+                  <Accordion key={org.id} id={org.id} title={org.title} content={org.content} />
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ===== ROZDZIAŁ 2 — PRZED SPOTKANIEM ===== */}
+          <section id="przed" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={CheckCircle} chapter="Rozdział 2" title="Przed spotkaniem" />
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <p className="text-slate-700 leading-relaxed">
+                Dobry protokół zaczyna się <strong>przed spotkaniem</strong>. Protokolant który przychodzi nieprzygotowany skazuje się na chaos notatek i błędy merytoryczne. Im lepiej się przygotujesz, tym łatwiej będzie Ci wyłapać co jest ważne — a pominąć to co ważne nie jest.
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-violet-500" />
+                Checklista przed spotkaniem
+              </h3>
+              <Checklist group="before" items={BEFORE_ITEMS} />
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl border border-slate-200 p-6">
+              <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                Czy można nagrywać?
+              </h3>
+              <div className="space-y-2 text-sm text-slate-700 leading-relaxed">
+                <p>Nagrywanie posiedzeń jest <strong>dopuszczalne</strong> jako pomoc techniczna przy sporządzaniu protokołu. Wymaga jednak poinformowania wszystkich uczestników na samym początku spotkania — przed rozpoczęciem merytorycznej części obrad.</p>
+                <p>Nagranie jest wyłącznie narzędziem roboczym protokolanta. Nie jest oficjalnym dokumentem, nie powinno być udostępniane osobom trzecim, publikowane ani archiwizowane. <strong>Po sporządzeniu i zatwierdzeniu protokołu nagranie należy usunąć.</strong></p>
+                <p>Na KPUE nagrywanie jest wręcz zalecane przez FUE jako standard. W przypadku wątpliwości prawnych skonsultuj się z Rzecznikiem Praw Studenta (Jakub Buchta, rps@samorzad.ue.wroc.pl).</p>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== ROZDZIAŁ 3 — PODCZAS SPOTKANIA ===== */}
+          <section id="podczas" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={FileText} chapter="Rozdział 3" title="Podczas spotkania" />
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <p className="text-slate-700 leading-relaxed">
+                Na sali obrad masz jedno zadanie: <strong>uchwycić to co ważne</strong>. Nie prowadzisz dyskusji, nie głosujesz (chyba że jesteś Radnym), nie komentujesz. Jesteś obserwatorem i rejestratorem. To wymaga skupienia — dlatego warto siedzieć w miejscu z dobrą widocznością i słyszalnością.
+              </p>
+            </div>
+
+            {/* Co zapisywać */}
+            <div className="grid md:grid-cols-2 gap-4 mb-6">
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  <h3 className="font-black text-green-800 text-sm uppercase tracking-wide">Zawsze zapisuj</h3>
+                </div>
+                <ul className="space-y-1.5 text-sm text-green-800">
+                  {[
+                    'Dokładną godzinę otwarcia i zamknięcia obrad',
+                    'Liczbę obecnych i stwierdzenie quorum (obowiązkowo dla RUSS)',
+                    'Każdą podjętą decyzję lub uchwałę — dosłownie, z numerem',
+                    'Wyniki głosowań: za / przeciw / wstrzymujących się — zawsze trzy liczby',
+                    'Zgłoszone wnioski formalne i ich los (przyjęty/odrzucony)',
+                    'Zobowiązania podjęte przez konkretne osoby — kto, co, do kiedy',
+                    'Sprzeciwy i zdania odrębne jeśli ktoś je formalnie zgłosi',
+                    'Godziny przerw i wznowień obrad',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <XCircle className="w-5 h-5 text-red-600" />
+                  <h3 className="font-black text-red-800 text-sm uppercase tracking-wide">Nie musisz zapisywać</h3>
+                </div>
+                <ul className="space-y-1.5 text-sm text-red-800">
+                  {[
+                    'Każdego zdania wypowiedzianego w dyskusji',
+                    'Prywatnych komentarzy i dygresji niezwiązanych z porządkiem',
+                    'Szczegółów technicznych bez znaczenia dla decyzji',
+                    'Powtórzeń i "myślenia na głos"',
+                    'Żartów, atmosfery sali, emocji uczestników',
+                    'Treści nieformalnych ogłoszeń (zaproszenia na integrację itp.)',
+                    'Informacji prywatnych uczestników niezwiązanych z tematem spotkania',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2">
+                      <span className="text-red-400 mt-0.5">•</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Tabela dobrze vs źle */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+              <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
+                <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest">Przykłady — dobrze vs. źle</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left px-4 py-3 font-bold text-slate-500 uppercase tracking-wider text-xs w-1/4">Sytuacja</th>
+                      <th className="text-left px-4 py-3 font-bold text-red-500 uppercase tracking-wider text-xs w-[37.5%]">❌ Źle</th>
+                      <th className="text-left px-4 py-3 font-bold text-green-600 uppercase tracking-wider text-xs w-[37.5%]">✅ Dobrze</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      [
+                        'Wymienienie osoby funkcyjnej',
+                        '"Rektor Okruszek powiedział coś o stypendiach"',
+                        '"Prorektor ds. Studenckich i Kształcenia dr hab. inż. Andrzej Okruszek, prof. UEW poinformował o planowanych zmianach w Regulaminie świadczeń dla studentów, wchodzących w życie od 1 października 2025 r."',
+                      ],
+                      [
+                        'Wynik głosowania',
+                        '"Głosowanie przeszło"',
+                        '"Uchwała nr X/2025 została przyjęta stosunkiem głosów: 10 za, 0 przeciw, 1 wstrzymujący się."',
+                      ],
+                      [
+                        'Zobowiązanie',
+                        '"Emilka powiedziała że trzeba to zrobić"',
+                        '"Przewodnicząca SSUEW Emilia Ćwiklińska zobowiązała się do przygotowania projektu uchwały do dnia 15.11.2025 r."',
+                      ],
+                      [
+                        'Omówienie punktu',
+                        '"Omówiono sprawy finansowe"',
+                        '"Członek Zarządu ds. Finansów Hubert Stachowski przedstawił stan realizacji budżetu SSUEW za III kwartał 2025 r. Saldo wynosi X zł. Wskazano na konieczność zwiększenia kontroli wydatków w projektach."',
+                      ],
+                      [
+                        'Notatka nieformalna',
+                        '"PRZEKAZANO GORĄCE ZAPROSZENIE NA INTEGRACJĘ!"',
+                        '"Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych Magdalena Skoczylas zaprosiła obecnych na spotkanie integracyjne w budynku B/J."',
+                      ],
+                      [
+                        'Informacja prywatna',
+                        '"Karlos → był w sushi HUB, pół godziny w Jotce"',
+                        '[w protokole projektowym: "Karol Vogel — omówił postęp kontaktów z partnerami zewnętrznymi"]',
+                      ],
+                    ].map(([sytuacja, zle, dobrze], i) => (
+                      <tr key={i} className="border-b border-slate-100">
+                        <td className="px-4 py-3 font-medium text-slate-700 bg-slate-50 align-top">{sytuacja}</td>
+                        <td className="px-4 py-3 text-red-700 align-top italic" style={{ backgroundColor: '#fef2f2' }}>{zle}</td>
+                        <td className="px-4 py-3 text-green-800 align-top" style={{ backgroundColor: '#f0fdf4' }}>{dobrze}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Zasada złotego środka */}
+            <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6">
+              <h3 className="font-black text-violet-800 text-sm uppercase tracking-widest mb-3">Zasada złotego środka</h3>
+              <p className="text-sm text-violet-900 leading-relaxed">
+                Protokół ma być <strong>pełny, ale nie stenograficzny</strong>. Dobry test: <em>"czy osoba która nie była na spotkaniu zrozumie z tego protokołu co postanowiono i dlaczego — bez konieczności pytania kogokolwiek?"</em> Jeśli tak — protokół jest dobry. Jeśli nie — czegoś brakuje. Zbyt wąski protokół (lista punktów bez treści) jest równie zły jak zbyt szeroki (stenogram każdej wypowiedzi). Oba są bezużyteczne.
+              </p>
+            </div>
+          </section>
+
+          {/* ===== ROZDZIAŁ 4 — PO SPOTKANIU ===== */}
+          <section id="po" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={Clock} chapter="Rozdział 4" title="Po spotkaniu" />
+
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <p className="text-slate-700 leading-relaxed">
+                Spotkanie skończyło się — ale praca protokolanta jeszcze nie. Masz określony czas na sporządzenie i przekazanie protokołu. Spóźniony protokół to protokół który stracił swoją wartość operacyjną — ustalenia "wychładzają się", szczegóły uciekają z pamięci uczestników, a decyzje trudno odtworzyć bez kontekstu.
+              </p>
+            </div>
+
+            {/* Terminy oddania */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
+              <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest mb-4">Terminy oddania protokołów</h3>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {[
+                  { type: 'SKS', deadline: '7 dni', color: 'blue' },
+                  { type: 'RUSS', deadline: '14 dni', color: 'orange' },
+                  { type: 'Absolutoryjny', deadline: '1 miesiąc', color: 'red' },
+                  { type: 'KPUE', deadline: '1 miesiąc (ruchomy — ustal z Przewodniczącą FUE)', color: 'red' },
+                  { type: 'Komisyjny', deadline: '3–5 dni', color: 'green' },
+                  { type: 'Projektowy', deadline: '3–5 dni', color: 'green' },
+                  { type: 'Roboczy', deadline: 'ustal z organizatorem', color: 'gray' },
+                ].map(({ type, deadline, color }) => (
+                  <div key={type} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <span className="font-bold text-slate-700 text-sm">{type}</span>
+                    <DeadlineBadge text={deadline} color={color} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Checklista po */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <h3 className="text-sm font-black text-slate-600 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <CheckSquare className="w-4 h-4 text-violet-500" />
+                Checklista po spotkaniu
+              </h3>
+              <Checklist group="after" items={AFTER_ITEMS} />
+            </div>
+          </section>
+
+          {/* ===== ROZDZIAŁ 5 — TYPY PROTOKOŁÓW ===== */}
+          <section id="typy" className="scroll-mt-20 mb-4">
+            <SectionTitle icon={FileText} chapter="Rozdział 5" title="Typy protokołów" />
+          </section>
+
+          {/* 5.1 SKS */}
+          <ProtocolCard id="typ-sks" title="5.1 SKS — Spotkanie Komisji Samorządu" deadline="7 dni" deadlineColor="blue">
+            <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'informacyjno-roboczy, nie uchwałodawczy'],
+                ['Częstotliwość', 'comiesięcznie'],
+                ['Prowadzi', 'Przewodnicząca SSUEW'],
+                ['Quorum', 'nie wymagane formalnie'],
+                ['Termin oddania', '7 dni od spotkania'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <h4 className="font-bold text-slate-700 text-sm mb-2 mt-4">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700">
+              {[
+                'Nagłówek: numer SKS, data, miejsce, godziny, prowadzący, protokolant',
+                'Spis treści z numerami stron',
+                'Lista obecnych (bez formalnego podziału obecny/nieobecny — to nie RUSS)',
+                'Treść kolejnych punktów porządku obrad',
+                'Ważne daty i zapowiedzi jeśli padły',
+                'Podsumowania projektowe jeśli były prezentowane — z metrykami: koordynator, liczba uczestników, oceny, wnioski, rekomendacje',
+                'Sprawy różne i wolne wnioski — każda osoba z pełnego imienia i nazwiska oraz funkcji',
+                'Godzina zamknięcia spotkania',
+                'Podpis protokolanta i data sporządzenia',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+            <div className="mt-4 bg-blue-50 rounded-xl border border-blue-100 p-4">
+              <p className="text-sm text-blue-800"><strong>Specyfika SKS:</strong> To najbardziej "żywy" protokół — mogą w nim pojawić się podsumowania projektowe z konkretnymi metrykami (koszt jednostkowy, liczba uczestników, średnia ocena). Styl może być nieco mniej formalny niż RUSS, ale nadal urzędowy — bez żargonu, skrótów i nieformalnych wtrąceń. Nie zapomnij że SKS jest otwarty — mogą pojawić się osoby spoza Zarządu, które też należy wpisać.</p>
+            </div>
+          </ProtocolCard>
+
+          {/* 5.2 RUSS */}
+          <ProtocolCard id="typ-russ" title="5.2 RUSS — Posiedzenie Rady Uczelnianej" deadline="14 dni" deadlineColor="orange">
+            <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'uchwałodawczy — najważniejszy organ SSUEW'],
+                ['Prowadzi', 'Przewodnicząca SSUEW lub wyznaczony Przewodniczący obrad'],
+                ['Quorum', 'OBOWIĄZKOWE — minimum 8 Radnych'],
+                ['Termin oddania', '14 dni od posiedzenia'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <h4 className="font-bold text-slate-700 text-sm mb-2 mt-4">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700 mb-4">
+              {[
+                'Nagłówek: numer posiedzenia RUSS, data, miejsce, godziny, protokolant',
+                'Spis treści z numerami stron',
+                'Lista obecności — pełna, z zaznaczeniem obecny/nieobecny dla każdego Radnego. Protokolant figuruje na liście ze statusem "—"',
+                'Stwierdzenie prawomocności obrad (stwierdzono / nie stwierdzono quorum)',
+                'Treść kolejnych punktów porządku obrad',
+                'Pełna treść każdej uchwały — dosłownie, z numerem uchwały w formacie [numer]/[rok akademicki]',
+                'Wyniki każdego głosowania: za / przeciw / wstrzymujących się — zawsze trzy liczby',
+                'Sprawy różne i wolne wnioski — każda osoba z pełnej funkcji i imienia oraz nazwiska',
+                'Godzina zamknięcia posiedzenia',
+                'Podpis protokolanta i Przewodniczącego obrad',
+                'Lista załączników (lista obecności, uchwały, inne dokumenty)',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+            <div className="bg-red-50 border border-red-300 rounded-xl p-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-black text-red-800 uppercase tracking-wide mb-1">Uwaga krytyczna</p>
+                <p className="text-sm text-red-700">Wyniki głosowań muszą być kompletne — zawsze <strong>trzy liczby</strong> (za / przeciw / wstrzymujących się). Nigdy samo "jednogłośnie" bez podania ile osób głosowało. <strong>Uchwała bez kompletnego wyniku głosowania może być podważona.</strong></p>
+              </div>
+            </div>
+          </ProtocolCard>
+
+          {/* 5.3 Absolutoryjny */}
+          <ProtocolCard id="typ-absolutoryjny" title="5.3 Absolutoryjny" deadline="1 miesiąc" deadlineColor="red">
+            <div className="grid md:grid-cols-2 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'szczególny typ posiedzenia RUSS — formalna ocena działalności całego Zarządu SSUEW'],
+                ['Prowadzi', 'Przewodnicząca SKW (nie Zarząd — byłby konflikt interesów)'],
+                ['Komisja Skrutacyjna', 'Komisja Rewizyjna — ogłasza wyniki głosowań'],
+                ['Tryb głosowania', 'tajny (przez formularz jednorazowego głosowania)'],
+                ['Termin oddania', '1 miesiąc'],
+                ['Uwaga', 'może trwać 2 dni — protokół dla każdego dnia osobno'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <h4 className="font-bold text-slate-700 text-sm mb-2 mt-4">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700 mb-4">
+              {[
+                'Strona tytułowa',
+                'Przedmowa (metodologia sporządzania, styl informacyjno-sprawozdawczy, definicja absolutorium)',
+                'Nagłówek: numer posiedzenia RUSS, dzień, data, miejsce, godziny, tryb, prowadzący, protokolant, komisja skrutacyjna, quorum, tryb głosowania',
+                'Spis treści z numerami stron',
+                'Lista obecności Radnych',
+                'Rozpoczęcie i kwestie proceduralne — zasady ogłoszone przez SKW',
+                'Dla każdej osoby sprawozdającej: Prezentacja sprawozdawcza + Pytania od Radnych (parami: pytanie + odpowiedź) + Głosowanie z wynikiem',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-800"><strong>Warunek uzyskania absolutorium:</strong> bezwzględna większość głosów "za" (ponad 50%) przy quorum. Każdy członek Zarządu głosowany jest osobno — wyniki zapisujemy osobno dla każdej osoby. Absolutorium jest najobszerniejszym protokołem w SSUEW. Zachowaj neutralność — nie oceniaj sprawozdających.</p>
+            </div>
+          </ProtocolCard>
+
+          {/* 5.4 Komisyjny */}
+          <ProtocolCard id="typ-komisyjny" title="5.4 Komisyjny" deadline="3–5 dni" deadlineColor="green">
+            <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'roboczy, wewnętrzny dla danej komisji SSUEW'],
+                ['Quorum', 'nie wymagane'],
+                ['Termin oddania', '3–5 dni'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <h4 className="font-bold text-slate-700 text-sm mb-2 mt-4">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700">
+              {[
+                'Nagłówek: nazwa komisji, numer spotkania, data, miejsce, godziny, prowadzący, protokolant',
+                'Lista uczestników z funkcjami',
+                'Cel spotkania',
+                'Omawiane tematy z treścią — nie skróty, ale pełne zdania z kontekstem',
+                'Podjęte decyzje',
+                'Zadania z przypisaniem do konkretnych osób i terminami wykonania',
+                'Godzina zakończenia',
+                'Podpis protokolanta',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+          </ProtocolCard>
+
+          {/* 5.5 Projektowy */}
+          <ProtocolCard id="typ-projektowy" title="5.5 Projektowy" deadline="3–5 dni" deadlineColor="green">
+            <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'roboczy — dokumentuje postęp konkretnego projektu. Najbardziej elastyczny pod względem stylu.'],
+                ['Quorum', 'nie wymagane'],
+                ['Termin oddania', '3–5 dni'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 mb-4 mt-4">
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <p className="text-xs font-black text-green-700 uppercase tracking-wide mb-2">Dopuszczalne (styl roboczy)</p>
+                <ul className="space-y-1 text-sm text-green-800">
+                  {[
+                    'Styl punktowy zamiast pełnych zdań',
+                    'Podział na "co zrobiono" i "plany na przyszły tydzień"',
+                    'Metryki projektu: liczby, daty, koszty, oceny uczestników',
+                    'Rekomendacje i wnioski po projekcie (plusy/minusy)',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-1.5"><span className="text-green-500 mt-0.5">✓</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <p className="text-xs font-black text-red-700 uppercase tracking-wide mb-2">Niedopuszczalne nawet w roboczym</p>
+                <ul className="space-y-1 text-sm text-red-800">
+                  {[
+                    'Pseudonimy i zdrobnienia ("Junior", "Karlos", "Magda") — zawsze pełne imię i nazwisko',
+                    'Informacje prywatne niezwiązane z projektem',
+                    'Brak podmiotu — zawsze wiadomo kto co zrobił',
+                    'Brak godziny zakończenia i podpisu protokolanta',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-1.5"><span className="text-red-400 mt-0.5">✗</span>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <h4 className="font-bold text-slate-700 text-sm mb-2">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700">
+              {[
+                'Nagłówek: nazwa projektu, numer spotkania, data, miejsce, godziny, koordynator, protokolant',
+                'Lista uczestników z imionami i nazwiskami',
+                'Podsumowanie działań od poprzedniego spotkania — per osoba',
+                'Status projektu',
+                'Plany i zadania do kolejnego spotkania — per osoba z terminami',
+                'Ustalenia ogólne i ryzyka jeśli omawiane',
+                'Godzina zakończenia',
+                'Podpis protokolanta i data sporządzenia',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+          </ProtocolCard>
+
+          {/* 5.6 Roboczy */}
+          <ProtocolCard id="typ-roboczy" title="5.6 Roboczy" deadline="ustal z organizatorem" deadlineColor="gray">
+            <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'najbardziej elastyczny — dostosowany do celu spotkania'],
+                ['Quorum', 'nie wymagane'],
+                ['Termin oddania', 'ustal z organizatorem przed spotkaniem'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-slate-600 mb-3">Nie ma jednego obowiązującego wzoru. Minimum które musi zawierać każdy protokół roboczy:</p>
+            <ul className="space-y-1 text-sm text-slate-700">
+              {[
+                'Data i miejsce spotkania',
+                'Lista uczestników z imionami i nazwiskami',
+                'Cel spotkania',
+                'Ustalenia i decyzje',
+                'Zadania z przypisaniem do osób',
+                'Godzina zakończenia',
+                'Podpis protokolanta',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+          </ProtocolCard>
+
+          {/* 5.7 KPUE */}
+          <ProtocolCard id="typ-kpue" title="5.7 KPUE — Konferencja Polskich Uczelni Ekonomicznych" deadline="1 miesiąc" deadlineColor="red">
+            <div className="grid md:grid-cols-2 gap-3 text-xs mb-4">
+              {[
+                ['Charakter', 'zewnętrzny — reprezentacja SSUEW na forum ogólnopolskim FUE'],
+                ['Termin oddania', 'około miesiąca od KPUE. Termin może być ruchomy ze względu na datę kolejnego posiedzenia FUE — ustal dokładny termin z Przewodniczącą FUE.'],
+              ].map(([k, v]) => (
+                <div key={k} className="bg-slate-50 rounded-lg p-3">
+                  <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
+                  <span className="text-slate-700 font-medium">{v}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-4">
+              <p className="text-xs font-black text-violet-700 uppercase tracking-wide mb-2">Formatowanie wymagane przez FUE</p>
+              <ul className="grid grid-cols-2 gap-1 text-sm text-violet-800">
+                {[
+                  'Czcionka: Roboto, rozmiar 12',
+                  'Wyrównanie: justowanie',
+                  'Odstępy między wierszami: 1,5',
+                  'Imiona, nazwiska, funkcje i organizacje: pogrubione',
+                  'Nazwy punktów porządku obrad: pogrubione',
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-1.5"><span className="text-violet-400 mt-0.5">•</span>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <h4 className="font-bold text-slate-700 text-sm mb-2">Co musi zawierać:</h4>
+            <ul className="space-y-1 text-sm text-slate-700 mb-4">
+              {[
+                'Nagłówek: numer KPUE, organizator (uczelnia gospodarz), data, miejsce, skład delegacji SSUEW',
+                'Lista wszystkich delegacji z pełnymi nazwami uczelni i funkcjami reprezentantów',
+                'Porządek obrad konferencji',
+                'Treść każdego omawianego tematu — syntetycznie, sens wypowiedzi bez stenografii',
+                'Stanowiska poszczególnych uczelni jeśli były rozbieżne',
+                'Ustalenia i decyzje konferencji',
+                'Głosowania w formacie tabeli: Liczba głosujących | Głosy ważne | Za | Wstrzymane | Przeciw',
+                'Komentarze redakcyjne (przerwy itp.): wyśrodkowane + kursywa, z godzinami',
+                'Zobowiązania SSUEW wynikające z konferencji',
+                'Termin i miejsce kolejnej KPUE jeśli ustalono',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
+              ))}
+            </ul>
+
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <p className="text-xs font-black text-slate-600 uppercase tracking-wide mb-2">Specyfika KPUE</p>
+              <ul className="space-y-2 text-sm text-slate-700">
+                <li>• Używaj pełnych oficjalnych nazw uczelni — nie skrótów. Przy pierwszym użyciu: pełna nazwa z rozwinięciem skrótu w nawiasie. Np. <em>"Samorząd Studentów Szkoły Głównej Handlowej w Warszawie (SGH)"</em>. Przy kolejnych użyciach możesz stosować skrót.</li>
+                <li>• Przed wypowiedzią każdej osoby: imię i nazwisko + uczelnia. Dla osób funkcyjnych (Przewodnicząca FUE, Prezydium, zaproszeni goście): imię, nazwisko i pełna funkcja.</li>
+                <li>• Nagrywanie na KPUE: zalecane przez FUE jako standard — ułatwia sporządzenie protokołu.</li>
+              </ul>
+            </div>
+          </ProtocolCard>
+
+          {/* ===== ROZDZIAŁ 6 — CZĘSTE BŁĘDY ===== */}
+          <section id="bledy" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={AlertTriangle} chapter="Rozdział 6" title="Częste błędy" />
+            <div className="space-y-4">
+              {ERRORS.map((err) => (
+                <div key={err.n} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-start gap-4">
+                  <div className="w-9 h-9 rounded-xl bg-red-100 text-red-600 flex items-center justify-center font-black text-sm shrink-0">
+                    {err.n}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start gap-2 mb-1.5">
+                      <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                      <h3 className="font-black text-slate-800 text-sm">{err.title}</h3>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed mb-2">{err.desc}</p>
+                    <div className="flex items-start gap-2 bg-green-50 rounded-xl p-3 border border-green-100">
+                      <CheckCircle className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+                      <p className="text-xs text-green-800 font-medium leading-relaxed"><strong>Jak to naprawić:</strong> {err.fix}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+      {/* PRZYCISK WRÓĆ DO GÓRY */}
+      {showScrollTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg shadow-violet-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          title="Wróć do góry"
+        >
+          <ArrowUp className="w-5 h-5" />
+        </button>
+      )}
+    </div>
+  );
+}

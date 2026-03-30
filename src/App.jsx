@@ -21,7 +21,8 @@ import VerificationPage from './pages/VerificationPage';
 import KsiegaDokumentowPage from './pages/KsiegaDokumentowPage';
 import AccessRequestPage from './pages/AccessRequestPage';
 import AccessRequestsPanel from './pages/AccessRequestsPanel';
-import AIBot from './AIBot'; 
+import KompendiumPage from './pages/KompendiumPage';
+import AIBot from './AIBot';
 
 function BackButton() {
   const location = useLocation();
@@ -140,6 +141,7 @@ function AppContent() {
         <Route path="/sprzet" element={<ProtectedRoute><EquipmentPage /></ProtectedRoute>} />
         <Route path="/wydawanie" element={<LogitechRoute><AdminEquipmentPanel /></LogitechRoute>} />
         <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
+        <Route path="/kompendium" element={<ProtectedRoute><KompendiumPage /></ProtectedRoute>} />
 
         {/* CATCH ALL */}
         <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
