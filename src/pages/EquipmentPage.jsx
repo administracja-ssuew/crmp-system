@@ -20,7 +20,7 @@ const DIN_13169_ITEMS = [
 
 export default function EquipmentPage() {
   const { user, userRole } = useAuth();
-  const isAdmin = userRole === 'logitech';
+  const isAdmin = userRole === 'logitech' || userRole === 'admin';
 
   const [equipmentData, setEquipmentData] = useState([]);
   const [allReservations, setAllReservations] = useState([]); 
