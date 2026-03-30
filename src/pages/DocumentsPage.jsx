@@ -151,8 +151,33 @@ const Accordion = ({ title, badge, icon, children, isOpen, onClick }) => (
   </div>
 );
 
+function renderMarkdown(text) {
+  if (!text) return null;
+  return text.split('\n').map((line, i) => {
+    const parts = [];
+    let remaining = line;
+    let key = 0;
+    while (remaining.length > 0) {
+      const boldMatch = remaining.match(/^(.*?)\*\*(.+?)\*\*(.*)/s);
+      if (boldMatch) {
+        if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
+        parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
+        remaining = boldMatch[3];
+      } else {
+        parts.push(<span key={key++}>{remaining}</span>);
+        break;
+      }
+    }
+    return <span key={i} className="block">{parts}</span>;
+  });
+}
+
 export default function DocumentsPage() {
-  const [activeView, setActiveView] = useState('LEX'); 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const [activeView, setActiveView] = useState('LEX');
 
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -1332,18 +1357,18 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                         <div className="space-y-3">
                           <div className="p-4 rounded-xl border-l-4 border-l-blue-500 bg-blue-50">
                             <span className="block text-[10px] font-black uppercase tracking-widest text-blue-400 mb-1">🎯 O czym jest dokument</span>
-                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.o_czym}</p>
+                            <p className="text-slate-700 text-sm font-medium leading-relaxed">{renderMarkdown(summary.o_czym)}</p>
                           </div>
                           {summary.kogo && (
                             <div className="p-4 rounded-xl border-l-4 border-l-indigo-500 bg-indigo-50">
                               <span className="block text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1">👥 Kogo dotyczy</span>
-                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.kogo}</p>
+                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{renderMarkdown(summary.kogo)}</p>
                             </div>
                           )}
                           {summary.co_wiedziec && (
                             <div className="p-4 rounded-xl border-l-4 border-l-amber-500 bg-amber-50">
                               <span className="block text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">⚡ Co musisz wiedzieć</span>
-                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{summary.co_wiedziec}</p>
+                              <p className="text-slate-700 text-sm font-medium leading-relaxed">{renderMarkdown(summary.co_wiedziec)}</p>
                             </div>
                           )}
                           <div className="flex justify-end">
