@@ -26,6 +26,8 @@ export default function EquipmentPage() {
   const [allReservations, setAllReservations] = useState([]); 
   const [allWydania, setAllWydania] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSubmittingAid, setIsSubmittingAid] = useState(false);
   const [error, setError] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,8 +49,15 @@ export default function EquipmentPage() {
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-  const fetchData = () => {
-    setIsLoading(true);
+  // Pomocnik: sprawdza czy id pasuje dokładnie (nie substring) w liście kodów oddzielonych przecinkami/średnikami
+  const codeMatches = (codeStr, id) => {
+    if (!codeStr || !id) return false;
+    return String(codeStr).split(/[,;]\s*/).some(c => c.trim() === id.trim());
+  };
+
+  const fetchData = (silent = false) => {
+    if (silent) setIsRefreshing(true);
+    else setIsLoading(true);
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
@@ -61,10 +70,22 @@ export default function EquipmentPage() {
           if (item.TYP === 'ADM') icon = '🚧';
           if (item.RODZAJ === 'Apteczka') icon = '🚑';
 
+          // Stabilne ID: brak QR-kodu logujemy do konsoli zamiast generować losowy
+          const stableId = item.KOD_QR || (() => {
+            console.warn('[CRW] Brak KOD_QR dla:', item.NAZWA_SPRZĘTU);
+            return `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`;
+          })();
+
+          // Czyste formatowanie kategorii — bez wiszącego " / " gdy brakuje pola
+          const categoryParts = [item.RODZAJ, item.TYP].filter(Boolean);
+          const category = item.RODZAJ === 'Apteczka'
+            ? 'Apteczki'
+            : categoryParts.join(' / ') || 'Inne';
+
           return {
-            id: item.KOD_QR || `SSUEW-BRAK-${Math.floor(Math.random()*1000)}`,
+            id: stableId,
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
-            category: item.RODZAJ === 'Apteczka' ? 'Apteczki' : `${item.RODZAJ || ''} / ${item.TYP || ''}`.trim(),
+            category,
             isFirstAid: item.RODZAJ === 'Apteczka',
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
@@ -78,13 +99,15 @@ export default function EquipmentPage() {
           };
         });
         setEquipmentData(formattedData);
-        setAllReservations(data.rezerwacje || []); 
-        setAllWydania(data.wydania || []); 
+        setAllReservations(data.rezerwacje || []);
+        setAllWydania(data.wydania || []);
         setIsLoading(false);
+        setIsRefreshing(false);
       })
-      .catch(err => {
-        setError("Nie udało się pobrać bazy sprzętu z CRW.");
+      .catch(() => {
+        if (!silent) setError("Nie udało się pobrać bazy sprzętu z CRW.");
         setIsLoading(false);
+        setIsRefreshing(false);
       });
   };
 
@@ -108,37 +131,50 @@ export default function EquipmentPage() {
     const startReq = new Date(reservationData.dateFrom).setHours(0,0,0,0);
     const endReq = new Date(reservationData.dateTo).setHours(0,0,0,0);
     for (let item of cart) {
-      const itemReservations = allReservations.filter(r => r.Sprzet_Kody && r.Sprzet_Kody.includes(item.id) && r.Status === 'Zatwierdzone');
+      const itemReservations = allReservations.filter(r =>
+        codeMatches(r.Sprzet_Kody, item.id) && r.Status === 'Zatwierdzone'
+      );
       for (let res of itemReservations) {
         const resStart = new Date(res.Data_Od).setHours(0,0,0,0);
         const resEnd = new Date(res.Data_Do).setHours(0,0,0,0);
         if (startReq <= resEnd && resStart <= endReq) { return item.name; }
       }
     }
-    return null; 
+    return null;
   };
 
   const handleReservationSubmit = async (e) => {
     e.preventDefault();
-    if(!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactName || !reservationData.contactEmail) {
+    if (!reservationData.dateFrom || !reservationData.dateTo || !reservationData.purpose || !reservationData.contactName || !reservationData.contactEmail) {
       alert("Proszę wypełnić wszystkie wymagane pola formularza rezerwacji."); return;
     }
+    const today = new Date(); today.setHours(0,0,0,0);
+    const from = new Date(reservationData.dateFrom); from.setHours(0,0,0,0);
+    const to = new Date(reservationData.dateTo); to.setHours(0,0,0,0);
+    if (from < today) { alert('Data "od" nie może być w przeszłości.'); return; }
+    if (to < from) { alert('Data "do" nie może być wcześniejsza niż data "od".'); return; }
+
     const collidingItemName = checkForCollisions();
     if (collidingItemName) {
       alert(`⛔ BŁĄD KOLIZJI!\nSprzęt: "${collidingItemName}" jest już zarezerwowany w tym terminie.`); return;
     }
     setIsSubmitting(true);
-    let itemsCodes = cart.map(item => item.id).join(', ');
+    const itemsCodes = cart.map(item => item.id).join(', ');
     const formattedContact = `${reservationData.contactName} | Tel: ${reservationData.contactPhone} | Email: ${reservationData.contactEmail}`;
     const payload = { action: "nowaRezerwacja", sprzetKody: itemsCodes, dataOd: reservationData.dateFrom, dataDo: reservationData.dateTo, cel: reservationData.purpose, kontakt: formattedContact };
     try {
       const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();
-      if(result.success) {
+      if (result.success) {
         alert("Wniosek został wysłany do Zarządu! Numer wniosku: " + result.id);
-        setCart([]); setIsCheckoutOpen(false); setReservationData({dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: ''}); fetchData(); 
-      } else { alert("Błąd po stronie serwera."); }
-    } catch(err) { alert("Błąd połączenia."); } finally { setIsSubmitting(false); }
+        setCart([]);
+        setIsCheckoutOpen(false);
+        setReservationData({ dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: '' });
+        fetchData(true); // cichy refresh — bez pełnego spinnera
+      } else {
+        alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
+      }
+    } catch { alert("Błąd połączenia."); } finally { setIsSubmitting(false); }
   };
 
   const handleFirstAidToggle = (item) => {
@@ -148,25 +184,30 @@ export default function EquipmentPage() {
 
   const submitFirstAidReport = async () => {
     if (usedItems.length === 0) return alert("Zaznacz, jakich materiałów użyłeś/aś.");
-    if (!firstAidDesc) return alert("Podaj krótki powód (np. skaleczenie w palec).");
-    setIsSubmitting(true);
-    
+    if (!firstAidDesc.trim()) return alert("Podaj krótki opis zdarzenia.");
+    setIsSubmittingAid(true);
+
     const payload = {
       action: "zglosBrakiApteczki",
       apteczkaId: selectedItem.id,
       apteczkaName: selectedItem.name,
       zuzyteMaterialy: usedItems.join(', '),
-      powod: firstAidDesc,
+      powod: firstAidDesc.trim(),
       osoba: user?.email || "Anonimowy zgłaszający"
     };
 
     try {
-      await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
-      alert("Zgłoszono braki w apteczce. Dziękujemy!");
-      setIsFirstAidModalOpen(false); setUsedItems([]); setFirstAidDesc(''); setSelectedItem(null);
+      const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      const result = await response.json();
+      if (result.success) {
+        alert("Zgłoszono braki w apteczce. Dziękujemy!");
+        setIsFirstAidModalOpen(false); setUsedItems([]); setFirstAidDesc(''); setSelectedItem(null);
+      } else {
+        alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
+      }
     } catch(err) {
       alert("Błąd połączenia.");
-    } finally { setIsSubmitting(false); }
+    } finally { setIsSubmittingAid(false); }
   };
 
   const getDynamicStatus = (item) => {
@@ -174,12 +215,12 @@ export default function EquipmentPage() {
     const isPhysicallyOut = allWydania.some(w => {
       const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
       const codes = String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '');
-      return wStatus === 'WYDANE' && codes.includes(item.id);
+      return wStatus === 'WYDANE' && codeMatches(codes, item.id);
     });
     if (isPhysicallyOut) return 'rented';
     const today = new Date().setHours(0,0,0,0);
     const isRentedToday = allReservations.some(res => {
-      if (res.Sprzet_Kody && res.Sprzet_Kody.includes(item.id) && res.Status === 'Zatwierdzone') {
+      if (codeMatches(res.Sprzet_Kody, item.id) && res.Status === 'Zatwierdzone') {
         const start = new Date(res.Data_Od).setHours(0,0,0,0);
         const end = new Date(res.Data_Do).setHours(0,0,0,0);
         return today >= start && today <= end;
@@ -201,7 +242,7 @@ export default function EquipmentPage() {
   const isDateReserved = (itemId, dateObj) => {
     const checkDate = dateObj.setHours(0,0,0,0);
     return allReservations.some(res => {
-      if (res.Sprzet_Kody && res.Sprzet_Kody.includes(itemId) && res.Status === 'Zatwierdzone') {
+      if (codeMatches(res.Sprzet_Kody, itemId) && res.Status === 'Zatwierdzone') {
         const start = new Date(res.Data_Od).setHours(0,0,0,0);
         const end = new Date(res.Data_Do).setHours(0,0,0,0);
         return checkDate >= start && checkDate <= end;
@@ -264,9 +305,15 @@ export default function EquipmentPage() {
                 </div>
                 <div className="mt-auto pt-6 flex gap-2">
                   <button onClick={() => {setSelectedItem(item); setActiveTab('info');}} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors">Paszport</button>
-                  <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
-                    {isInCart(item.id) ? '✓ Wybrano' : '+ Rezerwuj'}
-                  </button>
+                  {item.isFirstAid ? (
+                    <button onClick={() => { setSelectedItem(item); setIsFirstAidModalOpen(true); }} className="flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all bg-rose-600 hover:bg-rose-700 text-white">
+                      🚑 Zgłoś braki
+                    </button>
+                  ) : (
+                    <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
+                      {isInCart(item.id) ? '✓ Wybrano' : '+ Rezerwuj'}
+                    </button>
+                  )}
                 </div>
               </div>
             )
@@ -352,13 +399,13 @@ export default function EquipmentPage() {
                 </div>
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Krótki opis zdarzenia</label>
-                <input type="text" placeholder="np. Skaleczenie palca papierem..." value={firstAidDesc} onChange={e => setFirstAidDesc(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none" />
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Opis zdarzenia</label>
+                <textarea placeholder="np. Skaleczenie palca w trakcie montażu oświetlenia scenicznego..." value={firstAidDesc} onChange={e => setFirstAidDesc(e.target.value)} rows={3} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold focus:border-rose-500 focus:ring-2 focus:ring-rose-200 outline-none resize-none" />
               </div>
             </div>
 
-            <button onClick={submitFirstAidReport} disabled={isSubmitting} className="block text-center w-full bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-rose-200 transition-all">
-              {isSubmitting ? 'Wysyłanie zgłoszenia...' : 'Zgłoś Braki Administracji'}
+            <button onClick={submitFirstAidReport} disabled={isSubmittingAid} className="block text-center w-full bg-rose-600 hover:bg-rose-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-rose-200 transition-all">
+              {isSubmittingAid ? 'Wysyłanie zgłoszenia...' : 'Zgłoś Braki Administracji'}
             </button>
           </div>
         </div>
@@ -409,9 +456,9 @@ export default function EquipmentPage() {
                       </a>
                     )}
                     {selectedItem.isFirstAid && (
-                      <a href="#" className="block text-center bg-rose-50 border border-rose-100 text-rose-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-colors mt-4">
-                        🔗 Zarządzenie ws. Apteczek (PDF)
-                      </a>
+                      <button onClick={() => setIsFirstAidModalOpen(true)} className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all mt-4">
+                        🚑 Zgłoś zużycie materiałów
+                      </button>
                     )}
                   </div>
                 )}
