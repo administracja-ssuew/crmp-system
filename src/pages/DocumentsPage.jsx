@@ -240,24 +240,30 @@ export default function DocumentsPage() {
   if (selectedDoc && activeView === 'LEX') {
     let parsedAttachments = [];
     try {
-      const attString = String(selectedDoc.attachments || '').trim();
-      if (attString && attString.toLowerCase() !== 'brak' && attString !== 'undefined') {
-        attString.split(';').forEach(item => {
+      // Próbuj różnych nazw pola jakie mogą przyjść z Apps Script
+      const rawAtt = selectedDoc.attachments ?? selectedDoc.zalaczniki ?? selectedDoc['Załączniki'] ?? selectedDoc.zal ?? '';
+      const attString = String(rawAtt).trim();
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('[LEX] raw attachments field:', JSON.stringify(rawAtt), '| doc keys:', Object.keys(selectedDoc));
+      }
+      if (attString && attString.toLowerCase() !== 'brak' && attString !== 'undefined' && attString !== 'null') {
+        // Separator: średnik LUB nowa linia
+        const items = attString.includes(';') ? attString.split(';') : attString.split('\n');
+        items.forEach(item => {
           const trimmed = item.trim();
           if (!trimmed) return;
-          const parts = trimmed.split('|');
-          if (parts.length >= 2) {
-            parsedAttachments.push({
-              name: String(parts[0]).trim(),
-              link: String(parts.slice(1).join('|')).trim()
-            });
+          const pipeIdx = trimmed.indexOf('|');
+          if (pipeIdx > 0) {
+            const name = trimmed.slice(0, pipeIdx).trim();
+            const link = trimmed.slice(pipeIdx + 1).trim();
+            if (name && link) parsedAttachments.push({ name, link });
           } else if (trimmed.startsWith('http')) {
-            const fileName = trimmed.split('/').pop().split('?')[0] || 'Załącznik';
+            const fileName = decodeURIComponent(trimmed.split('/').pop().split('?')[0]) || 'Załącznik';
             parsedAttachments.push({ name: fileName, link: trimmed });
           }
         });
       }
-    } catch (e) { console.error("Ignorowany błąd załączników", e); }
+    } catch (e) { console.error('[LEX] Błąd parsowania załączników:', e); }
 
     let parsedRepeals = null;
     try {
@@ -612,7 +618,7 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
             📚 Baza Aktów Prawnych
           </button>
           <button onClick={() => setActiveView('STUDIO')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all flex items-center gap-2 ${activeView === 'STUDIO' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
-            <Icons.Brain /> Studio Legislacyjne (AI)
+            <Icons.Brain /> Kreator Podań AI
           </button>
         </div>
 
@@ -659,32 +665,73 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                     const isActive = doc.status === 'Obowiązujący';
                     const nowosc = isNew(doc.date);
                     
-                    let hasAttachments = false;
+                    // Wstępny parse załączników dla podglądu w karcie
+                    let previewAttachments = [];
                     try {
-                      const atts = String(doc.attachments || '').trim().toLowerCase();
-                      if (atts && atts !== 'brak' && atts !== 'undefined') hasAttachments = true;
-                    } catch (e) {}
+                      const rawAtt = doc.attachments ?? doc.zalaczniki ?? doc['Załączniki'] ?? '';
+                      const attStr = String(rawAtt).trim();
+                      if (attStr && attStr.toLowerCase() !== 'brak' && attStr !== 'undefined') {
+                        const items = attStr.includes(';') ? attStr.split(';') : attStr.split('\n');
+                        items.forEach(item => {
+                          const t = item.trim();
+                          const pipeIdx = t.indexOf('|');
+                          if (pipeIdx > 0) previewAttachments.push(t.slice(0, pipeIdx).trim());
+                          else if (t.startsWith('http')) previewAttachments.push('Załącznik');
+                        });
+                      }
+                    } catch {}
 
                     return (
-                      <div key={doc.id || Math.random()} onClick={() => openModal(doc)} className={`group relative bg-white p-5 rounded-2xl border border-l-4 transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-5 md:items-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/80 ${style.accent} ${isActive ? 'border-slate-200' : 'border-slate-200 opacity-60 bg-slate-50/80 hover:opacity-100'}`}>
-                        <div className={`hidden md:flex shrink-0 w-12 h-12 rounded-xl items-center justify-center text-xl transition-colors ${isActive ? 'bg-slate-50 border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100' : 'bg-slate-100'}`}>
-                          {style.icon}
-                        </div>
-                        <div className="flex-grow min-w-0">
-                          <div className="flex items-center gap-2 mb-2 flex-wrap">
-                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>{doc.category || '-'}</span>
-                            <span className="text-[10px] text-slate-400 font-medium">{doc.date || '-'}</span>
-                            {nowosc && <span className="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span>}
-                            {hasAttachments && <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-orange-600 text-[9px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Zał.</span>}
+                      <div
+                        key={doc.id || Math.random()}
+                        onClick={() => openModal(doc)}
+                        className={`group relative bg-white rounded-2xl border-l-4 border border-slate-100 transition-all duration-200 cursor-pointer hover:shadow-md hover:shadow-slate-200/70 hover:-translate-y-px ${style.accent} ${!isActive ? 'opacity-55 hover:opacity-80' : ''}`}
+                      >
+                        <div className="p-5 flex gap-4 items-start">
+                          {/* Ikona kategorii */}
+                          <div className={`hidden md:flex shrink-0 w-11 h-11 rounded-xl items-center justify-center text-lg mt-0.5 ${isActive ? 'bg-slate-50 border border-slate-100 group-hover:bg-blue-50/60' : 'bg-slate-100'} transition-colors`}>
+                            {style.icon}
                           </div>
-                          <h3 className={`text-base font-bold transition-colors leading-snug truncate ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
-                          {!isActive && <p className="text-xs text-red-400 font-medium mt-1">Uchylony</p>}
-                        </div>
-                        <div className="shrink-0 flex md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 border-slate-100">
-                          <span className="text-xs font-mono font-semibold text-slate-400">{doc.signature || '-'}</span>
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${isActive ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
-                            {doc.status || '-'}
+
+                          {/* Treść */}
+                          <div className="flex-grow min-w-0">
+                            {/* Meta row */}
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>{doc.category || '-'}</span>
+                              <span className="text-[10px] text-slate-400 font-medium tabular-nums">{doc.date || '-'}</span>
+                              {nowosc && <span className="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-black uppercase tracking-wider">Nowość</span>}
+                            </div>
+
+                            {/* Tytuł */}
+                            <h3 className={`text-[15px] font-bold leading-snug mb-1 transition-colors ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>
+                              {doc.title || 'Brak tytułu'}
+                            </h3>
+
+                            {/* Załączniki preview */}
+                            {previewAttachments.length > 0 && (
+                              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                                <Icons.Paperclip />
+                                {previewAttachments.slice(0, 2).map((name, i) => (
+                                  <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-orange-700 text-[10px] font-semibold max-w-[180px] truncate">
+                                    {name}
+                                  </span>
+                                ))}
+                                {previewAttachments.length > 2 && (
+                                  <span className="text-[10px] text-slate-400 font-medium">+{previewAttachments.length - 2} więcej</span>
+                                )}
+                              </div>
+                            )}
+
+                            {!isActive && <p className="text-[11px] text-red-400 font-semibold mt-1.5">Uchylony</p>}
+                          </div>
+
+                          {/* Prawa kolumna: sygnatura + status */}
+                          <div className="shrink-0 flex flex-col items-end gap-2 ml-2 self-center">
+                            <span className="text-[11px] font-mono font-semibold text-slate-400 whitespace-nowrap">{doc.signature || '-'}</span>
+                            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap ${isActive ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                              {doc.status || '-'}
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -887,70 +934,98 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span> {copiedAlert}
                 </div>
              )}
-             <div className="p-8 pb-6 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
-               <div className="pr-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeModalData.signature}</p>
-                    <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{safeModalData.category}</p>
+
+             {/* NAGŁÓWEK */}
+             <div className="p-7 pb-5 border-b border-slate-100 bg-white flex justify-between items-start shrink-0">
+               <div className="pr-6 flex-grow min-w-0">
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{safeModalData.signature}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                    {(() => { const st = CATEGORY_STYLES[safeModalData.category] || CATEGORY_STYLES.Default; return <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${st.badge}`}>{safeModalData.category}</span>; })()}
+                    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold border ${safeModalData.status === 'Obowiązujący' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${safeModalData.status === 'Obowiązujący' ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                      {safeModalData.status}
+                    </span>
                   </div>
-                  <h2 className={`text-2xl font-black leading-tight ${safeModalData.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>{safeModalData.title}</h2>
+                  <h2 className={`text-xl font-black leading-tight ${safeModalData.status === 'Obowiązujący' ? 'text-slate-900' : 'text-slate-500 line-through'}`}>{safeModalData.title}</h2>
                </div>
-               <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"><Icons.Close /></button>
+               <button onClick={() => setSelectedDoc(null)} className="shrink-0 w-9 h-9 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors ml-2"><Icons.Close /></button>
              </div>
-             <div className="p-8 overflow-y-auto bg-slate-50/50 flex-grow">
-                <div className="flex flex-wrap gap-3 mb-6">
-                  <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}><Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Uruchom Audyt Lex AI'}</button>
-                  <button onClick={() => handleCopyCitation(safeModalData.signature, safeModalData.title, safeModalData.issuer, safeModalData.date)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.Copy /> Skopiuj przypis</button>
-                  <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-5 py-2.5 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.QR /> Kod QR do druku</button>
-                </div>
-                {isAiActive && (
-                  <div className="mb-8 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4"><span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span><span className="text-emerald-400 font-bold">{aiProgress}%</span></div>
-                      <div className="text-slate-500 text-xs tracking-widest mb-4">[{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]</div>
-                      {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
-                      {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
-                      {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
-                      {aiStage === 4 && (
-                        <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-2 gap-3 animate-slideUp">
+
+             <div className="overflow-y-auto bg-slate-50/50 flex-grow">
+
+               {/* ZAŁĄCZNIKI — na samej górze, zawsze widoczne gdy istnieją */}
+               {safeModalData.attachments && safeModalData.attachments.length > 0 && (
+                 <div className="px-7 pt-6 pb-0">
+                   <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                     <div className="flex items-center gap-2 mb-3">
+                       <Icons.Paperclip />
+                       <span className="text-xs font-black uppercase tracking-widest text-amber-700">Załączniki</span>
+                       <span className="ml-auto px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 text-[10px] font-black">{safeModalData.attachments.length}</span>
+                     </div>
+                     <div className="flex flex-col gap-2">
+                       {safeModalData.attachments.map((att, idx) => (
+                         <a
+                           key={idx}
+                           href={att.link}
+                           target="_blank"
+                           rel="noreferrer"
+                           onClick={e => e.stopPropagation()}
+                           className="flex items-center gap-3 px-4 py-3 bg-white border border-amber-100 rounded-xl hover:border-amber-300 hover:shadow-sm transition-all group"
+                         >
+                           <div className="shrink-0 w-8 h-8 bg-amber-50 rounded-lg border border-amber-200 flex items-center justify-center text-amber-500 group-hover:bg-amber-100 transition-colors">
+                             <Icons.Document />
+                           </div>
+                           <span className="flex-grow font-semibold text-sm text-slate-700 group-hover:text-amber-800 transition-colors truncate">{att.name}</span>
+                           <span className="shrink-0 text-amber-400 group-hover:text-amber-600 transition-colors"><Icons.External /></span>
+                         </a>
+                       ))}
+                     </div>
+                   </div>
+                 </div>
+               )}
+
+               <div className="p-7">
+                 {/* AKCJE */}
+                 <div className="flex flex-wrap gap-2.5 mb-6">
+                   <button onClick={runAiAnalysis} disabled={isAiActive} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiActive ? 'bg-slate-800 text-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white hover:shadow-indigo-500/30 hover:scale-105'}`}><Icons.Brain /> {isAiActive ? 'Analizowanie...' : 'Audyt Lex AI'}</button>
+                   <button onClick={() => handleCopyCitation(safeModalData.signature, safeModalData.title, safeModalData.issuer, safeModalData.date)} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.Copy /> Skopiuj przypis</button>
+                   <button onClick={() => setShowQR(!showQR)} className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 hover:text-slate-900 transition-all shadow-sm"><Icons.QR /> Kod QR</button>
+                 </div>
+
+                 {isAiActive && (
+                   <div className="mb-6 bg-slate-900 rounded-2xl p-6 shadow-inner border border-slate-800 text-slate-300 font-mono text-sm relative overflow-hidden">
+                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-50 animate-pulse"></div>
+                     <div className="space-y-3">
+                       <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-4"><span className="flex items-center gap-2 text-blue-400 font-bold"><Icons.Brain /> LEX_AI_CORE_v1.2</span><span className="text-emerald-400 font-bold">{aiProgress}%</span></div>
+                       <div className="text-slate-500 text-xs tracking-widest mb-4">[{Array.from({length: 20}).map((_, i) => i < (aiProgress/5) ? '█' : '·').join('')}]</div>
+                       {aiStage >= 1 && <p className="text-slate-400">» Inicjowanie skanera semantycznego... <span className="text-emerald-400 float-right">OK</span></p>}
+                       {aiStage >= 2 && <p className="text-slate-400">» Mapowanie referencji uchylających... <span className="text-emerald-400 float-right">OK</span></p>}
+                       {aiStage >= 3 && <p className="text-slate-400">» Kompilacja raportu syntetycznego... <span className="text-emerald-400 float-right">DONE</span></p>}
+                       {aiStage === 4 && (
+                         <div className="mt-6 pt-4 border-t border-slate-700 grid grid-cols-2 gap-3 animate-slideUp">
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Główny Adresat</span><span className="font-bold text-white text-sm">{aiReportData.target}</span></div>
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Poziom Formalizacji</span><span className={`font-bold flex items-center gap-1 text-sm ${aiReportData.rigorColor}`}><Icons.Shield /> {aiReportData.rigor}</span></div>
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Czas Czytania</span><span className="font-bold text-sky-400 flex items-center gap-1 text-sm"><Icons.Timer /> {aiReportData.readTimeLabel}</span></div>
                            <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700"><span className="block text-[9px] uppercase tracking-widest text-slate-500 mb-1">Ważność Dokumentu</span><span className={`inline-block font-bold text-sm px-2 py-0.5 rounded-md ${aiReportData.importanceColor} ${aiReportData.importanceBg}`}>{aiReportData.importance}</span></div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {showQR && (
-                  <div className="mb-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
-                    <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeModalData.link)}`} alt="QR Code" className="w-32 h-32" /></div>
-                  </div>
-                )}
-                <div className="mb-8">
-                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Zakres Regulacji</h3>
-                  <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-slate-600 text-sm leading-relaxed">{safeModalData.desc}</p></div>
-                </div>
+                         </div>
+                       )}
+                     </div>
+                   </div>
+                 )}
 
-                {safeModalData.attachments && safeModalData.attachments.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2"><Icons.Paperclip /> Powiązane Załączniki <span className="ml-1 px-1.5 py-0.5 rounded bg-orange-50 border border-orange-100 text-orange-600 text-[9px] font-black">{safeModalData.attachments.length}</span></h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {safeModalData.attachments.map((att, idx) => (
-                        <a key={idx} href={att.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-3 p-4 bg-orange-50/50 border border-orange-100 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:shadow-sm transition-all group">
-                          <div className="shrink-0 w-8 h-8 bg-white rounded-lg border border-orange-100 flex items-center justify-center text-orange-400 group-hover:text-orange-600 transition-colors"><Icons.Document /></div>
-                          <span className="font-bold text-sm text-slate-700 group-hover:text-orange-700 transition-colors truncate">{att.name}</span>
-                          <Icons.External />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                 {showQR && (
+                   <div className="mb-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center animate-slideDown">
+                     <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Zeskanuj, aby przeczytać akt</p>
+                     <div className="p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl"><img src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(safeModalData.link)}`} alt="QR Code" className="w-32 h-32" /></div>
+                   </div>
+                 )}
 
-                {/* STRESZCZENIE AI */}
+                 {/* ZAKRES REGULACJI */}
+                 <div className="mb-6">
+                   <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">Zakres regulacji</h3>
+                   <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-slate-600 text-sm leading-relaxed">{safeModalData.desc}</p></div>
+                 </div>
                 {(() => {
                   const docKey = selectedDoc?.id || selectedDoc?.signature || selectedDoc?.title || '';
                   const summary = docSummaries[docKey];
@@ -1018,9 +1093,10 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                     <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span><span className="font-bold text-rose-700 text-sm">{safeModalData.repeals}</span></div>
                   )}
                 </div>
-             </div>
-             <div className="p-6 bg-white border-t border-slate-100 shrink-0">
-                <a href={safeModalData.link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">Otwórz oryginał dokumentu <Icons.External /></a>
+               </div>{/* /p-7 */}
+             </div>{/* /overflow-y-auto */}
+             <div className="p-5 bg-white border-t border-slate-100 shrink-0">
+               <a href={safeModalData.link} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-3.5 bg-slate-900 text-white text-sm font-bold uppercase tracking-widest rounded-xl hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-900/20 transition-all">Otwórz oryginał dokumentu <Icons.External /></a>
              </div>
            </div>
         </div>
