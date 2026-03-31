@@ -1,5 +1,4 @@
 ﻿import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 
 // !!! TUTAJ WKLEJ LINK DO TWOJEGO SKRYPTU BAZY DOKUMENTÓW Z GOOGLE SHEETS !!!
 const DOCS_API_URL = 'https://script.google.com/macros/s/AKfycby06P_0sI4H0PMMrBQgTwp9fF_ftGrNFUMpEdYcWOrQMqPqdsT9-CmbE1Ir-2a1DlldiQ/exec';
@@ -265,6 +264,14 @@ export default function DocumentsPage() {
       }
     } catch (e) { console.error('[LEX] Błąd parsowania załączników:', e); }
 
+    let parsedAmends = null;
+    try {
+      const amendString = String(selectedDoc.amends || '').trim();
+      if (amendString && amendString.toLowerCase() !== 'brak' && amendString !== 'undefined') {
+        parsedAmends = amendString;
+      }
+    } catch(e) {}
+
     let parsedRepeals = null;
     try {
       const repString = String(selectedDoc.repeals || '').trim();
@@ -283,6 +290,7 @@ export default function DocumentsPage() {
       desc: String(selectedDoc.desc || 'Brak opisu.'),
       link: String(selectedDoc.link || '#'),
       repeals: parsedRepeals,
+      amends: parsedAmends,
       attachments: parsedAttachments
     };
   }
@@ -587,9 +595,6 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
     <div className="min-h-screen bg-slate-50/50 p-4 pb-24 pt-24 relative overflow-x-hidden">
       
       <div className="max-w-7xl mx-auto mb-8 text-center md:text-left animate-fadeIn">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-blue-600 uppercase tracking-widest mb-4 transition-colors">
-          <span>← Wróć do Dashboardu</span>
-        </Link>
         <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight">
           Lex <span className="text-blue-600">SSUEW</span>
         </h1>
@@ -1091,6 +1096,9 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                   <div className="col-span-2 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">Organ Wydający</span><span className="font-bold text-slate-800 text-sm">{safeModalData.issuer}</span></div>
                   {safeModalData.repeals && (
                     <div className="col-span-4 bg-rose-50 p-4 rounded-2xl border border-rose-100 shadow-sm mt-2 flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-rose-400 mb-1 block">Ten akt uchyla:</span><span className="font-bold text-rose-700 text-sm">{safeModalData.repeals}</span></div>
+                  )}
+                  {safeModalData.amends && (
+                    <div className="col-span-4 bg-violet-50 p-4 rounded-2xl border border-violet-100 shadow-sm mt-2 flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-violet-400 mb-1 block">Ten akt zmienia:</span><span className="font-bold text-violet-700 text-sm">{safeModalData.amends}</span></div>
                   )}
                 </div>
                </div>{/* /p-7 */}
