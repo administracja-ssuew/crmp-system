@@ -24,11 +24,11 @@ const Icons = {
 };
 
 const CATEGORY_STYLES = {
-  'Uchwały': { icon: '📜', ring: 'ring-red-100', text: 'text-red-700' },
-  'Zarządzenia': { icon: '🖊️', ring: 'ring-blue-100', text: 'text-blue-700' },
-  'Szablony': { icon: '📄', ring: 'ring-amber-100', text: 'text-amber-700' },
-  'Instrukcje': { icon: '💡', ring: 'ring-sky-100', text: 'text-sky-700' },
-  'Default': { icon: '⚖️', ring: 'ring-slate-100', text: 'text-slate-700' }
+  'Uchwały':    { icon: '📜', ring: 'ring-red-100',   text: 'text-red-700',   badge: 'bg-red-50 text-red-700 border border-red-100',     accent: 'border-l-red-400' },
+  'Zarządzenia':{ icon: '🖊️', ring: 'ring-blue-100',  text: 'text-blue-700',  badge: 'bg-blue-50 text-blue-700 border border-blue-100',   accent: 'border-l-blue-400' },
+  'Protokoły':  { icon: '📄', ring: 'ring-amber-100', text: 'text-amber-700', badge: 'bg-amber-50 text-amber-700 border border-amber-100', accent: 'border-l-amber-400' },
+  'Instrukcje': { icon: '💡', ring: 'ring-sky-100',   text: 'text-sky-700',   badge: 'bg-sky-50 text-sky-700 border border-sky-100',       accent: 'border-l-sky-400' },
+  'Default':    { icon: '⚖️', ring: 'ring-slate-100', text: 'text-slate-700', badge: 'bg-slate-100 text-slate-600 border border-slate-200', accent: 'border-l-slate-300' }
 };
 
 const PETITION_TYPES = [
@@ -243,12 +243,17 @@ export default function DocumentsPage() {
       const attString = String(selectedDoc.attachments || '').trim();
       if (attString && attString.toLowerCase() !== 'brak' && attString !== 'undefined') {
         attString.split(';').forEach(item => {
-          const parts = item.split('|');
+          const trimmed = item.trim();
+          if (!trimmed) return;
+          const parts = trimmed.split('|');
           if (parts.length >= 2) {
             parsedAttachments.push({
               name: String(parts[0]).trim(),
               link: String(parts.slice(1).join('|')).trim()
             });
+          } else if (trimmed.startsWith('http')) {
+            const fileName = trimmed.split('/').pop().split('?')[0] || 'Załącznik';
+            parsedAttachments.push({ name: fileName, link: trimmed });
           }
         });
       }
@@ -304,7 +309,7 @@ export default function DocumentsPage() {
       } else if (category === 'Regulaminy') {
         const mins = titleLen < 40 ? 10 : titleLen < 80 ? 18 : 25;
         readTimeLabel = `ok. ${mins} min czytania`;
-      } else if (category === 'Szablony' || category === 'Instrukcje') {
+      } else if (category === 'Protokoły' || category === 'Instrukcje') {
         const mins = titleLen < 40 ? 2 : 5;
         readTimeLabel = `ok. ${mins} min czytania`;
       } else {
@@ -314,7 +319,7 @@ export default function DocumentsPage() {
 
       // Ważność na podstawie kategorii z badge kolorem
       const importanceHigh = ['Uchwały', 'Zarządzenia', 'Regulaminy'];
-      const importanceMid = ['Szablony', 'Instrukcje'];
+      const importanceMid = ['Protokoły', 'Instrukcje'];
       if (importanceHigh.includes(category)) {
         aiReportData.importance = 'Wysoka';
         aiReportData.importanceColor = 'text-rose-400';
@@ -602,40 +607,6 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
 
       <div className="max-w-7xl mx-auto">
         
-        <div className="mb-10 animate-fadeIn">
-          <div className="bg-white rounded-[2rem] p-6 border border-slate-200 shadow-xl shadow-slate-200/50 flex flex-col max-w-sm">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-              <Icons.Download /> Szybkie Szablony (Word)
-            </h3>
-            
-            <div className="flex flex-col gap-3 flex-grow justify-center">
-              <a href="#" className="group flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-colors">
-                <div className="w-10 h-10 bg-white shadow-sm border border-slate-200 text-blue-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"><Icons.Document /></div>
-                <div>
-                  <span className="block font-bold text-slate-700 text-sm group-hover:text-blue-700">Szablon Uchwały</span>
-                  <span className="block text-[10px] text-slate-400 font-medium mt-0.5">Margines 35mm, DOCX</span>
-                </div>
-              </a>
-              
-              <a href="#" className="group flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors">
-                <div className="w-10 h-10 bg-white shadow-sm border border-slate-200 text-emerald-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"><Icons.Document /></div>
-                <div>
-                  <span className="block font-bold text-slate-700 text-sm group-hover:text-emerald-700">Papier Firmowy</span>
-                  <span className="block text-[10px] text-slate-400 font-medium mt-0.5">Pisma wychodzące, DOCX</span>
-                </div>
-              </a>
-
-              <a href="#" className="group flex items-center gap-4 p-3.5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 transition-colors">
-                <div className="w-10 h-10 bg-white shadow-sm border border-slate-200 text-amber-600 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"><Icons.Document /></div>
-                <div>
-                  <span className="block font-bold text-slate-700 text-sm group-hover:text-amber-700">Zaświadczenie</span>
-                  <span className="block text-[10px] text-slate-400 font-medium mt-0.5">Z wklejonymi logotypami, DOCX</span>
-                </div>
-              </a>
-            </div>
-          </div>
-        </div>
-
         <div className="mb-6 flex flex-wrap gap-6 border-b border-slate-200">
           <button onClick={() => setActiveView('LEX')} className={`pb-4 px-2 font-black text-sm uppercase tracking-widest border-b-4 transition-all ${activeView === 'LEX' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
             📚 Baza Aktów Prawnych
@@ -695,25 +666,23 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                     } catch (e) {}
 
                     return (
-                      <div key={doc.id || Math.random()} onClick={() => openModal(doc)} className={`group relative bg-white p-5 rounded-2xl border transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-5 md:items-center hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-900/5 ${isActive ? 'border-slate-200 hover:border-blue-200' : 'border-slate-200 opacity-70 bg-slate-50 hover:opacity-100'}`}>
-                        <div className={`hidden md:flex shrink-0 w-12 h-12 rounded-xl items-center justify-center transition-colors ${isActive ? 'bg-slate-50 border border-slate-100 text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 group-hover:border-blue-100' : 'bg-slate-100 text-slate-400'}`}>
-                          <Icons.Document />
+                      <div key={doc.id || Math.random()} onClick={() => openModal(doc)} className={`group relative bg-white p-5 rounded-2xl border border-l-4 transition-all duration-300 cursor-pointer flex flex-col md:flex-row gap-5 md:items-center hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/80 ${style.accent} ${isActive ? 'border-slate-200' : 'border-slate-200 opacity-60 bg-slate-50/80 hover:opacity-100'}`}>
+                        <div className={`hidden md:flex shrink-0 w-12 h-12 rounded-xl items-center justify-center text-xl transition-colors ${isActive ? 'bg-slate-50 border border-slate-100 group-hover:bg-blue-50 group-hover:border-blue-100' : 'bg-slate-100'}`}>
+                          {style.icon}
                         </div>
-                        <div className="flex-grow">
-                          <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.category || '-'}</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{doc.date || '-'}</span>
-                            {nowosc && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="px-2 py-0.5 rounded bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span></>}
-                            
-                            {hasAttachments && <><span className="w-1 h-1 rounded-full bg-slate-300"></span><span className="flex items-center gap-1 text-slate-400 text-[10px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Załączniki</span></>}
+                        <div className="flex-grow min-w-0">
+                          <div className="flex items-center gap-2 mb-2 flex-wrap">
+                            <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${style.badge}`}>{doc.category || '-'}</span>
+                            <span className="text-[10px] text-slate-400 font-medium">{doc.date || '-'}</span>
+                            {nowosc && <span className="px-2 py-0.5 rounded-md bg-blue-50 border border-blue-100 text-blue-600 text-[9px] font-bold uppercase tracking-wider animate-pulse">Nowość</span>}
+                            {hasAttachments && <span className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-orange-50 border border-orange-100 text-orange-600 text-[9px] font-bold uppercase tracking-wider"><Icons.Paperclip /> Zał.</span>}
                           </div>
-                          <h3 className={`text-lg font-bold transition-colors leading-tight ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
-                          {!isActive && <p className="text-xs text-red-500 font-medium mt-1">Uchylony: Zastąpiony przez nowszy akt</p>}
+                          <h3 className={`text-base font-bold transition-colors leading-snug truncate ${isActive ? 'text-slate-900 group-hover:text-blue-600' : 'text-slate-500 line-through'}`}>{doc.title || 'Brak tytułu'}</h3>
+                          {!isActive && <p className="text-xs text-red-400 font-medium mt-1">Uchylony</p>}
                         </div>
                         <div className="shrink-0 flex md:flex-col items-center md:items-end justify-between gap-3 border-t md:border-t-0 pt-3 md:pt-0 mt-2 md:mt-0 border-slate-100">
-                          <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">{doc.signature || '-'}</span>
-                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${isActive ? 'bg-emerald-50/50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
+                          <span className="text-xs font-mono font-semibold text-slate-400">{doc.signature || '-'}</span>
+                          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${isActive ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                             {doc.status || '-'}
                           </div>
@@ -966,6 +935,21 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                   <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm"><p className="text-slate-600 text-sm leading-relaxed">{safeModalData.desc}</p></div>
                 </div>
 
+                {safeModalData.attachments && safeModalData.attachments.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2"><Icons.Paperclip /> Powiązane Załączniki <span className="ml-1 px-1.5 py-0.5 rounded bg-orange-50 border border-orange-100 text-orange-600 text-[9px] font-black">{safeModalData.attachments.length}</span></h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {safeModalData.attachments.map((att, idx) => (
+                        <a key={idx} href={att.link} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-3 p-4 bg-orange-50/50 border border-orange-100 rounded-xl hover:bg-orange-50 hover:border-orange-200 hover:shadow-sm transition-all group">
+                          <div className="shrink-0 w-8 h-8 bg-white rounded-lg border border-orange-100 flex items-center justify-center text-orange-400 group-hover:text-orange-600 transition-colors"><Icons.Document /></div>
+                          <span className="font-bold text-sm text-slate-700 group-hover:text-orange-700 transition-colors truncate">{att.name}</span>
+                          <Icons.External />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* STRESZCZENIE AI */}
                 {(() => {
                   const docKey = selectedDoc?.id || selectedDoc?.signature || selectedDoc?.title || '';
@@ -1026,16 +1010,6 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                     </div>
                   );
                 })()}
-                {safeModalData.attachments && safeModalData.attachments.length > 0 && (
-                  <div className="mb-8">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2"><Icons.Paperclip /> Powiązane Załączniki</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {safeModalData.attachments.map((att, idx) => (
-                        <a key={idx} href={att.link} target="_blank" rel="noreferrer" className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 hover:border-blue-200 hover:shadow-sm transition-all group"><div className="text-slate-300 group-hover:text-blue-500 transition-colors"><Icons.Document /></div><span className="font-bold text-sm text-slate-700 group-hover:text-blue-700 transition-colors">{att.name}</span></a>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Data Wydania</span><span className="font-bold text-slate-800 text-sm">{safeModalData.date}</span></div>
                   <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-center relative group"><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">Udostępnij</span><button onClick={() => handleCopyLink(safeModalData.link)} className="flex items-center gap-2 font-bold text-blue-600 text-sm hover:text-blue-700 transition-colors">🔗 Kopiuj link</button></div>
