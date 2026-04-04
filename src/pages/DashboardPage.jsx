@@ -360,9 +360,13 @@ export default function DashboardPage() {
           <Card to="/dokumenty" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
           <Card to="/legal-hub" icon="⚖️" title="Zaplecze Prawne" subtitle="Wzory regulaminów i edukacja" colorFrom="from-amber-500" colorTo="to-orange-500" buttonText="Otwórz Akademię" />
           <Card to="/kompendium" icon="📖" title="Kompendium Wiedzy Protokolanta" subtitle="Przewodnik protokolanta — wzory, checklisty, słownik pojęć" colorFrom="from-violet-600" colorTo="to-indigo-800" buttonText="Otwórz Kompendium" />
+          <Card to="/lista-dostepowa" icon="🗝️" title="Lista Dostępowa" subtitle="Zgłoszenia dostępu do pomieszczeń" colorFrom="from-cyan-500" colorTo="to-blue-600" buttonText="Otwórz Moduł" />
           {isAdmin && (
-          <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
-           )}
+            <>
+              <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
+              <Card to="/admin-dostep" icon="🔐" title="Panel Dostęp" subtitle="Zarządzaj listą dostępową" colorFrom="from-violet-600" colorTo="to-purple-800" buttonText="Zarządzaj" />
+            </>
+          )}
         </div>
 
         <footer className="mt-16 opacity-50 flex flex-col items-center gap-2">

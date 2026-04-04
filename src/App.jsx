@@ -22,6 +22,8 @@ import KsiegaDokumentowPage from './pages/KsiegaDokumentowPage';
 import AccessRequestPage from './pages/AccessRequestPage';
 import AccessRequestsPanel from './pages/AccessRequestsPanel';
 import KompendiumPage from './pages/KompendiumPage';
+import AccessListPage from './pages/AccessListPage';
+import AdminAccessPanel from './pages/AdminAccessPanel';
 import AIBot from './AIBot';
 
 function BackButton() {
@@ -142,6 +144,8 @@ function AppContent() {
         <Route path="/wydawanie" element={<LogitechRoute><AdminEquipmentPanel /></LogitechRoute>} />
         <Route path="/skaner-ski" element={<AdminRoute><ScannerPage /></AdminRoute>} />
         <Route path="/kompendium" element={<ProtectedRoute><KompendiumPage /></ProtectedRoute>} />
+        <Route path="/lista-dostepowa" element={<ProtectedRoute><AccessListPage /></ProtectedRoute>} />
+        <Route path="/admin-dostep" element={<AdminRoute><AdminAccessPanel /></AdminRoute>} />
 
         {/* CATCH ALL */}
         <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
