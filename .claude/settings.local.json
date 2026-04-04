@@ -4,7 +4,16 @@
       "Bash(npm install:*)",
       "Bash(node -e \":*)",
       "Bash(npx vite:*)",
-      "Bash(npx --yes acorn --ecma2020 --module src/pages/AdminEquipmentPanel.jsx)"
+      "Bash(npx --yes acorn --ecma2020 --module src/pages/AdminEquipmentPanel.jsx)",
+      "Skill(gsd:map-codebase)",
+      "Skill(gsd:map-codebase:*)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs: map existing codebase' --files .planning/codebase/STACK.md .planning/codebase/INTEGRATIONS.md .planning/codebase/ARCHITECTURE.md .planning/codebase/STRUCTURE.md .planning/codebase/CONVENTIONS.md .planning/codebase/TESTING.md .planning/codebase/CONCERNS.md)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs config-new-project '{\"mode\":\"yolo\",\"granularity\":\"standard\",\"parallelization\":true,\"commit_docs\":true,\"model_profile\":\"balanced\",\"workflow\":{\"research\":true,\"plan_check\":true,\"verifier\":true,\"nyquist_validation\":false,\"auto_advance\":false}}')",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs: initialize project' --files .planning/PROJECT.md .planning/config.json)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs: add requirements, roadmap, and state' --files .planning/REQUIREMENTS.md .planning/ROADMAP.md .planning/STATE.md)",
+      "WebSearch",
+      "Skill(gsd:plan-phase)",
+      "Skill(gsd:plan-phase:*)"
     ]
   }
 }
