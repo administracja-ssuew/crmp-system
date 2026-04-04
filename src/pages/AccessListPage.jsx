@@ -167,7 +167,12 @@ export default function AccessListPage() {
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-black text-slate-800">Lista Dostępowa</h1>
+          <h1 className="text-3xl font-black text-slate-800">
+            Lista Dostępowa —{' '}
+            <span className="text-indigo-600">
+              {new Date().toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}
+            </span>
+          </h1>
           <p className="text-slate-500 mt-1 text-sm">Miesięczne zgłoszenia dostępu do pomieszczeń Samorządu</p>
         </div>
 

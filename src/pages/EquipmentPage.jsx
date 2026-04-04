@@ -231,12 +231,24 @@ export default function EquipmentPage() {
       const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();
       if (result.success) {
+        // Optimistic update — od razu wstrzykujemy raport do stanu lokalnego.
+        // GAS może cachować GET przez kilka minut, więc nie możemy na nim polegać.
+        const optimisticReport = {
+          ID: `temp-${Date.now()}`,
+          Apteczka_ID: selectedItem.id,
+          Apteczka_Nazwa: selectedItem.name,
+          Zuzyte_Materialy: payload.zuzyteMaterialy,
+          Powod: payload.powod,
+          Osoba: payload.osoba,
+          Status: 'Oczekuje',
+          Data_Zgloszenia: new Date().toISOString(),
+        };
+        setAllFirstAidReports(prev => [...prev, optimisticReport]);
         setIsFirstAidModalOpen(false);
         setUsedItems({});
         setFirstAidDesc('');
-        // NIE zamykamy selectedItem — żeby DIN tab w paszporcie odświeżył się widocznie
-        // Czekamy 1.5s na zapis GAS przed odświeżeniem
-        setTimeout(() => fetchData(true), 1500);
+        // Sync z GAS w tle (z opóźnieniem na zapis)
+        setTimeout(() => fetchData(true), 3000);
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
       }
