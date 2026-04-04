@@ -4,17 +4,17 @@ import { useAuth } from '../context/AuthContext';
 
 export default function AdminEquipmentPanel() {
   const { user, userRole } = useAuth();
-  const [selectedAdminEmail, setSelectedAdminEmail] = useState(user?.email || 'administracja@samorzad.ue.wroc.pl');
   const [adminMode, setAdminMode] = useState('wydawanie'); 
 
   const [allReservations, setAllReservations] = useState([]);
   const [allWydania, setAllWydania] = useState([]); 
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   
-  const [approvalModal, setApprovalModal] = useState(null); 
+  const [approvalModal, setApprovalModal] = useState(null);
   const [pickupDate, setPickupDate] = useState('');
   const [pickupTime, setPickupTime] = useState('12:00');
   const [requesterEmail, setRequesterEmail] = useState('');
+  const [issuingEmail, setIssuingEmail] = useState('');
 
   const [step, setStep] = useState(1);
   const [equipmentData, setEquipmentData] = useState([]);
@@ -138,6 +138,7 @@ export default function AdminEquipmentPanel() {
   const initiateApproval = (rez) => {
     const emailMatch = (rez.Kontakt || '').match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
     setRequesterEmail(emailMatch ? emailMatch[1] : '');
+    setIssuingEmail(user?.email || '');
     setPickupDate('');
     setPickupTime('12:00');
     setApprovalModal({ id: rez.ID, organizacja: rez.Organizacja_Cel, sprzetKody: rez.Sprzet_Kody });
@@ -145,9 +146,11 @@ export default function AdminEquipmentPanel() {
 
   const confirmAndSendInvite = async () => {
     setIsUpdatingStatus(true);
+    const allAdminEmails = [issuingEmail, 'administracja@samorzad.ue.wroc.pl']
+      .map(e => e.trim()).filter(Boolean).join(',');
     const payload = {
-      action: "updateRezerwacjaStatus", id: approvalModal.id, status: "Zatwierdzone", createEvent: true, 
-      pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: selectedAdminEmail,
+      action: "updateRezerwacjaStatus", id: approvalModal.id, status: "Zatwierdzone", createEvent: true,
+      pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: allAdminEmails,
       organizacja: approvalModal.organizacja, sprzetKody: approvalModal.sprzetKody
     };
     try {
@@ -683,7 +686,8 @@ export default function AdminEquipmentPanel() {
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Dzień</label><input type="date" value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" /></div>
                 <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Godzina</label><input type="time" value={pickupTime} onChange={e => setPickupTime(e.target.value)} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" /></div>
               </div>
-              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mail Wnioskodawcy (Pobrano)</label><input type="email" value={requesterEmail} onChange={e => setRequesterEmail(e.target.value)} className="w-full bg-indigo-50 border border-indigo-100 text-indigo-700 p-3 rounded-xl font-bold" /></div>
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mail Wnioskodawcy</label><input type="email" value={requesterEmail} onChange={e => setRequesterEmail(e.target.value)} className="w-full bg-indigo-50 border border-indigo-100 text-indigo-700 p-3 rounded-xl font-bold" /></div>
+              <div><label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Mail Osoby Wydającej Sprzęt</label><input type="email" value={issuingEmail} onChange={e => setIssuingEmail(e.target.value)} placeholder={user?.email || ''} className="w-full bg-emerald-50 border border-emerald-100 text-emerald-700 p-3 rounded-xl font-bold" /><p className="text-[9px] text-slate-400 mt-1">+ administracja@samorzad.ue.wroc.pl zawsze w gościach</p></div>
             </div>
             <button onClick={confirmAndSendInvite} disabled={!pickupDate || !requesterEmail || isUpdatingStatus} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-lg active:scale-95 disabled:opacity-50">{isUpdatingStatus ? 'Tworzenie wydarzenia...' : 'Zatwierdź i Wyślij Zaproszenie'}</button>
           </div>

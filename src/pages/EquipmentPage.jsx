@@ -44,7 +44,7 @@ export default function EquipmentPage() {
   });
 
   const [isFirstAidModalOpen, setIsFirstAidModalOpen] = useState(false);
-  const [usedItems, setUsedItems] = useState([]);
+  const [usedItems, setUsedItems] = useState({}); // {[itemName]: 'BRAK' | 'CZESC'}
   const [firstAidDesc, setFirstAidDesc] = useState('');
   const [firstAidHistory, setFirstAidHistory] = useState([]);
   const [allFirstAidReports, setAllFirstAidReports] = useState([]);
@@ -206,13 +206,15 @@ export default function EquipmentPage() {
     } catch { alert("Błąd połączenia."); } finally { setIsSubmitting(false); }
   };
 
-  const handleFirstAidToggle = (item) => {
-    if (usedItems.includes(item)) setUsedItems(usedItems.filter(i => i !== item));
-    else setUsedItems([...usedItems, item]);
+  const handleFirstAidToggle = (item, status) => {
+    setUsedItems(prev => {
+      if (prev[item] === status) { const n = {...prev}; delete n[item]; return n; }
+      return {...prev, [item]: status};
+    });
   };
 
   const submitFirstAidReport = async () => {
-    if (usedItems.length === 0) return alert("Zaznacz, jakich materiałów użyłeś/aś.");
+    if (Object.keys(usedItems).length === 0) return alert("Zaznacz, jakich materiałów brakuje lub zostały zużyte.");
     if (!firstAidDesc.trim()) return alert("Podaj krótki opis zdarzenia.");
     setIsSubmittingAid(true);
 
@@ -220,7 +222,7 @@ export default function EquipmentPage() {
       action: "zglosBrakiApteczki",
       apteczkaId: selectedItem.id,
       apteczkaName: selectedItem.name,
-      zuzyteMaterialy: usedItems.join(', '),
+      zuzyteMaterialy: Object.entries(usedItems).map(([n, s]) => `${n}:${s}`).join(', '),
       powod: firstAidDesc.trim(),
       osoba: user?.email || "Anonimowy zgłaszający"
     };
@@ -230,7 +232,7 @@ export default function EquipmentPage() {
       const result = await response.json();
       if (result.success) {
         alert("Zgłoszono braki w apteczce. Dziękujemy!");
-        setIsFirstAidModalOpen(false); setUsedItems([]); setFirstAidDesc(''); setSelectedItem(null);
+        setIsFirstAidModalOpen(false); setUsedItems({}); setFirstAidDesc(''); setSelectedItem(null);
         fetchData(true);
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
@@ -431,14 +433,23 @@ export default function EquipmentPage() {
 
             <div className="space-y-4 mb-8">
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Zaznacz zużyte elementy:</label>
-                <div className="h-48 overflow-y-auto bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 scrollbar-thin">
-                  {DIN_13169_ITEMS.map((item, idx) => (
-                    <label key={idx} className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors">
-                      <input type="checkbox" checked={usedItems.includes(item)} onChange={() => handleFirstAidToggle(item)} className="w-5 h-5 accent-rose-600 rounded" />
-                      <span className="text-xs font-bold text-slate-700">{item}</span>
-                    </label>
-                  ))}
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Stan składników:</label>
+                <div className="flex gap-3 text-[9px] font-black uppercase tracking-widest mb-2 text-slate-400">
+                  <span className="w-5/12">Składnik</span>
+                  <span className="flex-1 text-center text-amber-500">CZĘŚCIOWO</span>
+                  <span className="flex-1 text-center text-rose-500">BRAK</span>
+                </div>
+                <div className="max-h-52 overflow-y-auto bg-slate-50 border border-slate-200 rounded-xl p-2 space-y-1">
+                  {DIN_13169_ITEMS.map((item, idx) => {
+                    const st = usedItems[item];
+                    return (
+                      <div key={idx} className={`flex items-center gap-2 p-1.5 rounded-lg transition-colors ${st ? (st === 'CZESC' ? 'bg-amber-50' : 'bg-rose-50') : 'hover:bg-slate-100'}`}>
+                        <span className="text-[10px] font-bold text-slate-700 w-5/12 leading-tight">{item.split(' - ')[0]}</span>
+                        <button onClick={() => handleFirstAidToggle(item, 'CZESC')} className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${st === 'CZESC' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-amber-500 border-amber-200 hover:bg-amber-50'}`}>CZĘŚCIOWO</button>
+                        <button onClick={() => handleFirstAidToggle(item, 'BRAK')} className={`flex-1 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border transition-all ${st === 'BRAK' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-rose-500 border-rose-200 hover:bg-rose-50'}`}>BRAK</button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <div>
@@ -562,15 +573,24 @@ export default function EquipmentPage() {
                     return r.Apteczka_Nazwa && selectedItem.name &&
                       r.Apteczka_Nazwa.trim().toLowerCase() === selectedItem.name.trim().toLowerCase();
                   });
-                  // Checkboxy używają pełnych stringów DIN — exact match wystarczy
-                  const reportedMissing = new Set(
-                    kitHistory.flatMap(r =>
-                      String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
-                    )
-                  );
-                  const isDinItemMissing = (dinItem) => reportedMissing.has(dinItem.toLowerCase());
-                  const hasMissing = DIN_13169_ITEMS.some(isDinItemMissing);
-                  console.log('[DIN]', selectedItem.name, '| raporty:', kitHistory.length, '| braki:', [...reportedMissing]);
+                  // Parsuj statusy: nowy format "nazwa:BRAK/CZESC", stary format "nazwa" → BRAK
+                  const reportedStatuses = {};
+                  kitHistory.forEach(r => {
+                    String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').forEach(entry => {
+                      const trimmed = entry.trim();
+                      if (!trimmed) return;
+                      const colon = trimmed.lastIndexOf(':');
+                      if (colon > 0) {
+                        const name = trimmed.substring(0, colon).trim().toLowerCase();
+                        const status = trimmed.substring(colon + 1).trim();
+                        if (name) reportedStatuses[name] = (status === 'CZESC') ? 'CZESC' : 'BRAK';
+                      } else {
+                        reportedStatuses[trimmed.toLowerCase()] = 'BRAK';
+                      }
+                    });
+                  });
+                  const getDinStatus = (dinItem) => reportedStatuses[dinItem.toLowerCase()] || null;
+                  const hasMissing = DIN_13169_ITEMS.some(d => getDinStatus(d) !== null);
                   return (
                   <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative">
                     {hasMissing && (
@@ -602,16 +622,16 @@ export default function EquipmentPage() {
                       </thead>
                       <tbody>
                         {DIN_13169_ITEMS.map((dinItem, idx) => {
-                          const missing = isDinItemMissing(dinItem);
+                          const st = getDinStatus(dinItem);
                           const namePart = dinItem.split(' - ')[0];
                           const qtyPart = dinItem.includes(' - ') ? dinItem.split(' - ').slice(1).join(' - ') : '—';
                           return (
-                            <tr key={idx} className={missing ? 'bg-rose-50' : ''}>
+                            <tr key={idx} className={st === 'BRAK' ? 'bg-rose-50' : st === 'CZESC' ? 'bg-amber-50' : ''}>
                               <td className="p-2 border border-slate-300 text-center text-slate-400">{idx + 1}</td>
                               <td className="p-2 border border-slate-300">{namePart}</td>
                               <td className="p-2 border border-slate-300 text-center text-slate-500">{qtyPart}</td>
-                              <td className={`p-2 border border-slate-300 text-center font-bold ${missing ? 'text-rose-600' : 'text-emerald-600'}`}>
-                                {missing ? 'BRAK' : 'ZGODNY'}
+                              <td className={`p-2 border border-slate-300 text-center font-bold ${st === 'BRAK' ? 'text-rose-600' : st === 'CZESC' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                                {st === 'BRAK' ? 'BRAK' : st === 'CZESC' ? 'CZĘŚCIOWO' : 'ZGODNY'}
                               </td>
                             </tr>
                           );
@@ -620,8 +640,8 @@ export default function EquipmentPage() {
                     </table>
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
-                        <div className="h-12 flex items-end justify-center mb-1">
-                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain" style={{mixBlendMode:'multiply'}} onError={e => { e.target.style.display='none'; }} />
+                        <div className="h-14 flex items-end justify-center mb-1 bg-slate-100 rounded-lg px-3 py-1">
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain block" />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
