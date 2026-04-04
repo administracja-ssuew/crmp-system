@@ -103,7 +103,14 @@ export default function EquipmentPage() {
         setEquipmentData(formattedData);
         setAllReservations(data.rezerwacje || []);
         setAllWydania(data.wydania || []);
-        const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
+        const rawReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
+        const normalizeReport = (r) => {
+          if (r.ID !== undefined || r.Apteczka_Nazwa !== undefined || r.Powod !== undefined) return r;
+          const vals = Object.values(r);
+          if (vals.length >= 7) return { ID: vals[0], Data_Zgloszenia: vals[1], Apteczka_ID: vals[2], Apteczka_Nazwa: vals[3], Osoba: vals[4], Powod: vals[5], Zuzyte_Materialy: vals[6], Status: vals[7] || 'Oczekuje' };
+          return r;
+        };
+        const allReports = rawReports.map(normalizeReport);
         const activeReports = allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane'));
         setAllFirstAidReports(activeReports);
         const myReports = allReports.filter(r =>
@@ -579,10 +586,13 @@ export default function EquipmentPage() {
 
                 {activeTab === 'din' && selectedItem.isFirstAid && (() => {
                   // Brakujące składniki: ze WSZYSTKICH aktywnych zgłoszeń dla tej apteczki
-                  const kitHistory = allFirstAidReports.filter(r =>
-                    r.Apteczka_Nazwa && selectedItem.name &&
-                    r.Apteczka_Nazwa.toLowerCase() === selectedItem.name.toLowerCase()
-                  );
+                  const kitHistory = allFirstAidReports.filter(r => {
+                    const byName = r.Apteczka_Nazwa && selectedItem.name &&
+                      r.Apteczka_Nazwa.trim().toLowerCase() === selectedItem.name.trim().toLowerCase();
+                    const byId = r.Apteczka_ID && selectedItem.id &&
+                      r.Apteczka_ID.trim().toLowerCase() === selectedItem.id.trim().toLowerCase();
+                    return byName || byId;
+                  });
                   const reportedMissing = new Set(
                     kitHistory.flatMap(r =>
                       String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
