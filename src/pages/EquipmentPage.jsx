@@ -104,8 +104,10 @@ export default function EquipmentPage() {
         setIsLoading(false);
         setIsRefreshing(false);
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[CRW] fetchData error:', err);
         if (!silent) setError("Nie udało się pobrać bazy sprzętu z CRW.");
+        else console.warn('[CRW] Cichy odczyt nie powiódł się — dane mogą być nieaktualne.');
         setIsLoading(false);
         setIsRefreshing(false);
       });
@@ -129,9 +131,20 @@ export default function EquipmentPage() {
   const isInCart = (id) => cart.some(c => c.id === id);
 
   const checkForCollisions = () => {
+    // BUG-EQ-01: Build issuedItemIds from allWydania (physically-issued equipment)
+    const issuedIds = new Set(
+      allWydania
+        .filter(w => String(w.STATUS || w.Status || w.status || '').trim().toUpperCase() === 'WYDANE')
+        .flatMap(w => String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '').split(',').map(s => s.trim()).filter(Boolean))
+    );
     const startReq = new Date(reservationData.dateFrom).setHours(0,0,0,0);
     const endReq = new Date(reservationData.dateTo).setHours(0,0,0,0);
     for (let item of cart) {
+      // Check physical wydania first
+      if (issuedIds.has(item.id)) {
+        return `${item.name} (sprzęt jest aktualnie wydany fizycznie)`;
+      }
+      // Existing reservation collision check
       const itemReservations = allReservations.filter(r =>
         codeMatches(r.Sprzet_Kody, item.id) && r.Status === 'Zatwierdzone'
       );
@@ -241,7 +254,7 @@ export default function EquipmentPage() {
   };
 
   const isDateReserved = (itemId, dateObj) => {
-    const checkDate = dateObj.setHours(0,0,0,0);
+    const checkDate = new Date(dateObj).setHours(0,0,0,0); // BUG-EQ-02: avoid mutating the caller's Date object
     return allReservations.some(res => {
       if (codeMatches(res.Sprzet_Kody, itemId) && res.Status === 'Zatwierdzone') {
         const start = new Date(res.Data_Od).setHours(0,0,0,0);
@@ -307,7 +320,12 @@ export default function EquipmentPage() {
                 <div className="mt-auto pt-6 flex gap-2">
                   <button onClick={() => {setSelectedItem(item); setActiveTab('info');}} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors">Paszport</button>
                   {item.isFirstAid ? (
-                    <button onClick={() => { setSelectedItem(item); setIsFirstAidModalOpen(true); }} className="flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all bg-rose-600 hover:bg-rose-700 text-white">
+                    <button onClick={() => {
+                      setSelectedItem(item);
+                      setUsedItems([]);
+                      setFirstAidDesc('');
+                      setIsFirstAidModalOpen(true);
+                    }} className="flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all bg-rose-600 hover:bg-rose-700 text-white">
                       🚑 Zgłoś braki
                     </button>
                   ) : (
@@ -358,7 +376,19 @@ export default function EquipmentPage() {
 
             <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-6">
               <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-2">Rezerwowane przedmioty:</p>
-              <ul className="text-sm font-bold text-indigo-900 space-y-1">{cart.map((item, idx) => <li key={item.id}>{idx + 1}. {item.name}</li>)}</ul>
+              <ul className="text-sm font-bold text-indigo-900 space-y-1">
+                {cart.map((item, idx) => (
+                  <li key={item.id} className="flex items-center justify-between gap-2">
+                    <span>{idx + 1}. {item.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => setCart(cart.filter(c => c.id !== item.id))}
+                      className="text-rose-400 hover:text-rose-600 font-black text-base leading-none flex-shrink-0"
+                      title="Usuń z koszyka"
+                    >✕</button>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             <button onClick={handleReservationSubmit} disabled={isSubmitting} className="block text-center w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl transition-all">
@@ -457,7 +487,11 @@ export default function EquipmentPage() {
                       </a>
                     )}
                     {selectedItem.isFirstAid && (
-                      <button onClick={() => setIsFirstAidModalOpen(true)} className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all mt-4">
+                      <button onClick={() => {
+                        setUsedItems([]);
+                        setFirstAidDesc('');
+                        setIsFirstAidModalOpen(true);
+                      }} className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all mt-4">
                         🚑 Zgłoś zużycie materiałów
                       </button>
                     )}
@@ -508,6 +542,12 @@ export default function EquipmentPage() {
 
                 {activeTab === 'din' && selectedItem.isFirstAid && (
                   <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative">
+                    <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
+                        Uwaga — Stan wykazany wg ostatniego przeglądu administracyjnego.
+                        Bieżące braki widoczne po zgłoszeniu przez użytkownika.
+                      </p>
+                    </div>
                     <div className="text-center border-b border-black pb-4 mb-4">
                       <h3 className="font-black text-lg">PROTOKÓŁ WYPOSAŻENIA APTECZKI</h3>
                       <p className="font-bold text-slate-600 text-sm">Zgodność z Normą DIN 13169</p>
