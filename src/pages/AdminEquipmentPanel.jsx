@@ -71,10 +71,22 @@ export default function AdminEquipmentPanel() {
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []);
-          console.log('[CRW] fetchAllData keys:', Object.keys(data));
           const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
-          setFirstAidReports(allReports.filter(r => r.Apteczka_Nazwa && !String(r.Status || '').startsWith('Zrealizowane')));
-          setResolvedReports(allReports.filter(r => r.Apteczka_Nazwa && String(r.Status || '').startsWith('Zrealizowane')));
+          console.log('[CRW] apteczkiBraki count:', allReports.length, 'first keys:', allReports[0] ? Object.keys(allReports[0]) : 'brak');
+          // Normalize field names — GAS may return different column headers depending on sheet state
+          const normalize = (r) => {
+            const vals = Object.values(r);
+            // If expected keys exist, return as-is
+            if (r.ID !== undefined || r.Apteczka_Nazwa !== undefined || r.Powod !== undefined) return r;
+            // Otherwise map by column position: ID, Data_Zgloszenia, Apteczka_ID, Apteczka_Nazwa, Osoba, Powod, Zuzyte_Materialy, Status
+            if (vals.length >= 7) {
+              return { ID: vals[0], Data_Zgloszenia: vals[1], Apteczka_ID: vals[2], Apteczka_Nazwa: vals[3], Osoba: vals[4], Powod: vals[5], Zuzyte_Materialy: vals[6], Status: vals[7] || 'Oczekuje' };
+            }
+            return r;
+          };
+          const normalized = allReports.map(normalize);
+          setFirstAidReports(normalized.filter(r => !String(r.Status || '').startsWith('Zrealizowane')));
+          setResolvedReports(normalized.filter(r => String(r.Status || '').startsWith('Zrealizowane')));
         }
       })
       .catch(() => {

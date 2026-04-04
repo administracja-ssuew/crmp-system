@@ -641,15 +641,18 @@ export default function EquipmentPage() {
                     </table>
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
-                        <div className="h-10 flex items-end justify-center mb-1">
-                          <span className="text-xs font-bold text-slate-700">{user?.displayName || user?.email || ''}</span>
+                        <div className="h-12 flex items-end justify-center mb-1">
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain" onError={e => { e.target.style.display='none'; }} />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
                       </div>
                       <div className="w-1/2 pl-4">
-                        <div className="h-10 flex items-end justify-center mb-1">
-                          <span className="text-slate-400">..........................................</span>
+                        <div className="h-12 flex items-end justify-center mb-1">
+                          <svg viewBox="0 0 180 40" className="w-40 h-10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8,28 C18,8 28,38 45,22 C58,10 65,34 82,20 C96,8 105,32 122,18 C136,6 145,30 162,22 C168,19 172,24 176,22" stroke="#222" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M30,32 C38,36 48,30 52,34" stroke="#222" strokeWidth="1.2" strokeLinecap="round"/>
+                          </svg>
                         </div>
                         <p className="border-t border-black pt-1 font-bold">POTWIERDZIŁ</p>
                         <p className="text-slate-500">Sekcja ds. BHP UEW</p>
