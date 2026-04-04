@@ -359,7 +359,7 @@ export default function AdminEquipmentPanel() {
                 <div key={report.ID || report.id} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-3">
-                      <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span>
+                      <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{formatResDate(report.Data_Zgloszenia)}</span>
                       <span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span>
                     </div>
                     <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
@@ -383,7 +383,7 @@ export default function AdminEquipmentPanel() {
               {resolvedReports.map((report, idx) => (
                 <div key={report.ID || report.id || idx} className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl opacity-75">
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-0.5 bg-slate-700 rounded">{report.Data_Zgloszenia}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-0.5 bg-slate-700 rounded">{formatResDate(report.Data_Zgloszenia)}</span>
                     <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-emerald-900/30 rounded border border-emerald-700/50">Zamknięte</span>
                   </div>
                   <h3 className="text-sm font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
