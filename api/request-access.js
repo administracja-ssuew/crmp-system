@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { FROM, esc } from './_email.js';
 
 // Inicjalizacja Firebase Admin
 if (!getApps().length) {
@@ -43,18 +44,18 @@ export default async function handler(req, res) {
 
     // 2. Mail do admina
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: 'administracja@samorzad.ue.wroc.pl',
-      subject: `📥 Nowy wniosek o dostęp do Centralnego Rejestru Administracyjnego — ${name}`,
+      subject: `📥 Nowy wniosek o dostęp do Centralnego Rejestru Administracyjnego — ${esc(name)}`,
       html: `
         <h2>Nowy wniosek o dostęp do Centralnego Rejestru Administracyjnego</h2>
         <table>
-          <tr><td><b>Imię i nazwisko:</b></td><td>${name}</td></tr>
-          <tr><td><b>E-mail:</b></td><td>${email}</td></tr>
-          <tr><td><b>Telefon:</b></td><td>${phone || '—'}</td></tr>
-          <tr><td><b>Nr indeksu:</b></td><td>${index || '—'}</td></tr>
-          <tr><td><b>Organizacja:</b></td><td>${organization}</td></tr>
-          <tr><td><b>Uzasadnienie:</b></td><td>${justification}</td></tr>
+          <tr><td><b>Imię i nazwisko:</b></td><td>${esc(name)}</td></tr>
+          <tr><td><b>E-mail:</b></td><td>${esc(email)}</td></tr>
+          <tr><td><b>Telefon:</b></td><td>${esc(phone || '—')}</td></tr>
+          <tr><td><b>Nr indeksu:</b></td><td>${esc(index || '—')}</td></tr>
+          <tr><td><b>Organizacja:</b></td><td>${esc(organization)}</td></tr>
+          <tr><td><b>Uzasadnienie:</b></td><td>${esc(justification)}</td></tr>
         </table>
         <br/>
          <a href="https://cra-system.vercel.app/wnioski"
@@ -66,12 +67,12 @@ export default async function handler(req, res) {
 
     // 3. Mail potwierdzający do wnioskodawcy
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: email,
       subject: '✅ Wniosek o dostęp do Centralnego Rejestru Administracyjnego — potwierdzenie',
       html: `
         <h2>Twój wniosek został przyjęty!</h2>
-        <p>Cześć <b>${name}</b>,</p>
+        <p>Cześć <b>${esc(name)}</b>,</p>
         <p>Twój wniosek o dostęp do systemu CRA Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu został przyjęty i oczekuje na rozpatrzenie przez administratora.</p>
         <p>Otrzymasz kolejnego maila gdy Twój wniosek zostanie rozpatrzony.</p>
         <br/>
