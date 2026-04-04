@@ -46,10 +46,16 @@ export default function AdminEquipmentPanel() {
   const [showSummonsDocument, setShowSummonsDocument] = useState(false);
 
   const [firstAidReports, setFirstAidReports] = useState([]);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [reportsError, setReportsError] = useState(null);
+  const [resolvedReports, setResolvedReports] = useState([]);
+  const [showResolvedHistory, setShowResolvedHistory] = useState(false);
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
   const fetchAllData = () => {
+    setIsLoadingReports(true);
+    setReportsError(null);
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
@@ -64,11 +70,19 @@ export default function AdminEquipmentPanel() {
           }));
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
-          setAllWydania(data.wydania || []); 
+          setAllWydania(data.wydania || []);
           console.log('[CRW] fetchAllData keys:', Object.keys(data));
           const reports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
           setFirstAidReports(reports);
+          const resolved = data.apteczkiBrakiArchiwum || data.resolvedReports || data.apteczki_zamkniete || [];
+          setResolvedReports(resolved);
         }
+      })
+      .catch(() => {
+        setReportsError("Nie udało się pobrać zgłoszeń apteczek.");
+      })
+      .finally(() => {
+        setIsLoadingReports(false);
       });
   };
 
@@ -168,6 +182,29 @@ export default function AdminEquipmentPanel() {
       }
     } catch (err) {
       alert("Błąd połączenia — zgłoszenie NIE zostało zamknięte. Spróbuj ponownie.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const markInProgress = async (reportId) => {
+    setIsUpdatingStatus(true);
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "aktualizujStatusApteczki", id: reportId, status: "W trakcie", adminOsoba: user?.email })
+      });
+      const result = await response.json();
+      if (result.success) {
+        setFirstAidReports(prev => prev.map(r =>
+          (r.ID || r.id) === reportId ? { ...r, Status: 'W trakcie' } : r
+        ));
+      } else {
+        alert(`Błąd: ${result.message || 'Nie udało się zmienić statusu.'}`);
+      }
+    } catch (err) {
+      alert("Błąd połączenia — status NIE został zmieniony.");
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -297,27 +334,87 @@ export default function AdminEquipmentPanel() {
       {/* ========================================================= */}
       {adminMode === 'apteczki' && (
         <div className="w-full max-w-5xl animate-fadeIn">
-          <div className="flex items-center gap-3 mb-4 border-b border-slate-700 pb-3">
-            <span className="text-2xl">🚑</span>
-            <div><h2 className="text-xl font-black text-white tracking-tight">Zgłoszenia Braków w Apteczkach</h2><p className="text-rose-400 font-bold uppercase tracking-widest text-[10px]">Uzupełnianie wg normy DIN 13169</p></div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {firstAidReports.map(report => (
-              <div key={report.ID || report.id} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
-                <div className="mb-4">
-                  <div className="flex justify-between items-start mb-3"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span></div>
-                  <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Zgłosił: {report.Osoba}</p>
-                  <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-3"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Opis zdarzenia:</p><p className="text-xs font-medium text-slate-300 italic">"{report.Powod}"</p></div>
-                  <div className="bg-rose-950/30 p-3 rounded-lg border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Zużyte materiały:</p><ul className="text-[10px] font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
-                </div>
-                <button onClick={() => resolveFirstAidReport(report.ID || report.id)} disabled={isUpdatingStatus} className="w-full py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
+          <div className="flex items-center justify-between gap-3 mb-4 border-b border-slate-700 pb-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🚑</span>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">Zgłoszenia Braków w Apteczkach</h2>
+                <p className="text-rose-400 font-bold uppercase tracking-widest text-[10px]">Uzupełnianie wg normy DIN 13169</p>
               </div>
-            ))}
-            {firstAidReports.length === 0 && (
-              <div className="col-span-full py-12 text-center flex flex-col items-center"><span className="text-4xl mb-3 opacity-20">🏥</span><p className="text-slate-400 font-black text-base uppercase tracking-widest">Wszystkie apteczki są pełne</p></div>
-            )}
+            </div>
+            <button
+              onClick={() => setShowResolvedHistory(h => !h)}
+              className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white border border-slate-600 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-all"
+            >
+              {showResolvedHistory ? 'Otwarte' : `Historia (${resolvedReports.length})`}
+            </button>
           </div>
+
+          {isLoadingReports && (
+            <div className="flex items-center justify-center py-12 gap-3">
+              <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-slate-400 font-bold text-sm">Pobieranie zgłoszeń...</p>
+            </div>
+          )}
+
+          {reportsError && !isLoadingReports && (
+            <div className="bg-rose-950/40 border border-rose-800 rounded-xl p-4 mb-4 text-center">
+              <p className="text-rose-300 font-bold text-sm">{reportsError}</p>
+              <button onClick={fetchAllData} className="mt-2 text-[10px] font-black uppercase tracking-widest text-rose-400 hover:text-rose-200 border border-rose-700 px-3 py-1 rounded-lg transition-all">Spróbuj ponownie</button>
+            </div>
+          )}
+
+          {!isLoadingReports && !reportsError && !showResolvedHistory && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {firstAidReports.map(report => (
+                <div key={report.ID || report.id} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
+                  <div className="mb-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span>
+                      <div className="flex items-center gap-2">
+                        {report.Status === 'W trakcie' && (
+                          <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest px-2 py-0.5 bg-amber-900/30 rounded border border-amber-700/50">W trakcie</span>
+                        )}
+                        <span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span>
+                      </div>
+                    </div>
+                    <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
+                    <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Zgłosił: {report.Osoba}</p>
+                    <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-3"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Opis zdarzenia:</p><p className="text-xs font-medium text-slate-300 italic">"{report.Powod || report['Powód'] || report.powod || '—'}"</p></div>
+                    <div className="bg-rose-950/30 p-3 rounded-lg border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Zużyte materiały:</p><ul className="text-[10px] font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || report['Zużyte Materiały'] || report.zuzyte_materialy || report.Zuzyte || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
+                  </div>
+                  <div className="flex gap-2">
+                    {report.Status !== 'W trakcie' && (
+                      <button onClick={() => markInProgress(report.ID || report.id)} disabled={isUpdatingStatus} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow transition-all disabled:opacity-50">W trakcie...</button>
+                    )}
+                    <button onClick={() => resolveFirstAidReport(report.ID || report.id)} disabled={isUpdatingStatus} className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź ✅</button>
+                  </div>
+                </div>
+              ))}
+              {firstAidReports.length === 0 && (
+                <div className="col-span-full py-12 text-center flex flex-col items-center"><span className="text-4xl mb-3 opacity-20">🏥</span><p className="text-slate-400 font-black text-base uppercase tracking-widest">Wszystkie apteczki są pełne</p></div>
+              )}
+            </div>
+          )}
+
+          {!isLoadingReports && !reportsError && showResolvedHistory && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {resolvedReports.map((report, idx) => (
+                <div key={report.ID || report.id || idx} className="bg-slate-800/50 border border-slate-700 p-4 rounded-2xl opacity-75">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 py-0.5 bg-slate-700 rounded">{report.Data_Zgloszenia}</span>
+                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest px-2 py-0.5 bg-emerald-900/30 rounded border border-emerald-700/50">Zamknięte</span>
+                  </div>
+                  <h3 className="text-sm font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
+                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest italic mb-2">Zgłosił: {report.Osoba}</p>
+                  <p className="text-[10px] text-slate-500 italic">"{report.Powod || report['Powód'] || report.powod || '—'}"</p>
+                </div>
+              ))}
+              {resolvedReports.length === 0 && (
+                <div className="col-span-full py-12 text-center flex flex-col items-center"><span className="text-4xl mb-3 opacity-20">📋</span><p className="text-slate-400 font-black text-base uppercase tracking-widest">Brak historii zgłoszeń</p></div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

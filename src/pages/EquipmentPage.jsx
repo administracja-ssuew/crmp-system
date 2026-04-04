@@ -130,7 +130,6 @@ export default function EquipmentPage() {
   });
 
   const toggleCart = (item) => {
-    if (item.isFirstAid) return;
     if (cart.find(c => c.id === item.id)) setCart(cart.filter(c => c.id !== item.id));
     else setCart([...cart, item]);
   };
@@ -326,13 +325,8 @@ export default function EquipmentPage() {
                 <div className="mt-auto pt-6 flex gap-2">
                   <button onClick={() => {setSelectedItem(item); setActiveTab('info');}} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors">Paszport</button>
                   {item.isFirstAid ? (
-                    <button onClick={() => {
-                      setSelectedItem(item);
-                      setUsedItems([]);
-                      setFirstAidDesc('');
-                      setIsFirstAidModalOpen(true);
-                    }} className="flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all bg-rose-600 hover:bg-rose-700 text-white">
-                      🚑 Zgłoś braki
+                    <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-rose-600 hover:bg-rose-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
+                      {isInCart(item.id) ? '✓ Wybrano' : '🏥 Wypożycz'}
                     </button>
                   ) : (
                     <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
@@ -484,8 +478,8 @@ export default function EquipmentPage() {
 
       {/* PASZPORT MAJĄTKU (Z ZAKŁADKĄ DIN DLA APTECZEK) */}
       {selectedItem && !isFirstAidModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn">
-          <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl relative animate-slideUp overflow-hidden flex flex-col md:flex-row">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md animate-fadeIn overflow-y-auto">
+          <div className="bg-white w-full max-w-3xl rounded-[2.5rem] shadow-2xl relative animate-slideUp flex flex-col md:flex-row my-auto" style={{maxHeight:'90vh',overflowY:'hidden'}}>
             <button onClick={() => setSelectedItem(null)} className="absolute top-6 right-6 w-10 h-10 bg-slate-900/10 rounded-full flex items-center justify-center text-slate-900 hover:bg-slate-900 hover:text-white transition-colors font-bold z-10">✕</button>
             
             <div className={`md:w-2/5 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden ${selectedItem.isFirstAid ? 'bg-rose-900' : 'bg-slate-900'}`}>
@@ -580,46 +574,83 @@ export default function EquipmentPage() {
                   </div>
                 )}
 
-                {activeTab === 'din' && selectedItem.isFirstAid && (
-                  <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative">
-                    <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
-                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
-                        Uwaga — Stan wykazany wg ostatniego przeglądu administracyjnego.
-                        Bieżące braki widoczne po zgłoszeniu przez użytkownika.
-                      </p>
-                    </div>
+                {activeTab === 'din' && selectedItem.isFirstAid && (() => {
+                  // Brakujące składniki: ze zgłoszeń dla tej apteczki (historia usera)
+                  const kitHistory = firstAidHistory.filter(r =>
+                    r.Apteczka_Nazwa && selectedItem.name &&
+                    r.Apteczka_Nazwa.toLowerCase() === selectedItem.name.toLowerCase()
+                  );
+                  const reportedMissing = new Set(
+                    kitHistory.flatMap(r =>
+                      String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+                    )
+                  );
+                  const isDinItemMissing = (dinItem) =>
+                    reportedMissing.size > 0 &&
+                    [...reportedMissing].some(m => dinItem.toLowerCase().includes(m) || m.includes(dinItem.toLowerCase().split(' ')[0]));
+                  const hasMissing = DIN_13169_ITEMS.some(isDinItemMissing);
+                  return (
+                  <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative overflow-y-auto" style={{maxHeight:'100%'}}>
+                    {hasMissing && (
+                      <div className="mb-4 bg-rose-50 border border-rose-200 rounded-xl p-3">
+                        <p className="text-[10px] font-bold text-rose-700 uppercase tracking-widest">⚠ Wykryto zgłoszone braki — pozycje oznaczone poniżej</p>
+                      </div>
+                    )}
+                    {!hasMissing && (
+                      <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-3">
+                        <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">
+                          Stan wg ostatniego przeglądu administracyjnego. Braki pojawiają się po ich zgłoszeniu.
+                        </p>
+                      </div>
+                    )}
                     <div className="text-center border-b border-black pb-4 mb-4">
                       <h3 className="font-black text-lg">PROTOKÓŁ WYPOSAŻENIA APTECZKI</h3>
                       <p className="font-bold text-slate-600 text-sm">Zgodność z Normą DIN 13169</p>
-                      <p className="text-xs mt-1">Stan na dzień: <strong>{dzisiaj}</strong></p>
+                      <p className="text-xs mt-1">Apteczka: <strong>{selectedItem.name}</strong></p>
+                      <p className="text-xs mt-0.5">Stan na dzień: <strong>{dzisiaj}</strong></p>
                     </div>
                     <table className="w-full text-left text-[10px] mb-8 border-collapse border border-slate-300">
                       <thead>
-                        <tr className="bg-slate-100"><th className="p-2 border border-slate-300">Składnik</th><th className="p-2 border border-slate-300 text-center">Stan</th></tr>
+                        <tr className="bg-slate-100">
+                          <th className="p-2 border border-slate-300">Lp.</th>
+                          <th className="p-2 border border-slate-300">Składnik</th>
+                          <th className="p-2 border border-slate-300 text-center">Ilość norm.</th>
+                          <th className="p-2 border border-slate-300 text-center">Stan</th>
+                        </tr>
                       </thead>
                       <tbody>
-                        {DIN_13169_ITEMS.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="p-2 border border-slate-300">{item}</td>
-                            <td className="p-2 border border-slate-300 text-center font-bold text-emerald-600">ZGODNY</td>
-                          </tr>
-                        ))}
+                        {DIN_13169_ITEMS.map((dinItem, idx) => {
+                          const missing = isDinItemMissing(dinItem);
+                          const namePart = dinItem.split(' - ')[0];
+                          const qtyPart = dinItem.includes(' - ') ? dinItem.split(' - ').slice(1).join(' - ') : '—';
+                          return (
+                            <tr key={idx} className={missing ? 'bg-rose-50' : ''}>
+                              <td className="p-2 border border-slate-300 text-center text-slate-400">{idx + 1}</td>
+                              <td className="p-2 border border-slate-300">{namePart}</td>
+                              <td className="p-2 border border-slate-300 text-center text-slate-500">{qtyPart}</td>
+                              <td className={`p-2 border border-slate-300 text-center font-bold ${missing ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                {missing ? 'BRAK' : 'ZGODNY'}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
-                    <div className="flex justify-between mt-12 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
+                    <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2">
                         <p className="mb-8">..........................................</p>
                         <p className="font-bold">ZATWIERDZIŁ</p>
-                        <p className="text-slate-500">Zarząd SSUEW</p>
+                        <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
                       </div>
                       <div className="w-1/2">
                         <p className="mb-8">..........................................</p>
-                        <p className="font-bold">ZATWIERDZIŁ</p>
-                        <p className="text-slate-500">Sekcja BHP UEW</p>
+                        <p className="font-bold">POTWIERDZIŁ</p>
+                        <p className="text-slate-500">Opiekun BHP UEW</p>
                       </div>
                     </div>
                   </div>
-                )}
+                  );
+                })()}
               </div>
             </div>
           </div>
