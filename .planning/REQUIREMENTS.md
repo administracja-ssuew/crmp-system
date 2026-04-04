@@ -7,8 +7,8 @@
 
 ### Email (Resend)
 
-- [ ] **EMAIL-01**: Zmienić nadawcę w api/approve-request.js, api/reject-request.js i api/request-access.js z `onboarding@resend.dev` na zweryfikowaną domenę Resend
-- [ ] **EMAIL-02**: Rozbudować treść maila po zatwierdzeniu konta do pełnego onboardingu: powitanie, krótki opis CRA, instrukcja pierwszego logowania (Google), link do systemu
+- [x] **EMAIL-01**: Zmienić nadawcę w api/approve-request.js, api/reject-request.js i api/request-access.js z `onboarding@resend.dev` na zweryfikowaną domenę Resend
+- [x] **EMAIL-02**: Rozbudować treść maila po zatwierdzeniu konta do pełnego onboardingu: powitanie, krótki opis CRA, instrukcja pierwszego logowania (Google), link do systemu
 - [ ] **EMAIL-03**: Mail po odrzuceniu wniosku (api/reject-request.js) spójny wizualnie i językowo z resztą komunikacji
 
 ### Equipment (Baza Sprzętu)
@@ -63,8 +63,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EMAIL-01 | Phase 1 | Pending |
-| EMAIL-02 | Phase 1 | Pending |
+| EMAIL-01 | Phase 1 | Complete |
+| EMAIL-02 | Phase 1 | Complete |
 | EMAIL-03 | Phase 1 | Pending |
 | EQ-01 | Phase 2 | Pending |
 | EQ-02 | Phase 2 | Pending |
