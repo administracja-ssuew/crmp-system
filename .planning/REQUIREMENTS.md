@@ -13,10 +13,10 @@
 
 ### Equipment (Baza Sprzętu)
 
-- [ ] **EQ-01**: Naprawić istniejące błędy w EquipmentPage.jsx i AdminEquipmentPanel.jsx
-- [ ] **EQ-02**: Uzupełnić brakujące funkcje modułu sprzętu (do ustalenia po inspekcji kodu)
-- [ ] **EQ-03**: Naprawić błędy w module apteczek w AdminEquipmentPanel
-- [ ] **EQ-04**: Uzupełnić brakujące funkcje apteczek (historia zgłoszeń, obsługa stanów)
+- [x] **EQ-01**: Naprawić istniejące błędy w EquipmentPage.jsx i AdminEquipmentPanel.jsx
+- [x] **EQ-02**: Uzupełnić brakujące funkcje modułu sprzętu (do ustalenia po inspekcji kodu)
+- [x] **EQ-03**: Naprawić błędy w module apteczek w AdminEquipmentPanel
+- [x] **EQ-04**: Uzupełnić brakujące funkcje apteczek (historia zgłoszeń, obsługa stanów)
 
 ### Access List (Lista Dostępowa)
 
@@ -66,10 +66,10 @@
 | EMAIL-01 | Phase 1 | Complete |
 | EMAIL-02 | Phase 1 | Complete |
 | EMAIL-03 | Phase 1 | Pending |
-| EQ-01 | Phase 2 | Pending |
-| EQ-02 | Phase 2 | Pending |
-| EQ-03 | Phase 2 | Pending |
-| EQ-04 | Phase 2 | Pending |
+| EQ-01 | Phase 2 | Complete |
+| EQ-02 | Phase 2 | Complete |
+| EQ-03 | Phase 2 | Complete |
+| EQ-04 | Phase 2 | Complete |
 | ACC-01 | Phase 3 | Pending |
 | ACC-02 | Phase 3 | Pending |
 | ACC-03 | Phase 3 | Pending |

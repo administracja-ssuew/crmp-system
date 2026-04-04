@@ -7,7 +7,7 @@
 ## Phases
 
 - [ ] **Phase 1: Email Fix** — Fix Resend sender domain and rewrite all three transactional email templates
-- [ ] **Phase 2: Baza Sprzętu + Apteczki** — Fix bugs and complete missing features in equipment catalog and first aid kit modules
+- [x] **Phase 2: Baza Sprzętu + Apteczki** — Fix bugs and complete missing features in equipment catalog and first aid kit modules (completed 2026-04-04)
 - [ ] **Phase 3: Lista Dostępowa** — Build new monthly access list module (form, admin panel, PDF generation, approved list view)
 - [ ] **Phase 4: Kompendium + Księga Inwentarzowa** — Redesign KompendiumPage and add new KsiegaInwentarzPage tab
 - [ ] **Phase 5: Mapa Kampusu** — Improve MapPage interactivity and prepare integration point for new Photoshop campus map
@@ -43,7 +43,7 @@
   4. A user can submit a first aid kit deficiency report (select missing items, add description) and it persists in the GAS sheet
   5. An admin can see open first aid reports and mark them resolved; resolved reports disappear from the list
 **Plans:**
-- [ ] 2.1 — Code inspection & bug list: Read both files in full, document all identified bugs and missing states (null-guards, broken GAS field names, loading/error states) — prerequisite for 2.2 and 2.3
+3/3 plans complete
 - [ ] 2.2 — EquipmentPage bug fixes: Apply fixes identified in 2.1 to EquipmentPage.jsx (stable IDs, collision check edge cases, cart UX, error states) — depends on 2.1
 - [ ] 2.3 — AdminEquipmentPanel bug fixes: Apply fixes identified in 2.1 to AdminEquipmentPanel.jsx (firstAidReports field name fallbacks, wydania display, return flow) — depends on 2.1, can run in parallel with 2.2
 - [ ] 2.4 — First aid history & state management: Add submission history view for users (past reports) and complete status lifecycle (open → in progress → resolved) in AdminEquipmentPanel
@@ -104,7 +104,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Email Fix | 0/4 | Not started | - |
-| 2. Baza Sprzętu + Apteczki | 0/4 | Not started | - |
+| 2. Baza Sprzętu + Apteczki | 0/4 | Complete    | 2026-04-04 |
 | 3. Lista Dostępowa | 0/5 | Not started | - |
 | 4. Kompendium + Księga Inwentarzowa | 0/3 | Not started | - |
 | 5. Mapa Kampusu | 0/3 | Not started | - |
