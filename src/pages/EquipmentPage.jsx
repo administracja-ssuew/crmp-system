@@ -231,6 +231,7 @@ export default function EquipmentPage() {
       if (result.success) {
         alert("Zgłoszono braki w apteczce. Dziękujemy!");
         setIsFirstAidModalOpen(false); setUsedItems([]); setFirstAidDesc(''); setSelectedItem(null);
+        fetchData(true);
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
       }
@@ -349,39 +350,6 @@ export default function EquipmentPage() {
           }) : <div className="col-span-full text-center py-12"><p className="text-slate-400 font-bold text-lg">Brak sprzętu w tej kategorii.</p></div>}
         </div>
 
-        {/* HISTORIA TWOICH ZGŁOSZEŃ APTECZEK */}
-        {firstAidHistory.length > 0 && (
-          <div className="w-full mt-12 animate-fadeIn">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-xl">📋</span>
-              <div>
-                <h2 className="text-lg font-black text-slate-800 tracking-tight">Twoje zgłoszenia apteczek</h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Historia zgłoszonych braków</p>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {firstAidHistory.map((report, idx) => (
-                <div key={report.ID || report.id || idx} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest px-2 py-0.5 bg-rose-50 rounded border border-rose-100">{report.Data_Zgloszenia || '—'}</span>
-                    {report.Status === 'Zamknięte' || report.Status === 'zamkniete' ? (
-                      <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest px-2 py-0.5 bg-emerald-50 rounded border border-emerald-200">Uzupełniono</span>
-                    ) : report.Status === 'W trakcie' ? (
-                      <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest px-2 py-0.5 bg-amber-50 rounded border border-amber-200">W trakcie</span>
-                    ) : (
-                      <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest px-2 py-0.5 bg-blue-50 rounded border border-blue-200">Otwarte</span>
-                    )}
-                  </div>
-                  <h3 className="text-sm font-black text-slate-800 mb-1">{report.Apteczka_Nazwa || '—'}</h3>
-                  <p className="text-xs text-slate-500 italic mb-2">"{report.Powod || '—'}"</p>
-                  {report.Zuzyte_Materialy && (
-                    <p className="text-[10px] font-bold text-rose-600 truncate">{report.Zuzyte_Materialy}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {cart.length > 0 && (
@@ -653,7 +621,7 @@ export default function EquipmentPage() {
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
                         <div className="h-12 flex items-end justify-center mb-1">
-                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain mix-blend-multiply" onError={e => { e.target.style.display='none'; }} />
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain" style={{mixBlendMode:'multiply'}} onError={e => { e.target.style.display='none'; }} />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
