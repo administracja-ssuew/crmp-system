@@ -72,10 +72,9 @@ export default function AdminEquipmentPanel() {
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []);
           console.log('[CRW] fetchAllData keys:', Object.keys(data));
-          const reports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
-          setFirstAidReports(reports);
-          const resolved = data.apteczkiBrakiArchiwum || data.resolvedReports || data.apteczki_zamkniete || [];
-          setResolvedReports(resolved);
+          const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
+          setFirstAidReports(allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane')));
+          setResolvedReports(allReports.filter(r => String(r.Status || '').startsWith('Zrealizowane')));
         }
       })
       .catch(() => {
@@ -187,28 +186,6 @@ export default function AdminEquipmentPanel() {
     }
   };
 
-  const markInProgress = async (reportId) => {
-    setIsUpdatingStatus(true);
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST', redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "aktualizujStatusApteczki", id: reportId, status: "W trakcie", adminOsoba: user?.email })
-      });
-      const result = await response.json();
-      if (result.success) {
-        setFirstAidReports(prev => prev.map(r =>
-          (r.ID || r.id) === reportId ? { ...r, Status: 'W trakcie' } : r
-        ));
-      } else {
-        alert(`Błąd: ${result.message || 'Nie udało się zmienić statusu.'}`);
-      }
-    } catch (err) {
-      alert("Błąd połączenia — status NIE został zmieniony.");
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
 
   const formatResDate = (rawDate) => {
     if (!rawDate) return '';
@@ -371,12 +348,7 @@ export default function AdminEquipmentPanel() {
                   <div className="mb-4">
                     <div className="flex justify-between items-start mb-3">
                       <span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span>
-                      <div className="flex items-center gap-2">
-                        {report.Status === 'W trakcie' && (
-                          <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest px-2 py-0.5 bg-amber-900/30 rounded border border-amber-700/50">W trakcie</span>
-                        )}
-                        <span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span>
-                      </div>
+                      <span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span>
                     </div>
                     <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
                     <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Zgłosił: {report.Osoba}</p>
@@ -384,10 +356,7 @@ export default function AdminEquipmentPanel() {
                     <div className="bg-rose-950/30 p-3 rounded-lg border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Zużyte materiały:</p><ul className="text-[10px] font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || report['Zużyte Materiały'] || report.zuzyte_materialy || report.Zuzyte || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
                   </div>
                   <div className="flex gap-2">
-                    {report.Status !== 'W trakcie' && (
-                      <button onClick={() => markInProgress(report.ID || report.id)} disabled={isUpdatingStatus} className="flex-1 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow transition-all disabled:opacity-50">W trakcie...</button>
-                    )}
-                    <button onClick={() => resolveFirstAidReport(report.ID || report.id)} disabled={isUpdatingStatus} className="flex-1 py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź ✅</button>
+                    <button onClick={() => resolveFirstAidReport(report.ID || report.id)} disabled={isUpdatingStatus} className="w-full py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź uzupełnienie ✅</button>
                   </div>
                 </div>
               ))}

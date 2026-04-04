@@ -47,6 +47,7 @@ export default function EquipmentPage() {
   const [usedItems, setUsedItems] = useState([]);
   const [firstAidDesc, setFirstAidDesc] = useState('');
   const [firstAidHistory, setFirstAidHistory] = useState([]);
+  const [allFirstAidReports, setAllFirstAidReports] = useState([]);
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
@@ -103,6 +104,8 @@ export default function EquipmentPage() {
         setAllReservations(data.rezerwacje || []);
         setAllWydania(data.wydania || []);
         const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
+        const activeReports = allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane'));
+        setAllFirstAidReports(activeReports);
         const myReports = allReports.filter(r =>
           r.Osoba && user?.email && r.Osoba.toLowerCase() === user.email.toLowerCase()
         );
@@ -575,8 +578,8 @@ export default function EquipmentPage() {
                 )}
 
                 {activeTab === 'din' && selectedItem.isFirstAid && (() => {
-                  // Brakujące składniki: ze zgłoszeń dla tej apteczki (historia usera)
-                  const kitHistory = firstAidHistory.filter(r =>
+                  // Brakujące składniki: ze WSZYSTKICH aktywnych zgłoszeń dla tej apteczki
+                  const kitHistory = allFirstAidReports.filter(r =>
                     r.Apteczka_Nazwa && selectedItem.name &&
                     r.Apteczka_Nazwa.toLowerCase() === selectedItem.name.toLowerCase()
                   );
