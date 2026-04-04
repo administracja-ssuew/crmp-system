@@ -35,7 +35,7 @@ export const ROOMS = ['9 J', '16 J', '28 J', '11 J']
 export const currentMonth = () => new Date().toISOString().slice(0, 7)
 
 // TODO: zmień na właściwy link do klauzuli RODO na Google Drive
-const RODO_URL = 'https://drive.google.com/file/d/ZMIEN_NA_WLASCIWY_ID/view'
+const RODO_URL = 'https://drive.google.com/file/d/1HTT1NygPaAo2DFBc0ukiEP3mPcMM3v5m/view?usp=sharing'
 
 const EMPTY_FORM = {
   name: '',

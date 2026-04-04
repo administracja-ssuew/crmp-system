@@ -4,7 +4,7 @@ import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 
 // TODO: zmień na właściwy link do wzoru listy dostępowej na Google Drive
-const DRIVE_TEMPLATE_URL = 'https://drive.google.com/file/d/ZMIEN_NA_WLASCIWY_ID/view'
+const DRIVE_TEMPLATE_URL = 'hhttps://docs.google.com/document/d/1yx9s2TrSeHSnM8OsuygWhdqAmx8uc88C/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true'
 
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
