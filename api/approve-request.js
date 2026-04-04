@@ -1,6 +1,7 @@
 import { Resend } from 'resend';
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
+import { FROM, emailShell, ctaButton, esc } from './_email.js';
 
 if (!getApps().length) {
   initializeApp({
@@ -32,18 +33,38 @@ export default async function handler(req, res) {
 
     // 3. Wyślij maila do wnioskodawcy
     await resend.emails.send({
-      from: 'onboarding@resend.dev',
+      from: FROM,
       to: email,
       subject: '✅ Dostęp do CRA przyznany!',
-      html: `
-        <h2>Cześć ${name}!</h2>
-        <p>Twój wniosek o dostęp do systemu CRA został <b>zatwierdzony</b>.</p>
-        <a href="https://cra-system.vercel.app" 
-           style="background:#4f46e5;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
-          Przejdź do CRA →
-        </a>
-        <p style="color:#64748b;font-size:12px;margin-top:16px;">Samorząd Studentów UEW</p>
-      `,
+      html: emailShell('Dostęp przyznany — CRA', `
+    <h2 style="color:#1e293b;font-size:22px;margin:0 0 16px;">Cześć ${esc(name)}!</h2>
+    <p style="color:#334155;font-size:16px;line-height:1.6;margin:0 0 12px;">
+      Twój wniosek o dostęp do systemu CRA został <strong>zatwierdzony</strong>.
+      Witamy Cię w gronie aktywnych członków Samorządu Studentów UEW!
+    </p>
+
+    <h3 style="color:#4f46e5;font-size:16px;margin:24px 0 8px;">Czym jest CRA?</h3>
+    <p style="color:#334155;font-size:15px;line-height:1.6;margin:0 0 12px;">
+      CRA (Centralny Rejestr Administracyjny) to wewnętrzna platforma Samorządu Studentów
+      Uniwersytetu Ekonomicznego we Wrocławiu. Znajdziesz tu katalog sprzętu i rezerwacje,
+      rejestr stanowisk, dokumenty organizacyjne oraz mapę kampusu — wszystko w jednym miejscu.
+    </p>
+
+    <h3 style="color:#4f46e5;font-size:16px;margin:24px 0 8px;">Jak się zalogować?</h3>
+    <ol style="color:#334155;font-size:15px;line-height:1.8;margin:0 0 16px;padding-left:20px;">
+      <li>Wejdź na stronę: <a href="https://cra-system.vercel.app"
+          style="color:#4f46e5;">cra-system.vercel.app</a></li>
+      <li>Kliknij przycisk <strong>„Zaloguj się przez Google"</strong></li>
+      <li>Wybierz swoje konto Google przypisane do organizacji</li>
+    </ol>
+
+    ${ctaButton('Przejdź do CRA →', 'https://cra-system.vercel.app')}
+
+    <p style="color:#64748b;font-size:14px;margin-top:24px;">
+      Do zobaczenia w systemie!<br>
+      <strong>Samorząd Studentów UEW</strong>
+    </p>
+  `),
     });
 
     return res.status(200).json({ success: true });
