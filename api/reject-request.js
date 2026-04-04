@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     await db.collection('access_requests').doc(requestId).update({ status: 'rejected' });
 
     // 2. Wyślij maila do wnioskodawcy
-    await resend.emails.send({
+    const { error: emailError } = await resend.emails.send({
       from: FROM,
       to: email,
       subject: '❌ Wniosek o dostęp do CRA — odrzucony',
@@ -45,6 +45,11 @@ export default async function handler(req, res) {
     </p>
   `),
     });
+
+    if (emailError) {
+      console.error('Resend error:', emailError);
+      return res.status(500).json({ error: `Błąd wysyłki maila: ${emailError.message}` });
+    }
 
     return res.status(200).json({ success: true });
   } catch (error) {
