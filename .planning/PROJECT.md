@@ -17,6 +17,8 @@ Jeden punkt dostępu do wszystkich zasobów i narzędzi SSUEW — bez zbędnej b
 - ✓ Panel administracyjny wniosków dostępowych (`/wnioski`) — existing
 - ✓ Baza Sprzętu: katalog, rezerwacje, wypożyczenia (`/sprzet`, `/wydawanie`) — existing
 - ✓ Raportowanie braków w apteczkach (moduł w AdminEquipmentPanel) — existing
+- ✓ Baza Sprzętu: collision check z wydaniami, usuwanie z koszyka, reset formularzy, stany błędów — Phase 2
+- ✓ Apteczki: status lifecycle (open → w trakcie → resolved), historia zgłoszeń admin + user — Phase 2
 - ✓ Kalendarze: pokoje SSUEW + organizacje (`/kalendarz/samorzad`, `/kalendarz/organizacje`) — existing
 - ✓ Rejestr Stanowisk (`/rejestr`) — existing
 - ✓ Mapa Kampusu — lokalizacje plakatowe (`/mapa`) — existing
@@ -30,8 +32,7 @@ Jeden punkt dostępu do wszystkich zasobów i narzędzi SSUEW — bez zbędnej b
 
 ### Active
 
-- [ ] Naprawić integrację Resend — zmienić domenę nadawcy na zweryfikowaną, wysyłać pełny onboarding email po zatwierdzeniu konta
-- [ ] Poprawić i ukończyć moduł Bazy Sprzętu + apteczki — naprawić błędy, uzupełnić brakujące funkcje
+- [ ] Naprawić integrację Resend — zmienić domenę nadawcy na zweryfikowaną (wymaga DNS od admina IT)
 - [ ] Lista Dostępowa — miesięczny moduł zgłoszeń dostępu do pomieszczeń SSUEW (otwarcie auto 1. dnia miesiąca na 5 dni, zatwierdzone przez admina, export PDF, widoczna lista zatwierdzonych)
 - [ ] Uatrakcyjnić Kompendium Wiedzy Protokolanta — wzory, nowe bajery, lepsza prezentacja treści
 - [ ] Dodać Księgę Inwentarzową — informacyjny przewodnik po inwentarzu (nowa zakładka)
@@ -88,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after initialization*
+*Last updated: 2026-04-04 after Phase 2*
