@@ -640,15 +640,19 @@ export default function EquipmentPage() {
                       </tbody>
                     </table>
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
-                      <div className="w-1/2">
-                        <p className="mb-8">..........................................</p>
-                        <p className="font-bold">ZATWIERDZIŁ</p>
+                      <div className="w-1/2 pr-4">
+                        <div className="h-10 flex items-end justify-center mb-1">
+                          <span className="text-xs font-bold text-slate-700">{user?.displayName || user?.email || ''}</span>
+                        </div>
+                        <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
                       </div>
-                      <div className="w-1/2">
-                        <p className="mb-8">..........................................</p>
-                        <p className="font-bold">POTWIERDZIŁ</p>
-                        <p className="text-slate-500">Opiekun BHP UEW</p>
+                      <div className="w-1/2 pl-4">
+                        <div className="h-10 flex items-end justify-center mb-1">
+                          <span className="text-slate-400">..........................................</span>
+                        </div>
+                        <p className="border-t border-black pt-1 font-bold">POTWIERDZIŁ</p>
+                        <p className="text-slate-500">Sekcja ds. BHP UEW</p>
                       </div>
                     </div>
                   </div>

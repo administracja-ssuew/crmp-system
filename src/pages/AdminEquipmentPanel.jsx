@@ -73,8 +73,8 @@ export default function AdminEquipmentPanel() {
           setAllWydania(data.wydania || []);
           console.log('[CRW] fetchAllData keys:', Object.keys(data));
           const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
-          setFirstAidReports(allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane')));
-          setResolvedReports(allReports.filter(r => String(r.Status || '').startsWith('Zrealizowane')));
+          setFirstAidReports(allReports.filter(r => r.Apteczka_Nazwa && !String(r.Status || '').startsWith('Zrealizowane')));
+          setResolvedReports(allReports.filter(r => r.Apteczka_Nazwa && String(r.Status || '').startsWith('Zrealizowane')));
         }
       })
       .catch(() => {
@@ -174,8 +174,7 @@ export default function AdminEquipmentPanel() {
       const result = await response.json();
       if (result.success) {
         alert("Zgłoszenie zamknięte! Dziękujemy za uzupełnienie apteczki.");
-        // Unify ID casing: accept both report.ID and report.id
-        setFirstAidReports(prev => prev.filter(r => (r.ID || r.id) !== reportId));
+        fetchAllData();
       } else {
         alert(`Błąd serwera: ${result.message || 'Nieznany błąd'}. Zgłoszenie NIE zostało zamknięte.`);
       }
@@ -409,7 +408,6 @@ export default function AdminEquipmentPanel() {
                 <div className="max-h-72 overflow-y-auto bg-slate-50 border border-slate-100 rounded-xl p-2 mb-4">
                   {equipmentData.filter(i =>
                     i.status === 'available' &&
-                    !i.isFirstAid &&
                     !issuedItemIds.has(i.id) &&
                     (i.name.toLowerCase().includes(searchQuery.toLowerCase()) || i.id.toLowerCase().includes(searchQuery.toLowerCase()))
                   ).map(item => (
