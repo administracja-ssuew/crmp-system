@@ -19,22 +19,28 @@ export default function AccessRequestsPanel() {
   useEffect(() => { fetchRequests(); }, []);
 
   const handleApprove = async (request) => {
-    // 1. Dodaj do authorized_users
-    await fetch('/api/approve-request', {
+    const res = await fetch('/api/approve-request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId: request.id, email: request.email, name: request.name }),
     });
-    // 2. Odśwież listę
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(`Błąd zatwierdzania: ${data.error || res.status}`);
+    }
     fetchRequests();
   };
 
   const handleReject = async (request) => {
-    await fetch('/api/reject-request', {
+    const res = await fetch('/api/reject-request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId: request.id, email: request.email, name: request.name }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(`Błąd odrzucania: ${data.error || res.status}`);
+    }
     fetchRequests();
   };
 

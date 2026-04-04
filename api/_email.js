@@ -9,7 +9,7 @@
  * so that a missing env var causes Resend to reject loudly (logged error)
  * rather than silently sending from the sandbox address.
  */
-export const FROM = process.env.RESEND_FROM_EMAIL || 'noreply@example.com';
+export const FROM = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
 /**
  * Escapes user-supplied strings for safe HTML interpolation.
