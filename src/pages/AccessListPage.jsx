@@ -11,6 +11,7 @@ import { useState, useEffect } from 'react'
 import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
+import AdminAccessPanel from './AdminAccessPanel'
 
 // --- Window helpers (ACC-03) ---
 export const isWindowOpen = () => {
@@ -50,8 +51,10 @@ const EMPTY_FORM = {
 }
 
 export default function AccessListPage() {
-  const { user } = useAuth()
+  const { user, userRole } = useAuth()
+  const isAdmin = userRole === 'admin'
   const windowOpen = isWindowOpen()
+  const [activeTab, setActiveTab] = useState('form')
 
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
@@ -163,12 +166,40 @@ export default function AccessListPage() {
       <div className="max-w-xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-black text-slate-800">Lista Dostępowa</h1>
           <p className="text-slate-500 mt-1 text-sm">Miesięczne zgłoszenia dostępu do pomieszczeń Samorządu</p>
         </div>
 
-        {windowOpen ? (
+        {/* Zakładki — zakładka Panel Admina widoczna tylko dla adminów */}
+        {isAdmin && (
+          <div className="flex gap-1 mb-6 bg-slate-100 p-1 rounded-2xl">
+            {[
+              { id: 'form', label: '🗝️ Zgłoszenie' },
+              { id: 'admin', label: '🔐 Panel Admina' },
+            ].map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-2 px-4 rounded-xl text-sm font-bold transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Panel Admina */}
+        {activeTab === 'admin' && isAdmin && (
+          <AdminAccessPanel embedded />
+        )}
+
+        {/* Formularz / widok użytkownika */}
+        {activeTab === 'form' && (windowOpen ? (
           submitted ? (
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-8 text-center">
               <div className="text-4xl mb-4">✅</div>
@@ -386,7 +417,7 @@ export default function AccessListPage() {
               )}
             </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
   )

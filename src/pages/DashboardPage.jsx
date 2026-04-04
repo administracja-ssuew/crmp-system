@@ -364,7 +364,6 @@ export default function DashboardPage() {
           {isAdmin && (
             <>
               <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
-              <Card to="/admin-dostep" icon="🔐" title="Panel Dostęp" subtitle="Zarządzaj listą dostępową" colorFrom="from-violet-600" colorTo="to-purple-800" buttonText="Zarządzaj" />
             </>
           )}
         </div>
