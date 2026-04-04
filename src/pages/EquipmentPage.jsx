@@ -231,9 +231,12 @@ export default function EquipmentPage() {
       const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();
       if (result.success) {
-        alert("Zgłoszono braki w apteczce. Dziękujemy!");
-        setIsFirstAidModalOpen(false); setUsedItems({}); setFirstAidDesc(''); setSelectedItem(null);
-        fetchData(true);
+        setIsFirstAidModalOpen(false);
+        setUsedItems({});
+        setFirstAidDesc('');
+        // NIE zamykamy selectedItem — żeby DIN tab w paszporcie odświeżył się widocznie
+        // Czekamy 1.5s na zapis GAS przed odświeżeniem
+        setTimeout(() => fetchData(true), 1500);
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
       }

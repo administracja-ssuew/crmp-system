@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react'
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
-import jsPDF from 'jspdf'
+
+// TODO: zmień na właściwy link do wzoru listy dostępowej na Google Drive
+const DRIVE_TEMPLATE_URL = 'https://drive.google.com/file/d/ZMIEN_NA_WLASCIWY_ID/view'
 
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
-const MONTHS_PL = [
-  'Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
-  'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień',
-]
 
 const STATUS_LABELS = {
   pending:  { label: 'Oczekuje',    bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200'  },
@@ -57,7 +55,8 @@ export default function AdminAccessPanel() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isUpdating, setIsUpdating] = useState(new Set())
-  const [isExporting, setIsExporting] = useState(false)
+  const [listModal, setListModal] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const month = currentMonth()
 
@@ -100,176 +99,32 @@ export default function AdminAccessPanel() {
     }
   }
 
-  const handleExportPDF = async () => {
+  const generateListText = () => {
     const approvedSubmissions = submissions.filter(s => s.status === 'approved')
-    setIsExporting(true)
-
-    try {
-      const now = new Date()
-      const monthName = MONTHS_PL[now.getMonth()].toUpperCase()
-      const year = now.getFullYear()
-      const monthStr = month // "YYYY-MM"
-
-      const docPdf = new jsPDF({ format: 'a4', unit: 'mm' })
-      const pageW = 210
-      const pageH = 297
-      const marginL = 20
-      const marginR = 20
-      const marginBottom = 28   // rezerwujemy miejsce na stopkę
-      const contentW = pageW - marginL - marginR
-      const maxY = pageH - marginBottom
-
-      // --- Próba załadowania logo ---
-      let logoDataUrl = null
-      try {
-        const resp = await fetch('/logo.png')
-        const blob = await resp.blob()
-        logoDataUrl = await new Promise(resolve => {
-          const reader = new FileReader()
-          reader.onload = () => resolve(reader.result)
-          reader.readAsDataURL(blob)
-        })
-      } catch (_) { /* bez logo — kontynuuj */ }
-
-      // ---- Helpers ----
-      const setTimes = (style, size, color = [20, 20, 20]) => {
-        docPdf.setFont('times', style)
-        docPdf.setFontSize(size)
-        docPdf.setTextColor(...color)
+    const lines = []
+    for (const room of ROOMS_PDF_ORDER) {
+      lines.push(`Lista dostępowa do pomieszczenia ${room}`)
+      lines.push('')
+      for (const p of (PERMANENT[room] ?? [])) {
+        lines.push(`${p.name} (${p.index})`)
       }
-
-      const drawFooter = () => {
-        const fy = pageH - 14
-        docPdf.setDrawColor(180, 180, 180)
-        docPdf.setLineWidth(0.3)
-        docPdf.line(marginL, fy - 4, pageW - marginR, fy - 4)
-        docPdf.setFont('times', 'normal')
-        docPdf.setFontSize(7)
-        docPdf.setTextColor(120, 120, 120)
-        docPdf.text('Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu', pageW / 2, fy, { align: 'center' })
-        docPdf.text(
-          'ul. Kamienna 43, 53-307 Wrocław   \u2022   e-mail: kontakt@samorzad.ue.wroc.pl   \u2022   samorzad.ue.wroc.pl',
-          pageW / 2, fy + 4.5, { align: 'center' }
-        )
+      const roomApproved = approvedSubmissions.filter(s =>
+        (s.rooms ?? (s.room ? [s.room] : [])).includes(room)
+      )
+      for (const s of roomApproved) {
+        lines.push(`${s.name} (${s.index})`)
       }
-
-      const drawHeader = (small = false) => {
-        let y = 12
-        if (logoDataUrl) {
-          const logoH = small ? 10 : 14
-          const logoW = logoH
-          docPdf.addImage(logoDataUrl, 'PNG', marginL, y, logoW, logoH)
-          docPdf.setFont('times', 'bold')
-          docPdf.setFontSize(small ? 8 : 10)
-          docPdf.setTextColor(30, 30, 30)
-          docPdf.text('SAMORZĄD STUDENTÓW', marginL + logoW + 3, y + (small ? 4 : 5))
-          docPdf.setFont('times', 'normal')
-          docPdf.setFontSize(small ? 7 : 8.5)
-          docPdf.setTextColor(80, 80, 80)
-          docPdf.text('Uniwersytetu Ekonomicznego we Wrocławiu', marginL + logoW + 3, y + (small ? 8.5 : 10.5))
-          y += small ? 14 : 20
-        } else {
-          docPdf.setFont('times', 'bold')
-          docPdf.setFontSize(small ? 8 : 10)
-          docPdf.setTextColor(30, 30, 30)
-          docPdf.text('SAMORZĄD STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU', marginL, y + 5)
-          y += small ? 12 : 16
-        }
-        docPdf.setDrawColor(30, 30, 80)
-        docPdf.setLineWidth(0.5)
-        docPdf.line(marginL, y, pageW - marginR, y)
-        return y + (small ? 6 : 8)
-      }
-
-      // ============================
-      // STRONA TYTUŁOWA
-      // ============================
-      let y = drawHeader(false)
-
-      // Data — prawy górny róg
-      const dateStr = `Wrocław, ${now.getDate()} ${MONTHS_PL[now.getMonth()]} ${year} r.`
-      setTimes('italic', 9, [100, 100, 100])
-      docPdf.text(dateStr, pageW - marginR, y, { align: 'right' })
-      y += 28
-
-      // Tytuł — duże litery, Times Bold, wyśrodkowany, zawijany
-      const titleText = `LISTA DOSTĘPOWA DO PRZESTRZENI PRZEZNACZONEJ POD DZIAŁALNOŚĆ SAMORZĄDU STUDENTÓW UNIWERSYTETU EKONOMICZNEGO WE WROCŁAWIU W BUDYNKU B/J (${monthName} ${year})`
-      setTimes('bold', 15)
-      const titleLines = docPdf.splitTextToSize(titleText, contentW)
-      docPdf.text(titleLines, pageW / 2, y, { align: 'center', lineHeightFactor: 1.5 })
-      y += titleLines.length * 8.5 + 12
-
-      // Linia pod tytułem
-      docPdf.setDrawColor(180, 180, 180)
-      docPdf.setLineWidth(0.3)
-      docPdf.line(marginL, y, pageW - marginR, y)
-
-      drawFooter()
-
-      // ============================
-      // STRONY Z LISTAMI
-      // ============================
-      docPdf.addPage()
-      y = drawHeader(true)
-
-      for (const room of ROOMS_PDF_ORDER) {
-        // Czy zmieści się nagłówek + przynajmniej 2 linie?
-        if (y > maxY - 20) {
-          drawFooter()
-          docPdf.addPage()
-          y = drawHeader(true)
-        }
-
-        // Nagłówek sali
-        setTimes('bold', 12)
-        docPdf.text(`Lista dostępowa do pomieszczenia ${room}`, marginL, y)
-        y += 1.5
-        docPdf.setDrawColor(120, 120, 120)
-        docPdf.setLineWidth(0.25)
-        docPdf.line(marginL, y, pageW - marginR, y)
-        y += 6
-
-        // Stałe wpisy
-        const permanentEntries = PERMANENT[room] ?? []
-        setTimes('normal', 11)
-        for (const p of permanentEntries) {
-          if (y > maxY) { drawFooter(); docPdf.addPage(); y = drawHeader(true) }
-          docPdf.text(`${p.name} (${p.index})`, marginL + 4, y)
-          y += 6.5
-        }
-
-        // Zatwierdzone zgłoszenia do tej sali
-        const roomApproved = approvedSubmissions.filter(s =>
-          (s.rooms ?? (s.room ? [s.room] : [])).includes(room)
-        )
-        for (const s of roomApproved) {
-          if (y > maxY) { drawFooter(); docPdf.addPage(); y = drawHeader(true) }
-          docPdf.text(`${s.name} (${s.index})`, marginL + 4, y)
-          y += 6.5
-        }
-
-        y += 8
-      }
-
-      drawFooter()
-
-      // Numery stron
-      const totalPages = docPdf.getNumberOfPages()
-      for (let i = 1; i <= totalPages; i++) {
-        docPdf.setPage(i)
-        docPdf.setFont('times', 'normal')
-        docPdf.setFontSize(8)
-        docPdf.setTextColor(160, 160, 160)
-        docPdf.text(`${i} / ${totalPages}`, pageW - marginR, pageH - 5, { align: 'right' })
-      }
-
-      docPdf.save(`lista-dostepowa-${monthStr}.pdf`)
-    } catch (err) {
-      console.error('Błąd generowania PDF:', err)
-      alert('Błąd podczas generowania PDF.')
-    } finally {
-      setIsExporting(false)
+      lines.push('')
+      lines.push('')
     }
+    return lines.join('\n')
+  }
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generateListText()).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
   }
 
   const approved = submissions.filter(s => s.status === 'approved')
@@ -277,6 +132,7 @@ export default function AdminAccessPanel() {
   const rejected = submissions.filter(s => s.status === 'rejected')
 
   return (
+    <>
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-4xl mx-auto space-y-8">
 
@@ -290,11 +146,10 @@ export default function AdminAccessPanel() {
             </div>
           </div>
           <button
-            onClick={handleExportPDF}
-            disabled={isExporting}
-            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white text-sm font-bold rounded-xl shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            onClick={() => setListModal(true)}
+            className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-700 hover:from-indigo-700 hover:to-violet-800 text-white text-sm font-bold rounded-xl shadow-sm transition-all"
           >
-            {isExporting ? 'Generowanie...' : 'Eksportuj PDF'}
+            Generuj listę
           </button>
         </div>
 
@@ -391,5 +246,49 @@ export default function AdminAccessPanel() {
         )}
       </div>
     </div>
+
+    {/* Modal z listą do skopiowania */}
+    {/* eslint-disable-next-line */}
+    {listModal && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
+        <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh]">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-black text-slate-800">Lista dostępowa — {month}</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Skopiuj tekst i wklej do wzoru na Dysku</p>
+            </div>
+            <button onClick={() => setListModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+          </div>
+
+          <textarea
+            readOnly
+            value={generateListText()}
+            className="flex-1 font-mono text-xs text-slate-700 p-5 resize-none outline-none overflow-y-auto min-h-0"
+          />
+
+          <div className="p-4 border-t border-slate-100 flex gap-3">
+            <button
+              onClick={handleCopy}
+              className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                copied
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              }`}
+            >
+              {copied ? '✓ Skopiowano!' : 'Kopiuj do schowka'}
+            </button>
+            <a
+              href={DRIVE_TEMPLATE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
+            >
+              Otwórz wzór na Dysku →
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
