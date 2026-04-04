@@ -55,7 +55,7 @@ export default function AdminEquipmentPanel() {
       .then(data => {
         if (!data.error) {
           const formatted = data.sprzet.map(item => ({
-            id: item.KOD_QR || `BRAK-ID-${Math.floor(Math.random()*1000)}`,
+            id: item.KOD_QR || `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`,
             name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
             status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
             condition: item.UWAGI || 'Brak zastrzeżeń',
@@ -65,6 +65,7 @@ export default function AdminEquipmentPanel() {
           setEquipmentData(formatted);
           setAllReservations(data.rezerwacje || []);
           setAllWydania(data.wydania || []); 
+          console.log('[CRW] fetchAllData keys:', Object.keys(data));
           const reports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
           setFirstAidReports(reports);
         }
@@ -80,7 +81,7 @@ export default function AdminEquipmentPanel() {
         .then(res => res.json())
         .then(data => {
           if (data.docNumber) setDocNumber(data.docNumber);
-          else setDocNumber(`01/SSUEW/03/2026`);
+          else setDocNumber('BŁĄD — odśwież');
         });
     }
   }, [step, adminMode]);
@@ -110,7 +111,7 @@ export default function AdminEquipmentPanel() {
   };
 
   const initiateApproval = (rez) => {
-    const emailMatch = rez.Kontakt.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+    const emailMatch = (rez.Kontakt || '').match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
     setRequesterEmail(emailMatch ? emailMatch[1] : '');
     setPickupDate('');
     setPickupTime('12:00');
@@ -125,12 +126,20 @@ export default function AdminEquipmentPanel() {
       organizacja: approvalModal.organizacja, sprzetKody: approvalModal.sprzetKody
     };
     try {
-      const response = await fetch(API_URL, { 
-        method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) 
+      const response = await fetch(API_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
       });
       const result = await response.json();
-      alert(`Wniosek Zatwierdzony!\nKalendarz: ${result.message || 'Zapisano'}`); 
-    } catch (err) { alert("Wniosek został przetworzony, odświeżam system."); } 
+      if (result.success) {
+        alert(`Wniosek Zatwierdzony!\nKalendarz: ${result.message || 'Zapisano'}`);
+      } else {
+        alert(`Błąd serwera: ${result.message || 'Nieznany błąd'}. Wniosek NIE został zatwierdzony.`);
+      }
+    } catch (err) {
+      alert("Błąd połączenia — wniosek NIE został zatwierdzony. Spróbuj ponownie.");
+    }
     finally { setApprovalModal(null); fetchAllData(); setIsUpdatingStatus(false); }
   };
 
@@ -138,16 +147,30 @@ export default function AdminEquipmentPanel() {
     setIsUpdatingStatus(true);
     try {
       await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "updateRezerwacjaStatus", id: id, status: "Odrzucone" }) });
-    } catch (err) {} finally { fetchAllData(); setIsUpdatingStatus(false); }
+    } catch (err) { alert("Błąd połączenia — odrzucenie NIE zostało zapisane. Spróbuj ponownie."); } finally { fetchAllData(); setIsUpdatingStatus(false); }
   };
 
   const resolveFirstAidReport = async (reportId) => {
     setIsUpdatingStatus(true);
     try {
-      await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "zamknijZgloszenieApteczki", id: reportId, adminOsoba: user?.email }) });
-      alert("Zgłoszenie zamknięte! Dziękujemy za uzupełnienie apteczki.");
-      setFirstAidReports(firstAidReports.filter(r => r.ID !== reportId));
-    } catch (err) {} finally { setIsUpdatingStatus(false); }
+      const response = await fetch(API_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "zamknijZgloszenieApteczki", id: reportId, adminOsoba: user?.email })
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert("Zgłoszenie zamknięte! Dziękujemy za uzupełnienie apteczki.");
+        // Unify ID casing: accept both report.ID and report.id
+        setFirstAidReports(prev => prev.filter(r => (r.ID || r.id) !== reportId));
+      } else {
+        alert(`Błąd serwera: ${result.message || 'Nieznany błąd'}. Zgłoszenie NIE zostało zamknięte.`);
+      }
+    } catch (err) {
+      alert("Błąd połączenia — zgłoszenie NIE zostało zamknięte. Spróbuj ponownie.");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   const formatResDate = (rawDate) => {
@@ -260,7 +283,12 @@ export default function AdminEquipmentPanel() {
         <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
         <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
         <button onClick={() => setAdminMode('apteczki')} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'apteczki' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
-          🚑 Apteczki {firstAidReports.length > 0 && adminMode !== 'apteczki' && <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>}
+          🚑 Apteczki
+          {firstAidReports.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center leading-none">
+              {firstAidReports.length}
+            </span>
+          )}
         </button>
       </div>
 
@@ -275,15 +303,15 @@ export default function AdminEquipmentPanel() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {firstAidReports.map(report => (
-              <div key={report.ID} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
+              <div key={report.ID || report.id} className="bg-slate-800 border border-rose-500/30 p-4 rounded-2xl shadow-lg flex flex-col justify-between group hover:border-rose-500 transition-all">
                 <div className="mb-4">
-                  <div className="flex justify-between items-start mb-3"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID}</span></div>
+                  <div className="flex justify-between items-start mb-3"><span className="text-[10px] font-black text-rose-300 uppercase tracking-widest px-2 py-0.5 bg-rose-900/50 rounded">{report.Data_Zgloszenia}</span><span className="text-[9px] font-black text-slate-500 opacity-60">ID: {report.ID || report.id}</span></div>
                   <h3 className="text-base font-black text-white leading-tight mb-1">{report.Apteczka_Nazwa}</h3>
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest italic mb-3">Zgłosił: {report.Osoba}</p>
                   <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 mb-3"><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Opis zdarzenia:</p><p className="text-xs font-medium text-slate-300 italic">"{report.Powod}"</p></div>
                   <div className="bg-rose-950/30 p-3 rounded-lg border border-rose-900/50"><p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Zużyte materiały:</p><ul className="text-[10px] font-bold text-rose-200 leading-relaxed list-disc list-inside">{(report.Zuzyte_Materialy || '').split(',').filter(Boolean).map((mat, i) => <li key={i}>{mat.trim()}</li>)}</ul></div>
                 </div>
-                <button onClick={() => resolveFirstAidReport(report.ID)} disabled={isUpdatingStatus} className="w-full py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
+                <button onClick={() => resolveFirstAidReport(report.ID || report.id)} disabled={isUpdatingStatus} className="w-full py-2.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow hover:bg-rose-500 transition-all disabled:opacity-50">Zatwierdź Uzupełnienie ✅</button>
               </div>
             ))}
             {firstAidReports.length === 0 && (
@@ -360,9 +388,16 @@ export default function AdminEquipmentPanel() {
 
                 <div className="flex gap-3">
                   <button onClick={() => setStep(1)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 px-5 rounded-xl font-black uppercase tracking-widest text-xs w-1/3">Wróć</button>
-                  <button onClick={verifyBorrower} className="bg-slate-900 hover:bg-slate-800 text-white py-2.5 px-5 rounded-xl font-black uppercase tracking-widest text-xs flex-1">
-                    {isVerifying ? 'Weryfikacja...' : 'Generuj PDF'}
-                  </button>
+                  <div className="flex-1 flex flex-col">
+                    <button onClick={verifyBorrower} disabled={selectedItems.length === 0 || docNumber === 'BŁĄD — odśwież' || docNumber === 'Pobieranie...'} className="bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 text-white py-2.5 px-5 rounded-xl font-black uppercase tracking-widest text-xs w-full">
+                      {isVerifying ? 'Weryfikacja...' : 'Generuj PDF'}
+                    </button>
+                    {docNumber === 'BŁĄD — odśwież' && (
+                      <p className="text-rose-400 text-[10px] font-bold mt-2 text-center">
+                        Nie udało się pobrać numeru protokołu. Odśwież stronę i spróbuj ponownie.
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
@@ -652,7 +687,7 @@ export default function AdminEquipmentPanel() {
                     <table className="w-full border-collapse border border-black text-left text-[10px]">
                       <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-8 text-center">Lp.</th><th className="border border-black p-2 w-1/3">NAZWA SPRZĘTU</th><th className="border border-black p-2 w-1/3">STAN PRZY ZWROCIE (OPIS)</th><th className="border border-black p-2">DECYZJA WYDAJĄCEGO</th></tr></thead>
                       <tbody>
-                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)']).split(',').map((itemCode, idx) => {
+                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)'] || '').split(',').filter(Boolean).map((itemCode, idx) => {
                           const code = itemCode.trim();
                           const resolvedName = equipmentData.find(e => e.id === code)?.name;
                           return (
