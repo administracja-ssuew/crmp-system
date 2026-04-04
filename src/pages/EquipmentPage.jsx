@@ -247,8 +247,8 @@ export default function EquipmentPage() {
         setIsFirstAidModalOpen(false);
         setUsedItems({});
         setFirstAidDesc('');
-        // Sync z GAS w tle (z opóźnieniem na zapis)
-        setTimeout(() => fetchData(true), 3000);
+        // Nie odświeżamy z GAS — GAS może cachować i nadpisać poprawny stan lokalny.
+        // Optimistic update wyżej wystarczy; pełne dane pojawią się przy następnym załadowaniu strony.
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
       }
