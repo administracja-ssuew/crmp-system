@@ -146,11 +146,9 @@ export default function AdminEquipmentPanel() {
 
   const confirmAndSendInvite = async () => {
     setIsUpdatingStatus(true);
-    const allAdminEmails = [issuingEmail, 'administracja@samorzad.ue.wroc.pl']
-      .map(e => e.trim()).filter(Boolean).join(',');
     const payload = {
       action: "updateRezerwacjaStatus", id: approvalModal.id, status: "Zatwierdzone", createEvent: true,
-      pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: allAdminEmails,
+      pickupDateTime: `${pickupDate}T${pickupTime}`, requesterEmail: requesterEmail, adminEmail: issuingEmail.trim(),
       organizacja: approvalModal.organizacja, sprzetKody: approvalModal.sprzetKody
     };
     try {

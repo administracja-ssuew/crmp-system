@@ -487,7 +487,7 @@ export default function EquipmentPage() {
               </div>
             </div>
 
-            <div className="md:w-3/5 p-8 bg-slate-50 flex flex-col">
+            <div className="md:w-3/5 p-8 bg-slate-50 flex flex-col overflow-hidden">
               <div className="flex gap-2 mb-6 bg-slate-200/50 p-1.5 rounded-xl border border-slate-200 overflow-x-auto">
                 <button onClick={() => setActiveTab('info')} className={`flex-1 min-w-[80px] py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'info' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Karta</button>
                 <button onClick={() => setActiveTab('lokalizacja')} className={`flex-1 min-w-[80px] py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'lokalizacja' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Lokalizacja</button>
@@ -497,7 +497,7 @@ export default function EquipmentPage() {
                 )}
               </div>
               
-              <div className="flex-1 overflow-y-auto pr-2">
+              <div className="flex-1 overflow-y-auto pr-2 min-h-0">
                 {activeTab === 'info' && (
                   <div className="space-y-6 animate-fadeIn">
                     <div>
@@ -641,7 +641,7 @@ export default function EquipmentPage() {
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
                         <div className="h-14 flex items-end justify-center mb-1 bg-slate-100 rounded-lg px-3 py-1">
-                          <img src="public/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain block" />
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain block" />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
