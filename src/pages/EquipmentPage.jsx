@@ -585,25 +585,26 @@ export default function EquipmentPage() {
                 )}
 
                 {activeTab === 'din' && selectedItem.isFirstAid && (() => {
-                  // Brakujące składniki: ze WSZYSTKICH aktywnych zgłoszeń dla tej apteczki
+                  // Brakujące składniki: ze WSZYSTKICH aktywnych zgłoszeń dla TEJ apteczki
+                  // Priorytet: dopasowanie po ID (unikalny QR), fallback po nazwie
                   const kitHistory = allFirstAidReports.filter(r => {
-                    const byName = r.Apteczka_Nazwa && selectedItem.name &&
+                    if (r.Apteczka_ID && selectedItem.id) {
+                      return r.Apteczka_ID.trim().toLowerCase() === selectedItem.id.trim().toLowerCase();
+                    }
+                    return r.Apteczka_Nazwa && selectedItem.name &&
                       r.Apteczka_Nazwa.trim().toLowerCase() === selectedItem.name.trim().toLowerCase();
-                    const byId = r.Apteczka_ID && selectedItem.id &&
-                      r.Apteczka_ID.trim().toLowerCase() === selectedItem.id.trim().toLowerCase();
-                    return byName || byId;
                   });
+                  // Checkboxy używają pełnych stringów DIN — exact match wystarczy
                   const reportedMissing = new Set(
                     kitHistory.flatMap(r =>
                       String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
                     )
                   );
-                  const isDinItemMissing = (dinItem) =>
-                    reportedMissing.size > 0 &&
-                    [...reportedMissing].some(m => dinItem.toLowerCase().includes(m) || m.includes(dinItem.toLowerCase().split(' ')[0]));
+                  const isDinItemMissing = (dinItem) => reportedMissing.has(dinItem.toLowerCase());
                   const hasMissing = DIN_13169_ITEMS.some(isDinItemMissing);
+                  console.log('[DIN]', selectedItem.name, '| raporty:', kitHistory.length, '| braki:', [...reportedMissing]);
                   return (
-                  <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative overflow-y-auto" style={{maxHeight:'100%'}}>
+                  <div className="animate-fadeIn border border-slate-300 bg-white p-6 relative">
                     {hasMissing && (
                       <div className="mb-4 bg-rose-50 border border-rose-200 rounded-xl p-3">
                         <p className="text-[10px] font-bold text-rose-700 uppercase tracking-widest">⚠ Wykryto zgłoszone braki — pozycje oznaczone poniżej</p>
@@ -652,7 +653,7 @@ export default function EquipmentPage() {
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
                         <div className="h-12 flex items-end justify-center mb-1">
-                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain" onError={e => { e.target.style.display='none'; }} />
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain mix-blend-multiply" onError={e => { e.target.style.display='none'; }} />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
