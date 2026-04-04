@@ -222,7 +222,7 @@ export default function EquipmentPage() {
       action: "zglosBrakiApteczki",
       apteczkaId: selectedItem.id,
       apteczkaName: selectedItem.name,
-      zuzyteMaterialy: Object.entries(usedItems).map(([n, s]) => `${n}:${s}`).join(', '),
+      zuzyteMaterialy: Object.entries(usedItems).map(([n, s]) => `${n}:${s}`).join('|'),
       powod: firstAidDesc.trim(),
       osoba: user?.email || "Anonimowy zgłaszający"
     };
@@ -591,7 +591,8 @@ export default function EquipmentPage() {
                   // Parsuj statusy: nowy format "nazwa:BRAK/CZESC", stary format "nazwa" → BRAK
                   const reportedStatuses = {};
                   kitHistory.forEach(r => {
-                    String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').split(',').forEach(entry => {
+                    const rawMat = String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '');
+                    rawMat.split(rawMat.includes('|') ? '|' : ',').forEach(entry => {
                       const trimmed = entry.trim();
                       if (!trimmed) return;
                       const colon = trimmed.lastIndexOf(':');
