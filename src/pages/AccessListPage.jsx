@@ -31,10 +31,10 @@ export const isValidEmail = (email) => /^[^@]+@samorzad\.ue\.wroc\.pl$/i.test(em
 
 // --- Rooms list (ACC-01, locked decision) ---
 export const ROOMS = [
-  'Sala posiedzeń',
-  'Biuro Zarządu',
-  'Sala projektowa',
-  'Pomieszczenie gospodarcze',
+  '9 J',
+  '16 J',
+  '28 J',
+  '11 J',
 ]
 
 // --- Month helper ---
