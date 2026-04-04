@@ -640,8 +640,8 @@ export default function EquipmentPage() {
                     </table>
                     <div className="flex justify-between mt-8 pt-4 border-t border-dashed border-slate-300 text-[10px] text-center">
                       <div className="w-1/2 pr-4">
-                        <div className="h-14 flex items-end justify-center mb-1 bg-slate-100 rounded-lg px-3 py-1">
-                          <img src="/podpis-final.png" alt="podpis" className="max-h-10 max-w-[160px] object-contain block" />
+                        <div className="h-20 flex items-end justify-center mb-1 bg-slate-100 rounded-lg px-3 py-2">
+                          <img src="/podpis-final.png" alt="podpis" className="max-h-16 max-w-[220px] object-contain block" />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
                         <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
