@@ -360,6 +360,15 @@ export default function DashboardPage() {
           <Card to="/dokumenty" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
           <Card to="/legal-hub" icon="⚖️" title="Zaplecze Prawne" subtitle="Wzory regulaminów i edukacja" colorFrom="from-amber-500" colorTo="to-orange-500" buttonText="Otwórz Akademię" />
           <Card to="/kompendium" icon="📖" title="Kompendium Wiedzy Protokolanta" subtitle="Przewodnik protokolanta — wzory, checklisty, słownik pojęć" colorFrom="from-violet-600" colorTo="to-indigo-800" buttonText="Otwórz Kompendium" />
+          <Card
+            to="/ksiega-inwentarzowa"
+            icon="📒"
+            title="Księga Inwentarzowa"
+            subtitle="Przewodnik K-205/60 — wpisy, kolumny, procedury"
+            colorFrom="from-emerald-600"
+            colorTo="to-green-800"
+            buttonText="Otwórz Przewodnik"
+          />
           <Card to="/lista-dostepowa" icon="🗝️" title="Lista Dostępowa" subtitle="Zgłoszenia dostępu do pomieszczeń" colorFrom="from-cyan-500" colorTo="to-blue-600" buttonText="Otwórz Moduł" />
           {isAdmin && (
             <>
