@@ -13,7 +13,9 @@
       "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs commit 'docs: add requirements, roadmap, and state' --files .planning/REQUIREMENTS.md .planning/ROADMAP.md .planning/STATE.md)",
       "WebSearch",
       "Skill(gsd:plan-phase)",
-      "Skill(gsd:plan-phase:*)"
+      "Skill(gsd:plan-phase:*)",
+      "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs phase complete 4)",
+      "Bash(cp /tmp/verification.md \".planning/phases/04-kompendium-ksi-ga-inwentarzowa/04-VERIFICATION.md\")"
     ]
   }
 }

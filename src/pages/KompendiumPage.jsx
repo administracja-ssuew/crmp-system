@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   BookOpen, CheckSquare, Square, ChevronRight, ArrowUp,
   Clock, AlertTriangle, CheckCircle, XCircle, Users, FileText
@@ -238,6 +237,9 @@ export default function KompendiumPage() {
     }
   });
 
+  // Scroll na górę przy wejściu
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   // IntersectionObserver — aktywna sekcja
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -437,26 +439,12 @@ export default function KompendiumPage() {
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* BREADCRUMB */}
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-screen-2xl mx-auto px-6 py-3 pl-40 md:pl-8">
-          <nav className="flex items-center gap-1.5 text-sm">
-            <Link to="/" className="text-slate-500 hover:text-slate-800 font-medium transition-colors">
-              Dashboard
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-800 font-semibold flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-violet-600" />
-              Kompendium Wiedzy Protokolanta
-            </span>
-          </nav>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-100">
-          <div
-            className="h-0.5 bg-violet-600 transition-all duration-75"
-            style={{ width: `${readingProgress}%` }}
-          />
-        </div>
+      {/* PROGRESS BAR */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
+        <div
+          className="h-0.5 bg-violet-600 transition-all duration-75"
+          style={{ width: `${readingProgress}%` }}
+        />
       </div>
 
       {/* MOBILE SELECT */}

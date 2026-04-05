@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import {
   BookMarked, CheckSquare, Square, ChevronRight, ArrowUp,
   Hash, ClipboardList, Scale, Table2, GitCompare, Edit3, AlertOctagon, FileText
@@ -90,6 +89,9 @@ export default function KsiegaInwentarzPage() {
   });
   const [simForm, setSimForm] = useState({ kol4: '', kol5: '', kol6: '', kol7: '' });
   const [simSubmitted, setSimSubmitted] = useState(false);
+
+  // Scroll na górę przy wejściu
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -193,20 +195,6 @@ export default function KsiegaInwentarzPage() {
   // === RETURN JSX ===
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* BREADCRUMB */}
-      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-screen-2xl mx-auto px-6 py-3 pl-40 md:pl-8">
-          <nav className="flex items-center gap-1.5 text-sm">
-            <Link to="/" className="text-slate-500 hover:text-slate-800 font-medium transition-colors">Dashboard</Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-800 font-semibold flex items-center gap-1.5">
-              <BookMarked className="w-4 h-4 text-emerald-600" />
-              Księga Inwentarzowa K-205/60
-            </span>
-          </nav>
-        </div>
-      </div>
 
       {/* MOBILE SELECT */}
       <div className="lg:hidden sticky top-[49px] z-30 bg-white border-b border-slate-200 px-4 py-2.5">
