@@ -16,11 +16,11 @@ export default function MapPage() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all"); 
+  const [filterType, setFilterType] = useState("all");
 
-  const [adminTab, setAdminTab] = useState('info'); 
+  const [adminTab, setAdminTab] = useState('info');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [newPoster, setNewPoster] = useState({
     credId: '', // <--- DODANE: Znak z CRED
     name: '',
@@ -73,7 +73,9 @@ export default function MapPage() {
     };
   };
 
+  // === REJESTR: lazy-fetch getAllPosters z GAS (per D-12, D-14, D-15) ===
   const fetchAllPosters = async () => {
+    if (allPosters.length > 0) return; // already loaded — skip re-fetch
     setPostersLoading(true);
     try {
       const res = await fetch(`${DATA_URL}?action=getAllPosters`);
@@ -81,6 +83,7 @@ export default function MapPage() {
       setAllPosters(data.posters || []);
     } catch (err) {
       console.error(err);
+      setAllPosters([]);
     } finally {
       setPostersLoading(false);
     }
@@ -93,7 +96,7 @@ export default function MapPage() {
       .then(json => {
         const locs = json.locations || [];
         setLocations(locs);
-        
+
         if (selected) {
           const updatedSelected = locs.find(l => l.id === selected.id);
           if (updatedSelected) setSelected(updatedSelected);
@@ -139,6 +142,13 @@ export default function MapPage() {
     }
   }, [adminTab, selected]);
 
+  // Lazy-fetch all posters when admin first switches to Rejestr view (per D-12)
+  useEffect(() => {
+    if (view === 'rejestr' && isAdmin) {
+      fetchAllPosters();
+    }
+  }, [view]);
+
   const handleOpenInfo = () => setIsInfoModalOpen(true);
 
   // === LOGIKA ZARZĄDU: WYSYŁKA NOWEGO PLAKATU DO BAZY ===
@@ -181,7 +191,7 @@ export default function MapPage() {
       console.log(err);
       alert("Plakat dodany, system odświeża bazę.");
     } finally {
-      fetchData(); 
+      fetchData();
       setIsSubmitting(false);
     }
   };
@@ -300,10 +310,7 @@ export default function MapPage() {
               <Map className="w-3.5 h-3.5" /> Mapa
             </button>
             <button
-              onClick={() => {
-                setView('rejestr');
-                if (allPosters.length === 0) fetchAllPosters();
-              }}
+              onClick={() => setView('rejestr')}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'rejestr' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
             >
               <List className="w-3.5 h-3.5" /> Rejestr
@@ -358,8 +365,134 @@ export default function MapPage() {
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-400 font-bold">
-            Widok Rejestru — wkrótce
+          // === REJESTR PLAKATÓW I BANERÓW (per D-11, D-12, D-13) ===
+          <div className="flex flex-col h-full overflow-hidden">
+            {/* Registry filter bar */}
+            <div className="shrink-0 px-4 py-3 border-b border-slate-200 bg-white flex flex-wrap gap-3 items-center">
+              {/* Status filter tabs */}
+              <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+                {[
+                  { key: 'all', label: 'Wszystkie' },
+                  { key: 'aktywne', label: 'Aktywne' },
+                  { key: 'zakonczone', label: 'Zakończone' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setRegistryFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                      registryFilter === key
+                        ? 'bg-white shadow text-slate-900'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {/* Search input */}
+              <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 md:w-72">
+                <Search className="w-4 h-4 text-slate-400 shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Szukaj po CRED, nazwie, org..."
+                  value={registrySearch}
+                  onChange={e => setRegistrySearch(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-slate-700 outline-none w-full placeholder-slate-400"
+                />
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">
+                {(() => {
+                  const filtered = allPosters.filter(p => {
+                    const matchFilter =
+                      registryFilter === 'all' ||
+                      (registryFilter === 'aktywne' && p.status === 'AKTYWNE') ||
+                      (registryFilter === 'zakonczone' && p.status !== 'AKTYWNE');
+                    const q = registrySearch.toLowerCase();
+                    const matchSearch =
+                      !q ||
+                      (p.credId || '').toLowerCase().includes(q) ||
+                      (p.nazwa || '').toLowerCase().includes(q) ||
+                      (p.org || '').toLowerCase().includes(q);
+                    return matchFilter && matchSearch;
+                  });
+                  return `${filtered.length} wyników`;
+                })()}
+              </span>
+            </div>
+
+            {/* Table area */}
+            <div className="flex-1 overflow-auto">
+              {postersLoading && (
+                <div className="flex items-center justify-center py-12 gap-3">
+                  <div className="w-6 h-6 border-2 border-blue-600 rounded-full border-t-transparent animate-spin" />
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ładowanie rejestru...</span>
+                </div>
+              )}
+
+              {!postersLoading && (() => {
+                const filtered = allPosters.filter(p => {
+                  const matchFilter =
+                    registryFilter === 'all' ||
+                    (registryFilter === 'aktywne' && p.status === 'AKTYWNE') ||
+                    (registryFilter === 'zakonczone' && p.status !== 'AKTYWNE');
+                  const q = registrySearch.toLowerCase();
+                  const matchSearch =
+                    !q ||
+                    (p.credId || '').toLowerCase().includes(q) ||
+                    (p.nazwa || '').toLowerCase().includes(q) ||
+                    (p.org || '').toLowerCase().includes(q);
+                  return matchFilter && matchSearch;
+                });
+
+                if (filtered.length === 0) {
+                  return (
+                    <p className="text-sm font-bold text-slate-400 text-center py-16 bg-slate-50">
+                      {allPosters.length === 0
+                        ? 'Brak danych w rejestrze. Sprawdź połączenie z bazą.'
+                        : 'Brak wyników dla wybranych filtrów.'}
+                    </p>
+                  );
+                }
+
+                return (
+                  <table className="w-full text-left border-collapse">
+                    <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
+                      <tr>
+                        {['Kod CRED', 'Nazwa', 'Organizacja', 'Lokalizacja', 'Data zawieszenia', 'Termin zdjęcia', 'Status'].map(col => (
+                          <th key={col} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">
+                            {col}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((poster, idx) => (
+                        <tr
+                          key={idx}
+                          className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="px-4 py-3 text-xs font-black text-slate-800 whitespace-nowrap">{poster.credId || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-700">{poster.nazwa || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-600 whitespace-nowrap">{poster.org || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-500 whitespace-nowrap">{poster.locationId || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-500 whitespace-nowrap">{poster.dataZgody || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-500 whitespace-nowrap">{poster.dataZdjecia || '—'}</td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${
+                              poster.status === 'AKTYWNE'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-slate-200 text-slate-600'
+                            }`}>
+                              {poster.status === 'AKTYWNE' ? 'Aktywny' : 'Zakończony'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              })()}
+            </div>
           </div>
         )}
       </div>
@@ -377,7 +510,7 @@ export default function MapPage() {
                 </div>
               )}
               <button onClick={() => setSelected(null)} className="absolute top-4 right-4 w-10 h-10 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black/70 backdrop-blur font-bold">✕</button>
-              
+
               {selected.free === 0 && (
                 <div className="absolute bottom-4 left-4 bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest shadow-lg">
                   Brak wolnych miejsc
@@ -417,13 +550,13 @@ export default function MapPage() {
                   <div className="grid grid-cols-3 gap-3 mb-8">
                     {Array.from({ length: selected.capacity || 1 }).map((_, i) => {
                       const activePosters = selected.activePosters || [];
-                      const posterInSlot = activePosters[i]; 
+                      const posterInSlot = activePosters[i];
                       const isOccupied = !!posterInSlot || (i >= (selected.free ?? selected.capacity));
-                      
+
                       return (
                         <div key={i} className={`aspect-square border-2 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-300
-                          ${isOccupied 
-                            ? 'border-red-200 bg-red-50 text-red-500 shadow-inner' 
+                          ${isOccupied
+                            ? 'border-red-200 bg-red-50 text-red-500 shadow-inner'
                             : 'border-dashed border-slate-200 bg-white text-slate-300 shadow-sm'
                           }`}>
                           <span className="text-2xl font-black mb-1">{isOccupied ? '🔒' : '+'}</span>
