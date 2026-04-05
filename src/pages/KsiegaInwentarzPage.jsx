@@ -89,6 +89,7 @@ export default function KsiegaInwentarzPage() {
   });
   const [simForm, setSimForm] = useState({ kol4: '', kol5: '', kol6: '', kol7: '' });
   const [simSubmitted, setSimSubmitted] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
 
   // Scroll na górę przy wejściu
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -103,7 +104,12 @@ export default function KsiegaInwentarzPage() {
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setReadingProgress(docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0);
+      setShowScrollTop(scrollTop > 400);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -196,6 +202,11 @@ export default function KsiegaInwentarzPage() {
   return (
     <div className="min-h-screen bg-slate-50">
 
+      {/* PROGRESS BAR */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
+        <div className="h-0.5 bg-emerald-600 transition-all duration-75" style={{ width: `${readingProgress}%` }} />
+      </div>
+
       {/* MOBILE SELECT */}
       <div className="lg:hidden sticky top-[49px] z-30 bg-white border-b border-slate-200 px-4 py-2.5">
         <select value={activeSection} onChange={e => scrollTo(e.target.value)}
@@ -274,7 +285,7 @@ export default function KsiegaInwentarzPage() {
                   <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2"></div>
                   <div>
                     <p className="font-bold text-slate-800 text-sm">Regulaminy wewnętrzne SSUEW</p>
-                    <p className="text-sm text-slate-600 mt-1">Regulamin Zarządu SSUEW nakłada obowiązek prowadzenia i aktualizacji Księgi Inwentarzowej na Zarząd — w praktyce realizowany przez Komisję ds. Administracji lub wyznaczonego administratora sprzętu.</p>
+                    <p className="text-sm text-slate-600 mt-1">Regulamin Gospodarowania Składnikami Majątku Ruchomego SSUEW nakłada obowiązek prowadzenia i aktualizacji Księgi Inwentarzowej na Zarząd — w praktyce realizowany przez Członka Zarządu ds. Administracji SSUEW.</p>
                   </div>
                 </li>
               </ul>
@@ -394,7 +405,7 @@ export default function KsiegaInwentarzPage() {
                       <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Kol. 6 — Nazwa z kodem SSUEW</label>
                       <input
                         type="text"
-                        placeholder="np. SSUEW-KOM-NTB-001 Apple MacBook Pro"
+                        placeholder="np. SSUEW-TCH-LOG-001 Apple MacBook Pro"
                         value={simForm.kol6}
                         onChange={e => setSimForm({...simForm, kol6: e.target.value})}
                         className={`w-full p-3 rounded-xl border text-sm font-medium text-slate-800 outline-none transition-all sm:col-span-2 ${fieldError(simForm.kol6) ? 'border-red-400 ring-2 ring-red-100' : 'border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100'}`}
