@@ -357,17 +357,44 @@ export default function KompendiumPage() {
     </section>
   );
 
-  const SectionTitle = ({ icon: Icon, chapter, title }) => (
-    <div className="flex items-center gap-3 mb-6">
-      {Icon && (
-        <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center shrink-0">
-          <Icon className="w-5 h-5 text-violet-600" />
+  const SectionTitle = ({ icon: Icon, chapter, title, color = 'violet' }) => {
+    const colors = {
+      violet: { bg: 'bg-violet-100', icon: 'text-violet-600', label: 'text-violet-500' },
+      blue:   { bg: 'bg-blue-100',   icon: 'text-blue-600',   label: 'text-blue-500'   },
+      purple: { bg: 'bg-purple-100', icon: 'text-purple-600', label: 'text-purple-500' },
+      teal:   { bg: 'bg-teal-100',   icon: 'text-teal-600',   label: 'text-teal-500'   },
+      green:  { bg: 'bg-green-100',  icon: 'text-green-600',  label: 'text-green-500'  },
+      amber:  { bg: 'bg-amber-100',  icon: 'text-amber-600',  label: 'text-amber-500'  },
+      indigo: { bg: 'bg-indigo-100', icon: 'text-indigo-600', label: 'text-indigo-500' },
+      red:    { bg: 'bg-red-100',    icon: 'text-red-600',    label: 'text-red-500'    },
+    };
+    const c = colors[color] || colors.violet;
+    return (
+      <div className="flex items-center gap-3 mb-6">
+        {Icon && (
+          <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center shrink-0`}>
+            <Icon className={`w-5 h-5 ${c.icon}`} />
+          </div>
+        )}
+        <div>
+          <p className={`text-[10px] font-black uppercase tracking-widest ${c.label} mb-0.5`}>{chapter}</p>
+          <h2 className="text-2xl font-black text-slate-800">{title}</h2>
         </div>
-      )}
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-0.5">{chapter}</p>
-        <h2 className="text-2xl font-black text-slate-800">{title}</h2>
       </div>
+    );
+  };
+
+  const SectionIntro = ({ items }) => (
+    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Co znajdziesz w tej sekcji</p>
+      <ul className="space-y-1">
+        {items.map((text, i) => (
+          <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+            <span className="text-slate-400 shrink-0 mt-0.5">•</span>
+            <span>{text}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 
@@ -476,7 +503,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 0 — WSTĘP ===== */}
           <section id="wstep" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={BookOpen} chapter="Rozdział 0" title="Wstęp" />
+            <SectionTitle icon={BookOpen} chapter="Rozdział 0" title="Wstęp" color="blue" />
+            <SectionIntro items={['Dlaczego protokół jest ważny dla instytucji', 'Rola protokolanta — co uchwycić, co pominąć', 'Jak korzystać z tego Kompendium']} />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
               <p className="text-slate-700 leading-relaxed">
                 Protokół to nie biurokratyczny obowiązek — to <strong>pamięć instytucjonalna Samorządu</strong>. Za trzy lata ktoś sięgnie po protokół z dzisiejszego posiedzenia RUSS i będzie chciał wiedzieć co dokładnie postanowiono i dlaczego. Jeśli protokół jest zły — tej wiedzy nie ma. Przepada razem z kadencją.
@@ -494,7 +522,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 1 — SŁOWNIK ===== */}
           <section id="slownik" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={Users} chapter="Rozdział 1" title="Słownik pojęć i osób" />
+            <SectionTitle icon={Users} chapter="Rozdział 1" title="Słownik pojęć i osób" color="purple" />
+            <SectionIntro items={['Pełne nazwy organów SSUEW i UEW', 'Tytuły i funkcje osób w protokołach', 'Kiedy używać skrótów, a kiedy pełnych nazw']} />
 
             {/* 1A */}
             <div className="mb-8">
@@ -585,7 +614,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 2 — PRZED SPOTKANIEM ===== */}
           <section id="przed" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={CheckCircle} chapter="Rozdział 2" title="Przed spotkaniem" />
+            <SectionTitle icon={CheckCircle} chapter="Rozdział 2" title="Przed spotkaniem" color="teal" />
+            <SectionIntro items={['Checklista czynności przed każdym posiedzeniem', 'Jak przygotować listę obecności i nagłówek', 'Uwagi dla protokołów RUSS i absolutoryjnych']} />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
                 Dobry protokół zaczyna się <strong>przed spotkaniem</strong>. Protokolant który przychodzi nieprzygotowany skazuje się na chaos notatek i błędy merytoryczne. Im lepiej się przygotujesz, tym łatwiej będzie Ci wyłapać co jest ważne — a pominąć to co ważne nie jest.
@@ -615,7 +645,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 3 — PODCZAS SPOTKANIA ===== */}
           <section id="podczas" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={FileText} chapter="Rozdział 3" title="Podczas spotkania" />
+            <SectionTitle icon={FileText} chapter="Rozdział 3" title="Podczas spotkania" color="green" />
+            <SectionIntro items={['Co zapisywać na bieżąco, a co można uzupełnić po', 'Jak rejestrować głosowania i wnioski formalne', 'Wskazówki dotyczące nagrywania']} />
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
@@ -742,7 +773,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 4 — PO SPOTKANIU ===== */}
           <section id="po" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={Clock} chapter="Rozdział 4" title="Po spotkaniu" />
+            <SectionTitle icon={Clock} chapter="Rozdział 4" title="Po spotkaniu" color="amber" />
+            <SectionIntro items={['Checklista kontrolna po sporządzeniu protokołu', 'Komu wysłać do weryfikacji i jak archiwizować', 'Co zrobić z nagraniem']} />
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
@@ -783,7 +815,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 5 — TYPY PROTOKOŁÓW ===== */}
           <section id="typy" className="scroll-mt-20 mb-4">
-            <SectionTitle icon={FileText} chapter="Rozdział 5" title="Typy protokołów" />
+            <SectionTitle icon={FileText} chapter="Rozdział 5" title="Typy protokołów" color="indigo" />
+            <SectionIntro items={['Omówienie wszystkich 7 typów protokołów SSUEW', 'Wymagania formalne specyficzne dla każdego typu', 'Terminy i wzory do pobrania']} />
           </section>
 
           {/* 5.1 SKS */}
@@ -1082,7 +1115,8 @@ export default function KompendiumPage() {
 
           {/* ===== ROZDZIAŁ 6 — CZĘSTE BŁĘDY ===== */}
           <section id="bledy" className="scroll-mt-20 mb-16">
-            <SectionTitle icon={AlertTriangle} chapter="Rozdział 6" title="Częste błędy" />
+            <SectionTitle icon={AlertTriangle} chapter="Rozdział 6" title="Częste błędy" color="red" />
+            <SectionIntro items={['11 najczęstszych błędów z opisem i sposobem poprawy', 'Błędy dotyczące quorum, dat, głosowań i spójności', 'Jak sprawdzić protokół przed wysyłką']} />
             <div className="space-y-4">
               {ERRORS.map((err) => (
                 <div key={err.n} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-start gap-4">
