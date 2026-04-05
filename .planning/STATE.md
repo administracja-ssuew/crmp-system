@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 status: Executing Phase 04
-last_updated: "2026-04-05T11:26:09.186Z"
+last_updated: "2026-04-05T13:35:00Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -41,6 +41,11 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 - Phase 1 is independent; Phase 3 depends on Phase 1 (email setup)
 - Phases 2, 4, 5 are independent of each other
 
+## Decisions Log
+
+- Phase 04-01: Merged scroll listeners for readingProgress and showScrollTop into single handler to avoid duplicate event listeners
+- Phase 04-01: SectionTitle color lookup object defined inside component for Tailwind purge-safe dynamic classes
+
 ## Next Action
 
-Run `/gsd:plan-phase 1` to create PLAN.md for Phase 1 (Email Fix).
+Phase 04-01 complete. Run next plan in Phase 04.
