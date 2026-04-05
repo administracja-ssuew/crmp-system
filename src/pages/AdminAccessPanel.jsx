@@ -4,7 +4,7 @@ import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 
 // TODO: zmień na właściwy link do wzoru listy dostępowej na Google Drive
-const DRIVE_TEMPLATE_URL = 'hhttps://docs.google.com/document/d/1yx9s2TrSeHSnM8OsuygWhdqAmx8uc88C/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true'
+const DRIVE_TEMPLATE_URL = 'https://docs.google.com/document/d/1yx9s2TrSeHSnM8OsuygWhdqAmx8uc88C/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true'
 
 const currentMonth = () => new Date().toISOString().slice(0, 7)
 
@@ -279,7 +279,7 @@ export default function AdminAccessPanel() {
             </button>
             <a
               href={DRIVE_TEMPLATE_URL}
-              target="_blank"
+             //</div></div> target="_blank"
               rel="noopener noreferrer"
               className="flex-1 py-2.5 rounded-xl text-sm font-bold text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
             >
