@@ -83,72 +83,72 @@ const ORGANS = [
   {
     id: 'org-russ',
     title: 'RUSS — Rada Uczelniana Samorządu Studentów',
-    content: 'Najwyższy organ uchwałodawczy SSUEW. Składa się z 15 Radnych wybieranych przez studentów w wyborach. Podejmuje uchwały, zatwierdza budżet, udziela absolutorium Zarządowi. Posiedzenia RUSS są jedynymi, gdzie obowiązuje formalne quorum — minimum 8 Radnych (ponad połowa regulaminowego składu).',
+    content: 'Najwyższy organ uchwałodawczy Samorządu Studentów UEW. Radę tworzy 15 studentów wybranych zgodnie z Ordynacją Wyborczą. Obraduje na posiedzeniach zwyczajnych i nadzwyczajnych, a jej posiedzenia co do zasady mają charakter otwarty. To RUSS podejmuje uchwały, opiniuje i zatwierdza sprawy przypisane jej w Regulaminie Samorządu Studentów.',
   },
   {
     id: 'org-sks',
-    title: 'SKS — Spotkanie Komisji Samorządu',
-    content: 'Comiesięczne, otwarte spotkanie wszystkich działaczy Samorządu. Charakter informacyjno-roboczy — nie uchwałodawczy. Prowadzi je Przewodniczący SSUEW. Nie obowiązuje formalne quorum. To tu omawia się projekty, komunikaty Zarządu i sprawy bieżące.',
+    title: 'Spotkanie Komisji Samorządu',
+    content: 'Otwarte spotkanie Komisji Samorządu Studentów zwoływane przez Przewodniczącego Samorządu Studentów z własnej inicjatywy albo na wniosek uprawnionych osób. Na Spotkaniach Samorządu Studentów prezentowane są wyniki prac Rady, Przewodniczącego, Wiceprzewodniczących, Członków Zarządu oraz inne istotne informacje dla społeczności akademickiej.',
   },
   {
     id: 'org-skw',
     title: 'SKW — Studencka Komisja Wyborcza',
-    content: 'Organ przeprowadzający wybory w SSUEW. Prowadzi również posiedzenia absolutoryjne — ze względu na neutralność wobec Zarządu (to Zarząd jest oceniany, więc nie może sam prowadzić posiedzenia).',
+    content: 'Trzyosobowy organ wyborczy Samorządu Studentów oraz działalności studenckiej na UEW. Odpowiada za organizację i przeprowadzanie wyborów przewidzianych w Regulaminie i Ordynacji Wyborczej. Posiedzenie Rady, na którym dokonywany jest wybór Przewodniczącego Samorządu Studentów, zwołuje i prowadzi właśnie SKW.',
   },
   {
     id: 'org-kr',
     title: 'Komisja Rewizyjna',
-    content: 'Organ kontrolny SSUEW. Na absolutoriach pełni funkcję Komisji Skrutacyjnej — ogłasza wyniki głosowań po każdej prezentacji sprawozdawczej.',
+    content: 'Trzyosobowy organ kontrolny Samorządu Studentów. Do jej zadań należy m.in. kontrola realizacji budżetu Samorządu, rozpatrywanie skarg studentów na działania organów Samorządu oraz rozstrzyganie ważności wyborów i głosowań w sprawach wskazanych w Regulaminie.',
   },
   {
     id: 'org-ke',
     title: 'Kolegium Elektorów',
-    content: 'Organ wyborczy UEW (nie SSUEW). Wybiera Rektora Uczelni. W jego skład wchodzą m.in. przedstawiciele studentów wybierani przez społeczność studencką.',
+    content: 'Organ wyborczy Uniwersytetu Ekonomicznego we Wrocławiu. To Kolegium Elektorów dokonuje wyboru Rektora UEW i działa na podstawie przepisów uczelnianych, a nie regulacji Samorządu Studentów.',
   },
   {
     id: 'org-kd',
     title: 'Komisja Dyscyplinarna dla Studentów',
-    content: 'Organ UEW (nie SSUEW) rozpatrujący sprawy dyscyplinarne studentów. Działa na podstawie Ustawy Prawo o szkolnictwie wyższym. Nie mylić z organami Samorządu.',
+    content: 'Organ uczelniany właściwy w sprawach odpowiedzialności dyscyplinarnej studentów. Student ponosi odpowiedzialność dyscyplinarną za postępowanie uchybiające godności studenta oraz za naruszenie przepisów obowiązujących w Uczelni, podlegając Komisji Dyscyplinarnej dla Studentów.',
   },
   {
     id: 'org-kwest',
-    title: 'Kwestura',
-    content: 'Jednostka finansowo-księgowa UEW. Obsługuje rozliczenia finansowe Uczelni, w tym dotacje i rozliczenia z SSUEW. Na czele stoi Kwestor. Korespondencja finansowa między SSUEW a UEW przechodzi przez Kwesturę.',
+    title: 'Kwestor / Kwestura',
+    content: 'Kwestor pełni funkcję głównego księgowego Uczelni i odpowiada za prowadzenie oraz organizację obsługi finansowo-księgowej działalności UEW, a także za gospodarkę finansową w zakresie zadań realizowanych przez podległe komórki. W praktyce jest to kluczowy obszar uczelnianej administracji finansowej.',
   },
   {
     id: 'org-dzn',
     title: 'Dział Zarządzania Nieruchomościami',
-    content: 'Odpowiada za udostępnianie sal, przestrzeni kampusu i sprzętu technicznego. Do nich kierowane są podania o rezerwację pomieszczeń, plakatowanie, banerowanie i wjazd na kampus. Podlega Zastępcy Kanclerza ds. Technicznych.',
+    content: 'Jednostka administracyjna UEW podległa Zastępcy Kanclerza ds. Technicznych. Zajmuje się zarządzaniem nieruchomościami, w tym m.in. utrzymaniem czystości, obsługą szatni i portierni, ochroną Uczelni oraz najmem sal, powierzchni i terenu.',
   },
   {
     id: 'org-dss',
-    title: 'Dział Świadczeń Stypendialnych (DŚS)',
-    content: 'Obsługuje stypendia studenckie: socjalne, rektora, dla osób niepełnosprawnych oraz zapomogi. Studenci składają wnioski przez USOSweb, a fizycznie w DŚS.',
+    title: 'Dział Świadczeń Stypendialnych',
+    content: 'Jednostka UEW odpowiedzialna za całokształt procesu związanego ze świadczeniami stypendialnymi dla studentów I i II stopnia oraz za wypłatę stypendiów NAWA dla cudzoziemców.',
   },
   {
     id: 'org-cods',
     title: 'Centrum Obsługi Dydaktyki i Spraw Studenckich',
-    content: 'Administracyjna obsługa toku studiów. Nadzoruje systemy USOS, POL-on, APD. Tu trafiają sprawy związane z przebiegiem studiów.',
+    content: 'Jednostka UEW odpowiadająca za inicjowanie, koordynowanie i prowadzenie procesów związanych z organizacją dydaktyki — od kandydata do absolwenta. W jego strukturze działają m.in. Dziekanat, Biuro Planowania i Rozliczania Dydaktyki, Biuro Rekrutacji oraz Sekcja ds. Relacji z Otoczeniem Edukacyjnym.',
   },
   {
     id: 'org-cku',
     title: 'Centrum Kształcenia Ustawicznego (CKU)',
-    content: 'Studia podyplomowe i kursy dokształcające. W budynku CKU mieści się Sala Audytoryjna — Aula (1CKU), gdzie odbywają się największe wydarzenia uczelniane - mieści 406 osób.',
+    content: 'Pozawydziałowa jednostka organizacyjna UEW realizująca ofertę edukacyjną w formule uczenia się przez całe życie. CKU prowadzi przede wszystkim studia podyplomowe, kursy i szkolenia, odpowiadając na potrzeby rozwoju zawodowego różnych grup odbiorców. Sama nazawa "CKU" może być również odwołaniem do budynku o tym samym akronimie - znajduje się na Kampusie B, a także mieści w sobie Aule Audytoryjną (1 CKU), która jest uważana za najbardziej reprezentatywną salę na Uczelni i mieści 406 osób.',
   },
   {
     id: 'org-fue',
     title: 'FUE — Forum Uczelni Ekonomicznych',
-    content: 'FUE jest Komisją Branżową Parlamentu Studentów Rzeczypospolitej Polskiej zrzeszająca samorządy polskich uczelni ekonomicznych z całego kraju. SSUEW jest jej aktywnym członkiem. FUE organizuje Konferencje (KPUE), na których obradują delegaci (15 delegatów; 3 delegatów z każdego miasta) wszystkich uczelni członkowskich. Do FUE należy Uniwersytet Ekonomiczny w Poznaniu, Uniwersytet Ekonomiczny w Katowicach, Uniwersytet Ekonomiczny w Krakowie, Szkoła Główna Handlowa w Warszawie oraz Uniwersytet Ekonomiczny we Wrocławiu.',
+    content: 'Autonomiczne porozumienie samorządów studenckich uczelni ekonomicznych w Polsce i jednocześnie komisja branżowa Parlamentu Studentów Rzeczypospolitej Polskiej. Jego celem jest reprezentowanie interesów studentów uczelni ekonomicznych oraz rozwijanie współpracy i integracji między samorządami. W skład FUE wchodzą: Uniwersytet Ekonomiczny w Poznaniu, Uniwersytet Ekonomiczny w Katowicach, Uniwersytet Ekonomiczny w Krakowie, Szkoła Główna Handlowa w Warszawie oraz Uniwersytet Ekonomiczny we Wrocławiu.',
   },
   {
     id: 'org-kpue',
     title: 'KPUE — Konferencja Polskich Uczelni Ekonomicznych',
-    content: 'Cykliczne spotkanie przedstawicieli samorządów uczelni ekonomicznych, organizowane rotacyjnie przez kolejne uczelnie wchodzące w skład Forum Uczelni Ekonomicznych.',
+    content: 'Cykliczne spotkanie organizowane w ramach Forum Uczelni Ekonomicznych. To przestrzeń obrad, wymiany doświadczeń i podejmowania decyzji dotyczących dalszego funkcjonowania FUE oraz wspólnych projektów środowiska uczelni ekonomicznych.',
   },
   {
     id: 'org-joss',
     title: 'JOSS — Jednostki Organizacyjne Samorządu Studentów',
-    content: 'Organizacje studenckie działające przy SSUEW. Przewodniczący JOSS uczestniczą m.in. w posiedzeniach absolutoryjnych (sprawozdają się przed RUSS), a co za tym idzie są powoływani przez RUSS do pełnienia swojej funkcji. Do JOSS należy Informacja Kulturalno-Sportowa Studentów oraz Biuro Podróżników "Because I Travel".',
+    content: 'Jednostki organizacyjne działające w strukturze Samorządu Studentów UEW. Regulamin Samorządu przewiduje ich istnienie jako elementu struktury SSUEW, a szczegółowe zasady ich działania określają właściwe akty wewnętrzne. Stanowią nierozłączną część Samorządu, a są to: IKSS — Informacja Kulturalno-Sportowa Studentów oraz BIT - Klub Podróżników "Because I Travel".',
   },
 ];
 
@@ -259,13 +259,18 @@ export default function KompendiumPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Scroll to top detector + reading progress
+  // Scroll to top detector + reading progress + last-section highlight fix
   useEffect(() => {
     const onScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.documentElement.scrollHeight - window.innerHeight;
       setReadingProgress(docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0);
-      setShowScrollTop(scrollTop > 400);
+      setShowScrollTop(scrollTop > 200);
+      // Ostatnia sekcja (wzory-szablony) jest zbyt blisko końca strony, żeby IntersectionObserver ją wyłapał
+      // — aktywujemy ją ręcznie gdy jesteśmy w ciągu 150px od dołu dokumentu
+      if (docHeight > 0 && scrollTop >= docHeight - 150) {
+        setActiveSection('wzory-szablony');
+      }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -522,7 +527,7 @@ export default function KompendiumPage() {
         </aside>
 
         {/* TREŚĆ GŁÓWNA */}
-        <main className="flex-1 min-w-0 p-6 lg:p-10 pb-24">
+        <main className="flex-1 min-w-0 p-6 lg:p-10 pb-24 [&_p]:text-justify [&_p]:hyphens-auto [&_p]:text-pretty">
 
           {/* ===== ROZDZIAŁ 0 — WSTĘP ===== */}
           <section id="wstep" className="scroll-mt-20 mb-16">
