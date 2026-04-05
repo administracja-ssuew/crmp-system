@@ -119,13 +119,25 @@ export default function MapPage() {
     }
     if (searchTerm) {
       const lowerTerm = searchTerm.toLowerCase();
-      result = result.filter(loc => 
-        loc.name.toLowerCase().includes(lowerTerm) || 
+      result = result.filter(loc =>
+        loc.name.toLowerCase().includes(lowerTerm) ||
         loc.id.toLowerCase().includes(lowerTerm)
       );
     }
     setFilteredLocations(result);
   }, [searchTerm, filterType, locations]);
+
+  // Lazy-fetch history + seed edit form when Zarządzaj tab is opened (per D-09, D-10)
+  useEffect(() => {
+    if (adminTab === 'zarzadzaj' && selected) {
+      fetchHistory(selected.id);
+      setEditForm({
+        name: selected.name || '',
+        capacity: selected.capacity || '',
+        imageUrl: selected.image || '',
+      });
+    }
+  }, [adminTab, selected]);
 
   const handleOpenInfo = () => setIsInfoModalOpen(true);
 
@@ -177,7 +189,7 @@ export default function MapPage() {
   // === LOGIKA ZARZĄDU: ZDEJMOWANIE PLAKATU ===
   const handleRemovePoster = async (posterCredId) => {
     if(!window.confirm("Czy potwierdzasz zdjęcie plakatu? Spowoduje to zwolnienie miejsca na mapie i zamknięcie statusu w systemie eskalacji Kanclerza.")) return;
-    
+
     setIsSubmitting(true);
     const payload = {
       action: 'removePoster',
@@ -196,7 +208,51 @@ export default function MapPage() {
       console.log(err);
       alert("Zwolniono miejsce, odświeżam widok.");
     } finally {
-      fetchData(); 
+      fetchData();
+      setIsSubmitting(false);
+    }
+  };
+
+  // === HISTORIA LOKALIZACJI: lazy-fetch gdy admin otworzy zakładkę Zarządzaj (per D-09) ===
+  const fetchHistory = async (locationId) => {
+    setHistoryLoading(true);
+    setHistoryError(null);
+    setLocationHistory([]);
+    try {
+      const res = await fetch(`${DATA_URL}?action=getHistory&locationId=${locationId}`);
+      const data = await res.json();
+      setLocationHistory(data.history || []);
+    } catch (err) {
+      console.error(err);
+      setHistoryError('Nie udało się pobrać historii. Spróbuj ponownie.');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // === EDYCJA DANYCH LOKALIZACJI: POST updateLocation do GAS (per D-10) ===
+  const handleUpdateLocation = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      await fetch(DATA_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'updateLocation',
+          locationId: selected.id,
+          name: editForm.name,
+          capacity: Number(editForm.capacity),
+          imageUrl: editForm.imageUrl,
+        }),
+      });
+      setIsEditing(false);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Błąd zapisu danych lokalizacji. Spróbuj ponownie.');
+    } finally {
       setIsSubmitting(false);
     }
   };
