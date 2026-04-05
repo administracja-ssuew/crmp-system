@@ -26,6 +26,7 @@ const NAV_ITEMS = [
     ],
   },
   { id: 'bledy', label: 'Częste błędy' },
+  { id: 'wzory-szablony', label: 'Wzory i szablony' },
 ];
 
 const ALL_SECTION_IDS = [
@@ -33,6 +34,7 @@ const ALL_SECTION_IDS = [
   'typy', 'typ-sks', 'typ-russ', 'typ-absolutoryjny',
   'typ-komisyjny', 'typ-projektowy', 'typ-roboczy', 'typ-kpue',
   'bledy',
+  'wzory-szablony',
 ];
 
 const TYPE_CHILD_IDS = ['typ-sks', 'typ-russ', 'typ-absolutoryjny', 'typ-komisyjny', 'typ-projektowy', 'typ-roboczy', 'typ-kpue'];
@@ -59,6 +61,22 @@ const AFTER_ITEMS = [
   { id: 'a7', text: 'Wyślij do prowadzącego obrady do weryfikacji' },
   { id: 'a8', text: 'Po akceptacji — przekaż do archiwum zgodnie z procedurami SSUEW' },
   { id: 'a9', text: 'Usuń nagranie jeśli robiłeś' },
+];
+
+// ===================== SZABLONY DOKUMENTÓW =====================
+const TEMPLATE_ITEMS = [
+  { id: 't1',  name: 'Protokół SKS',                      driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't2',  name: 'Protokół RUSS',                     driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't3',  name: 'Protokół Absolutoryjny',            driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't4',  name: 'Protokół Komisyjny',                driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't5',  name: 'Protokół Projektowy',               driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't6',  name: 'Protokół Roboczy',                  driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't7',  name: 'Protokół KPUE',                     driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't8',  name: 'Lista obecności (SKS)',              driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't9',  name: 'Lista obecności (RUSS)',             driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't10', name: 'Wzór uchwały',                      driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't11', name: 'Wzór wniosku formalnego',           driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't12', name: 'Wzór karty do głosowania',          driveUrl: 'TODO: wstaw_link_google_drive' },
 ];
 
 // ===================== ORGANY (Akordeony 1C) =====================
