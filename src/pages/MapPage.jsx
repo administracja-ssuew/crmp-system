@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { MapPin, Flag, Search, Map, List, X } from 'lucide-react';
 
 // === TWÓJ NOWY LINK DO SKRYPTU ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbyO_eJLtdAs63yScKpVuIzbkCQoQKqQTcWgBN_nlfjg__nAkzXXVYuuisKm_MHmoQ5rNw/exec";
 
 export default function MapPage() {
   const { user, userRole } = useAuth();
-  const isAdmin = userRole === 'admin';
+  const isAdmin = userRole === 'logitech' || userRole === 'admin';
 
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -27,6 +28,63 @@ export default function MapPage() {
     email: '',
     endDate: ''
   });
+
+  const [view, setView] = useState('map');
+  const [hoveredId, setHoveredId] = useState(null);
+  const [locationHistory, setLocationHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
+  const [allPosters, setAllPosters] = useState([]);
+  const [postersLoading, setPostersLoading] = useState(false);
+  const [registryFilter, setRegistryFilter] = useState('all');
+  const [registrySearch, setRegistrySearch] = useState('');
+  const [editForm, setEditForm] = useState({ name: '', capacity: '', imageUrl: '' });
+  const [isEditing, setIsEditing] = useState(false);
+  const imgRef = useRef(null);
+
+  const calcHotspotStyle = (loc) => {
+    if (!imgRef.current) return { top: loc.top, left: loc.left };
+    const img = imgRef.current;
+    const { width: cw, height: ch } = img.getBoundingClientRect();
+    if (!cw || !ch) return { top: loc.top, left: loc.left };
+    const naturalW = img.naturalWidth || cw;
+    const naturalH = img.naturalHeight || ch;
+    const containerRatio = cw / ch;
+    const imageRatio = naturalW / naturalH;
+    let renderedW, renderedH, offsetX, offsetY;
+    if (imageRatio > containerRatio) {
+      renderedW = cw;
+      renderedH = cw / imageRatio;
+      offsetX = 0;
+      offsetY = (ch - renderedH) / 2;
+    } else {
+      renderedH = ch;
+      renderedW = ch * imageRatio;
+      offsetX = (cw - renderedW) / 2;
+      offsetY = 0;
+    }
+    const topPct = parseFloat(loc.top) / 100;
+    const leftPct = parseFloat(loc.left) / 100;
+    return {
+      position: 'absolute',
+      top: offsetY + topPct * renderedH,
+      left: offsetX + leftPct * renderedW,
+      transform: 'translate(-50%, -50%)',
+    };
+  };
+
+  const fetchAllPosters = async () => {
+    setPostersLoading(true);
+    try {
+      const res = await fetch(`${DATA_URL}?action=getAllPosters`);
+      const data = await res.json();
+      setAllPosters(data.posters || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setPostersLoading(false);
+    }
+  };
 
   const fetchData = () => {
     setLoading(true);
@@ -51,6 +109,8 @@ export default function MapPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   useEffect(() => {
     let result = locations;
