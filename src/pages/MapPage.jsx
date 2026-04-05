@@ -442,38 +442,47 @@ export default function MapPage() {
               )}
 
               {adminTab === 'zarzadzaj' && isAdmin && (
-                <div className="animate-fadeIn">
-                  
-                  <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Zawieszone Plakaty ({selected.capacity - selected.free}/{selected.capacity})</h3>
-                  
-                  <div className="space-y-3 mb-8">
-                    {(selected.activePosters || []).length > 0 ? (
-                      selected.activePosters.map((poster, idx) => (
-                        <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center group shadow-sm">
-                          <div>
-                            <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
-                            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{poster.nazwa} ({poster.org})</p>
-                            <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate}</p>
-                          </div>
-                          <button 
-                            onClick={() => handleRemovePoster(poster.credId)}
-                            disabled={isSubmitting}
-                            className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
-                          >
-                            Zdejmij
-                          </button>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm font-bold text-slate-400 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                        Brak wiszących plakatów w bazie.
-                      </p>
-                    )}
-                  </div>
+                <div className="animate-fadeIn space-y-8">
 
+                  {/* === SEKCJA 1: Aktywne plakaty (per D-09) === */}
+                  {/* NOTE dla GAS: activePosters[].endDate jest nieobecne w doGet().
+                      Fix GAS: dodaj endDate: Utilities.formatDate(new Date(row[1]), 'Europe/Warsaw', 'dd.MM.yyyy')
+                      do push() w bloku budowania activePosters w funkcji doGet().
+                      Frontend stosuje fallback: {poster.endDate ?? '—'} */}
+                  <section>
+                    <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">
+                      Zawieszone Plakaty ({(selected.capacity || 0) - (selected.free ?? (selected.capacity || 0))}/{selected.capacity || 0})
+                    </h3>
+                    <div className="space-y-3">
+                      {(selected.activePosters || []).length > 0 ? (
+                        selected.activePosters.map((poster, idx) => (
+                          <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                            <div>
+                              <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
+                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{poster.nazwa} ({poster.org})</p>
+                              <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate ?? '—'}</p>
+                            </div>
+                            <button
+                              onClick={() => handleRemovePoster(poster.credId)}
+                              disabled={isSubmitting}
+                              className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
+                            >
+                              Zdejmij
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm font-bold text-slate-400 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                          Brak wiszących plakatów w bazie.
+                        </p>
+                      )}
+                    </div>
+                  </section>
+
+                  {/* === SEKCJA 2: Formularz dodawania (per D-09) — only shown when free slots exist === */}
                   {selected.free > 0 && (
-                    <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
-                      <h3 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-4">➕ Ewidencjonuj Nowy Plakat</h3>
+                    <section className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
+                      <h3 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-4">Ewidencjonuj Nowy Plakat</h3>
                       <form onSubmit={handleAddPoster} className="space-y-4">
                         <div>
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Znak Zgody (CRED)</label>
@@ -495,13 +504,140 @@ export default function MapPage() {
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Termin Zdjęcia Plakatu</label>
                           <input type="date" required value={newPoster.endDate} onChange={e => setNewPoster({...newPoster, endDate: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none text-red-600" />
                         </div>
-                        
                         <button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all mt-2">
                           {isSubmitting ? 'Zapisywanie w Bazie...' : 'Zatwierdź Powieszenie'}
                         </button>
                       </form>
-                    </div>
+                    </section>
                   )}
+
+                  {/* === SEKCJA 3: Historia (per D-09) — lazy-loaded === */}
+                  <section>
+                    <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Historia Lokalizacji</h3>
+                    {historyLoading && (
+                      <div className="flex items-center justify-center py-6 gap-3">
+                        <div className="w-5 h-5 border-2 border-blue-600 rounded-full border-t-transparent animate-spin" />
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ładowanie historii...</span>
+                      </div>
+                    )}
+                    {historyError && !historyLoading && (
+                      <p className="text-sm font-bold text-red-500 text-center py-4 bg-red-50 rounded-xl border border-red-100">{historyError}</p>
+                    )}
+                    {!historyLoading && !historyError && locationHistory.length === 0 && (
+                      <p className="text-sm font-bold text-slate-400 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        Brak danych historycznych.
+                      </p>
+                    )}
+                    {!historyLoading && locationHistory.length > 0 && (
+                      <div className="space-y-2">
+                        {locationHistory.map((entry, idx) => (
+                          <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex justify-between items-center">
+                            <div>
+                              <p className="font-bold text-slate-800 text-xs">{entry.credId}</p>
+                              <p className="text-[10px] text-slate-500 font-bold mt-0.5">{entry.nazwa} — {entry.org}</p>
+                              <p className="text-[10px] text-slate-400 font-bold mt-0.5">Zdjęto: {entry.endDate}</p>
+                            </div>
+                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${entry.status === 'AKTYWNE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                              {entry.status === 'AKTYWNE' ? 'Aktywny' : 'Zakończony'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  {/* === SEKCJA 4: Statystyki (per D-09) — derived from locationHistory === */}
+                  {locationHistory.length > 0 && (
+                    <section>
+                      <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">Statystyki Lokalizacji</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                          <div className="text-2xl font-black text-slate-800">{locationHistory.length}</div>
+                          <div className="text-[10px] uppercase font-bold text-slate-500 mt-1">Łączne rezerwacje</div>
+                        </div>
+                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-center">
+                          <div className="text-2xl font-black text-slate-800">
+                            {locationHistory.filter(e => e.status === 'AKTYWNE').length}
+                          </div>
+                          <div className="text-[10px] uppercase font-bold text-slate-500 mt-1">Aktualnie aktywnych</div>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* === EDYCJA DANYCH LOKALIZACJI (per D-10) === */}
+                  <section className="border-t border-slate-200 pt-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest">Dane Lokalizacji</h3>
+                      {!isEditing && (
+                        <button
+                          onClick={() => setIsEditing(true)}
+                          className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 transition"
+                        >
+                          Edytuj
+                        </button>
+                      )}
+                    </div>
+                    {isEditing ? (
+                      <form onSubmit={handleUpdateLocation} className="space-y-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nazwa Lokalizacji</label>
+                          <input
+                            type="text"
+                            required
+                            value={editForm.name}
+                            onChange={e => setEditForm({...editForm, name: e.target.value})}
+                            className="w-full bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Pojemność (liczba miejsc)</label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            max="20"
+                            value={editForm.capacity}
+                            onChange={e => setEditForm({...editForm, capacity: e.target.value})}
+                            className="w-full bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">URL Zdjęcia Lokalizacji</label>
+                          <input
+                            type="url"
+                            value={editForm.imageUrl}
+                            onChange={e => setEditForm({...editForm, imageUrl: e.target.value})}
+                            className="w-full bg-white border border-slate-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                            placeholder="https://..."
+                          />
+                        </div>
+                        <div className="flex gap-3">
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                          >
+                            {isSubmitting ? 'Zapisuję...' : 'Zapisz Zmiany'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsEditing(false)}
+                            className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                          >
+                            Anuluj
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div className="space-y-2 text-sm text-slate-600">
+                        <p><span className="font-bold text-slate-800">Nazwa:</span> {selected.name}</p>
+                        <p><span className="font-bold text-slate-800">Pojemność:</span> {selected.capacity} miejsc</p>
+                        <p><span className="font-bold text-slate-800">Zdjęcie:</span> {selected.image ? 'Ustawione' : 'Brak'}</p>
+                      </div>
+                    )}
+                  </section>
+
                 </div>
               )}
             </div>
