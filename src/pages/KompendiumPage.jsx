@@ -83,7 +83,7 @@ const ORGANS = [
   {
     id: 'org-russ',
     title: 'RUSS — Rada Uczelniana Samorządu Studentów',
-    content: 'Najwyższy organ uchwałodawczy Samorządu Studentów UEW. Radę tworzy 15 studentów wybranych zgodnie z Ordynacją Wyborczą. Obraduje na posiedzeniach zwyczajnych i nadzwyczajnych, a jej posiedzenia co do zasady mają charakter otwarty. To RUSS podejmuje uchwały, opiniuje i zatwierdza sprawy przypisane jej w Regulaminie Samorządu Studentów.',
+    content: 'Najwyższy organ uchwałodawczy Samorządu Studentów UEW. Radę tworzy 15 studentów wybranych zgodnie z Ordynacją Wyborczą. Obraduje na posiedzeniach zwyczajnych oraz nadzwyczajnych, a jej posiedzenia co do zasady mają charakter otwarty. To RUSS podejmuje uchwały, opiniuje i zatwierdza sprawy przypisane jej w Regulaminie Samorządu Studentów.',
   },
   {
     id: 'org-sks',
@@ -93,7 +93,7 @@ const ORGANS = [
   {
     id: 'org-skw',
     title: 'SKW — Studencka Komisja Wyborcza',
-    content: 'Trzyosobowy organ wyborczy Samorządu Studentów oraz działalności studenckiej na UEW. Odpowiada za organizację i przeprowadzanie wyborów przewidzianych w Regulaminie i Ordynacji Wyborczej. Posiedzenie Rady, na którym dokonywany jest wybór Przewodniczącego Samorządu Studentów, zwołuje i prowadzi właśnie SKW.',
+    content: 'Trzyosobowy organ wyborczy Samorządu Studentów oraz działalności studenckiej na UEW. Odpowiada za organizację i przeprowadzanie wyborów przewidzianych w Regulaminie tudzież Ordynacji Wyborczej. Posiedzenie Rady, na którym dokonywany jest wybór Przewodniczącego Samorządu Studentów, zwołuje i prowadzi właśnie SKW.',
   },
   {
     id: 'org-kr',
@@ -133,7 +133,7 @@ const ORGANS = [
   {
     id: 'org-cku',
     title: 'Centrum Kształcenia Ustawicznego (CKU)',
-    content: 'Pozawydziałowa jednostka organizacyjna UEW realizująca ofertę edukacyjną w formule uczenia się przez całe życie. CKU prowadzi przede wszystkim studia podyplomowe, kursy i szkolenia, odpowiadając na potrzeby rozwoju zawodowego różnych grup odbiorców. Sama nazawa "CKU" może być również odwołaniem do budynku o tym samym akronimie - znajduje się na Kampusie B, a także mieści w sobie Aule Audytoryjną (1 CKU), która jest uważana za najbardziej reprezentatywną salę na Uczelni i mieści 406 osób.',
+    content: 'Pozawydziałowa jednostka organizacyjna UEW realizująca ofertę edukacyjną w formule uczenia się przez całe życie. CKU prowadzi przede wszystkim studia podyplomowe, kursy oraz szkolenia, odpowiadając na potrzeby rozwoju zawodowego różnych grup odbiorców. Sama nazawa "CKU" może być również odwołaniem do budynku o tym samym akronimie - znajduje się na Kampusie B, a także mieści w sobie Aule Audytoryjną (1 CKU), która jest uważana za najbardziej reprezentatywną salę na Uczelni i mieści 406 osób.',
   },
   {
     id: 'org-fue',
@@ -221,6 +221,12 @@ const ERRORS = [
     fix: 'Wybierz jeden sposób i stosuj go konsekwentnie. Standard: pełna funkcja + imię i nazwisko przy pierwszym użyciu, sama funkcja przy kolejnych.',
   },
 ];
+
+// ===================== HELPER: niełamliwa spacja po polskich spójnikach =====================
+// Zapobiega czarnym wdowom: "i", "w", "z", "o", "a", "u", "do", "we", "ze", "że", "bo", "na", "po", "od"
+function nb(text) {
+  return text.replace(/ (i|w|z|o|a|u|do|we|ze|że|bo|na|po|od|ku|by) /g, ' $1\u00A0');
+}
 
 // ===================== GŁÓWNY KOMPONENT =====================
 export default function KompendiumPage() {
@@ -348,7 +354,7 @@ export default function KompendiumPage() {
     return (
       <div className="border border-slate-200 rounded-xl overflow-hidden">
         <button
-          onClick={() => setOpenAccordion(open ? null : id)}
+          onClick={(e) => { setOpenAccordion(open ? null : id); e.currentTarget.blur(); }}
           className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors text-left"
         >
           <span className="font-semibold text-slate-800 text-sm">{title}</span>
@@ -358,7 +364,7 @@ export default function KompendiumPage() {
         </button>
         {open && (
           <div className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100">
-            <p className="text-sm text-slate-600 leading-relaxed pt-3">{content}</p>
+            <p className="text-sm text-slate-600 leading-relaxed pt-3">{nb(content)}</p>
           </div>
         )}
       </div>
@@ -819,7 +825,7 @@ export default function KompendiumPage() {
                   { type: 'SKS', deadline: '7 dni', color: 'blue' },
                   { type: 'RUSS', deadline: '7-14 dni', color: 'orange' },
                   { type: 'Absolutoryjny', deadline: '1 miesiąc', color: 'red' },
-                  { type: 'KPUE', deadline: 'ok. 1 miesiąc (ruchomy — ustal z Członkiem Prezydium ds. Administracji FUE)', color: 'red' },
+                  { type: 'KPUE', deadline: '~1 miesiąc (ruchomy)', color: 'red' },
                   { type: 'Komisyjny', deadline: '3–5 dni', color: 'green' },
                   { type: 'Projektowy', deadline: '1–3 dni', color: 'green' },
                   { type: 'Roboczy', deadline: 'ustal z organizatorem', color: 'gray' },
@@ -1187,7 +1193,7 @@ export default function KompendiumPage() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-50 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg shadow-violet-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-24 right-6 z-50 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg shadow-violet-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry"
         >
           <ArrowUp className="w-5 h-5" />
