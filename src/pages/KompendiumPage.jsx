@@ -209,6 +209,7 @@ const ERRORS = [
 export default function KompendiumPage() {
   const [activeSection, setActiveSection] = useState('wstep');
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
   const [openAccordion, setOpenAccordion] = useState(null);
   const [checklistState, setChecklistState] = useState(() => {
     try {
@@ -238,9 +239,14 @@ export default function KompendiumPage() {
     return () => observer.disconnect();
   }, []);
 
-  // Scroll to top detector
+  // Scroll to top detector + reading progress
   useEffect(() => {
-    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    const onScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      setReadingProgress(docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0);
+      setShowScrollTop(scrollTop > 400);
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -382,6 +388,12 @@ export default function KompendiumPage() {
               Kompendium Wiedzy Protokolanta
             </span>
           </nav>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-slate-100">
+          <div
+            className="h-0.5 bg-violet-600 transition-all duration-75"
+            style={{ width: `${readingProgress}%` }}
+          />
         </div>
       </div>
 
