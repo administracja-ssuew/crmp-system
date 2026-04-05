@@ -28,8 +28,8 @@
 
 ### Kompendium & Inwentarz
 
-- [ ] **KOMP-01**: Uatrakcyjnić UI Kompendium Wiedzy Protokolanta — nowy layout, karty, sekcje, estetyka
-- [ ] **KOMP-02**: Dodać wzory i szablony dokumentów do Kompendium
+- [x] **KOMP-01**: Uatrakcyjnić UI Kompendium Wiedzy Protokolanta — nowy layout, karty, sekcje, estetyka
+- [x] **KOMP-02**: Dodać wzory i szablony dokumentów do Kompendium
 - [x] **INV-01**: Nowa zakładka Księga Inwentarzowa — informacyjny przewodnik po inwentarzu SSUEW (co, gdzie, jak)
 
 ### Mapa Kampusu
@@ -75,8 +75,8 @@
 | ACC-03 | Phase 3 | Pending |
 | ACC-04 | Phase 3 | Pending |
 | ACC-05 | Phase 3 | Pending |
-| KOMP-01 | Phase 4 | Pending |
-| KOMP-02 | Phase 4 | Pending |
+| KOMP-01 | Phase 4 | Complete |
+| KOMP-02 | Phase 4 | Complete |
 | INV-01 | Phase 4 | Complete |
 | MAP-01 | Phase 5 | Pending |
 

@@ -9,7 +9,7 @@
 - [ ] **Phase 1: Email Fix** — Fix Resend sender domain and rewrite all three transactional email templates
 - [x] **Phase 2: Baza Sprzętu + Apteczki** — Fix bugs and complete missing features in equipment catalog and first aid kit modules (completed 2026-04-04)
 - [ ] **Phase 3: Lista Dostępowa** — Build new monthly access list module (form, admin panel, PDF generation, approved list view)
-- [ ] **Phase 4: Kompendium + Księga Inwentarzowa** — Redesign KompendiumPage and add new KsiegaInwentarzPage tab
+- [x] **Phase 4: Kompendium + Księga Inwentarzowa** — Redesign KompendiumPage and add new KsiegaInwentarzPage tab (completed 2026-04-05)
 - [ ] **Phase 5: Mapa Kampusu** — Improve MapPage interactivity and prepare integration point for new Photoshop campus map
 
 ---
@@ -77,7 +77,7 @@
   2. A "Wzory i szablony" section is present in KompendiumPage with downloadable or viewable document templates
   3. A new "Księga Inwentarzowa" route and nav tab exists; it loads without errors and displays structured inventory guidance (what items exist, where they are stored, how to handle them)
 **Plans:**
-2/3 plans executed
+3/3 plans complete
 - [ ] 4.2 — Document templates section: Add templates block to KompendiumPage (file list with preview/download links, stored as static assets or Google Drive links) — can run in parallel with 4.1
 - [ ] 4.3 — KsiegaInwentarzPage: Create new page component, add route in App.jsx, add nav entry; populate with inventory guide content (categories, locations, procedures)
 **UI hint**: yes
@@ -106,7 +106,7 @@
 | 1. Email Fix | 0/4 | Not started | - |
 | 2. Baza Sprzętu + Apteczki | 0/4 | Complete    | 2026-04-04 |
 | 3. Lista Dostępowa | 0/5 | Not started | - |
-| 4. Kompendium + Księga Inwentarzowa | 2/3 | In Progress|  |
+| 4. Kompendium + Księga Inwentarzowa | 2/3 | Complete    | 2026-04-05 |
 | 5. Mapa Kampusu | 0/3 | Not started | - |
 
 ---
