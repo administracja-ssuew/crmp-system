@@ -97,9 +97,45 @@ Nie wchodzi w zakres: osobna strona CRUD lokalizacji (odkładamy), żadnych nowy
 <code_context>
 ## Existing Code Insights
 
-### GAS endpoint
-- `DATA_URL` = hardcoded w pliku, GET zwraca `{ locations: [...] }` gdzie każda lokalizacja ma: `id`, `name`, `type` ('plakat'|'baner'), `top`, `left` (pozycja hotspotu), `capacity`, `free`, `activePosters[]`, `image`
-- POST actions: `addPoster`, `removePoster` — działają
+### GAS endpoint — schemat danych (zweryfikowany ze skryptem GAS)
+
+**doGet() → GET zwraca `{ locations: [...] }`**
+Każda lokalizacja: `id`, `name`, `type` ('plakat'|'baner'), `top`, `left`, `capacity`, `free`, `image`, `activePosters[]`
+
+`activePosters[]` — każdy element: `{ credId, nazwa, org }` — **BRAK `endDate`!** To istniejący bug w GAS.
+Fix: dodać `endDate: Utilities.formatDate(new Date(row[1]), 'Europe/Warsaw', 'dd.MM.yyyy')` przy push w doGet().
+
+**Sheet: Rezerwacje_Mapy** — kolumny:
+- A = locationId (numer/id lokalizacji)
+- B = endDate (data zdjęcia, jako Date)
+- C = posterName (nazwa plakatu/baneru)
+- D = organization
+- E = email rezerwującego
+- F = locationType ('plakat'|'baner')
+- G = credId (znak CRED, np. CRED-24-001)
+
+**Sheet: REJESTR_PLAKATOWANIA** — kolumny:
+- A = id, B = znak (credId), C = org, D = email, E = data_zgody, F = opis_promo, G = opis_obowiazku, H = data_zdjecia, I = status_reczny, M = status_system (AKTYWNE/ZDJĘTE)
+
+**Sheet: REJESTR_BANEROW** — analogiczna struktura do REJESTR_PLAKATOWANIA
+
+**Sheet: Miejsca** — dane lokalizacji (id, name, type, top, left, capacity, image)
+
+### Nowe akcje GAS do implementacji (po stronie GAS):
+
+**getHistory** (GET, `?action=getHistory&locationId=X`):
+- Filtruj Rezerwacje_Mapy po col A (locationId) — WSZYSTKIE wiersze (nie tylko aktywne)
+- Zwróć: `{ credId, nazwa, org, endDate, status }` gdzie status pobierany z REJESTR sheet po credId (col B) → col M
+
+**getAllPosters** (GET, `?action=getAllPosters`):
+- Czytaj REJESTR_PLAKATOWANIA + REJESTR_BANEROW, zwróć wszystkie wiersze jako:
+  `{ credId, org, email, dataZgody, dataZdjecia, status, type ('plakat'|'baner'), locationId, nazwa }`
+- locationId: join przez Rezerwacje_Mapy col G (credId) → col A (locationId)
+
+**updateLocation** (POST, body: `{action:'updateLocation', locationId, name, capacity, imageUrl}`):
+- Znajdź wiersz w Miejsca po locationId, zaktualizuj name/capacity/imageUrl
+
+### POST actions (działają): `addPoster`, `removePoster`
 
 ### Istniejące wzorce
 - `isAdmin = userRole === 'logitech' || userRole === 'admin'` — uwaga: logitech też jest adminem tu! Zachować ten wzorzec.

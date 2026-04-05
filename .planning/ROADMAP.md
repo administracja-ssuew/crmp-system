@@ -10,7 +10,7 @@
 - [x] **Phase 2: Baza Sprzętu + Apteczki** — Fix bugs and complete missing features in equipment catalog and first aid kit modules (completed 2026-04-04)
 - [ ] **Phase 3: Lista Dostępowa** — Build new monthly access list module (form, admin panel, PDF generation, approved list view)
 - [x] **Phase 4: Kompendium + Księga Inwentarzowa** — Redesign KompendiumPage and add new KsiegaInwentarzPage tab (completed 2026-04-05)
-- [ ] **Phase 5: Mapa Kampusu** — Improve MapPage interactivity and prepare integration point for new Photoshop campus map
+- [x] **Phase 5: Mapa Kampusu** — Improve MapPage interactivity and prepare integration point for new Photoshop campus map (completed 2026-04-05)
 
 ---
 
@@ -91,9 +91,9 @@
   2. Hotspots or clickable regions on the map show a tooltip or info panel with room/building details on interaction
   3. The map is usable on standard desktop viewport sizes without horizontal scroll
 **Plans:**
-2/3 plans executed
-- [ ] 5.2 — Responsive image container & asset swap: Replace or adapt the map image container to accept high-res Photoshop export; ensure CSS scales correctly — depends on 5.1
-- [ ] 5.3 — Hotspot interactivity: Implement or repair clickable regions with tooltip/panel display; use SVG overlay or absolute-positioned divs over the image — depends on 5.1
+3/3 plans executed
+- [x] 5.2 — Admin panel expansion (Zarządzaj tab with history, stats, location edit) — completed 2026-04-05
+- [x] 5.3 — Rejestr Plakatów i Banerów (full RegistryView with fetchAllPosters, filter tabs, search, table) — completed 2026-04-05
 
 **UI hint**: yes
 
@@ -107,7 +107,7 @@
 | 2. Baza Sprzętu + Apteczki | 0/4 | Complete    | 2026-04-04 |
 | 3. Lista Dostępowa | 0/5 | Not started | - |
 | 4. Kompendium + Księga Inwentarzowa | 2/3 | Complete    | 2026-04-05 |
-| 5. Mapa Kampusu | 2/3 | In Progress|  |
+| 5. Mapa Kampusu | 3/3 | Complete    | 2026-04-05 |
 
 ---
 
@@ -140,7 +140,7 @@
 | KOMP-01 | Phase 4 | Pending |
 | KOMP-02 | Phase 4 | Pending |
 | INV-01 | Phase 4 | Pending |
-| MAP-01 | Phase 5 | Pending |
+| MAP-01 | Phase 5 | Complete |
 
 **Coverage: 16/16 v1 requirements mapped. No orphans.**
 

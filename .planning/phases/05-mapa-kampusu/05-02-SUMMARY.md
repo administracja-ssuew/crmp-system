@@ -125,6 +125,14 @@ No React warning was triggered. The `useEffect([adminTab, selected])` dependency
 
 None — all sections implemented. The `fetchHistory` and `handleUpdateLocation` functions make real GAS calls; they will return errors or empty states until the GAS-side `getHistory` and `updateLocation` actions are implemented (tracked in D-14 as GAS-side work).
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/05-mapa-kampusu/05-02-SUMMARY.md`
+- FOUND: `src/pages/MapPage.jsx`
+- FOUND commit `0ee3609` (Task 1)
+- FOUND commit `747b651` (Task 2)
+- FOUND commit `64747de` (metadata)
+
 ---
 *Phase: 05-mapa-kampusu*
 *Completed: 2026-04-05*
