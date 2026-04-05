@@ -591,17 +591,14 @@ export default function EquipmentPage() {
                   // Parsuj statusy: nowy format "nazwa:BRAK/CZESC", stary format "nazwa" → BRAK
                   const reportedStatuses = {};
                   kitHistory.forEach(r => {
-                    const rawMat = String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '');
-                    rawMat.split(rawMat.includes('|') ? '|' : ',').forEach(entry => {
-                      const trimmed = entry.trim();
-                      if (!trimmed) return;
-                      const colon = trimmed.lastIndexOf(':');
-                      if (colon > 0) {
-                        const name = trimmed.substring(0, colon).trim().toLowerCase();
-                        const status = trimmed.substring(colon + 1).trim();
-                        if (name) reportedStatuses[name] = (status === 'CZESC') ? 'CZESC' : 'BRAK';
-                      } else {
-                        reportedStatuses[trimmed.toLowerCase()] = 'BRAK';
+                    const rawMat = String(r.Zuzyte_Materialy || r['Zużyte Materiały'] || r.zuzyte_materialy || '').toLowerCase();
+                    if (!rawMat) return;
+                    DIN_13169_ITEMS.forEach(dinItem => {
+                      const lc = dinItem.toLowerCase();
+                      const escaped = lc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                      const match = rawMat.match(new RegExp(escaped + ':([a-z]+)'));
+                      if (match) {
+                        reportedStatuses[lc] = match[1].toUpperCase() === 'CZESC' ? 'CZESC' : 'BRAK';
                       }
                     });
                   });

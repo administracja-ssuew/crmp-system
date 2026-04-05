@@ -279,7 +279,7 @@ export default function AdminAccessPanel() {
             </button>
             <a
               href={DRIVE_TEMPLATE_URL}
-             //</div></div> target="_blank"
+              target="_blank"
               rel="noopener noreferrer"
               className="flex-1 py-2.5 rounded-xl text-sm font-bold text-center bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all"
             >
