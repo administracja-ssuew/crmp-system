@@ -46,6 +46,12 @@ export default function MapPage() {
   const [coordMode, setCoordMode] = useState(false);
   const [coordPreview, setCoordPreview] = useState(null);
 
+  // === MODAL REJESTR: edycja i dodawanie wpisów ===
+  const emptyPosterForm = { credId: '', type: 'plakat', nazwa: '', org: '', email: '', locationId: '', dataZgody: '', dataZdjecia: '', status: 'AKTYWNE', uwagi: '' };
+  const [posterModal, setPosterModal] = useState(null); // null = zamknięty, 'add' | 'edit'
+  const [posterForm, setPosterForm] = useState(emptyPosterForm);
+  const [posterSubmitting, setPosterSubmitting] = useState(false);
+
   // === HELPER: oblicz współrzędne kliknięcia względem obrazu (z uwzględnieniem letterbox) ===
   const getMapCoords = (e) => {
     if (!imgRef.current) return null;
@@ -298,6 +304,55 @@ export default function MapPage() {
     }
   };
 
+  // === REJESTR: zapisz wpis (nowy lub edytowany) do GAS ===
+  const handleSavePoster = async (e) => {
+    e.preventDefault();
+    setPosterSubmitting(true);
+    try {
+      const action = posterModal === 'add' ? 'addPoster' : 'updatePoster';
+      const payload = posterModal === 'add'
+        ? {
+            action: 'addPoster',
+            locationId: posterForm.locationId,
+            locationType: posterForm.type,
+            credId: posterForm.credId,
+            posterName: posterForm.nazwa,
+            organization: posterForm.org,
+            email: posterForm.email,
+            endDate: posterForm.dataZdjecia,
+          }
+        : {
+            action: 'updatePoster',
+            credId: posterForm.credId,
+            type: posterForm.type,
+            nazwa: posterForm.nazwa,
+            org: posterForm.org,
+            email: posterForm.email,
+            locationId: posterForm.locationId,
+            dataZgody: posterForm.dataZgody,
+            dataZdjecia: posterForm.dataZdjecia,
+            status: posterForm.status,
+            uwagi: posterForm.uwagi,
+          };
+      await fetch(DATA_URL, {
+        method: 'POST',
+        redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+      setPosterModal(null);
+      setPosterForm(emptyPosterForm);
+      // Wymuś ponowne pobranie Rejestru przy następnym otwarciu
+      setAllPosters([]);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+      alert('Błąd zapisu. Sprawdź połączenie i spróbuj ponownie.');
+    } finally {
+      setPosterSubmitting(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100 fixed top-0 left-0 z-50">
       <div className="flex flex-col items-center gap-6">
@@ -480,24 +535,32 @@ export default function MapPage() {
                   className="bg-transparent text-xs font-bold text-slate-700 outline-none w-full placeholder-slate-400"
                 />
               </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">
-                {(() => {
-                  const filtered = allPosters.filter(p => {
-                    const matchFilter =
-                      registryFilter === 'all' ||
-                      (registryFilter === 'aktywne' && p.status === 'AKTYWNE') ||
-                      (registryFilter === 'zakonczone' && p.status !== 'AKTYWNE');
-                    const q = registrySearch.toLowerCase();
-                    const matchSearch =
-                      !q ||
-                      (p.credId || '').toLowerCase().includes(q) ||
-                      (p.nazwa || '').toLowerCase().includes(q) ||
-                      (p.org || '').toLowerCase().includes(q);
-                    return matchFilter && matchSearch;
-                  });
-                  return `${filtered.length} wyników`;
-                })()}
-              </span>
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {(() => {
+                    const filtered = allPosters.filter(p => {
+                      const matchFilter =
+                        registryFilter === 'all' ||
+                        (registryFilter === 'aktywne' && p.status === 'AKTYWNE') ||
+                        (registryFilter === 'zakonczone' && p.status !== 'AKTYWNE');
+                      const q = registrySearch.toLowerCase();
+                      const matchSearch =
+                        !q ||
+                        (p.credId || '').toLowerCase().includes(q) ||
+                        (p.nazwa || '').toLowerCase().includes(q) ||
+                        (p.org || '').toLowerCase().includes(q);
+                      return matchFilter && matchSearch;
+                    });
+                    return `${filtered.length} wyników`;
+                  })()}
+                </span>
+                <button
+                  onClick={() => { setPosterForm(emptyPosterForm); setPosterModal('add'); }}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black uppercase tracking-widest px-3 py-2 rounded-xl transition-all shadow-sm"
+                >
+                  + Dodaj nowy wpis
+                </button>
+              </div>
             </div>
 
             {/* Table area */}
@@ -538,7 +601,7 @@ export default function MapPage() {
                   <table className="w-full text-left border-collapse">
                     <thead className="sticky top-0 bg-slate-50 border-b border-slate-200 z-10">
                       <tr>
-                        {['Kod CRED', 'Nazwa', 'Organizacja', 'Lokalizacja', 'Data zawieszenia', 'Termin zdjęcia', 'Status'].map(col => (
+                        {['Kod CRED', 'Nazwa', 'Organizacja', 'Lokalizacja', 'Data zawieszenia', 'Termin zdjęcia', 'Status', ''].map(col => (
                           <th key={col} className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap">
                             {col}
                           </th>
@@ -565,6 +628,28 @@ export default function MapPage() {
                             }`}>
                               {poster.status === 'AKTYWNE' ? 'Aktywny' : 'Zakończony'}
                             </span>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <button
+                              onClick={() => {
+                                setPosterForm({
+                                  credId: poster.credId || '',
+                                  type: poster.type || 'plakat',
+                                  nazwa: poster.nazwa || '',
+                                  org: poster.org || '',
+                                  email: poster.email || '',
+                                  locationId: poster.locationId || '',
+                                  dataZgody: poster.dataZgody || '',
+                                  dataZdjecia: poster.dataZdjecia || '',
+                                  status: poster.status || 'AKTYWNE',
+                                  uwagi: poster.uwagi || '',
+                                });
+                                setPosterModal('edit');
+                              }}
+                              className="text-[10px] font-black uppercase tracking-widest text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 px-2 py-1 rounded-lg transition-all"
+                            >
+                              Edytuj
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -887,6 +972,154 @@ export default function MapPage() {
             <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
               <button onClick={() => setIsInfoModalOpen(false)} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition shadow-lg">Zrozumiałem</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL: DODAJ / EDYTUJ WPIS W REJESTRZE ===== */}
+      {posterModal && (
+        <div className="fixed inset-0 z-[200] bg-slate-900/60 flex items-center justify-center p-4" onClick={() => setPosterModal(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center px-6 pt-6 pb-4 border-b border-slate-100">
+              <h2 className="font-black text-slate-800 text-lg">
+                {posterModal === 'add' ? '+ Dodaj nowy wpis do Rejestru' : `Edytuj: ${posterForm.credId}`}
+              </h2>
+              <button onClick={() => setPosterModal(null)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
+            </div>
+
+            <form onSubmit={handleSavePoster} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Znak CRED *</label>
+                  <input
+                    type="text" required
+                    value={posterForm.credId}
+                    readOnly={posterModal === 'edit'}
+                    onChange={e => setPosterForm({...posterForm, credId: e.target.value})}
+                    className={`w-full border p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none ${posterModal === 'edit' ? 'bg-slate-50 border-slate-200 text-slate-500' : 'bg-white border-slate-300'}`}
+                    placeholder="np. P.PKT.01/01/2026/SSUEW"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Typ *</label>
+                  <select
+                    required value={posterForm.type}
+                    onChange={e => setPosterForm({...posterForm, type: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                  >
+                    <option value="plakat">Plakat</option>
+                    <option value="baner">Baner</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Nazwa / Wydarzenie *</label>
+                <input
+                  type="text" required
+                  value={posterForm.nazwa}
+                  onChange={e => setPosterForm({...posterForm, nazwa: e.target.value})}
+                  className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                  placeholder="np. Wampiriada Wiosna 2026"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Organizacja *</label>
+                  <input
+                    type="text" required
+                    value={posterForm.org}
+                    onChange={e => setPosterForm({...posterForm, org: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                    placeholder="np. NZS UEW"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Email *</label>
+                  <input
+                    type="email" required
+                    value={posterForm.email}
+                    onChange={e => setPosterForm({...posterForm, email: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                    placeholder="kontakt@org.pl"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">ID Lokalizacji</label>
+                  <select
+                    value={posterForm.locationId}
+                    onChange={e => setPosterForm({...posterForm, locationId: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                  >
+                    <option value="">— wybierz —</option>
+                    {locations.map(l => <option key={l.id} value={l.id}>{l.id} – {l.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Status</label>
+                  <select
+                    value={posterForm.status}
+                    onChange={e => setPosterForm({...posterForm, status: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                  >
+                    <option value="AKTYWNE">AKTYWNE</option>
+                    <option value="ZDJĘTE">ZDJĘTE</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Data zgody (zawieszenia)</label>
+                  <input
+                    type="text"
+                    value={posterForm.dataZgody}
+                    onChange={e => setPosterForm({...posterForm, dataZgody: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                    placeholder="dd.MM.yyyy"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Termin zdjęcia *</label>
+                  <input
+                    type="date" required
+                    value={posterForm.dataZdjecia?.includes('.') ? posterForm.dataZdjecia.split('.').reverse().join('-') : posterForm.dataZdjecia}
+                    onChange={e => setPosterForm({...posterForm, dataZdjecia: e.target.value})}
+                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none text-red-600"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Uwagi</label>
+                <textarea
+                  value={posterForm.uwagi}
+                  onChange={e => setPosterForm({...posterForm, uwagi: e.target.value})}
+                  rows={2}
+                  className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none resize-none"
+                  placeholder="Opcjonalne uwagi..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit" disabled={posterSubmitting}
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all"
+                >
+                  {posterSubmitting ? 'Zapisuję...' : posterModal === 'add' ? 'Dodaj do Rejestru i Bazy' : 'Zapisz zmiany'}
+                </button>
+                <button
+                  type="button" onClick={() => setPosterModal(null)}
+                  className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+                >
+                  Anuluj
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

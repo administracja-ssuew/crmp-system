@@ -315,6 +315,7 @@ function getAllPosters_() {
  *   addPoster      → dodaj plakat/baner (istniejące)
  *   removePoster   → zdejmij plakat/baner (istniejące)
  *   updateLocation → zaktualizuj dane lokalizacji (NOWE)
+ *   updatePoster   → edytuj wpis w rejestrze (NOWE)
  */
 function doPost(e) {
   try {
@@ -430,6 +431,62 @@ function doPost(e) {
       }
 
       return jsonResponse({ error: "Nie znaleziono lokalizacji: " + locationId });
+    }
+
+    // === NOWE: AKTUALIZACJA WPISU W REJESTRZE ===
+    if (parsedData.action === 'updatePoster') {
+      const credId = String(parsedData.credId || "").trim();
+      const type   = String(parsedData.type   || "plakat").trim().toLowerCase();
+
+      const isPlakat = type !== 'baner';
+      const sheetName = isPlakat ? "REJESTR_PLAKATOWANIA" : "REJESTR_BANEROW";
+      const sheet = findSheet(ss, sheetName);
+      if (!sheet) return jsonResponse({ error: "Nie znaleziono arkusza: " + sheetName });
+
+      const rows = sheet.getDataRange().getValues();
+      let foundRow = -1;
+      for (let i = 1; i < rows.length; i++) {
+        if (String(rows[i][1]).trim() === credId) { foundRow = i; break; }
+      }
+      if (foundRow === -1) return jsonResponse({ error: "Nie znaleziono wpisu o credId: " + credId });
+
+      const rowNum = foundRow + 1; // 1-based
+
+      // Pola wspólne dla obu rejestrów (col B=2 credId – nie zmieniamy)
+      if (parsedData.org !== undefined)      sheet.getRange(rowNum, 3).setValue(String(parsedData.org));       // C – Organizacja
+      if (parsedData.email !== undefined)    sheet.getRange(rowNum, 4).setValue(String(parsedData.email));     // D – E-mail
+      if (parsedData.dataZgody !== undefined && parsedData.dataZgody !== "")
+        sheet.getRange(rowNum, 5).setValue(String(parsedData.dataZgody));  // E – Data zgody
+      if (parsedData.dataZdjecia !== undefined && parsedData.dataZdjecia !== "")
+        sheet.getRange(rowNum, 8).setValue(String(parsedData.dataZdjecia)); // H – Data zdjęcia
+      if (parsedData.uwagi !== undefined)    sheet.getRange(rowNum, 12).setValue(String(parsedData.uwagi));    // L – Uwagi
+      if (parsedData.status !== undefined)   sheet.getRange(rowNum, 9).setValue(String(parsedData.status));    // I – Status ręczny
+
+      // Nazwa: plakaty → col F (6), banery → col G (7)
+      if (parsedData.nazwa !== undefined) {
+        const nazwaCol = isPlakat ? 6 : 7;
+        sheet.getRange(rowNum, nazwaCol).setValue(String(parsedData.nazwa));
+      }
+
+      // Jeśli status → ZDJĘTE, cofnij termin w Rezerwacje_Mapy (żeby mapa pokazała miejsce jako wolne)
+      if (String(parsedData.status || "").trim() === "ZDJĘTE") {
+        const sheetRez = findSheet(ss, "Rezerwacje_Mapy") || findSheet(ss, "Rezerwacja_Mapa");
+        if (sheetRez) {
+          const rezRows = sheetRez.getDataRange().getValues();
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = Utilities.formatDate(yesterday, "Europe/Warsaw", "dd.MM.yyyy");
+          for (let i = 1; i < rezRows.length; i++) {
+            if (String(rezRows[i][6]).trim() === credId) { // col G (index 6) = credId
+              sheetRez.getRange(i + 1, 2).setValue(yesterdayStr); // col B = endDate
+              break;
+            }
+          }
+        }
+      }
+
+      SpreadsheetApp.flush();
+      return jsonResponse({ success: true });
     }
 
   } catch (error) {
