@@ -215,36 +215,97 @@ export default function MapPage() {
 
   return (
     <div className="flex flex-col h-full relative overflow-hidden animate-fadeIn">
-      
-      <div className="absolute top-4 left-4 right-4 z-30 flex flex-col md:flex-row gap-4 pointer-events-none">
-        <div className="bg-white/90 backdrop-blur shadow-xl rounded-xl p-2 pointer-events-auto flex items-center border border-slate-200 md:w-80">
-          <span className="text-xl px-2">🔍</span>
-          <input type="text" placeholder="Szukaj tablicy..." className="bg-transparent border-none outline-none text-slate-700 font-bold w-full placeholder:font-normal" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        </div>
 
-        <div className="bg-white/90 backdrop-blur shadow-xl rounded-xl p-1 pointer-events-auto flex gap-1 border border-slate-200">
+      <header className="shrink-0 bg-white border-b border-slate-200 px-4 py-2 flex flex-wrap gap-3 items-center">
+        {/* Search input */}
+        <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 md:w-72">
+          <Search className="w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Szukaj tablicy..."
+            className="bg-transparent border-none outline-none text-slate-700 font-bold w-full placeholder:font-normal text-sm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        {/* Type filter */}
+        <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
           <button onClick={() => setFilterType('all')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-600'}`}>WSZYSTKIE</button>
-          <button onClick={() => setFilterType('plakat')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${filterType === 'plakat' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'hover:bg-blue-50 text-slate-600'}`}>PLAKATY</button>
-          <button onClick={() => setFilterType('baner')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${filterType === 'baner' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'hover:bg-orange-50 text-slate-600'}`}>BANERY</button>
+          <button onClick={() => setFilterType('plakat')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'plakat' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'hover:bg-blue-50 text-slate-600'}`}>PLAKATY</button>
+          <button onClick={() => setFilterType('baner')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'baner' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'hover:bg-orange-50 text-slate-600'}`}>BANERY</button>
         </div>
-      </div>
+        {/* View toggle — admin only (per D-11) */}
+        {isAdmin && (
+          <div className="ml-auto flex gap-1 bg-slate-100 rounded-xl p-1">
+            <button
+              onClick={() => setView('map')}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'map' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <Map className="w-3.5 h-3.5" /> Mapa
+            </button>
+            <button
+              onClick={() => {
+                setView('rejestr');
+                if (allPosters.length === 0) fetchAllPosters();
+              }}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'rejestr' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <List className="w-3.5 h-3.5" /> Rejestr
+            </button>
+          </div>
+        )}
+      </header>
 
-      <div className="flex-1 bg-slate-100 relative overflow-auto flex justify-center items-center">
-        <div className="relative inline-block shadow-2xl rounded-xl">
-           <img src="/mapa.jpg" alt="Mapa" className="max-w-none h-[800px] opacity-90 block" />
-           {filteredLocations.map((loc, index) => (
-             <button
-               key={index}
-               onClick={(e) => { e.stopPropagation(); setSelected(loc); setAdminTab('info'); }}
-               className="absolute -translate-x-1/2 -translate-y-1/2 group transition-all duration-300 hover:scale-125 focus:outline-none z-20"
-               style={{ top: loc.top, left: loc.left }}
-             >
-               <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white shadow-lg border-2 border-white ${loc.type === 'baner' ? 'bg-orange-500' : 'bg-blue-600'} ${loc.free === 0 ? 'ring-4 ring-red-500/50' : ''}`}>
-                 {loc.type === 'baner' ? '🚩' : '📌'}
-               </div>
-             </button>
-           ))}
-        </div>
+      <div className="flex-1 relative overflow-hidden">
+        {view === 'map' ? (
+          <div className="w-full h-full relative">
+            <img
+              ref={imgRef}
+              src="/mapa.jpg"
+              alt="Mapa kampusu"
+              className="w-full h-full object-contain"
+              onLoad={() => {
+                setFilteredLocations(prev => [...prev]);
+              }}
+            />
+            {filteredLocations.map((loc) => (
+              <button
+                key={loc.id}
+                onMouseEnter={() => setHoveredId(loc.id)}
+                onMouseLeave={() => setHoveredId(null)}
+                onClick={(e) => { e.stopPropagation(); setSelected(loc); setAdminTab('info'); }}
+                className="absolute transition-all duration-300 hover:scale-125 focus:outline-none z-20"
+                style={calcHotspotStyle(loc)}
+              >
+                {/* Pin */}
+                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white shadow-lg border-2 border-white
+                  ${loc.type === 'baner' ? 'bg-orange-500' : 'bg-blue-600'}
+                  ${loc.free === 0 ? 'ring-4 ring-red-500/50' : ''}`}>
+                  {loc.type === 'baner'
+                    ? <Flag className="w-4 h-4" />
+                    : <MapPin className="w-4 h-4" />
+                  }
+                </div>
+                {/* Tooltip (per D-04) */}
+                {hoveredId === loc.id && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-30
+                    bg-slate-900 text-white text-xs rounded-xl px-3 py-2 whitespace-nowrap shadow-xl pointer-events-none">
+                    <p className="font-bold">{loc.name}</p>
+                    <p className="text-slate-300 capitalize">{loc.type}</p>
+                    <p className={`font-bold ${loc.free > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {loc.free > 0 ? `${loc.free} wolne` : 'Brak miejsc'}
+                    </p>
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full text-slate-400 font-bold">
+            Widok Rejestru — wkrótce
+          </div>
+        )}
       </div>
 
       <div className={`fixed top-0 right-0 h-full w-full md:w-[500px] bg-white shadow-2xl border-l border-slate-200 transform transition-transform duration-500 ease-in-out z-40 overflow-y-auto ${selected ? 'translate-x-0' : 'translate-x-full'}`}>
