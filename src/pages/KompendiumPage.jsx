@@ -41,25 +41,25 @@ const TYPE_CHILD_IDS = ['typ-sks', 'typ-russ', 'typ-absolutoryjny', 'typ-komisyj
 // ===================== CHECKLISTY =====================
 const BEFORE_ITEMS = [
   { id: 'b1', text: 'Pobierz wzór protokołu właściwy dla danego typu spotkania' },
-  { id: 'b2', text: 'Uzupełnij nagłówek — numer spotkania, data, miejsce, godzina rozpoczęcia (zostaw puste), prowadzący, protokolant' },
-  { id: 'b3', text: 'Przepisz porządek obrad do protokołu (otrzymasz od prowadzącego)' },
+  { id: 'b2', text: 'Uzupełnij nagłówek — numer spotkania, data, miejsce, godzina rozpoczęcia, numer sprawy (zostaw puste), prowadzący, protokolant' },
+  { id: 'b3', text: 'Przepisz porządek obrad do protokołu (otrzymasz od Członka Zarządu ds. Administracji)' },
   { id: 'b4', text: 'Przygotuj listę obecności z pełnymi imionami, nazwiskami i funkcjami uczestników' },
   { id: 'b5', text: 'Dla RUSS: sprawdź pełen skład Rady, policz wymagane quorum (minimum 8 Radnych)' },
   { id: 'b6', text: 'Dla absolutorium: sprawdź kto prowadzi (SKW, nie Zarząd) i skład Komisji Rewizyjnej pełniącej funkcję Komisji Skrutacyjnej' },
   { id: 'b7', text: 'Naładuj urządzenie — laptop lub tablet do notatek' },
-  { id: 'b8', text: 'Jeśli planujesz nagrywać — przygotuj komunikat dla uczestników na początku spotkania' },
+  { id: 'b8', text: 'Jeśli planujesz nagrywać — przygotuj komunikat, który przekażesz przewodniczącemu na początku spotkania' },
 ];
 
 const AFTER_ITEMS = [
-  { id: 'a1', text: 'Sporządź protokół na podstawie notatek (i nagrania jeśli robiłeś)' },
+  { id: 'a1', text: 'Sporządź protokół na podstawie notatek (i nagrania, jeśli robiłeś)' },
   { id: 'a2', text: 'Sprawdź wszystkie tytuły i funkcje osób — korzystaj z tabeli w Rozdziale 1' },
   { id: 'a3', text: 'Sprawdź interpunkcję i ortografię — zwróć uwagę na przecinki i wielkie litery' },
   { id: 'a4', text: 'Sprawdź czy wszystkie wyniki głosowań są kompletne (za / przeciw / wstrzymujący się)' },
   { id: 'a5', text: 'Sprawdź czy godziny otwarcia i zamknięcia są wpisane' },
   { id: 'a6', text: 'Sprawdź czy nie ma nieformalnych notatek redakcyjnych w treści' },
-  { id: 'a7', text: 'Wyślij do prowadzącego obrady do weryfikacji' },
+  { id: 'a7', text: 'Wyślij do Członka Zarządu ds. Administracji SSUEW do weryfikacji' },
   { id: 'a8', text: 'Po akceptacji — przekaż do archiwum zgodnie z procedurami SSUEW' },
-  { id: 'a9', text: 'Usuń nagranie jeśli robiłeś' },
+  { id: 'a9', text: 'Usuń nagranie, jeśli robiłeś' },
 ];
 
 // ===================== SZABLONY DOKUMENTÓW =====================
@@ -83,12 +83,12 @@ const ORGANS = [
   {
     id: 'org-russ',
     title: 'RUSS — Rada Uczelniana Samorządu Studentów',
-    content: 'Najwyższy organ uchwałodawczy SSUEW. Składa się z Radnych wybieranych przez studentów w wyborach. Podejmuje uchwały, zatwierdza budżet, udziela absolutorium Zarządowi. Posiedzenia RUSS są jedynymi gdzie obowiązuje formalne quorum — minimum 8 Radnych (ponad połowa regulaminowego składu). Nie mylić z Zarządem — RUSS sprawuje funkcję kontrolną wobec Zarządu. Protokolant RUSS figuruje na liście obecności ze statusem "—" (jest protokolantem, nie Radnym).',
+    content: 'Najwyższy organ uchwałodawczy SSUEW. Składa się z 15 Radnych wybieranych przez studentów w wyborach. Podejmuje uchwały, zatwierdza budżet, udziela absolutorium Zarządowi. Posiedzenia RUSS są jedynymi, gdzie obowiązuje formalne quorum — minimum 8 Radnych (ponad połowa regulaminowego składu).',
   },
   {
     id: 'org-sks',
     title: 'SKS — Spotkanie Komisji Samorządu',
-    content: 'Comiesięczne, otwarte spotkanie wszystkich działaczy Samorządu. Charakter informacyjno-roboczy — nie uchwałodawczy. Prowadzi je Przewodnicząca SSUEW. Nie obowiązuje formalne quorum. To tu omawia się projekty, komunikaty Zarządu i sprawy bieżące.',
+    content: 'Comiesięczne, otwarte spotkanie wszystkich działaczy Samorządu. Charakter informacyjno-roboczy — nie uchwałodawczy. Prowadzi je Przewodniczący SSUEW. Nie obowiązuje formalne quorum. To tu omawia się projekty, komunikaty Zarządu i sprawy bieżące.',
   },
   {
     id: 'org-skw',
@@ -133,22 +133,22 @@ const ORGANS = [
   {
     id: 'org-cku',
     title: 'Centrum Kształcenia Ustawicznego (CKU)',
-    content: 'Studia podyplomowe i kursy dokształcające. W budynku CKU mieści się Sala Audytoryjna — Aula, gdzie odbywają się największe wydarzenia uczelniane.',
+    content: 'Studia podyplomowe i kursy dokształcające. W budynku CKU mieści się Sala Audytoryjna — Aula (1CKU), gdzie odbywają się największe wydarzenia uczelniane - mieści 406 osób.',
   },
   {
     id: 'org-fue',
     title: 'FUE — Forum Uczelni Ekonomicznych',
-    content: 'Ogólnopolska organizacja zrzeszająca samorządy polskich uczelni ekonomicznych. SSUEW jest jej aktywnym członkiem. FUE organizuje Zjazdy, na których obradują przedstawiciele wszystkich uczelni członkowskich.',
+    content: 'FUE jest Komisją Branżową Parlamentu Studentów Rzeczypospolitej Polskiej zrzeszająca samorządy polskich uczelni ekonomicznych z całego kraju. SSUEW jest jej aktywnym członkiem. FUE organizuje Konferencje (KPUE), na których obradują delegaci (15 delegatów; 3 delegatów z każdego miasta) wszystkich uczelni członkowskich. Do FUE należy Uniwersytet Ekonomiczny w Poznaniu, Uniwersytet Ekonomiczny w Katowicach, Uniwersytet Ekonomiczny w Krakowie, Szkoła Główna Handlowa w Warszawie oraz Uniwersytet Ekonomiczny we Wrocławiu.',
   },
   {
     id: 'org-kpue',
     title: 'KPUE — Konferencja Polskich Uczelni Ekonomicznych',
-    content: 'Cykliczne spotkanie przedstawicieli samorządów uczelni ekonomicznych, organizowane rotacyjnie przez kolejne uczelnie. SSUEW organizuje KPUE gdy przychodzi jej kolej.',
+    content: 'Cykliczne spotkanie przedstawicieli samorządów uczelni ekonomicznych, organizowane rotacyjnie przez kolejne uczelnie wchodzące w skład Forum Uczelni Ekonomicznych.',
   },
   {
     id: 'org-joss',
     title: 'JOSS — Jednostki Organizacyjne Samorządu Studentów',
-    content: 'Organizacje studenckie działające w ramach lub przy SSUEW. Uczestniczą m.in. w posiedzeniach absolutoryjnych (sprawozdają się przed RUSS).',
+    content: 'Organizacje studenckie działające przy SSUEW. Przewodniczący JOSS uczestniczą m.in. w posiedzeniach absolutoryjnych (sprawozdają się przed RUSS), a co za tym idzie są powoływani przez RUSS do pełnienia swojej funkcji. Do JOSS należy Informacja Kulturalno-Sportowa Studentów oraz Biuro Podróżników "Because I Travel".',
   },
 ];
 
@@ -181,43 +181,43 @@ const ERRORS = [
   {
     n: 5,
     title: 'Nieformalny ton językowy',
-    desc: '"Emilka stwierdziła że to nie ma sensu" zamiast "Przewodnicząca SSUEW Emilia Ćwiklińska wyraziła sprzeciw wobec proponowanego rozwiązania". Protokół jest dokumentem urzędowym — zdrobnienia, pseudonimy i wykrzykniki go dyskwalifikują.',
+    desc: '"Ćwikła stwierdziła że to nie ma sensu" zamiast "Przewodnicząca SSUEW Emilia Ćwiklińska wyraziła sprzeciw wobec proponowanego rozwiązania". Protokół jest dokumentem urzędowym — zdrobnienia, pseudonimy i wykrzykniki go dyskwalifikują.',
     fix: 'Przed oddaniem przeczytaj protokół i zamień każde imiesłowo, zdrobnienie i potoczne określenie na formę urzędową.',
   },
   {
     n: 6,
     title: 'Informacje prywatne w treści',
-    desc: '"Karlos → był u fryzjera" lub "Ala zdała excela na czwórkę" — informacje prywatne uczestników nie mają miejsca w żadnym protokole, nawet roboczym.',
-    fix: 'Zapisuj tylko to co dotyczy przedmiotu spotkania.',
+    desc: '"Karlos → był u fryzjera" lub "Madzia zdała excela na czwórkę" — informacje prywatne uczestników nie mają miejsca w żadnym protokole, nawet roboczym.',
+    fix: 'Zapisuj tylko to, co dotyczy przedmiotu spotkania.',
   },
   {
     n: 7,
     title: 'Brak godzin otwarcia i zamknięcia',
     desc: 'Godziny są obowiązkowym elementem każdego protokołu bez wyjątku. Protokół bez godzin jest niekompletny.',
-    fix: 'Zapisz godziny od razu na początku spotkania i na końcu — nie polegaj na pamięci.',
+    fix: 'Zapisz godziny od razu na początku spotkania i na końcu — nie polegaj na pamięci!',
   },
   {
     n: 8,
     title: 'Brak podpisów i daty sporządzenia',
-    desc: 'Protokół bez podpisu protokolanta (i przewodniczącego obrad w przypadku RUSS) nie jest dokumentem.',
-    fix: 'Dodaj podpis i datę sporządzenia zanim wyślesz do weryfikacji.',
+    desc: 'Protokół bez podpisu protokolanta (i Członka Zarządu ds. Administracji SSUEW w przypadku RUSS) nie jest dokumentem.',
+    fix: 'Dodaj podpis i datę sporządzenia, zanim wyślesz do weryfikacji.',
   },
   {
     n: 9,
     title: 'Spóźnione oddanie',
-    desc: 'Protokół oddany po terminie traci swoją wartość. Ustalenia wychładzają się — po dwóch tygodniach trudno odtworzyć kontekst.',
-    fix: 'Traktuj termin z Rozdziału 4 jako nieprzekraczalny. Sporządzaj protokół najlepiej w ciągu 24–48h od spotkania kiedy pamięć jest świeża.',
+    desc: 'Protokół oddany po terminie traci swoją wartość. Ustalenia "wychładzają się" — po dwóch tygodniach trudno odtworzyć kontekst.',
+    fix: 'Traktuj termin z Rozdziału 4 jako nieprzekraczalny! Sporządzaj protokół najlepiej w ciągu 24–48h od spotkania kiedy pamięć jest świeża.',
   },
   {
     n: 10,
     title: 'Notatki redakcyjne w treści',
     desc: '"tu sprawdzić", "uzupełnić później", "WAŻNE!!!" lub "PRZEKAZANO GORĄCE ZAPROSZENIE!" w treści protokołu.',
-    fix: 'Jeśli czegoś nie jesteś pewien — zostaw pusty nawias [???] i zapytaj prowadzącego przed oddaniem. Żadne osobiste notatki nie mogą trafić do finalnego dokumentu.',
+    fix: 'Jeśli czegoś nie jesteś pewien — zostaw pusty nawias [???] i zapytaj Członka Zarządu ds. Administracji przed oddaniem. Żadne osobiste notatki nie mogą trafić do finalnego dokumentu.',
   },
   {
     n: 11,
     title: 'Niespójność formalna w obrębie dokumentu',
-    desc: 'Raz "Przewodnicząca SSUEW", raz "Emilia", raz "Pani Przewodnicząca" — w odniesieniu do tej samej osoby w tym samym protokole.',
+    desc: 'Raz "Przewodnicząca SSUEW", raz "Ćwikła", raz "Pani Przewodnicząca" — w odniesieniu do tej samej osoby w tym samym protokole.',
     fix: 'Wybierz jeden sposób i stosuj go konsekwentnie. Standard: pełna funkcja + imię i nazwisko przy pierwszym użyciu, sama funkcja przy kolejnych.',
   },
 ];
@@ -527,17 +527,17 @@ export default function KompendiumPage() {
           {/* ===== ROZDZIAŁ 0 — WSTĘP ===== */}
           <section id="wstep" className="scroll-mt-20 mb-16">
             <SectionTitle icon={BookOpen} chapter="Rozdział 0" title="Wstęp" color="blue" />
-            <SectionIntro items={['Dlaczego protokół jest ważny dla instytucji', 'Rola protokolanta — co uchwycić, co pominąć', 'Jak korzystać z tego Kompendium']} />
+            <SectionIntro items={['Dlaczego protokół jest ważny dla instytucji - jaką jest Samorząd', 'Rola protokolanta — co uchwycić, co pominąć', 'Jak korzystać z tego Kompendium']} />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
               <p className="text-slate-700 leading-relaxed">
-                Protokół to nie biurokratyczny obowiązek — to <strong>pamięć instytucjonalna Samorządu</strong>. Za trzy lata ktoś sięgnie po protokół z dzisiejszego posiedzenia RUSS i będzie chciał wiedzieć co dokładnie postanowiono i dlaczego. Jeśli protokół jest zły — tej wiedzy nie ma. Przepada razem z kadencją.
+                Protokół to nie biurokratyczny obowiązek — to <strong>pamięć instytucjonalna Samorządu</strong>. Za trzy lata ktoś sięgnie po protokół z ostatniego posiedzenia RUSS i będzie chciał wiedzieć co dokładnie postanowiono i dlaczego. Jeśli protokół jest źle napisany — tej wiedzy nie dostanie. Przepada razem z kadencją...
               </p>
               <p className="text-slate-700 leading-relaxed">
-                Rolą protokolanta jest nie stenografować każde słowo, ale <strong>uchwycić to co ważne</strong>: decyzje, głosowania, zobowiązania, stanowiska. Reszta to szum.
+                Rolą protokolanta jest nie stenografować każde słowo, ale <strong>uchwycić to co ważne</strong>: decyzje, głosowania, zobowiązania, aktualne stanowiska. Reszta to zwykły szum!
               </p>
               <div className="bg-violet-50 border border-violet-200 rounded-xl p-4 mt-2">
                 <p className="text-sm text-violet-800 leading-relaxed">
-                  Niniejsze Kompendium zostało opracowane przez <strong>Komisję ds. Administracji SSUEW</strong> jako jedyne rzetelne źródło wiedzy protokolantów Samorządu Studentów UEW. Znajdziesz tu wszystko — od słownika pojęć przez checklisty aż po omówienie każdego typu protokołu z osobna. Jeśli masz wątpliwości których tu nie rozstrzygamy — skontaktuj się z Komisją ds. Administracji.
+                  Niniejsze Kompendium zostało opracowane przez <strong>Członka Zarządu ds. Administracji SSUEW</strong> jako jedyne rzetelne źródło wiedzy protokolantów Samorządu Studentów UEW. Znajdziesz tu wszystko — od słownika pojęć przez checklisty aż po omówienie każdego typu protokołu z osobna. Jeśli masz wątpliwości, których tu nie rozstrzygamy — skontaktuj się z Członkiem Zarządu ds. Administracji SSUEW.
                 </p>
               </div>
             </div>
@@ -611,7 +611,7 @@ export default function KompendiumPage() {
                         ['Karol Vogel', 'Członek Zarządu ds. Kontaktów Zewnętrznych'],
                         ['Julia Pytel', 'Członek Zarządu ds. Promocji'],
                         ['Karolina Smereczniak', 'Członek Zarządu ds. Dydaktyki i Jakości Kształcenia'],
-                        ['Mikołaj Radliński', 'Członek Zarządu ds. Administracji / Przewodniczący Komisji ds. Administracji'],
+                        ['Mikołaj Radliński', 'Członek Zarządu ds. Administracji'],
                       ].map(([name, func], i) => (
                         <tr key={i} className="hover:bg-slate-50 transition-colors">
                           <td className="px-5 py-3 font-semibold text-slate-800">{name}</td>
@@ -626,7 +626,7 @@ export default function KompendiumPage() {
 
             {/* 1C */}
             <div>
-              <h3 className="text-base font-black text-slate-700 uppercase tracking-widest mb-3">1C — Organy i jednostki: co to właściwie jest</h3>
+              <h3 className="text-base font-black text-slate-700 uppercase tracking-widest mb-3">1C — Organy i jednostki: co to właściwie jest?</h3>
               <div className="space-y-2">
                 {ORGANS.map((org) => (
                   <Accordion key={org.id} id={org.id} title={org.title} content={org.content} />
@@ -641,7 +641,7 @@ export default function KompendiumPage() {
             <SectionIntro items={['Checklista czynności przed każdym posiedzeniem', 'Jak przygotować listę obecności i nagłówek', 'Uwagi dla protokołów RUSS i absolutoryjnych']} />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
-                Dobry protokół zaczyna się <strong>przed spotkaniem</strong>. Protokolant który przychodzi nieprzygotowany skazuje się na chaos notatek i błędy merytoryczne. Im lepiej się przygotujesz, tym łatwiej będzie Ci wyłapać co jest ważne — a pominąć to co ważne nie jest.
+                Dobry protokół zaczyna się <strong>przed spotkaniem</strong>! Protokolant który przychodzi nieprzygotowany skazuje się na chaos notatek i błędy merytoryczne. Im lepiej się przygotujesz, tym łatwiej będzie Ci wyłapać co jest ważne — a pominąć to co ważne nie jest.
               </p>
             </div>
 
@@ -660,8 +660,8 @@ export default function KompendiumPage() {
               </h3>
               <div className="space-y-2 text-sm text-slate-700 leading-relaxed">
                 <p>Nagrywanie posiedzeń jest <strong>dopuszczalne</strong> jako pomoc techniczna przy sporządzaniu protokołu. Wymaga jednak poinformowania wszystkich uczestników na samym początku spotkania — przed rozpoczęciem merytorycznej części obrad.</p>
-                <p>Nagranie jest wyłącznie narzędziem roboczym protokolanta. Nie jest oficjalnym dokumentem, nie powinno być udostępniane osobom trzecim, publikowane ani archiwizowane. <strong>Po sporządzeniu i zatwierdzeniu protokołu nagranie należy usunąć.</strong></p>
-                <p>Na KPUE nagrywanie jest wręcz zalecane przez FUE jako standard. W przypadku wątpliwości prawnych skonsultuj się z Rzecznikiem Praw Studenta (Jakub Buchta, rps@samorzad.ue.wroc.pl).</p>
+                <p>Nagranie jest wyłącznie narzędziem roboczym protokolanta. Nie jest oficjalnym dokumentem, nie może być udostępniane osobom trzecim, publikowane ani archiwizowane. <strong>Po sporządzeniu i zatwierdzeniu protokołu nagranie należy usunąć.</strong></p>
+                <p>Na KPUE nagrywanie jest wręcz zalecane przez FUE jako standard. W przypadku wątpliwości prawnych skonsultuj się z Członkiem Zarządu ds. Administracji SSUEW.</p>
               </div>
             </div>
           </section>
@@ -673,7 +673,7 @@ export default function KompendiumPage() {
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
-                Na sali obrad masz jedno zadanie: <strong>uchwycić to co ważne</strong>. Nie prowadzisz dyskusji, nie głosujesz (chyba że jesteś Radnym), nie komentujesz. Jesteś obserwatorem i rejestratorem. To wymaga skupienia — dlatego warto siedzieć w miejscu z dobrą widocznością i słyszalnością.
+                Na sali obrad masz jedno zadanie: <strong>uchwycić to co ważne</strong>. Nie prowadzisz dyskusji, nie głosujesz (chyba, że jesteś Radnym), nie komentujesz. Jesteś obserwatorem i rejestratorem. To wymaga skupienia — dlatego warto siedzieć w miejscu z dobrą widocznością i słyszalnością.
               </p>
             </div>
 
@@ -692,7 +692,7 @@ export default function KompendiumPage() {
                     'Wyniki głosowań: za / przeciw / wstrzymujących się — zawsze trzy liczby',
                     'Zgłoszone wnioski formalne i ich los (przyjęty/odrzucony)',
                     'Zobowiązania podjęte przez konkretne osoby — kto, co, do kiedy',
-                    'Sprzeciwy i zdania odrębne jeśli ktoś je formalnie zgłosi',
+                    'Sprzeciwy i zdania odrębne, jeśli ktoś je formalnie zgłosi',
                     'Godziny przerw i wznowień obrad',
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-2">
@@ -717,6 +717,7 @@ export default function KompendiumPage() {
                     'Żartów, atmosfery sali, emocji uczestników',
                     'Treści nieformalnych ogłoszeń (zaproszenia na integrację itp.)',
                     'Informacji prywatnych uczestników niezwiązanych z tematem spotkania',
+                    'Aspektów wyniesionych poza protokół za sprawą stwierdzenia: "Poza porotokołem"',
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-2">
                       <span className="text-red-400 mt-0.5">•</span>
@@ -730,7 +731,7 @@ export default function KompendiumPage() {
             {/* Tabela dobrze vs źle */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
               <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
-                <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest">Przykłady — dobrze vs. źle</h3>
+                <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest">Przykłady — dobrze vs źle</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -755,7 +756,7 @@ export default function KompendiumPage() {
                       ],
                       [
                         'Zobowiązanie',
-                        '"Emilka powiedziała że trzeba to zrobić"',
+                        '"Przewo powiedziała że trzeba to zrobić"',
                         '"Przewodnicząca SSUEW Emilia Ćwiklińska zobowiązała się do przygotowania projektu uchwały do dnia 15.11.2025 r."',
                       ],
                       [
@@ -771,7 +772,7 @@ export default function KompendiumPage() {
                       [
                         'Informacja prywatna',
                         '"Karlos → był w sushi HUB, pół godziny w Jotce"',
-                        '[w protokole projektowym: "Karol Vogel — omówił postęp kontaktów z partnerami zewnętrznymi"]',
+                        '[w protokole projektowym: "Karol Szewczuk — omówił postęp kontaktów z partnerami zewnętrznymi (Sushi Hub)"]',
                       ],
                     ].map(([sytuacja, zle, dobrze], i) => (
                       <tr key={i} className="border-b border-slate-100">
@@ -789,7 +790,7 @@ export default function KompendiumPage() {
             <div className="bg-violet-50 border border-violet-200 rounded-2xl p-6">
               <h3 className="font-black text-violet-800 text-sm uppercase tracking-widest mb-3">Zasada złotego środka</h3>
               <p className="text-sm text-violet-900 leading-relaxed">
-                Protokół ma być <strong>pełny, ale nie stenograficzny</strong>. Dobry test: <em>"czy osoba która nie była na spotkaniu zrozumie z tego protokołu co postanowiono i dlaczego — bez konieczności pytania kogokolwiek?"</em> Jeśli tak — protokół jest dobry. Jeśli nie — czegoś brakuje. Zbyt wąski protokół (lista punktów bez treści) jest równie zły jak zbyt szeroki (stenogram każdej wypowiedzi). Oba są bezużyteczne.
+                Protokół ma być <strong>pełny, ale nie stenograficzny</strong>. Dobry test: <em>"czy osoba która nie była na spotkaniu zrozumie z tego protokołu co postanowiono i dlaczego — bez konieczności pytania kogokolwiek?"</em> Jeśli tak — protokół jest dobry. Jeśli nie — czegoś brakuje. Zbyt wąski protokół (lista punktów bez treści) jest równie zły, jak zbyt szeroki (stenogram każdej wypowiedzi). Oba są bezużyteczne...
               </p>
             </div>
           </section>
@@ -801,7 +802,7 @@ export default function KompendiumPage() {
 
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed">
-                Spotkanie skończyło się — ale praca protokolanta jeszcze nie. Masz określony czas na sporządzenie i przekazanie protokołu. Spóźniony protokół to protokół który stracił swoją wartość operacyjną — ustalenia "wychładzają się", szczegóły uciekają z pamięci uczestników, a decyzje trudno odtworzyć bez kontekstu.
+                Spotkanie skończyło się — ale praca protokolanta jeszcze nie! Masz określony czas na sporządzenie i przekazanie protokołu. Spóźniony protokół to protokół który stracił swoją wartość operacyjną — ustalenia "wychładzają się", szczegóły uciekają z pamięci uczestników, a decyzje trudno odtworzyć bez kontekstu.
               </p>
             </div>
 
@@ -811,11 +812,11 @@ export default function KompendiumPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {[
                   { type: 'SKS', deadline: '7 dni', color: 'blue' },
-                  { type: 'RUSS', deadline: '14 dni', color: 'orange' },
+                  { type: 'RUSS', deadline: '7-14 dni', color: 'orange' },
                   { type: 'Absolutoryjny', deadline: '1 miesiąc', color: 'red' },
-                  { type: 'KPUE', deadline: '1 miesiąc (ruchomy — ustal z Przewodniczącą FUE)', color: 'red' },
+                  { type: 'KPUE', deadline: 'ok. 1 miesiąc (ruchomy — ustal z Członkiem Prezydium ds. Administracji FUE)', color: 'red' },
                   { type: 'Komisyjny', deadline: '3–5 dni', color: 'green' },
-                  { type: 'Projektowy', deadline: '3–5 dni', color: 'green' },
+                  { type: 'Projektowy', deadline: '1–3 dni', color: 'green' },
                   { type: 'Roboczy', deadline: 'ustal z organizatorem', color: 'gray' },
                 ].map(({ type, deadline, color }) => (
                   <div key={type} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
@@ -863,10 +864,9 @@ export default function KompendiumPage() {
               {[
                 'Nagłówek: numer SKS, data, miejsce, godziny, prowadzący, protokolant',
                 'Spis treści z numerami stron',
-                'Lista obecnych (bez formalnego podziału obecny/nieobecny — to nie RUSS)',
                 'Treść kolejnych punktów porządku obrad',
-                'Ważne daty i zapowiedzi jeśli padły',
-                'Podsumowania projektowe jeśli były prezentowane — z metrykami: koordynator, liczba uczestników, oceny, wnioski, rekomendacje',
+                'Ważne daty i zapowiedzi, jeśli padły',
+                'Podsumowania projektowe, jeśli były prezentowane — z metrykami: koordynator, liczba uczestników, oceny, wnioski, rekomendacje',
                 'Sprawy różne i wolne wnioski — każda osoba z pełnego imienia i nazwiska oraz funkcji',
                 'Godzina zamknięcia spotkania',
                 'Podpis protokolanta i data sporządzenia',
@@ -875,18 +875,18 @@ export default function KompendiumPage() {
               ))}
             </ul>
             <div className="mt-4 bg-blue-50 rounded-xl border border-blue-100 p-4">
-              <p className="text-sm text-blue-800"><strong>Specyfika SKS:</strong> To najbardziej "żywy" protokół — mogą w nim pojawić się podsumowania projektowe z konkretnymi metrykami (koszt jednostkowy, liczba uczestników, średnia ocena). Styl może być nieco mniej formalny niż RUSS, ale nadal urzędowy — bez żargonu, skrótów i nieformalnych wtrąceń. Nie zapomnij że SKS jest otwarty — mogą pojawić się osoby spoza Zarządu, które też należy wpisać.</p>
+              <p className="text-sm text-blue-800"><strong>Specyfika SKS:</strong> To najbardziej "żywy" protokół — mogą w nim pojawić się podsumowania projektowe z konkretnymi metrykami (koszt jednostkowy, liczba uczestników, średnia ocena). Styl może być nieco mniej formalny niż RUSS, ale nadal urzędowy — bez żargonu, skrótów i nieformalnych wtrąceń. Nie zapomnij że SKS jest otwarty — mogą pojawić się osoby spoza Samorządu, które też należy wpisać.</p>
             </div>
           </ProtocolCard>
 
           {/* 5.2 RUSS */}
-          <ProtocolCard id="typ-russ" title="5.2 RUSS — Posiedzenie Rady Uczelnianej" deadline="14 dni" deadlineColor="orange">
+          <ProtocolCard id="typ-russ" title="5.2 RUSS — Posiedzenie Rady Uczelnianej" deadline="7-14 dni" deadlineColor="orange">
             <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
               {[
                 ['Charakter', 'uchwałodawczy — najważniejszy organ SSUEW'],
                 ['Prowadzi', 'Przewodnicząca SSUEW lub wyznaczony Przewodniczący obrad'],
                 ['Quorum', 'OBOWIĄZKOWE — minimum 8 Radnych'],
-                ['Termin oddania', '14 dni od posiedzenia'],
+                ['Termin oddania', 'do 14 dni od posiedzenia'],
               ].map(([k, v]) => (
                 <div key={k} className="bg-slate-50 rounded-lg p-3">
                   <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
@@ -899,14 +899,14 @@ export default function KompendiumPage() {
               {[
                 'Nagłówek: numer posiedzenia RUSS, data, miejsce, godziny, protokolant',
                 'Spis treści z numerami stron',
-                'Lista obecności — pełna, z zaznaczeniem obecny/nieobecny dla każdego Radnego. Protokolant figuruje na liście ze statusem "—"',
+                'Lista obecności — pełna, z zaznaczeniem obecny/nieobecny dla każdego Radnego.',
                 'Stwierdzenie prawomocności obrad (stwierdzono / nie stwierdzono quorum)',
                 'Treść kolejnych punktów porządku obrad',
                 'Pełna treść każdej uchwały — dosłownie, z numerem uchwały w formacie [numer]/[rok akademicki]',
                 'Wyniki każdego głosowania: za / przeciw / wstrzymujących się — zawsze trzy liczby',
                 'Sprawy różne i wolne wnioski — każda osoba z pełnej funkcji i imienia oraz nazwiska',
                 'Godzina zamknięcia posiedzenia',
-                'Podpis protokolanta i Przewodniczącego obrad',
+                'Podpis protokolanta i Członka Zarzadu ds. Administracji SSUEW',
                 'Lista załączników (lista obecności, uchwały, inne dokumenty)',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
@@ -975,7 +975,7 @@ export default function KompendiumPage() {
             <ul className="space-y-1 text-sm text-slate-700">
               {[
                 'Nagłówek: nazwa komisji, numer spotkania, data, miejsce, godziny, prowadzący, protokolant',
-                'Lista uczestników z funkcjami',
+                'Lista uczestników z imionami i nazwiskami',
                 'Cel spotkania',
                 'Omawiane tematy z treścią — nie skróty, ale pełne zdania z kontekstem',
                 'Podjęte decyzje',
@@ -989,12 +989,12 @@ export default function KompendiumPage() {
           </ProtocolCard>
 
           {/* 5.5 Projektowy */}
-          <ProtocolCard id="typ-projektowy" title="5.5 Projektowy" deadline="3–5 dni" deadlineColor="green">
+          <ProtocolCard id="typ-projektowy" title="5.5 Projektowy" deadline="1–3 dni" deadlineColor="green">
             <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
               {[
                 ['Charakter', 'roboczy — dokumentuje postęp konkretnego projektu. Najbardziej elastyczny pod względem stylu.'],
                 ['Quorum', 'nie wymagane'],
-                ['Termin oddania', '3–5 dni'],
+                ['Termin oddania', '1–3 dni'],
               ].map(([k, v]) => (
                 <div key={k} className="bg-slate-50 rounded-lg p-3">
                   <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
@@ -1023,7 +1023,7 @@ export default function KompendiumPage() {
                   {[
                     'Pseudonimy i zdrobnienia ("Junior", "Karlos", "Magda") — zawsze pełne imię i nazwisko',
                     'Informacje prywatne niezwiązane z projektem',
-                    'Brak podmiotu — zawsze wiadomo kto co zrobił',
+                    'Brak podmiotu — zawsze wiadomo kto, co zrobił',
                     'Brak godziny zakończenia i podpisu protokolanta',
                   ].map((item, i) => (
                     <li key={i} className="flex items-start gap-1.5"><span className="text-red-400 mt-0.5">✗</span>{item}</li>
@@ -1040,7 +1040,7 @@ export default function KompendiumPage() {
                 'Podsumowanie działań od poprzedniego spotkania — per osoba',
                 'Status projektu',
                 'Plany i zadania do kolejnego spotkania — per osoba z terminami',
-                'Ustalenia ogólne i ryzyka jeśli omawiane',
+                'Ustalenia ogólne i ryzyka, jeśli omawiane',
                 'Godzina zakończenia',
                 'Podpis protokolanta i data sporządzenia',
               ].map((item, i) => (
@@ -1080,11 +1080,11 @@ export default function KompendiumPage() {
           </ProtocolCard>
 
           {/* 5.7 KPUE */}
-          <ProtocolCard id="typ-kpue" title="5.7 KPUE — Konferencja Polskich Uczelni Ekonomicznych" deadline="1 miesiąc" deadlineColor="red">
+          <ProtocolCard id="typ-kpue" title="5.7 KPUE — Konferencja Polskich Uczelni Ekonomicznych" deadline="ok. 1 miesiąc" deadlineColor="red">
             <div className="grid md:grid-cols-2 gap-3 text-xs mb-4">
               {[
                 ['Charakter', 'zewnętrzny — reprezentacja SSUEW na forum ogólnopolskim FUE'],
-                ['Termin oddania', 'około miesiąca od KPUE. Termin może być ruchomy ze względu na datę kolejnego posiedzenia FUE — ustal dokładny termin z Przewodniczącą FUE.'],
+                ['Termin oddania', 'około miesiąca od KPUE. Termin może być ruchomy ze względu na datę kolejnego posiedzenia FUE — ustal dokładny termin z Członkiem Prezydium ds. Administracji FUE.'],
               ].map(([k, v]) => (
                 <div key={k} className="bg-slate-50 rounded-lg p-3">
                   <span className="block font-bold text-slate-500 uppercase tracking-wide mb-1">{k}</span>
@@ -1111,16 +1111,15 @@ export default function KompendiumPage() {
             <h4 className="font-bold text-slate-700 text-sm mb-2">Co musi zawierać:</h4>
             <ul className="space-y-1 text-sm text-slate-700 mb-4">
               {[
-                'Nagłówek: numer KPUE, organizator (uczelnia gospodarz), data, miejsce, skład delegacji SSUEW',
+                'Nagłówek: numer KPUE, organizator (uczelnia gospodarz), data, miejsce',
                 'Lista wszystkich delegacji z pełnymi nazwami uczelni i funkcjami reprezentantów',
                 'Porządek obrad konferencji',
                 'Treść każdego omawianego tematu — syntetycznie, sens wypowiedzi bez stenografii',
-                'Stanowiska poszczególnych uczelni jeśli były rozbieżne',
+                'Stanowiska poszczególnych uczelni, jeśli były rozbieżne',
                 'Ustalenia i decyzje konferencji',
                 'Głosowania w formacie tabeli: Liczba głosujących | Głosy ważne | Za | Wstrzymane | Przeciw',
                 'Komentarze redakcyjne (przerwy itp.): wyśrodkowane + kursywa, z godzinami',
-                'Zobowiązania SSUEW wynikające z konferencji',
-                'Termin i miejsce kolejnej KPUE jeśli ustalono',
+                'Termin i miejsce kolejnej KPUE, jeśli ustalono',
               ].map((item, i) => (
                 <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />{item}</li>
               ))}
@@ -1129,7 +1128,7 @@ export default function KompendiumPage() {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
               <p className="text-xs font-black text-slate-600 uppercase tracking-wide mb-2">Specyfika KPUE</p>
               <ul className="space-y-2 text-sm text-slate-700">
-                <li>• Używaj pełnych oficjalnych nazw uczelni — nie skrótów. Przy pierwszym użyciu: pełna nazwa z rozwinięciem skrótu w nawiasie. Np. <em>"Samorząd Studentów Szkoły Głównej Handlowej w Warszawie (SGH)"</em>. Przy kolejnych użyciach możesz stosować skrót.</li>
+                <li>• Używaj pełnych oficjalnych nazw uczelni — nie skrótów. Na przykład: <em>"Samorząd Studentów Szkoły Głównej Handlowej w Warszawie"</em>.</li>
                 <li>• Przed wypowiedzią każdej osoby: imię i nazwisko + uczelnia. Dla osób funkcyjnych (Przewodnicząca FUE, Prezydium, zaproszeni goście): imię, nazwisko i pełna funkcja.</li>
                 <li>• Nagrywanie na KPUE: zalecane przez FUE jako standard — ułatwia sporządzenie protokołu.</li>
               </ul>
