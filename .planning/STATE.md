@@ -2,27 +2,31 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 5
-status: Ready to plan
-last_updated: "2026-04-05T16:04:01.960Z"
+current_phase: 05
+status: Executing Phase 05
+last_updated: "2026-04-05T20:25:26.392Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 13
+  completed_plans: 11
 ---
 
 # Project State
 
-**Last updated:** 2026-04-04
-**Current phase:** 5
+**Last updated:** 2026-04-05
+**Current phase:** 05
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Jeden punkt dostępu do wszystkich zasobów i narzędzi SSUEW
-**Current focus:** Phase 2 — Baza Sprzętu + Apteczki
+**Current focus:** Phase 05 — mapa-kampusu
+
+**Progress:** [█████████░] 85% (11/13 plans complete)
+
+**Last session:** Completed 05-mapa-kampusu/05-01-PLAN.md (2026-04-05)
 
 ## Phase Status
 
@@ -32,7 +36,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 | 2. Baza Sprzętu + Apteczki | Not started |
 | 3. Lista Dostępowa | Not started |
 | 4. Kompendium + Księga Inwentarzowa | Not started |
-| 5. Mapa Kampusu | Not started |
+| 5. Mapa Kampusu | In Progress (1/3 plans done) |
 
 ## Key Context
 
@@ -41,6 +45,12 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 - Phase 1 is independent; Phase 3 depends on Phase 1 (email setup)
 - Phases 2, 4, 5 are independent of each other
 
+## Decisions
+
+- isAdmin = userRole === 'logitech' || userRole === 'admin' — both roles get admin features in MapPage
+- Sticky shrink-0 header replaces absolute overlay filter to eliminate z-index collision with App.jsx fixed back button
+- calcHotspotStyle uses getBoundingClientRect + letterbox formula for correct object-contain hotspot positioning
+
 ## Next Action
 
-Run `/gsd:plan-phase 1` to create PLAN.md for Phase 1 (Email Fix).
+Continue with 05-02-PLAN.md (Admin Panel expansion) or 05-03-PLAN.md (Rejestr tab).

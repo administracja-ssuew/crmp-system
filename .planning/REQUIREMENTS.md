@@ -34,7 +34,7 @@
 
 ### Mapa Kampusu
 
-- [ ] **MAP-01**: Poprawić funkcjonalność modułu Mapy Kampusu (integracja z nową mapą z Photoshopa, interaktywność)
+- [x] **MAP-01**: Poprawić funkcjonalność modułu Mapy Kampusu (integracja z nową mapą z Photoshopa, interaktywność)
 
 ## v2 Requirements
 
@@ -78,7 +78,7 @@
 | KOMP-01 | Phase 4 | Complete |
 | KOMP-02 | Phase 4 | Complete |
 | INV-01 | Phase 4 | Complete |
-| MAP-01 | Phase 5 | Pending |
+| MAP-01 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 16 total
