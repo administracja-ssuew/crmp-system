@@ -42,6 +42,37 @@ export default function MapPage() {
   const [isEditing, setIsEditing] = useState(false);
   const imgRef = useRef(null);
 
+  // === TRYB WSPÓŁRZĘDNYCH (pkt 4) ===
+  const [coordMode, setCoordMode] = useState(false);
+  const [coordPreview, setCoordPreview] = useState(null);
+
+  // === HELPER: oblicz współrzędne kliknięcia względem obrazu (z uwzględnieniem letterbox) ===
+  const getMapCoords = (e) => {
+    if (!imgRef.current) return null;
+    const img = imgRef.current;
+    const rect = img.getBoundingClientRect();
+    const { width: cw, height: ch } = rect;
+    const naturalW = img.naturalWidth || cw;
+    const naturalH = img.naturalHeight || ch;
+    const containerRatio = cw / ch;
+    const imageRatio = naturalW / naturalH;
+    let renderedW, renderedH, offsetX, offsetY;
+    if (imageRatio > containerRatio) {
+      renderedW = cw; renderedH = cw / imageRatio;
+      offsetX = 0; offsetY = (ch - renderedH) / 2;
+    } else {
+      renderedH = ch; renderedW = ch * imageRatio;
+      offsetX = (cw - renderedW) / 2; offsetY = 0;
+    }
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    if (clickX < offsetX || clickX > offsetX + renderedW || clickY < offsetY || clickY > offsetY + renderedH) return null;
+    return {
+      x: ((clickX - offsetX) / renderedW * 100).toFixed(1),
+      y: ((clickY - offsetY) / renderedH * 100).toFixed(1),
+    };
+  };
+
   const calcHotspotStyle = (loc) => {
     if (!imgRef.current) return { top: loc.top, left: loc.left };
     const img = imgRef.current;
@@ -280,9 +311,9 @@ export default function MapPage() {
   );
 
   return (
-    <div className="flex flex-col h-full relative overflow-hidden animate-fadeIn">
+    <div className="flex flex-col h-screen overflow-hidden animate-fadeIn">
 
-      <header className="shrink-0 bg-white border-b border-slate-200 px-4 py-2 flex flex-wrap gap-3 items-center">
+      <header className="shrink-0 bg-white border-b border-slate-200 pl-40 pr-4 py-2 flex flex-wrap gap-3 items-center">
         {/* Search input */}
         <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 md:w-72">
           <Search className="w-4 h-4 text-slate-400" />
@@ -300,28 +331,46 @@ export default function MapPage() {
           <button onClick={() => setFilterType('plakat')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'plakat' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'hover:bg-blue-50 text-slate-600'}`}>PLAKATY</button>
           <button onClick={() => setFilterType('baner')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'baner' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'hover:bg-orange-50 text-slate-600'}`}>BANERY</button>
         </div>
-        {/* View toggle — admin only (per D-11) */}
+        {/* View toggle + coord picker — admin only */}
         {isAdmin && (
-          <div className="ml-auto flex gap-1 bg-slate-100 rounded-xl p-1">
-            <button
-              onClick={() => setView('map')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'map' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              <Map className="w-3.5 h-3.5" /> Mapa
-            </button>
-            <button
-              onClick={() => setView('rejestr')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'rejestr' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              <List className="w-3.5 h-3.5" /> Rejestr
-            </button>
+          <div className="ml-auto flex gap-2 items-center">
+            {/* Tryb współrzędnych — do znajdowania pozycji nowych pinezek */}
+            {view === 'map' && (
+              <button
+                onClick={() => { setCoordMode(m => !m); setCoordPreview(null); }}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${coordMode ? 'bg-amber-500 text-white border-amber-500 shadow-lg' : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'}`}
+                title="Kliknij w mapę żeby sprawdzić współrzędne pineski"
+              >
+                📍 Współrzędne
+              </button>
+            )}
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+              <button
+                onClick={() => { setView('map'); setCoordMode(false); setCoordPreview(null); }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'map' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                <Map className="w-3.5 h-3.5" /> Mapa
+              </button>
+              <button
+                onClick={() => setView('rejestr')}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${view === 'rejestr' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+              >
+                <List className="w-3.5 h-3.5" /> Rejestr
+              </button>
+            </div>
           </div>
         )}
       </header>
 
       <div className="flex-1 relative overflow-hidden">
         {view === 'map' ? (
-          <div className="w-full h-full relative">
+          <div
+            className={`w-full h-full relative ${coordMode ? 'cursor-crosshair' : ''}`}
+            onClick={coordMode ? (e) => {
+              const coords = getMapCoords(e);
+              if (coords) setCoordPreview(coords);
+            } : undefined}
+          >
             <img
               ref={imgRef}
               src="/mapa.jpg"
@@ -331,7 +380,38 @@ export default function MapPage() {
                 setFilteredLocations(prev => [...prev]);
               }}
             />
-            {filteredLocations.map((loc) => (
+
+            {/* Panel współrzędnych — pokazuje się po kliknięciu w trybie 📍 */}
+            {coordMode && coordPreview && (
+              <div className="absolute top-4 right-4 z-50 bg-slate-900 text-white rounded-2xl px-5 py-4 shadow-2xl min-w-[220px]">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">Współrzędne pineski</span>
+                  <button onClick={(e) => { e.stopPropagation(); setCoordPreview(null); }} className="text-slate-400 hover:text-white text-xs">✕</button>
+                </div>
+                <p className="font-mono text-sm font-bold">left: <span className="text-amber-300">{coordPreview.x}%</span></p>
+                <p className="font-mono text-sm font-bold">top: <span className="text-amber-300">{coordPreview.y}%</span></p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard?.writeText(`top: "${coordPreview.y}%", left: "${coordPreview.x}%"`);
+                    alert(`Skopiowano!\ntop: "${coordPreview.y}%"\nleft: "${coordPreview.x}%"\n\nWpisz te wartości w arkuszu Miejsca (kolumny E i F) dla nowej lokalizacji.`);
+                  }}
+                  className="mt-3 w-full bg-amber-500 hover:bg-amber-400 text-white text-[10px] font-black uppercase tracking-widest py-2 rounded-lg transition-all"
+                >
+                  Kopiuj do schowka
+                </button>
+                <p className="text-[9px] text-slate-400 mt-2 leading-tight">Kliknij ponownie w mapę żeby pobrać inne współrzędne.</p>
+              </div>
+            )}
+
+            {/* Baner informacyjny gdy tryb współrzędnych aktywny */}
+            {coordMode && !coordPreview && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 bg-amber-500 text-white rounded-xl px-5 py-3 shadow-xl text-xs font-black uppercase tracking-widest pointer-events-none">
+                📍 Kliknij w mapę żeby pobrać współrzędne nowej pineski
+              </div>
+            )}
+
+            {!coordMode && filteredLocations.map((loc) => (
               <button
                 key={loc.id}
                 onMouseEnter={() => setHoveredId(loc.id)}
