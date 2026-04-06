@@ -386,6 +386,15 @@ export default function DashboardPage() {
           />
           <Card to="/lista-dostepowa" icon="🗝️" title="Lista Dostępowa" subtitle="Zgłoszenia dostępu do pomieszczeń" colorFrom="from-cyan-500" colorTo="to-blue-600" buttonText="Otwórz Moduł" />
           <Card to="/ksiega-dokumentow" icon="🏛️" title="Księga Dokumentów" subtitle="Standardy i wzorce dokumentacji SSUEW" colorFrom="from-slate-700" colorTo="to-slate-900" buttonText="Otwórz Księgę" />
+          <Card
+            to="/archiwum"
+            icon="🗄️"
+            title="Przewodnik Archiwizacji"
+            subtitle="JRWA, klasy akt, checklista roczna i matryca klasyfikacyjna"
+            colorFrom="from-amber-700"
+            colorTo="to-yellow-900"
+            buttonText="Otwórz Przewodnik"
+          />
           {isAdmin && (
             <>
               <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
