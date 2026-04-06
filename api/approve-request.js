@@ -19,6 +19,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
+  // SEC-01: Basic auth guard — wymaga nagłówka Authorization: Bearer <token>
+  const authHeader = req.headers['authorization'] || '';
+  if (!authHeader.startsWith('Bearer ') || authHeader.length < 20) {
+    return res.status(401).json({ error: 'Brak autoryzacji' });
+  }
+
   const { requestId, email, name } = req.body;
 
   try {

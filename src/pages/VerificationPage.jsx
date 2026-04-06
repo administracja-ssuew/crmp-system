@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../supabaseClient';
 import imageCompression from 'browser-image-compression';
-import { QrReader } from 'react-qr-reader';
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 export default function VerificationPage() {
   const { user } = useAuth();
@@ -285,7 +285,14 @@ export default function VerificationPage() {
 
             {isScanning ? (
               <div className="rounded-2xl overflow-hidden mb-4 border-4 border-indigo-500 shadow-xl shadow-indigo-900/50">
-                <QrReader onResult={(result) => { if (result) handleScan(result?.text); }} constraints={{ facingMode: 'environment' }} style={{ width: '100%' }} />
+                <Scanner
+                  onScan={(detectedCodes) => {
+                    if (detectedCodes?.length > 0) handleScan(detectedCodes[0].rawValue);
+                  }}
+                  onError={(err) => console.error('QR Scanner error:', err)}
+                  components={{ audio: false }}
+                  styles={{ container: { width: '100%' } }}
+                />
               </div>
             ) : (
               <button 

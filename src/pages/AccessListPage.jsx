@@ -15,14 +15,14 @@ import AdminAccessPanel from './AdminAccessPanel'
 
 // --- Window helpers (ACC-03) ---
 export const isWindowOpen = () => {
-  const day = new Date().getDate()
-  return day >= 1 && day <= 5
+  const day = parseInt(new Date().toLocaleDateString('pl-PL', { day: 'numeric' }), 10);
+  return day >= 1 && day <= 5;
 }
 
 export const daysUntilNextWindow = () => {
-  const now = new Date()
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-  return Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24))
+  const now = new Date();
+  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24));
 }
 
 // --- Email validator (ACC-01) ---
@@ -61,7 +61,9 @@ export default function AccessListPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [approvedList, setApprovedList] = useState([])
+  const [rejectedList, setRejectedList] = useState([])  // (I) historia odrzuconych
   const [isLoadingApproved, setIsLoadingApproved] = useState(false)
+  const [fetchError, setFetchError] = useState('')
 
   const needs11J = form.rooms.includes('11 J')
 
@@ -141,17 +143,25 @@ export default function AccessListPage() {
 
   const fetchApproved = async () => {
     setIsLoadingApproved(true)
+    setFetchError('')
     try {
       const month = currentMonth()
       const q = query(collection(db, 'access_submissions'), where('month', '==', month))
       const snapshot = await getDocs(q)
-      const data = snapshot.docs
-        .map(d => ({ id: d.id, ...d.data() }))
-        .filter(s => s.status === 'approved')
-        .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'pl'))
-      setApprovedList(data)
+      const allDocs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }))
+      // zatwierdzone — lista publiczna
+      setApprovedList(
+        allDocs
+          .filter(s => s.status === 'approved')
+          .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '', 'pl'))
+      )
+      // (I) odrzucone — widoczne tylko dla zalogowanego usera, żeby wiedział o decyzji
+      setRejectedList(
+        allDocs.filter(s => s.status === 'rejected' && s.email === user?.email?.toLowerCase())
+      )
     } catch (err) {
       console.error('Błąd pobierania listy zatwierdzeń:', err)
+      setFetchError('Nie udało się pobrać listy. Sprawdź połączenie i odśwież stronę.')
     } finally {
       setIsLoadingApproved(false)
     }
@@ -421,8 +431,33 @@ export default function AccessListPage() {
                 </div>
               )}
             </div>
+
+            {/* (I) Historia odrzuconych — widoczne tylko dla właściciela */}
+            {rejectedList.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-3xl p-6">
+                <h2 className="text-base font-black text-red-800 mb-1">❌ Twoje zgłoszenie zostało odrzucone</h2>
+                <p className="text-xs text-red-600 mb-3">
+                  Twoje zgłoszenie z {currentMonth()} nie zostało zatwierdzone przez administratora.
+                  Jeśli uważasz, że to pomyłka, skontaktuj się z Logitechemem.
+                </p>
+                {rejectedList.map(s => (
+                  <div key={s.id} className="bg-white border border-red-100 rounded-xl p-3 text-sm">
+                    <p className="font-bold text-red-700">{s.name} — sale: {(s.rooms ?? [s.room]).join(', ')}</p>
+                    <p className="text-xs text-red-400 mt-1">Złożono: {s.month}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Error state */}
+            {fetchError && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 font-bold text-center">
+                ⚠️ {fetchError}
+              </div>
+            )}
           </div>
-        ))}
+        )
+        )}
       </div>
     </div>
   )

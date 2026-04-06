@@ -56,9 +56,15 @@ export default function AdminEquipmentPanel() {
   const fetchAllData = () => {
     setIsLoadingReports(true);
     setReportsError(null);
-    fetch(API_URL)
+
+    // (L) GAS timeout — AbortController po 15 sekundach
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    fetch(API_URL, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
+        clearTimeout(timeoutId);
         if (!data.error) {
           const formatted = data.sprzet.map(item => ({
             id: item.KOD_QR || `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`,
@@ -73,12 +79,9 @@ export default function AdminEquipmentPanel() {
           setAllWydania(data.wydania || []);
           const allReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
           console.log('[CRW] apteczkiBraki count:', allReports.length, 'first keys:', allReports[0] ? Object.keys(allReports[0]) : 'brak');
-          // Normalize field names — GAS may return different column headers depending on sheet state
           const normalize = (r) => {
             const vals = Object.values(r);
-            // If expected keys exist, return as-is
             if (r.ID !== undefined || r.Apteczka_Nazwa !== undefined || r.Powod !== undefined) return r;
-            // Otherwise map by column position: ID, Data_Zgloszenia, Apteczka_ID, Apteczka_Nazwa, Osoba, Powod, Zuzyte_Materialy, Status
             if (vals.length >= 7) {
               return { ID: vals[0], Data_Zgloszenia: vals[1], Apteczka_ID: vals[2], Apteczka_Nazwa: vals[3], Osoba: vals[4], Powod: vals[5], Zuzyte_Materialy: vals[6], Status: vals[7] || 'Oczekuje' };
             }
@@ -89,15 +92,65 @@ export default function AdminEquipmentPanel() {
           setResolvedReports(normalized.filter(r => String(r.Status || '').startsWith('Zrealizowane')));
         }
       })
-      .catch(() => {
-        setReportsError("Nie udało się pobrać zgłoszeń apteczek.");
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          setReportsError('Przekroczono limit czasu odpowiedzi serwera (15s). Sprawdź połączenie i spróbuj ponownie.');
+        } else {
+          setReportsError('Nie udało się pobrać danych. Sprawdź połączenie internetowe.');
+        }
       })
       .finally(() => {
         setIsLoadingReports(false);
       });
   };
 
-  useEffect(() => { fetchAllData(); }, []);
+  // (K) Lazy load apteczek — ładujemy dane sprzętu/rezerwacji/wydań na starcie,
+  // ale szczegóły apteczek (which są w tym samym endpoint) dopiero przy wejściu w tab
+  const fetchEquipmentOnly = () => {
+    setIsLoadingReports(true);
+    setReportsError(null);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    fetch(API_URL, { signal: controller.signal })
+      .then(res => res.json())
+      .then(data => {
+        clearTimeout(timeoutId);
+        if (!data.error) {
+          const formatted = data.sprzet.map(item => ({
+            id: item.KOD_QR || `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`,
+            name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
+            status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
+            condition: item.UWAGI || 'Brak zastrzeżeń',
+            accessories: item.INTERAKCJA || 'Brak',
+            isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
+          }));
+          setEquipmentData(formatted);
+          setAllReservations(data.rezerwacje || []);
+          setAllWydania(data.wydania || []);
+        }
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+          setReportsError('Przekroczono limit czasu odpowiedzi serwera (15s). Sprawdź połączenie i spróbuj ponownie.');
+        } else {
+          setReportsError('Nie udało się pobrać danych. Sprawdź połączenie internetowe.');
+        }
+      })
+      .finally(() => setIsLoadingReports(false));
+  };
+
+  // Na starcie ładujemy tylko sprzęt/rezerwacje/wydania (bez apteczek — lazy)
+  useEffect(() => { fetchEquipmentOnly(); }, []);
+
+  // (K) Lazy load apteczek — ładujemy dopiero przy wejściu w zakładkę 'apteczki'
+  useEffect(() => {
+    if (adminMode === 'apteczki' && firstAidReports.length === 0 && !isLoadingReports && !reportsError) {
+      fetchAllData();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adminMode]);
 
   useEffect(() => {
     if (step === 2 && adminMode === 'wydawanie') {

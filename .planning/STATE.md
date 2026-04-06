@@ -34,7 +34,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 |-------|--------|
 | 1. Email Fix | Not started |
 | 2. Baza Sprzętu + Apteczki | Not started |
-| 3. Lista Dostępowa | Not started |
+| 3. Lista Dostępowa | Complete (code implemented — AccessListPage.jsx, AdminAccessPanel.jsx) |
 | 4. Kompendium + Księga Inwentarzowa | Not started |
 | 5. Mapa Kampusu | Complete (3/3 plans done) |
 

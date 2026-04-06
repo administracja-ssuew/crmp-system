@@ -331,7 +331,7 @@ export default function LegalHubPage() {
                 type="text" 
                 placeholder="Znajdź regulamin po tytule lub tagu..." 
                 value={searchQuery}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent border-none outline-none text-sm font-bold text-slate-700 py-3 px-2"
               />
             </div>

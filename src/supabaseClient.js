@@ -1,9 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 1. Twój adres URL bazy
-const supabaseUrl = 'https://epyhdmyafaqnczekrtvs.supabase.co';
-
-// 2. Twój długi klucz anon/public
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVweWhkbXlhZmFxbmN6ZWtydHZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzQ2OTEsImV4cCI6MjA4OTQxMDY5MX0.z3WppaxSmnHveQnYDZy6Ghfgs3HjUg7flxnGNHG5_js';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 export const supabase = createClient(supabaseUrl, supabaseKey);

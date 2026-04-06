@@ -64,9 +64,9 @@ const AFTER_ITEMS = [
 
 // ===================== SZABLONY DOKUMENTÓW =====================
 const TEMPLATE_ITEMS = [
-  { id: 't1',  name: 'Protokół SKS',                      driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't2',  name: 'Protokół RUSS',                     driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't3',  name: 'Protokół Absolutoryjny',            driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't1',  name: 'Protokół SKS',                      driveUrl: 'https://docs.google.com/document/d/1jQCDYvkrSUBu1Vr6m6QghX0wdduFVcEZ/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't2',  name: 'Protokół RUSS',                     driveUrl: 'https://docs.google.com/document/d/1AH6Nu16V05Rr6V6SZq93003iwxcy9hU0/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't3',  name: 'Protokół Absolutoryjny',            driveUrl: 'https://docs.google.com/document/d/1h8oJKbXDsppRHjfV9R5uy7klHMFFcK5GBrCaptZihdo/edit?usp=sharing' },
   { id: 't4',  name: 'Protokół Komisyjny',                driveUrl: 'TODO: wstaw_link_google_drive' },
   { id: 't5',  name: 'Protokół Projektowy',               driveUrl: 'TODO: wstaw_link_google_drive' },
   { id: 't6',  name: 'Protokół Roboczy',                  driveUrl: 'TODO: wstaw_link_google_drive' },
@@ -1193,7 +1193,7 @@ export default function KompendiumPage() {
       {showScrollTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 right-6 z-50 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg shadow-violet-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-24 left-7 z-50 w-12 h-12 bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow-lg shadow-violet-600/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry"
         >
           <ArrowUp className="w-5 h-5" />

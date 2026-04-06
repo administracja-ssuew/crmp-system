@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { CRED_API_URL, NOTICES_API_URL } from '../config';
 
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
@@ -11,9 +12,6 @@ const Icons = {
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
 };
 
-// === TUTAJ WKLEJ LINKI DO SKRYPTÓW GOOGLE ===
-const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C773HeI9AjGsGh-xtzplOwnHrlXEkqS7ELN2FkRnlRGFgpkAAmZGDeWRkvA/exec";
-const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
 
 // === INTELIGENTNY FORMATER DATY ===
 const formatDate = (rawDate) => {
@@ -38,11 +36,14 @@ export default function DashboardPage() {
   // === STANY OGŁOSZEŃ ===
   const [notices, setNotices] = useState([]);
   const [isLoadingNotices, setIsLoadingNotices] = useState(true);
-  const [dismissedNotices, setDismissedNotices] = useState([]);
+  const [dismissedNotices, setDismissedNotices] = useState(
+    () => JSON.parse(localStorage.getItem('cra_dismissed_notices') || '[]')
+  );
   
   // === STANY KREATORA OGŁOSZEŃ (TYLKO DLA ADMINA) ===
   const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [isSubmittingNotice, setIsSubmittingNotice] = useState(false);
+  const [noticeError, setNoticeError] = useState('');
   const [noticeForm, setNoticeForm] = useState({ target: 'ALL', type: 'info', text: '' });
 
   // === STANY WYSZUKIWARKI CRED ===
@@ -59,16 +60,22 @@ export default function DashboardPage() {
         if (NOTICES_API_URL === "TUTAJ_WKLEJ_LINK_DO_OGLOSZEN_Z_APPS_SCRIPT") {
           setIsLoadingNotices(false); return;
         }
+        // (L) Timeout 12s dla ogłoszeń — nie-krytyczna treść
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
         const [response] = await Promise.all([
-          fetch(NOTICES_API_URL),
+          fetch(NOTICES_API_URL, { signal: controller.signal }),
           new Promise(resolve => setTimeout(resolve, 600))
         ]);
+        clearTimeout(timeoutId);
         const data = await response.json();
         if (!data.error && Array.isArray(data)) {
           setNotices(data.reverse()); 
         }
       } catch (error) {
-        console.error("Błąd pobierania ogłoszeń:", error);
+        if (error.name !== 'AbortError') {
+          console.error("Błąd pobierania ogłoszeń:", error);
+        }
       } finally {
         setIsLoadingNotices(false);
       }
@@ -80,13 +87,13 @@ export default function DashboardPage() {
   const handleSubmitNotice = async (e) => {
     e.preventDefault();
     if (!noticeForm.text.trim()) return;
-
+    setNoticeError('');
     setIsSubmittingNotice(true);
     try {
       const response = await fetch(NOTICES_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(noticeForm) // Dodaje ogłoszenie
+        body: JSON.stringify(noticeForm)
       });
       const result = await response.json();
 
@@ -96,12 +103,16 @@ export default function DashboardPage() {
         };
         setNotices([newNotice, ...notices]);
         setShowNoticeModal(false);
-        setNoticeForm({ target: 'ALL', type: 'info', text: '' }); 
+        setNoticeForm({ target: 'ALL', type: 'info', text: '' });
+        setNoticeError('');
       } else {
-        alert("Błąd zapisu w Google Sheets.");
+        setNoticeError('Błąd zapisu w Google Sheets. Spróbuj ponownie.');
       }
-    } catch (err) { alert("Wystąpił błąd komunikacji. Spróbuj ponownie."); } 
-    finally { setIsSubmittingNotice(false); }
+    } catch (err) {
+      setNoticeError('Wystąpił błąd komunikacji. Sprawdź połączenie i spróbuj ponownie.');
+    } finally {
+      setIsSubmittingNotice(false);
+    }
   };
 
   // GLOBALNE USUWANIE OGŁOSZENIA (Tylko Admin)
@@ -145,7 +156,11 @@ export default function DashboardPage() {
     return true;
   });
 
-  const handleDismiss = (id) => setDismissedNotices([...dismissedNotices, id]);
+  const handleDismiss = (id) => {
+    const updated = [...dismissedNotices, id];
+    setDismissedNotices(updated);
+    localStorage.setItem('cra_dismissed_notices', JSON.stringify(updated));
+  };
 
   const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
     <Link to={to} className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]">
@@ -370,6 +385,7 @@ export default function DashboardPage() {
             buttonText="Otwórz Przewodnik"
           />
           <Card to="/lista-dostepowa" icon="🗝️" title="Lista Dostępowa" subtitle="Zgłoszenia dostępu do pomieszczeń" colorFrom="from-cyan-500" colorTo="to-blue-600" buttonText="Otwórz Moduł" />
+          <Card to="/ksiega-dokumentow" icon="🏛️" title="Księga Dokumentów" subtitle="Standardy i wzorce dokumentacji SSUEW" colorFrom="from-slate-700" colorTo="to-slate-900" buttonText="Otwórz Księgę" />
           {isAdmin && (
             <>
               <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
@@ -434,8 +450,14 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {noticeError && (
+              <div className="mx-6 mb-2 p-3 bg-red-50 border border-red-200 rounded-xl text-sm font-bold text-red-700 animate-fadeIn">
+                ❌ {noticeError}
+              </div>
+            )}
+
             <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
-              <button type="button" onClick={() => setShowNoticeModal(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
+              <button type="button" onClick={() => { setShowNoticeModal(false); setNoticeError(''); }} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
                 Anuluj
               </button>
               <button 
