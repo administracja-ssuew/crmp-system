@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, updateDoc, orderBy, query } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, orderBy, query, addDoc } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 
 export default function AccessRequestsPanel() {
@@ -19,29 +19,33 @@ export default function AccessRequestsPanel() {
   useEffect(() => { fetchRequests(); }, []);
 
   const handleApprove = async (request) => {
-    const res = await fetch('/api/approve-request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestId: request.id, email: request.email, name: request.name }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(`Błąd zatwierdzania: ${data.error || res.status}`);
+    try {
+      // 1. Zmień status wniosku na 'approved'
+      await updateDoc(doc(db, 'access_requests', request.id), { status: 'approved' });
+      
+      // 2. Dodaj użytkownika do listy autoryzowanych (domyślna rola: 'user')
+      await addDoc(collection(db, 'authorized_users'), {
+        email: request.email.toLowerCase(),
+        role: 'user',
+        name: request.name || '',
+        addedAt: new Date().toISOString()
+      });
+
+      fetchRequests();
+    } catch (error) {
+      console.error(error);
+      alert(`Błąd zatwierdzania: ${error.message}`);
     }
-    fetchRequests();
   };
 
   const handleReject = async (request) => {
-    const res = await fetch('/api/reject-request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ requestId: request.id, email: request.email, name: request.name }),
-    });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      alert(`Błąd odrzucania: ${data.error || res.status}`);
+    try {
+      await updateDoc(doc(db, 'access_requests', request.id), { status: 'rejected' });
+      fetchRequests();
+    } catch (error) {
+      console.error(error);
+      alert(`Błąd odrzucania: ${error.message}`);
     }
-    fetchRequests();
   };
 
   const statusBadge = (status) => {

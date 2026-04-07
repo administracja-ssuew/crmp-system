@@ -56,7 +56,7 @@ const DOCS_SOURCE = [
         desc: 'Podstawowy dokument regulujący zasady obiegu dokumentów, zakładania spraw, opisu teczek i sporządzania spisów zdawczo-odbiorczych na Uczelni.',
         badge: 'Obowiązkowy',
         badgeColor: 'red',
-        url: null,
+        url: 'https://drive.google.com/file/d/10pRCIwONBMKAqQFc6L3Pqv8w6RZiSCyO/view?usp=sharing',
         note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW lub Dział Organizacyjny.',
       },
       {
@@ -64,7 +64,7 @@ const DOCS_SOURCE = [
         desc: 'Uczelniany wykaz klas dokumentacji wraz z symbolami JRWA, hasłami klasyfikacyjnymi, kategoriami archiwalnymi i uwagami. Punkt odniesienia przy każdej decyzji klasyfikacyjnej.',
         badge: 'Obowiązkowy',
         badgeColor: 'red',
-        url: null,
+        url: 'https://drive.google.com/file/d/1EzAtXgtTiiIXyldaXTu1A0KjupByEN3j/view?usp=sharing',
         note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW.',
       },
       {
@@ -72,16 +72,8 @@ const DOCS_SOURCE = [
         desc: 'Wyciąg z JRWA UEW zawierający wyłącznie klasy relewantne dla działalności Samorządu Studentów UEW. Uzgodniony z Archiwum UEW. Jedyne klasy, z których korzysta SSUEW.',
         badge: 'Kluczowy dla SSUEW',
         badgeColor: 'amber',
-        url: null,
+        url: 'https://drive.google.com/file/d/1QXxmlNrN3r9m1p54ofd1nQa2a84oz8AK/view?usp=sharing',
         note: 'Dokument wewnętrzny SSUEW — przechowywany przez Członka Zarządu ds. Administracji.',
-      },
-      {
-        title: 'Instrukcja archiwalna UEW',
-        desc: 'Określa zasady postępowania z dokumentacją po zakończeniu sprawy, tryb przekazania do Archiwum UEW oraz brakowania dokumentacji niearchiwalnej.',
-        badge: 'Uzupełniający',
-        badgeColor: 'blue',
-        url: null,
-        note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW.',
       },
     ],
   },
@@ -102,7 +94,7 @@ const DOCS_SOURCE = [
         desc: 'Reguluje zasady prowadzenia i archiwizowania dokumentacji dotyczącej przebiegu studiów — istotne przy dokumentacji komisji wyborczej i spraw studenckich.',
         badge: 'Prawo powszechne',
         badgeColor: 'slate',
-        url: 'https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20112222163',
+        url: 'https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20112011188',
         note: null,
       },
     ],
@@ -116,16 +108,8 @@ const DOCS_SOURCE = [
         desc: 'Dokument ustrojowy SSUEW określający strukturę organów, tryb wyborów i zasady działania. Kontekst konieczny przy klasyfikacji dokumentacji z grup RUSS.570 i RUSS.0052.',
         badge: 'Wewnętrzny SSUEW',
         badgeColor: 'teal',
-        url: null,
+        url: '#',
         note: 'Dostępny na stronie SSUEW lub u Członka Zarządu ds. Administracji.',
-      },
-      {
-        title: 'Protokół uzgodnień z Archiwum UEW (dot. katalogu zamkniętego)',
-        desc: 'Dokument potwierdzający uzgodnienie katalogu zamkniętego SSUEW z Archiwum UEW. Podstawa prawna stosowania wybranych klas JRWA przez Samorząd.',
-        badge: 'Wewnętrzny SSUEW',
-        badgeColor: 'teal',
-        url: null,
-        note: 'Przechowywany przez Członka Zarządu ds. Administracji SSUEW.',
       },
     ],
   },
@@ -515,7 +499,7 @@ export default function ArchiwizacjaPage() {
       <div className="flex max-w-screen-2xl mx-auto">
 
         {/* SIDEBAR */}
-        <aside className="hidden lg:block w-[260px] shrink-0 sticky top-[49px] h-[calc(100vh-49px)] overflow-y-auto border-r border-slate-200 bg-white py-6">
+        <aside className="hidden lg:block w-[260px] shrink-0 sticky top-[49px] h-[calc(100vh-49px)] overflow-y-auto border-r border-slate-200 bg-white pt-6 pb-32">
           <div className="px-4 mb-4 flex items-center gap-2">
             <Archive className="w-4 h-4 text-amber-600" />
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-600">Przewodnik archiwizacji</span>
@@ -896,13 +880,9 @@ export default function ArchiwizacjaPage() {
           {/* DOKUMENTY ŹRÓDŁOWE */}
           <section id="dokumenty" className="scroll-mt-20 mb-16">
             <SectionTitle icon={BookOpen} chapter="Dokumenty źródłowe" title="Kluczowe dokumenty źródłowe" color="teal" />
-            
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <p className="text-sm text-teal-900 flex-1 leading-relaxed">{nb('Poniżej znajdziesz dokumenty, na których opiera się cały przewodnik. Zanim podejmiesz decyzję klasyfikacyjną lub przekażesz dokumentację do Archiwum UEW — upewnij się, że korzystasz z aktualnych wersji tych roboczych i zatwierdzonych dokumentów.')}</p>
-              <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl transition-all shrink-0 shadow-sm shadow-teal-600/20 active:scale-95">
-                <ExternalLink className="w-4 h-4" />
-                Otwórz folder na Dysku
-              </a>
+
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6">
+              <p className="text-sm text-teal-900">{nb('Poniżej znajdziesz dokumenty, na których opiera się cały przewodnik. Zanim podejmiesz decyzję klasyfikacyjną lub przekażesz dokumentację do Archiwum UEW — upewnij się, że korzystasz z aktualnych wersji tych roboczych i zatwierdzonych dokumentów.')}</p>
             </div>
             <div className="space-y-8">
               {DOCS_SOURCE.map(group => {
@@ -1035,7 +1015,7 @@ export default function ArchiwizacjaPage() {
       {/* WRÓĆ DO GÓRY */}
       {showScrollTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 right-4 z-50 w-12 h-15 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-32 right-8 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry">
           <ArrowUp className="w-5 h-5" />
         </button>
