@@ -108,7 +108,7 @@ const DOCS_SOURCE = [
         desc: 'Dokument ustrojowy SSUEW określający strukturę organów, tryb wyborów i zasady działania. Kontekst konieczny przy klasyfikacji dokumentacji z grup RUSS.570 i RUSS.0052.',
         badge: 'Wewnętrzny SSUEW',
         badgeColor: 'teal',
-        url: '#',
+        url: 'https://drive.google.com/file/d/1KZwp_jrbmuF2Wwxw4OMkYpfrKlczTL6h/view?usp=sharing',
         note: 'Dostępny na stronie SSUEW lub u Członka Zarządu ds. Administracji.',
       },
     ],
@@ -1015,7 +1015,7 @@ export default function ArchiwizacjaPage() {
       {/* WRÓĆ DO GÓRY */}
       {showScrollTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-32 right-8 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-32 right-6 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry">
           <ArrowUp className="w-5 h-5" />
         </button>
