@@ -1015,7 +1015,7 @@ export default function ArchiwizacjaPage() {
       {/* WRÓĆ DO GÓRY */}
       {showScrollTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-32 right-6 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-30 right-4 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry">
           <ArrowUp className="w-5 h-5" />
         </button>
