@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Archive, ChevronRight, ArrowUp, CheckSquare, Square,
   FileText, AlertTriangle, CheckCircle, Folder, Tag,
-  Users, Clock, BookOpen, Copy, Check, Filter,
+  Users, Clock, BookOpen, Copy, Check, Filter, ExternalLink,
 } from 'lucide-react';
 
 function nb(text) {
@@ -10,41 +10,127 @@ function nb(text) {
 }
 
 const NAV_ITEMS = [
-  { id: 'wstep',           label: 'Wstęp' },
-  { id: 'ezd',             label: 'EZD i model SSUEW' },
-  { id: 'fundamenty',      label: 'Trzy fundamenty' },
-  { id: 'zasady',          label: 'Zasady ogólne' },
-  { id: 'slownik',         label: 'Słownik pojęć' },
-  { id: 'kategorie',       label: 'Kategorie archiwalne' },
+  { id: 'wstep', label: 'Wstęp' },
+  { id: 'ezd', label: 'EZD i model SSUEW' },
+  { id: 'fundamenty', label: 'Trzy fundamenty' },
+  { id: 'zasady', label: 'Zasady ogólne' },
+  { id: 'slownik', label: 'Słownik pojęć' },
+  { id: 'kategorie', label: 'Kategorie archiwalne' },
   { id: 'co-archiwizowac', label: 'Co (nie) archiwizować?' },
   {
     id: 'klasyfikacja',
     label: 'Klasyfikacja JRWA',
     children: [
-      { id: 'klas-wybory',     label: 'Wybory i przekazanie' },
-      { id: 'klas-centralna',  label: 'Działalność centralna' },
-      { id: 'klas-promocja',   label: 'Promocja i kronika' },
+      { id: 'klas-wybory', label: 'Wybory i przekazanie' },
+      { id: 'klas-centralna', label: 'Działalność centralna' },
+      { id: 'klas-promocja', label: 'Promocja i kronika' },
       { id: 'klas-wydarzenia', label: 'Wydarzenia i patronaty' },
-      { id: 'klas-szkolenia',  label: 'Szkolenia i konferencje' },
+      { id: 'klas-szkolenia', label: 'Szkolenia i konferencje' },
     ],
   },
-  { id: 'decyzja',         label: 'Decyzja klasyfikacyjna' },
-  { id: 'teczki',          label: 'Teczka aktowa' },
-  { id: 'przygotowanie',   label: 'Przygotowanie fizyczne' },
-  { id: 'cyfrowe',         label: 'Dokumentacja cyfrowa' },
-  { id: 'spisy',           label: 'Spisy i przekazanie' },
-  { id: 'bledy',           label: 'Częste błędy' },
-  { id: 'przyklady',       label: 'Przykłady praktyczne' },
-  { id: 'checklista',      label: 'Checklisty operacyjne' },
-  { id: 'aneksy',          label: 'Aneksy i matryce' },
+  { id: 'decyzja', label: 'Decyzja klasyfikacyjna' },
+  { id: 'teczki', label: 'Teczka aktowa' },
+  { id: 'przygotowanie', label: 'Przygotowanie fizyczne' },
+  { id: 'cyfrowe', label: 'Dokumentacja cyfrowa' },
+  { id: 'spisy', label: 'Spisy i przekazanie' },
+  { id: 'bledy', label: 'Częste błędy' },
+  { id: 'przyklady', label: 'Przykłady praktyczne' },
+  { id: 'checklista', label: 'Checklisty operacyjne' },
+  { id: 'dokumenty', label: 'Dokumenty źródłowe' },
+  { id: 'aneksy', label: 'Aneksy i matryce' },
 ];
 
 const ALL_SECTION_IDS = [
-  'wstep','ezd','fundamenty','zasady','slownik','kategorie','co-archiwizowac',
-  'klasyfikacja','klas-wybory','klas-centralna','klas-promocja','klas-wydarzenia','klas-szkolenia',
-  'decyzja','teczki','przygotowanie','cyfrowe','spisy','bledy','przyklady','checklista','aneksy',
+  'wstep', 'ezd', 'fundamenty', 'zasady', 'slownik', 'kategorie', 'co-archiwizowac',
+  'klasyfikacja', 'klas-wybory', 'klas-centralna', 'klas-promocja', 'klas-wydarzenia', 'klas-szkolenia',
+  'decyzja', 'teczki', 'przygotowanie', 'cyfrowe', 'spisy', 'bledy', 'przyklady', 'checklista', 'dokumenty', 'aneksy',
 ];
-const CHILD_IDS = ['klas-wybory','klas-centralna','klas-promocja','klas-wydarzenia','klas-szkolenia'];
+
+const DOCS_SOURCE = [
+  {
+    group: 'Dokumenty uczelniane UEW',
+    color: 'amber',
+    items: [
+      {
+        title: 'Instrukcja kancelaryjna UEW',
+        desc: 'Podstawowy dokument regulujący zasady obiegu dokumentów, zakładania spraw, opisu teczek i sporządzania spisów zdawczo-odbiorczych na Uczelni.',
+        badge: 'Obowiązkowy',
+        badgeColor: 'red',
+        url: null,
+        note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW lub Dział Organizacyjny.',
+      },
+      {
+        title: 'Jednolity Rzeczowy Wykaz Akt UEW (JRWA)',
+        desc: 'Uczelniany wykaz klas dokumentacji wraz z symbolami JRWA, hasłami klasyfikacyjnymi, kategoriami archiwalnymi i uwagami. Punkt odniesienia przy każdej decyzji klasyfikacyjnej.',
+        badge: 'Obowiązkowy',
+        badgeColor: 'red',
+        url: null,
+        note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW.',
+      },
+      {
+        title: 'Katalog zamknięty SSUEW',
+        desc: 'Wyciąg z JRWA UEW zawierający wyłącznie klasy relewantne dla działalności Samorządu Studentów UEW. Uzgodniony z Archiwum UEW. Jedyne klasy, z których korzysta SSUEW.',
+        badge: 'Kluczowy dla SSUEW',
+        badgeColor: 'amber',
+        url: null,
+        note: 'Dokument wewnętrzny SSUEW — przechowywany przez Członka Zarządu ds. Administracji.',
+      },
+      {
+        title: 'Instrukcja archiwalna UEW',
+        desc: 'Określa zasady postępowania z dokumentacją po zakończeniu sprawy, tryb przekazania do Archiwum UEW oraz brakowania dokumentacji niearchiwalnej.',
+        badge: 'Uzupełniający',
+        badgeColor: 'blue',
+        url: null,
+        note: 'Dokument wewnętrzny UEW — dostępny przez Archiwum UEW.',
+      },
+    ],
+  },
+  {
+    group: 'Akty prawne',
+    color: 'slate',
+    items: [
+      {
+        title: 'Ustawa z dnia 14 lipca 1983 r. o narodowym zasobie archiwalnym i archiwach',
+        desc: 'Podstawowa ustawa regulująca zasady tworzenia, przechowywania i udostępniania materiałów archiwalnych. Definiuje pojęcia archiwum, materiałów archiwalnych i dokumentacji niearchiwalnej.',
+        badge: 'Prawo powszechne',
+        badgeColor: 'slate',
+        url: 'https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU19830380173',
+        note: null,
+      },
+      {
+        title: 'Rozporządzenie MNiSW z 2011 r. w sprawie dokumentacji przebiegu studiów',
+        desc: 'Reguluje zasady prowadzenia i archiwizowania dokumentacji dotyczącej przebiegu studiów — istotne przy dokumentacji komisji wyborczej i spraw studenckich.',
+        badge: 'Prawo powszechne',
+        badgeColor: 'slate',
+        url: 'https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20112222163',
+        note: null,
+      },
+    ],
+  },
+  {
+    group: 'Dokumenty wewnętrzne SSUEW',
+    color: 'teal',
+    items: [
+      {
+        title: 'Regulamin Samorządu Studentów UEW',
+        desc: 'Dokument ustrojowy SSUEW określający strukturę organów, tryb wyborów i zasady działania. Kontekst konieczny przy klasyfikacji dokumentacji z grup RUSS.570 i RUSS.0052.',
+        badge: 'Wewnętrzny SSUEW',
+        badgeColor: 'teal',
+        url: null,
+        note: 'Dostępny na stronie SSUEW lub u Członka Zarządu ds. Administracji.',
+      },
+      {
+        title: 'Protokół uzgodnień z Archiwum UEW (dot. katalogu zamkniętego)',
+        desc: 'Dokument potwierdzający uzgodnienie katalogu zamkniętego SSUEW z Archiwum UEW. Podstawa prawna stosowania wybranych klas JRWA przez Samorząd.',
+        badge: 'Wewnętrzny SSUEW',
+        badgeColor: 'teal',
+        url: null,
+        note: 'Przechowywany przez Członka Zarządu ds. Administracji SSUEW.',
+      },
+    ],
+  },
+];
+const CHILD_IDS = ['klas-wybory', 'klas-centralna', 'klas-promocja', 'klas-wydarzenia', 'klas-szkolenia'];
 
 const GLOSSARY = [
   { term: 'JRWA', def: 'Jednolity Rzeczowy Wykaz Akt — uczelniany wykaz rodzajów spraw i dokumentacji. Każda klasa ma symbol, hasło klasyfikacyjne, kategorię archiwalną i ewentualne uwagi.' },
@@ -61,30 +147,36 @@ const GLOSSARY = [
 ];
 
 const CATEGORIES = [
-  { sym: 'A',   color: 'red',    name: 'Materiały archiwalne',      desc: 'Dokumentacja o trwałej wartości historycznej. Nie ulega zniszczeniu. Przekazywana docelowo do Archiwum Państwowego. Historia i rdzeń instytucji.' },
-  { sym: 'B',   color: 'blue',   name: 'Dokumentacja niearchiwalna', desc: 'Dokumentacja o czasowym znaczeniu praktycznym. Po upływie okresu przechowywania może być brakowana.' },
-  { sym: 'B5',  color: 'teal',   name: 'Przechowywana 5 lat',       desc: 'Dokumentacja przechowywana przez minimum 5 lat od roku wytworzenia.' },
-  { sym: 'B10', color: 'teal',   name: 'Przechowywana 10 lat',      desc: 'Dokumentacja przechowywana przez minimum 10 lat od roku wytworzenia.' },
-  { sym: 'B50', color: 'orange', name: 'Przechowywana 50 lat',      desc: 'Dokumentacja przechowywana przez minimum 50 lat. Bardzo ważna, ale nie wieczysta.' },
-  { sym: 'BE',  color: 'amber',  name: 'Wymaga ekspertyzy',         desc: 'Po upływie wskazanego okresu wymaga ekspertyzy archiwalnej przed ewentualnym zniszczeniem. Nie zakłada się automatycznie brakowania.' },
-  { sym: 'Bc',  color: 'slate',  name: 'Krótkotrwałe znaczenie',    desc: 'Dokumentacja o krótkotrwałym znaczeniu praktycznym. Nie trafia do teczek archiwalnych.' },
+  { sym: 'A', color: 'red', name: 'Materiały archiwalne', desc: 'Dokumentacja o trwałej wartości historycznej. Nie ulega zniszczeniu. Przekazywana docelowo do Archiwum Państwowego. Historia i rdzeń instytucji.' },
+  { sym: 'B', color: 'blue', name: 'Dokumentacja niearchiwalna', desc: 'Dokumentacja o czasowym znaczeniu praktycznym. Po upływie okresu przechowywania może być brakowana.' },
+  { sym: 'B5', color: 'teal', name: 'Przechowywana 5 lat', desc: 'Dokumentacja przechowywana przez minimum 5 lat od roku wytworzenia.' },
+  { sym: 'B10', color: 'teal', name: 'Przechowywana 10 lat', desc: 'Dokumentacja przechowywana przez minimum 10 lat od roku wytworzenia.' },
+  { sym: 'B50', color: 'orange', name: 'Przechowywana 50 lat', desc: 'Dokumentacja przechowywana przez minimum 50 lat. Bardzo ważna, ale nie wieczysta.' },
+  { sym: 'BE', color: 'amber', name: 'Wymaga ekspertyzy', desc: 'Po upływie wskazanego okresu wymaga ekspertyzy archiwalnej przed ewentualnym zniszczeniem. Nie zakłada się automatycznie brakowania.' },
+  { sym: 'Bc', color: 'slate', name: 'Krótkotrwałe znaczenie', desc: 'Dokumentacja o krótkotrwałym znaczeniu praktycznym. Nie trafia do teczek archiwalnych.' },
 ];
 
 const JRWA_GROUPS = [
   {
     id: 'klas-wybory', title: 'A — Wybory i przekazanie obowiązków',
     classes: [
-      { sym: 'RUSS.0052', title: 'Wybory do pozostałych organów wybieralnych na Uczelni',
-        items: ['Ogłoszenia wyborcze','Listy kandydatów','Protokoły komisji wyborczej','Wyniki wyborów','Uchwały i rozstrzygnięcia dotyczące wyborów'] },
-      { sym: 'RUSS.0122', title: 'Przejmowanie jednostek organizacyjnych i stanowisk pracy',
-        items: ['Protokoły zdawczo-odbiorcze Przewodniczącego','Protokoły przekazania obowiązków członków Zarządu','Protokoły przekazania funkcji koordynatorów projektów'] },
+      {
+        sym: 'RUSS.0052', title: 'Wybory do pozostałych organów wybieralnych na Uczelni',
+        items: ['Ogłoszenia wyborcze', 'Listy kandydatów', 'Protokoły komisji wyborczej', 'Wyniki wyborów', 'Uchwały i rozstrzygnięcia dotyczące wyborów']
+      },
+      {
+        sym: 'RUSS.0122', title: 'Przejmowanie jednostek organizacyjnych i stanowisk pracy',
+        items: ['Protokoły zdawczo-odbiorcze Przewodniczącego', 'Protokoły przekazania obowiązków członków Zarządu', 'Protokoły przekazania funkcji koordynatorów projektów']
+      },
     ],
   },
   {
     id: 'klas-centralna', title: 'B — Działalność centralna Samorządu',
     classes: [
-      { sym: 'RUSS.570', title: 'Samorząd studentów — rdzeń ustrojowy',
-        items: ['Statut i regulaminy','Struktura organizacyjna i składy osobowe','Programy i plany działania','Sprawozdania roczne i kadencyjne','Uchwały RUSS','Protokoły posiedzeń RUSS','Dokumentacja komisji samorządowych (poza wyborami)'] },
+      {
+        sym: 'RUSS.570', title: 'Samorząd studentów — rdzeń ustrojowy',
+        items: ['Statut i regulaminy', 'Struktura organizacyjna i składy osobowe', 'Programy i plany działania', 'Sprawozdania roczne i kadencyjne', 'Uchwały RUSS', 'Protokoły posiedzeń RUSS', 'Dokumentacja komisji samorządowych (poza wyborami)']
+      },
       { sym: 'RUSS.571', title: 'Organizacje studenckie', items: ['Dokumentacja organizacji studenckich działających przy SSUEW'] },
       { sym: 'RUSS.573', title: 'Studenckie koła naukowe', items: ['Dokumentacja kół naukowych zarejestrowanych przy UEW'] },
       { sym: 'RUSS.574', title: 'Rejestr kół naukowych i organizacji studenckich', items: ['Rejestr kół naukowych i organizacji studenckich prowadzony przez Samorząd'] },
@@ -94,87 +186,107 @@ const JRWA_GROUPS = [
   {
     id: 'klas-promocja', title: 'C — Promocja, wizerunek i kronika',
     classes: [
-      { sym: 'RUSS.0613', title: 'Koordynacja i obsługa mediów społecznościowych i portali',
-        items: ['Roczne raporty mediów społecznościowych','Podsumowania kampanii','Kluczowe komunikaty publikowane w imieniu Samorządu'] },
-      { sym: 'RUSS.0614', title: 'System identyfikacji wizualnej',
-        items: ['Księga identyfikacji wizualnej','Zasady używania logotypów','Przyjęte standardy wizualne'] },
-      { sym: 'RUSS.0615', title: 'Materiały promocyjne i reklamowe',
-        items: ['Finalne plakaty','Finalne ulotki i grafiki','Dokumentacja gadżetów promocyjnych'] },
-      { sym: 'RUSS.062', title: 'Kroniki i księgi pamiątkowe',
-        items: ['Kroniki Samorządu','Albumy kadencji','Księgi pamiątkowe'] },
+      {
+        sym: 'RUSS.0613', title: 'Koordynacja i obsługa mediów społecznościowych i portali',
+        items: ['Roczne raporty mediów społecznościowych', 'Podsumowania kampanii', 'Kluczowe komunikaty publikowane w imieniu Samorządu']
+      },
+      {
+        sym: 'RUSS.0614', title: 'System identyfikacji wizualnej',
+        items: ['Księga identyfikacji wizualnej', 'Zasady używania logotypów', 'Przyjęte standardy wizualne']
+      },
+      {
+        sym: 'RUSS.0615', title: 'Materiały promocyjne i reklamowe',
+        items: ['Finalne plakaty', 'Finalne ulotki i grafiki', 'Dokumentacja gadżetów promocyjnych']
+      },
+      {
+        sym: 'RUSS.062', title: 'Kroniki i księgi pamiątkowe',
+        items: ['Kroniki Samorządu', 'Albumy kadencji', 'Księgi pamiątkowe']
+      },
     ],
   },
   {
     id: 'klas-wydarzenia', title: 'D — Wydarzenia, patronaty i wyjazdy',
     classes: [
-      { sym: 'RUSS.0631', title: 'Imprezy uczelniane — każda impreza to odrębna teczka',
-        items: ['Scenariusz i program','Materiały promocyjne','Wydruk dokumentacji fotograficznej lub opis nośnika','Skład zespołu organizacyjnego','Raport końcowy lub ewaluacja'] },
-      { sym: 'RUSS.0634', title: 'Udział w obcych imprezach krajowych i zagranicznych',
-        items: ['Decyzje o delegowaniu','Programy wydarzeń','Sprawozdania z udziału','Własne wystąpienia lub materiały przygotowane na wydarzenie'] },
-      { sym: 'RUSS.0640', title: 'Patronaty i komitety honorowe',
-        items: ['Wnioski o patronat','Decyzje o udzieleniu patronatu','Dokumenty potwierdzające realizację patronatu'] },
+      {
+        sym: 'RUSS.0631', title: 'Imprezy uczelniane — każda impreza to odrębna teczka',
+        items: ['Scenariusz i program', 'Materiały promocyjne', 'Wydruk dokumentacji fotograficznej lub opis nośnika', 'Skład zespołu organizacyjnego', 'Raport końcowy lub ewaluacja']
+      },
+      {
+        sym: 'RUSS.0634', title: 'Udział w obcych imprezach krajowych i zagranicznych',
+        items: ['Decyzje o delegowaniu', 'Programy wydarzeń', 'Sprawozdania z udziału', 'Własne wystąpienia lub materiały przygotowane na wydarzenie']
+      },
+      {
+        sym: 'RUSS.0640', title: 'Patronaty i komitety honorowe',
+        items: ['Wnioski o patronat', 'Decyzje o udzieleniu patronatu', 'Dokumenty potwierdzające realizację patronatu']
+      },
     ],
   },
   {
     id: 'klas-szkolenia', title: 'E — Szkolenia, konferencje i kształcenie',
     classes: [
-      { sym: 'RUSS.581', title: 'Szkolenia i kursy dla studentów i absolwentów — każde szkolenie to odrębna teczka',
-        items: ['Program i agenda','Dane prowadzącego','Listy uczestników','Ankiety ewaluacyjne','Sprawozdanie końcowe','Wykaz wydanych certyfikatów'] },
-      { sym: 'RUSS.461', title: 'Obce konferencje, zjazdy, sympozja, seminaria naukowe',
-        items: ['Referaty i panele przygotowane przez Samorząd','Własne wystąpienia','Programy konferencji','Sprawozdania z udziału'] },
-      { sym: 'RUSS.460', title: 'Własne konferencje, zjazdy, sympozja, seminaria naukowe',
-        items: ['Programy','Referaty','Wnioski','Listy uczestników i karty zgłoszeń','Raporty'],
-        note: 'Dokumentacja organizacyjno-techniczna tych wydarzeń ma kategorię B2. Wprowadzenie tej klasy do katalogu zamkniętego wymaga uzgodnienia z Archiwum UEW — skonsultuj przed użyciem.' },
+      {
+        sym: 'RUSS.581', title: 'Szkolenia i kursy dla studentów i absolwentów — każde szkolenie to odrębna teczka',
+        items: ['Program i agenda', 'Dane prowadzącego', 'Listy uczestników', 'Ankiety ewaluacyjne', 'Sprawozdanie końcowe', 'Wykaz wydanych certyfikatów']
+      },
+      {
+        sym: 'RUSS.461', title: 'Obce konferencje, zjazdy, sympozja, seminaria naukowe',
+        items: ['Referaty i panele przygotowane przez Samorząd', 'Własne wystąpienia', 'Programy konferencji', 'Sprawozdania z udziału']
+      },
+      {
+        sym: 'RUSS.460', title: 'Własne konferencje, zjazdy, sympozja, seminaria naukowe',
+        items: ['Programy', 'Referaty', 'Wnioski', 'Listy uczestników i karty zgłoszeń', 'Raporty'],
+        note: 'Dokumentacja organizacyjno-techniczna tych wydarzeń ma kategorię B2. Wprowadzenie tej klasy do katalogu zamkniętego wymaga uzgodnienia z Archiwum UEW — skonsultuj przed użyciem.'
+      },
     ],
   },
 ];
 
 const ERRORS = [
-  { n: 1, title: 'Jedna teczka na wszystko',            desc: 'Teczka „Samorząd 2025" nie rozwiązuje problemu — ona go tworzy.',                           fix: 'Jedna klasa końcowa = jedna teczka. Bez wyjątków.' },
-  { n: 2, title: 'Mieszanie finalnych z roboczymi',      desc: 'W teczce mają być akta, a nie cały warsztat produkcyjny projektu.',                         fix: 'Archiwizuj efekt, przebieg i decyzję — nie bałagan roboczy wokół nich.' },
-  { n: 3, title: 'Mieszanie kilku klas JRWA w jednej teczce', desc: 'Błąd klasyfikacyjny i porządkowy jednocześnie.',                                       fix: 'Sprawdź klasę dla każdego dokumentu przed włożeniem do teczki.' },
-  { n: 4, title: 'Zbyt ogólne lub potoczne tytuły teczek', desc: '"Różne rzeczy z eventu" albo "Materiały 2025" to nie jest opis teczki.',                  fix: 'Tytuł musi być formalny, czytelny i zgodny z klasą JRWA.' },
-  { n: 5, title: 'Brak dat skrajnych',                   desc: 'Bez dat skrajnych opis teczki jest niekompletny i niezgodny z wymaganiami.',                 fix: 'Sprawdź najwcześniejszy i najpóźniejszy dokument przed opisaniem teczki.' },
-  { n: 6, title: 'Brak rozdzielenia A i B',              desc: 'Akta różnych kategorii nie mogą iść jednym spisem zdawczo-odbiorczym.',                     fix: 'Zawsze sortuj dokumentację według kategorii przed sporządzeniem spisu.' },
-  { n: 7, title: 'Spinacze, zszywki i koszulki',         desc: 'Błąd techniczny, ale bardzo częsty — i niedopuszczalny przy przekazaniu do Archiwum.',      fix: 'Usuń wszystkie elementy metalowe i plastikowe przed zamknięciem teczki.' },
-  { n: 8, title: 'Improwizowanie nowych klas',           desc: 'Samorząd nie tworzy własnych klas ani podklas JRWA.',                                        fix: 'Jeśli katalog czegoś nie obejmuje, skonsultuj sprawę z Archiwum UEW.' },
-  { n: 9, title: 'Archiwizacja dopiero przy zmianie kadencji', desc: 'Wtedy jest już za późno na spokojne uporządkowanie wszystkiego.',                      fix: 'Zakładaj teczki od początku sprawy lub projektu — nie po czasie.' },
-  { n: 10, title: 'Archiwizacja jako zadanie jednej osoby', desc: 'Gdy jest "czyjaś sprawa", zazwyczaj nie ma niczyjej.',                                    fix: 'Rozłóż odpowiedzialność: osoby prowadzące sprawy, sekretarz, nadzór Zarządu.' },
+  { n: 1, title: 'Jedna teczka na wszystko', desc: 'Teczka „Samorząd 2025" nie rozwiązuje problemu — ona go tworzy.', fix: 'Jedna klasa końcowa = jedna teczka. Bez wyjątków.' },
+  { n: 2, title: 'Mieszanie finalnych z roboczymi', desc: 'W teczce mają być akta, a nie cały warsztat produkcyjny projektu.', fix: 'Archiwizuj efekt, przebieg i decyzję — nie bałagan roboczy wokół nich.' },
+  { n: 3, title: 'Mieszanie kilku klas JRWA w jednej teczce', desc: 'Błąd klasyfikacyjny i porządkowy jednocześnie.', fix: 'Sprawdź klasę dla każdego dokumentu przed włożeniem do teczki.' },
+  { n: 4, title: 'Zbyt ogólne lub potoczne tytuły teczek', desc: '"Różne rzeczy z eventu" albo "Materiały 2025" to nie jest opis teczki.', fix: 'Tytuł musi być formalny, czytelny i zgodny z klasą JRWA.' },
+  { n: 5, title: 'Brak dat skrajnych', desc: 'Bez dat skrajnych opis teczki jest niekompletny i niezgodny z wymaganiami.', fix: 'Sprawdź najwcześniejszy i najpóźniejszy dokument przed opisaniem teczki.' },
+  { n: 6, title: 'Brak rozdzielenia A i B', desc: 'Akta różnych kategorii nie mogą iść jednym spisem zdawczo-odbiorczym.', fix: 'Zawsze sortuj dokumentację według kategorii przed sporządzeniem spisu.' },
+  { n: 7, title: 'Spinacze, zszywki i koszulki', desc: 'Błąd techniczny, ale bardzo częsty — i niedopuszczalny przy przekazaniu do Archiwum.', fix: 'Usuń wszystkie elementy metalowe i plastikowe przed zamknięciem teczki.' },
+  { n: 8, title: 'Improwizowanie nowych klas', desc: 'Samorząd nie tworzy własnych klas ani podklas JRWA.', fix: 'Jeśli katalog czegoś nie obejmuje, skonsultuj sprawę z Członkiem Zarządu ds. Administracji SSUEW.' },
+  { n: 9, title: 'Archiwizacja dopiero przy zmianie kadencji', desc: 'Wtedy jest już za późno na spokojne uporządkowanie wszystkiego.', fix: 'Zakładaj teczki od początku sprawy lub projektu — nie po czasie.' },
+  { n: 10, title: 'Archiwizacja jako zadanie jednej osoby', desc: 'Gdy jest "czyjaś sprawa", zazwyczaj nie ma niczyjej.', fix: 'Rozłóż odpowiedzialność: osoby prowadzące sprawy, audytor, nadzór Członka Zarządu ds. Administracji SSUEW.' },
 ];
 
 const EXAMPLES = [
-  { n: 1, title: 'Wybory do RUSS',                      docs: 'Ogłoszenie, lista kandydatów, protokół komisji, wyniki, uchwała.',                                                                              klasa: 'RUSS.0052', teczka: 'RUSS.0052 – Wybory Rady Uczelnianej Samorządu Studentów – 2025' },
-  { n: 2, title: 'Przekazanie obowiązków Członka Zarządu', docs: 'Protokół zdawczo-odbiorczy, wykaz spraw, lista przekazanych materiałów.',                                                                    klasa: 'RUSS.0122', teczka: 'RUSS.0122 – Przejmowanie stanowisk i funkcji – przekazanie obowiązków Członka Zarządu ds. Administracji – 2025' },
-  { n: 3, title: 'Wigilia Samorządu Studentów UEW',     docs: 'Program, grafika promocyjna, lista organizatorów, dokumentacja zdjęciowa, raport końcowy.',                                                   klasa: 'RUSS.0631', teczka: 'RUSS.0631 – Imprezy uczelniane – Wigilia Samorządu Studentów UEW – 2025' },
-  { n: 4, title: 'Szkolenie z wystąpień publicznych',   docs: 'Agenda, dane prowadzącego, lista uczestników, ankiety ewaluacyjne, sprawozdanie, wykaz certyfikatów.',                                        klasa: 'RUSS.581',  teczka: 'RUSS.581 – Szkolenia i kursy dla studentów i absolwentów – Szkolenie z wystąpień publicznych – 2025' },
-  { n: 5, title: 'Materiały promocyjne kadencji',       docs: 'Finalne plakaty, gotowe grafiki, zestaw kampanii opublikowanych w imieniu Samorządu.',                                                        klasa: 'RUSS.0615', teczka: 'RUSS.0615 – Materiały promocyjne i reklamowe – materiały promocyjne Samorządu – 2025' },
+  { n: 1, title: 'Wybory do RUSS', docs: 'Ogłoszenie, lista kandydatów, protokół komisji, wyniki, uchwała.', klasa: 'RUSS.0052', teczka: 'RUSS.0052 – Wybory Rady Uczelnianej Samorządu Studentów – 2025' },
+  { n: 2, title: 'Przekazanie obowiązków Członka Zarządu', docs: 'Protokół zdawczo-odbiorczy, wykaz spraw, lista przekazanych materiałów.', klasa: 'RUSS.0122', teczka: 'RUSS.0122 – Przejmowanie stanowisk i funkcji – przekazanie obowiązków Członka Zarządu ds. Administracji – 2025' },
+  { n: 3, title: 'Wigilia Samorządu Studentów UEW', docs: 'Program, grafika promocyjna, lista organizatorów, dokumentacja zdjęciowa, raport końcowy.', klasa: 'RUSS.0631', teczka: 'RUSS.0631 – Imprezy uczelniane – Wigilia Samorządu Studentów UEW – 2025' },
+  { n: 4, title: 'Szkolenie z wystąpień publicznych', docs: 'Agenda, dane prowadzącego, lista uczestników, ankiety ewaluacyjne, sprawozdanie, wykaz certyfikatów.', klasa: 'RUSS.581', teczka: 'RUSS.581 – Szkolenia i kursy dla studentów i absolwentów – Szkolenie z wystąpień publicznych – 2025' },
+  { n: 5, title: 'Materiały promocyjne kadencji', docs: 'Finalne plakaty, gotowe grafiki, zestaw kampanii opublikowanych w imieniu Samorządu.', klasa: 'RUSS.0615', teczka: 'RUSS.0615 – Materiały promocyjne i reklamowe – materiały promocyjne Samorządu – 2025' },
 ];
 
 const MATRIX_DATA = [
-  { typ: 'Uchwały RUSS',                      klasa: 'RUSS.570',   group: 'centralna' },
-  { typ: 'Protokoły posiedzeń RUSS',           klasa: 'RUSS.570',   group: 'centralna' },
-  { typ: 'Dokumentacja komisji niewyborczych', klasa: 'RUSS.570',   group: 'centralna' },
-  { typ: 'Statut i regulaminy',                klasa: 'RUSS.570',   group: 'centralna' },
-  { typ: 'Sprawozdania roczne i kadencyjne',   klasa: 'RUSS.570',   group: 'centralna' },
-  { typ: 'Wybory do RUSS',                     klasa: 'RUSS.0052',  group: 'wybory' },
-  { typ: 'Dokumentacja komisji wyborczej',     klasa: 'RUSS.0052',  group: 'wybory' },
-  { typ: 'Przekazanie obowiązków / stanowisk', klasa: 'RUSS.0122',  group: 'wybory' },
-  { typ: 'Protokoły zdawczo-odbiorcze funkcji',klasa: 'RUSS.0122',  group: 'wybory' },
-  { typ: 'Raporty z social mediów',            klasa: 'RUSS.0613',  group: 'promocja' },
-  { typ: 'System identyfikacji wizualnej',     klasa: 'RUSS.0614',  group: 'promocja' },
-  { typ: 'Finalne plakaty i grafiki',          klasa: 'RUSS.0615',  group: 'promocja' },
-  { typ: 'Kronika kadencji / album',           klasa: 'RUSS.062',   group: 'promocja' },
-  { typ: 'Wydarzenie własne Samorządu',        klasa: 'RUSS.0631',  group: 'wydarzenia' },
-  { typ: 'Udział w wydarzeniu zewnętrznym',    klasa: 'RUSS.0634',  group: 'wydarzenia' },
-  { typ: 'Patronat',                           klasa: 'RUSS.0640',  group: 'wydarzenia' },
-  { typ: 'Szkolenie dla studentów',            klasa: 'RUSS.581',   group: 'szkolenia' },
-  { typ: 'Czynny udział w konferencji obcej',  klasa: 'RUSS.461',   group: 'szkolenia' },
-  { typ: 'Własna konferencja / sympozjum',     klasa: 'RUSS.460',   group: 'szkolenia' },
+  { typ: 'Uchwały RUSS', klasa: 'RUSS.570', group: 'centralna' },
+  { typ: 'Protokoły posiedzeń RUSS', klasa: 'RUSS.570', group: 'centralna' },
+  { typ: 'Dokumentacja komisji niewyborczych', klasa: 'RUSS.570', group: 'centralna' },
+  { typ: 'Statut i regulaminy', klasa: 'RUSS.570', group: 'centralna' },
+  { typ: 'Sprawozdania roczne i kadencyjne', klasa: 'RUSS.570', group: 'centralna' },
+  { typ: 'Wybory do RUSS', klasa: 'RUSS.0052', group: 'wybory' },
+  { typ: 'Dokumentacja komisji wyborczej', klasa: 'RUSS.0052', group: 'wybory' },
+  { typ: 'Przekazanie obowiązków / stanowisk', klasa: 'RUSS.0122', group: 'wybory' },
+  { typ: 'Protokoły zdawczo-odbiorcze funkcji', klasa: 'RUSS.0122', group: 'wybory' },
+  { typ: 'Raporty z social mediów', klasa: 'RUSS.0613', group: 'promocja' },
+  { typ: 'System identyfikacji wizualnej', klasa: 'RUSS.0614', group: 'promocja' },
+  { typ: 'Finalne plakaty i grafiki', klasa: 'RUSS.0615', group: 'promocja' },
+  { typ: 'Kronika kadencji / album', klasa: 'RUSS.062', group: 'promocja' },
+  { typ: 'Wydarzenie własne Samorządu', klasa: 'RUSS.0631', group: 'wydarzenia' },
+  { typ: 'Udział w wydarzeniu zewnętrznym', klasa: 'RUSS.0634', group: 'wydarzenia' },
+  { typ: 'Patronat', klasa: 'RUSS.0640', group: 'wydarzenia' },
+  { typ: 'Szkolenie dla studentów', klasa: 'RUSS.581', group: 'szkolenia' },
+  { typ: 'Czynny udział w konferencji obcej', klasa: 'RUSS.461', group: 'szkolenia' },
+  { typ: 'Własna konferencja / sympozjum', klasa: 'RUSS.460', group: 'szkolenia' },
 ];
 const MATRIX_GROUPS = [
-  { id: 'all', label: 'Wszystkie' },{ id: 'centralna', label: 'Działalność centralna' },
-  { id: 'wybory', label: 'Wybory i przekazanie' },{ id: 'promocja', label: 'Promocja i kronika' },
-  { id: 'wydarzenia', label: 'Wydarzenia' },{ id: 'szkolenia', label: 'Szkolenia' },
+  { id: 'all', label: 'Wszystkie' }, { id: 'centralna', label: 'Działalność centralna' },
+  { id: 'wybory', label: 'Wybory i przekazanie' }, { id: 'promocja', label: 'Promocja i kronika' },
+  { id: 'wydarzenia', label: 'Wydarzenia' }, { id: 'szkolenia', label: 'Szkolenia' },
 ];
 
 const CL_BIEZACO = [
@@ -200,27 +312,27 @@ const CL_PRZEKAZANIE = [
   { id: 'cp4', text: 'Nie zostawiaj nowej osobie „archiwum w głowie" — tylko realny porządek' },
 ];
 const CL_ODDANIE = [
-  { id: 'po1',  text: 'Klasa JRWA jest właściwa i pochodzi z katalogu zamkniętego' },
-  { id: 'po2',  text: 'Kategoria archiwalna jest poprawna' },
-  { id: 'po3',  text: 'Tytuł teczki jest zgodny z katalogiem i zawartością' },
-  { id: 'po4',  text: 'W środku są tylko dokumenty właściwe dla tej klasy' },
-  { id: 'po5',  text: 'Usunięto spinacze, zszywki i koszulki plastikowe' },
-  { id: 'po6',  text: 'Daty skrajne są prawidłowe' },
-  { id: 'po7',  text: 'Teczka nie jest zbyt gruba (max ok. 5 cm)' },
-  { id: 'po8',  text: 'Opis teczki zgadza się ze spisem zdawczo-odbiorczym' },
-  { id: 'po9',  text: 'Dokumentacja finalna jest oddzielona od roboczej' },
+  { id: 'po1', text: 'Klasa JRWA jest właściwa i pochodzi z katalogu zamkniętego' },
+  { id: 'po2', text: 'Kategoria archiwalna jest poprawna' },
+  { id: 'po3', text: 'Tytuł teczki jest zgodny z katalogiem i zawartością' },
+  { id: 'po4', text: 'W środku są tylko dokumenty właściwe dla tej klasy' },
+  { id: 'po5', text: 'Usunięto spinacze, zszywki i koszulki plastikowe' },
+  { id: 'po6', text: 'Daty skrajne są prawidłowe' },
+  { id: 'po7', text: 'Teczka nie jest zbyt gruba (max ok. 5 cm)' },
+  { id: 'po8', text: 'Opis teczki zgadza się ze spisem zdawczo-odbiorczym' },
+  { id: 'po9', text: 'Dokumentacja finalna jest oddzielona od roboczej' },
   { id: 'po10', text: 'Teczka jest gotowa do wpisania na spis zdawczo-odbiorczy' },
 ];
 
 export default function ArchiwizacjaPage() {
-  const [activeSection, setActiveSection]     = useState('wstep');
-  const [showScrollTop, setShowScrollTop]     = useState(false);
+  const [activeSection, setActiveSection] = useState('wstep');
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
-  const [openAccordion, setOpenAccordion]     = useState(null);
-  const [openJrwa, setOpenJrwa]               = useState(null);
-  const [openExample, setOpenExample]         = useState(null);
-  const [matrixFilter, setMatrixFilter]       = useState('all');
-  const [copied, setCopied]                   = useState(null);
+  const [openAccordion, setOpenAccordion] = useState(null);
+  const [openJrwa, setOpenJrwa] = useState(null);
+  const [openExample, setOpenExample] = useState(null);
+  const [matrixFilter, setMatrixFilter] = useState('all');
+  const [copied, setCopied] = useState(null);
   const [checks, setChecks] = useState(() => {
     try { const s = sessionStorage.getItem('archiwizacja_v1'); return s ? JSON.parse(s) : { biezaco: [], koniec: [], przekazanie: [], oddanie: [] }; }
     catch { return { biezaco: [], koniec: [], przekazanie: [], oddanie: [] }; }
@@ -266,20 +378,20 @@ export default function ArchiwizacjaPage() {
 
   const allOpts = NAV_ITEMS.flatMap(item =>
     item.children ? [{ id: item.id, label: item.label }, ...item.children.map(c => ({ id: c.id, label: '  ' + c.label }))]
-                  : [{ id: item.id, label: item.label }]
+      : [{ id: item.id, label: item.label }]
   );
 
   // ---- sub-komponenty ----
   const SectionTitle = ({ icon: Icon, chapter, title, color = 'amber' }) => {
     const palette = {
-      amber:  ['bg-amber-100', 'text-amber-600', 'text-amber-500'],
-      orange: ['bg-orange-100','text-orange-600','text-orange-500'],
-      blue:   ['bg-blue-100',  'text-blue-600',  'text-blue-500'],
-      teal:   ['bg-teal-100',  'text-teal-600',  'text-teal-500'],
-      red:    ['bg-red-100',   'text-red-600',   'text-red-500'],
-      green:  ['bg-green-100', 'text-green-600', 'text-green-500'],
-      purple: ['bg-purple-100','text-purple-600','text-purple-500'],
-      slate:  ['bg-slate-100', 'text-slate-600', 'text-slate-500'],
+      amber: ['bg-amber-100', 'text-amber-600', 'text-amber-500'],
+      orange: ['bg-orange-100', 'text-orange-600', 'text-orange-500'],
+      blue: ['bg-blue-100', 'text-blue-600', 'text-blue-500'],
+      teal: ['bg-teal-100', 'text-teal-600', 'text-teal-500'],
+      red: ['bg-red-100', 'text-red-600', 'text-red-500'],
+      green: ['bg-green-100', 'text-green-600', 'text-green-500'],
+      purple: ['bg-purple-100', 'text-purple-600', 'text-purple-500'],
+      slate: ['bg-slate-100', 'text-slate-600', 'text-slate-500'],
     };
     const [bg, ic, lbl] = palette[color] || palette.amber;
     return (
@@ -447,16 +559,16 @@ export default function ArchiwizacjaPage() {
           <section id="wstep" className="scroll-mt-20 mb-16">
             <SectionTitle icon={Archive} chapter="Rozdział 1" title="Po co Samorządowi archiwizacja?" color="amber" />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 mb-6">
-              <p className="text-slate-700 leading-relaxed">{nb('Archiwizacja nie jest dodatkiem do działalności Samorządu, tylko jej częścią. Każda kadencja zostawia po sobie dokumenty, które potwierdzają decyzje, pokazują przebieg działań, porządkują odpowiedzialność i pozwalają kolejnej ekipie nie zaczynać wszystkiego od zera.')}</p>
-              <p className="text-slate-700 leading-relaxed">{nb('Najprościej mówiąc: dobrze ułożone archiwum sprawia, że Samorząd działa jak instytucja, a nie jak grupa ludzi, która co rok wymyśla własne zasady od nowa.')}</p>
+              <p className="text-slate-700 leading-relaxed">{nb('Archiwizacja nie jest dodatkiem do działalności Samorządu, tylko jej częścią. Każda kadencja zostawia po sobie dokumenty, które potwierdzają decyzje, pokazują przebieg działań, porządkują odpowiedzialność i pozwalają kolejnej kadencji nie zaczynać wszystkiego od zera - w oczach Uczelni.')}</p>
+              <p className="text-slate-700 leading-relaxed">{nb('Najprościej mówiąc: dobrze ułożone archiwum sprawia, że Samorząd działa jak instytucja, a nie jak grupa studentów, która co rok wymyśla własne zasady od nowa.')}</p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {[
-                ['text-green-600 bg-green-50 border-green-200',   CheckCircle,    'Dowodowa',      'Pokazuje, co zostało ustalone, przyjęte, rozliczone lub przekazane.'],
-                ['text-blue-600 bg-blue-50 border-blue-200',      Folder,         'Organizacyjna', 'Pozwala odnaleźć potrzebne informacje bez odtwarzania historii z pamięci.'],
-                ['text-purple-600 bg-purple-50 border-purple-200',BookOpen,       'Historyczna',   'Zachowuje pamięć instytucjonalną Samorządu między kadencjami.'],
-                ['text-orange-600 bg-orange-50 border-orange-200',AlertTriangle,  'Ochronna',      'Zabezpiecza Samorząd i osoby funkcyjne w razie sporów lub kontroli.'],
-                ['text-teal-600 bg-teal-50 border-teal-200',      Users,          'Wdrożeniowa',   'Ułatwia przekazanie obowiązków nowej kadencji bez utraty wiedzy.'],
+                ['text-green-600 bg-green-50 border-green-200', CheckCircle, 'Dowodowa', 'Pokazuje, co zostało ustalone, przyjęte, rozliczone lub przekazane.'],
+                ['text-blue-600 bg-blue-50 border-blue-200', Folder, 'Organizacyjna', 'Pozwala odnaleźć potrzebne informacje bez odtwarzania historii z pamięci.'],
+                ['text-purple-600 bg-purple-50 border-purple-200', BookOpen, 'Historyczna', 'Zachowuje pamięć instytucjonalną Samorządu między kadencjami.'],
+                ['text-orange-600 bg-orange-50 border-orange-200', AlertTriangle, 'Ochronna', 'Zabezpiecza Samorząd i osoby funkcyjne w razie sporów lub kontroli.'],
+                ['text-teal-600 bg-teal-50 border-teal-200', Users, 'Wdrożeniowa', 'Ułatwia przekazanie obowiązków nowej kadencji bez utraty wiedzy instytucjonalnej.'],
               ].map(([col, Icon, t, d]) => (
                 <div key={t} className={`flex items-start gap-3 p-4 rounded-2xl border ${col.split(' ').slice(1).join(' ')}`}>
                   <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${col.split(' ')[0]}`} />
@@ -473,7 +585,7 @@ export default function ArchiwizacjaPage() {
           <section id="ezd" className="scroll-mt-20 mb-16">
             <SectionTitle icon={FileText} chapter="Rozdział 2" title="EZD i model SSUEW" color="blue" />
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 mb-4">
-              <p className="text-slate-700 leading-relaxed">{nb('Na dużej uczelni obieg dokumentów jest uporządkowany przy pomocy EZD — Elektronicznego Zarządzania Dokumentacją. To system, w którym rejestruje się sprawy, prowadzi obieg dokumentów i dokumentuje przebieg ich załatwiania. Dla pracowników Uczelni to codzienne środowisko pracy.')}</p>
+              <p className="text-slate-700 leading-relaxed">{nb('Na dużej uczelni obieg dokumentów jest uporządkowany przy pomocy EZD — Elektronicznego Zarządzania Dokumentacją. To system, w którym rejestruje się sprawy, prowadzi obieg dokumentów i dokumentuje przebieg ich załatwiania. Dla pracowników Uczelni to codzienne środowisko pracy (naszym bardzo uproszczonym odpowiednikiem jest CRED).')}</p>
               <p className="text-slate-700 leading-relaxed">{nb('Samorząd Studentów funkcjonuje jednak w modelu odmiennym. Podstawą archiwizacji SSUEW jest dokumentacja papierowa, prowadzona w teczkach aktowych zgodnie z właściwymi klasami JRWA UEW oraz z wewnętrznym katalogiem zamkniętym stosowanym przez Samorząd.')}</p>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
@@ -537,7 +649,7 @@ export default function ArchiwizacjaPage() {
             <SectionTitle icon={Tag} chapter="Rozdział 6" title="Kategorie archiwalne" color="amber" />
             <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
               {CATEGORIES.map(cat => {
-                const cl = { red:'bg-red-50 border-red-200 text-red-800', blue:'bg-blue-50 border-blue-200 text-blue-800', teal:'bg-teal-50 border-teal-200 text-teal-800', orange:'bg-orange-50 border-orange-200 text-orange-800', amber:'bg-amber-50 border-amber-200 text-amber-800', slate:'bg-slate-50 border-slate-200 text-slate-600' }[cat.color];
+                const cl = { red: 'bg-red-50 border-red-200 text-red-800', blue: 'bg-blue-50 border-blue-200 text-blue-800', teal: 'bg-teal-50 border-teal-200 text-teal-800', orange: 'bg-orange-50 border-orange-200 text-orange-800', amber: 'bg-amber-50 border-amber-200 text-amber-800', slate: 'bg-slate-50 border-slate-200 text-slate-600' }[cat.color];
                 return (
                   <div key={cat.sym} className={`rounded-2xl border p-4 ${cl}`}>
                     <span className="font-black text-2xl font-mono">{cat.sym}</span>
@@ -559,7 +671,7 @@ export default function ArchiwizacjaPage() {
               <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3"><CheckCircle className="w-5 h-5 text-green-600" /><h3 className="font-black text-green-800 text-sm uppercase tracking-wide">Archiwizujemy</h3></div>
                 <ul className="space-y-1.5 text-sm text-green-800">
-                  {['Dokumenty potwierdzające decyzje i uchwały','Dokumentację składów organów i przebiegu prac','Dokumentację wyborów','Protokoły zdawczo-odbiorcze przy przekazaniu funkcji','Sprawozdania roczne i kadencyjne','Regulaminy i statut','Plany działań','Dokumentację wydarzeń, szkoleń, patronatów','Roczne raporty z mediów społecznościowych','Finalne materiały promocyjne','Kroniki i albumy kadencji'].map((it,i) => (
+                  {['Dokumenty potwierdzające decyzje i uchwały', 'Dokumentację składów organów i przebiegu prac', 'Dokumentację wyborów', 'Protokoły zdawczo-odbiorcze przy przekazaniu funkcji', 'Sprawozdania roczne i kadencyjne', 'Regulaminy i statut', 'Plany działań', 'Dokumentację wydarzeń, szkoleń, patronatów', 'Roczne raporty z mediów społecznościowych', 'Finalne materiały promocyjne', 'Kroniki i albumy kadencji'].map((it, i) => (
                     <li key={i} className="flex items-start gap-2"><span className="text-green-500 mt-0.5 shrink-0">•</span><span>{it}</span></li>
                   ))}
                 </ul>
@@ -567,14 +679,14 @@ export default function ArchiwizacjaPage() {
               <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3"><AlertTriangle className="w-5 h-5 text-red-600" /><h3 className="font-black text-red-800 text-sm uppercase tracking-wide">Nie archiwizujemy</h3></div>
                 <ul className="space-y-1.5 text-sm text-red-800">
-                  {['Roboczych wersji plakatów i grafik','Szkiców, notatek pomocniczych i brudnopisów','Powielonych kopii bez wartości dowodowej','Technicznych plików produkcyjnych bez znaczenia archiwalnego','Luźnych ustaleń logistycznych bez wpływu na wynik','Dokumentacji nieprzypisanej do katalogu zamkniętego','Materiałów o wyłącznie chwilowym znaczeniu organizacyjnym'].map((it,i) => (
+                  {['Roboczych wersji plakatów i grafik', 'Szkiców, notatek pomocniczych i brudnopisów', 'Powielonych kopii bez wartości dowodowej', 'Technicznych plików produkcyjnych bez znaczenia archiwalnego', 'Luźnych ustaleń logistycznych bez wpływu na wynik', 'Dokumentacji nieprzypisanej do katalogu zamkniętego', 'Materiałów o wyłącznie chwilowym znaczeniu organizacyjnym'].map((it, i) => (
                     <li key={i} className="flex items-start gap-2"><span className="text-red-400 mt-0.5 shrink-0">•</span><span>{it}</span></li>
                   ))}
                 </ul>
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
-              <p className="text-sm text-amber-900 font-bold">{nb('Archiwizujemy efekt, przebieg i decyzję — nie cały bałagan roboczy wokół nich.')}</p>
+              <p className="text-sm text-amber-900 font-bold">{nb('Archiwizujemy efekt, przebieg i decyzję — nie cały bałagan roboczy wokół nich!')}</p>
             </div>
           </section>
 
@@ -599,11 +711,11 @@ export default function ArchiwizacjaPage() {
             <p className="text-slate-600 text-sm mb-4">{nb('Kiedy masz dokument i nie wiesz, gdzie go przypisać — zadaj kolejno pięć pytań:')}</p>
             <div className="space-y-3">
               {[
-                { q: 'Czy to dokument finalny, czy tylko roboczy?',      h: 'Wersje robocze nie trafiają do teczek archiwalnych.' },
-                { q: 'Czego dotyczy ta dokumentacja?',                    h: 'Działalności ustrojowej, wydarzenia, promocji, wyborów, szkolenia, patronatu czy przekazania funkcji?' },
-                { q: 'Czy katalog zamknięty ma klasę dla tej sprawy?',   h: 'Nie twórz własnych klas. Jeśli brak — konsultuj z Archiwum UEW.' },
-                { q: 'Czy teczka powinna być roczna czy projektowa?',    h: 'Roczna: dla dokumentacji powtarzalnej. Projektowa: dla działań z wyraźnym początkiem i końcem.' },
-                { q: 'Czy te materiały nie należą do innej teczki?',     h: 'Sprawdź, czy nie duplikujesz dokumentacji w kilku miejscach jednocześnie.' },
+                { q: 'Czy to dokument finalny, czy tylko roboczy?', h: 'Wersje robocze nie trafiają do teczek archiwalnych.' },
+                { q: 'Czego dotyczy ta dokumentacja?', h: 'Działalności ustrojowej, wydarzenia, promocji, wyborów, szkolenia, patronatu czy przekazania funkcji?' },
+                { q: 'Czy katalog zamknięty ma klasę dla tej sprawy?', h: 'Nie twórz własnych klas. Jeśli brak — konsultuj z Członkiem Zarządu ds. Administracji SSUEW.' },
+                { q: 'Czy teczka powinna być roczna czy projektowa?', h: 'Roczna: dla dokumentacji powtarzalnej. Projektowa: dla działań z wyraźnym początkiem i końcem.' },
+                { q: 'Czy te materiały nie należą do innej teczki?', h: 'Sprawdź, czy nie duplikujesz dokumentacji w kilku miejscach jednocześnie.' },
               ].map((s, i) => (
                 <div key={i} className="flex items-start gap-4 bg-white border border-slate-200 rounded-xl p-4">
                   <span className="w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-black text-sm flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
@@ -626,7 +738,7 @@ export default function ArchiwizacjaPage() {
               <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
                 <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-3">Zasady zakładania teczek</h3>
                 <ul className="space-y-2 text-sm text-slate-700">
-                  {['Jedna teczka = jedna klasa końcowa JRWA','Jedna teczka = jedna kategoria archiwalna','Dokumentów różnych klas nie wolno mieszać','Gdy dokumentów jest dużo — kolejny tom lub nowa teczka','Grubość jednej teczki max ok. 5 cm','Teczka roczna: dla dokumentacji powtarzalnej','Teczka projektowa: dla wydarzeń z wyraźnym początkiem i końcem'].map((it,i) => (
+                  {['Jedna teczka = jedna klasa końcowa JRWA', 'Jedna teczka = jedna kategoria archiwalna', 'Dokumentów różnych klas nie wolno mieszać', 'Gdy dokumentów jest dużo — kolejny tom lub nowa teczka', 'Grubość jednej teczki max ok. 5 cm', 'Teczka roczna: dla dokumentacji powtarzalnej', 'Teczka projektowa: dla wydarzeń z wyraźnym początkiem i końcem'].map((it, i) => (
                     <li key={i} className="flex items-start gap-2"><ChevronRight className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />{it}</li>
                   ))}
                 </ul>
@@ -634,7 +746,7 @@ export default function ArchiwizacjaPage() {
               <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
                 <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-3">Co powinno być na okładce</h3>
                 <div className="space-y-2">
-                  {[['1','Pełna nazwa Uczelni i jednostki (najlepiej pieczątka)'],['2','Znak akt — np. RUSS.570, RUSS.0631'],['3','Kategoria archiwalna — np. A, B50, BE5'],['4','Tytuł teczki — hasło klasyfikacyjne z doprecyzowaniem zawartości'],['5','Daty skrajne — najwcześniejszy i najpóźniejszy dokument'],['6','Numer tomu — jeśli dokumentacja nie mieści się w jednej teczce'],['7','Sygnatura archiwalna — uzupełniana przy przekazaniu do Archiwum']].map(([n, txt]) => (
+                  {[['1', 'Pełna nazwa Uczelni i jednostki (najlepiej pieczątka)'], ['2', 'Znak akt — np. RUSS.570, RUSS.0631'], ['3', 'Kategoria archiwalna — np. A, B50, BE5'], ['4', 'Tytuł teczki — hasło klasyfikacyjne z doprecyzowaniem zawartości'], ['5', 'Daty skrajne — najwcześniejszy i najpóźniejszy dokument'], ['6', 'Numer tomu — jeśli dokumentacja nie mieści się w jednej teczce'], ['7', 'Sygnatura archiwalna — uzupełniana przy przekazaniu do Archiwum']].map(([n, txt]) => (
                     <div key={n} className="flex items-start gap-2 text-sm text-slate-700"><span className="font-black text-amber-600 w-4 shrink-0">{n}.</span><span>{txt}</span></div>
                   ))}
                 </div>
@@ -643,7 +755,7 @@ export default function ArchiwizacjaPage() {
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
               <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-3">Przykłady poprawnych tytułów teczek</h3>
               <div className="space-y-2">
-                {['RUSS.570 – Samorząd studentów – Uchwały RUSS i protokoły posiedzeń – 2025','RUSS.0631 – Imprezy uczelniane – Wigilia Samorządu Studentów UEW – 2025','RUSS.581 – Szkolenia i kursy dla studentów i absolwentów – Szkolenie z prawa studenckiego – 2025','RUSS.0640 – Patronaty i komitety honorowe – Patronat nad Konferencją XYZ – 2025'].map((ex, i) => (
+                {['RUSS.570 – Samorząd studentów – Uchwały RUSS i protokoły posiedzeń – 2025', 'RUSS.0631 – Imprezy uczelniane – Wigilia Samorządu Studentów UEW – 2025', 'RUSS.581 – Szkolenia i kursy dla studentów i absolwentów – Szkolenie z prawa studenckiego – 2025', 'RUSS.0640 – Patronaty i komitety honorowe – Patronat nad Konferencją XYZ – 2025'].map((ex, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <code className="flex-1 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-amber-800 font-mono">{ex}</code>
                     <button onClick={() => copy(ex, `tt${i}`)} className="shrink-0 text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 p-2 rounded-lg transition-all">
@@ -662,7 +774,7 @@ export default function ArchiwizacjaPage() {
               <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
                 <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-3">Co należy zrobić</h3>
                 <ul className="space-y-2 text-sm text-slate-700">
-                  {['Usunąć zszywki, spinacze i inne elementy metalowe','Usunąć koszulki i elementy plastikowe','Ułożyć dokumenty logicznie i spójnie (wg toku sprawy)','Oddzielić dokumentację finalną od roboczej','Sprawdzić, czy wszystkie dokumenty należą do właściwej klasy','Sprawdzić daty skrajne','Ustalić, czy nie trzeba rozdzielić materiału na kilka teczek'].map((it,i) => (
+                  {['Usunąć zszywki, spinacze i inne elementy metalowe', 'Usunąć koszulki i elementy plastikowe', 'Ułożyć dokumenty logicznie i spójnie (wg toku sprawy)', 'Oddzielić dokumentację finalną od roboczej', 'Sprawdzić, czy wszystkie dokumenty należą do właściwej klasy', 'Sprawdzić daty skrajne', 'Ustalić, czy nie trzeba rozdzielić materiału na kilka teczek'].map((it, i) => (
                     <li key={i} className="flex items-start gap-2"><CheckCircle className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />{it}</li>
                   ))}
                 </ul>
@@ -680,7 +792,7 @@ export default function ArchiwizacjaPage() {
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
               <p className="text-slate-700 leading-relaxed mb-4">{nb('Dokumentacja elektroniczna podlega selektywnemu wydrukowi — drukujemy to, co ma znaczenie dowodowe, organizacyjne lub historyczne. Nie drukujemy całego zaplecza roboczego.')}</p>
               <div className="grid md:grid-cols-2 gap-4">
-                {[['Social media','Roczne raporty, zestawienia kampanii, kluczowe komunikaty. Nie każdy post osobno.'],['Grafiki i plakaty','Wyłącznie finalne wersje opublikowanych materiałów — nie robocze warianty.'],['Zdjęcia i filmy','Reprezentatywny wybór + karta opisu nośnika z informacją o miejscu przechowywania.'],['Formularze online','Finalna wersja: lista uczestników, raport zbiorczy lub eksport wyników.']].map(([t,d]) => (
+                {[['Social media', 'Roczne raporty, zestawienia kampanii, kluczowe komunikaty. Nie każdy post osobno.'], ['Grafiki i plakaty', 'Wyłącznie finalne wersje opublikowanych materiałów — nie robocze warianty.'], ['Zdjęcia i filmy', 'Reprezentatywny wybór + karta opisu nośnika z informacją o miejscu przechowywania.'], ['Formularze online', 'Finalna wersja: lista uczestników, raport zbiorczy lub eksport wyników.']].map(([t, d]) => (
                   <div key={t} className="bg-slate-50 rounded-xl p-4 border border-slate-200"><p className="font-bold text-slate-800 text-sm mb-1">{t}</p><p className="text-xs text-slate-600">{d}</p></div>
                 ))}
               </div>
@@ -689,7 +801,7 @@ export default function ArchiwizacjaPage() {
               <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-4">Standard nazewnictwa plików</h3>
               <div className="bg-slate-900 rounded-xl px-4 py-3 mb-4 font-mono text-sm text-slate-200">ROK_OBSZAR_TEMAT_WERSJA/STATUS</div>
               <div className="space-y-2">
-                {['2025_RUSS_Wigilia_program_final','2025_RUSS_Wybory_protokol_komisji_podpisany','2025_RUSS_Szkolenie_prawo_studenckie_raport_koncowy','2025_RUSS_Patronat_konferencja_XYZ_decyzja'].map((ex, i) => (
+                {['2025_RUSS_Wigilia_program_final', '2025_RUSS_Wybory_protokol_komisji_podpisany', '2025_RUSS_Szkolenie_prawo_studenckie_raport_koncowy', '2025_RUSS_Patronat_konferencja_XYZ_decyzja'].map((ex, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <code className="flex-1 text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 font-mono">{ex}</code>
                     <button onClick={() => copy(ex, `fn${i}`)} className="shrink-0 text-slate-500 hover:text-slate-800 bg-slate-50 hover:bg-slate-100 border border-slate-200 p-2 rounded-lg transition-all">
@@ -718,7 +830,7 @@ export default function ArchiwizacjaPage() {
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 mb-4">
               <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-4">Zalecany przebieg przekazania dokumentacji</h3>
               <div className="space-y-2">
-                {['Uporządkuj dokumentację według właściwych klas JRWA','Rozdziel akta kategorii A od akt kategorii B','Przygotuj i opisz teczki','Sporządź odpowiednie spisy zdawczo-odbiorcze (osobno A i B)','Zrób wewnętrzny przegląd przed oddaniem','W razie potrzeby skonsultuj wstępny spis z Archiwum','Przekaż dokumentację zgodnie z ustalonym trybem','Zachowaj egzemplarz spisu z potwierdzeniem przyjęcia'].map((step, i) => (
+                {['Uporządkuj dokumentację według właściwych klas JRWA', 'Rozdziel akta kategorii A od akt kategorii B', 'Przygotuj i opisz teczki', 'Sporządź odpowiednie spisy zdawczo-odbiorcze (osobno A i B)', 'Zrób wewnętrzny przegląd przed oddaniem', 'W razie potrzeby skonsultuj wstępny spis z Członkiem Zarządu ds. Administracji SSUEW', 'Przekaż dokumentację zgodnie z ustalonym trybem', 'Zachowaj egzemplarz spisu z potwierdzeniem przyjęcia'].map((step, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <span className="w-6 h-6 bg-teal-100 text-teal-700 rounded-full font-black text-xs flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
                     <p className="text-sm text-slate-700">{step}</p>
@@ -727,7 +839,7 @@ export default function ArchiwizacjaPage() {
               </div>
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-              <p className="text-sm text-amber-900">{nb('Kiedy masz wątpliwości — zapytaj Archiwum UEW wcześniej, niż poprawiać wszystko po zwrocie. Archiwum nie jest magazynem starych teczek, to jednostka, z którą warto konsultować sprawy nietypowe.')}</p>
+              <p className="text-sm text-amber-900">{nb('Kiedy masz wątpliwości — zapytaj Członka Zarządu ds. Administracji SSUEW wcześniej, niż poprawiać wszystko po zwrocie.')}</p>
             </div>
           </section>
 
@@ -781,6 +893,73 @@ export default function ArchiwizacjaPage() {
             </div>
           </section>
 
+          {/* DOKUMENTY ŹRÓDŁOWE */}
+          <section id="dokumenty" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={BookOpen} chapter="Dokumenty źródłowe" title="Kluczowe dokumenty źródłowe" color="teal" />
+            
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-5 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <p className="text-sm text-teal-900 flex-1 leading-relaxed">{nb('Poniżej znajdziesz dokumenty, na których opiera się cały przewodnik. Zanim podejmiesz decyzję klasyfikacyjną lub przekażesz dokumentację do Archiwum UEW — upewnij się, że korzystasz z aktualnych wersji tych roboczych i zatwierdzonych dokumentów.')}</p>
+              <a href="#" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold rounded-xl transition-all shrink-0 shadow-sm shadow-teal-600/20 active:scale-95">
+                <ExternalLink className="w-4 h-4" />
+                Otwórz folder na Dysku
+              </a>
+            </div>
+            <div className="space-y-8">
+              {DOCS_SOURCE.map(group => {
+                const groupColors = {
+                  amber: { border: 'border-amber-200', head: 'bg-amber-50', headText: 'text-amber-700', dot: 'bg-amber-400' },
+                  slate: { border: 'border-slate-200', head: 'bg-slate-50', headText: 'text-slate-600', dot: 'bg-slate-400' },
+                  teal: { border: 'border-teal-200', head: 'bg-teal-50', headText: 'text-teal-700', dot: 'bg-teal-400' },
+                }[group.color] || {};
+                const badgeColors = {
+                  red: 'bg-red-100 text-red-700 border-red-200',
+                  amber: 'bg-amber-100 text-amber-700 border-amber-200',
+                  blue: 'bg-blue-100 text-blue-700 border-blue-200',
+                  slate: 'bg-slate-100 text-slate-600 border-slate-200',
+                  teal: 'bg-teal-100 text-teal-700 border-teal-200',
+                };
+                return (
+                  <div key={group.group}>
+                    <div className={`flex items-center gap-2 mb-3`}>
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${groupColors.dot}`} />
+                      <h3 className={`text-xs font-black uppercase tracking-widest ${groupColors.headText}`}>{group.group}</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {group.items.map(doc => (
+                        <div key={doc.title} className={`bg-white border ${groupColors.border} rounded-2xl shadow-sm p-5`}>
+                          <div className="flex flex-wrap items-start gap-3 mb-2">
+                            <FileText className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <p className="font-bold text-slate-800 text-sm leading-snug">{doc.title}</p>
+                                <span className={`text-[10px] font-black uppercase tracking-wider border px-2 py-0.5 rounded-full shrink-0 ${badgeColors[doc.badgeColor] || badgeColors.slate}`}>{doc.badge}</span>
+                              </div>
+                              <p className="text-xs text-slate-600 leading-relaxed">{nb(doc.desc)}</p>
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-3 pl-7">
+                            {doc.url ? (
+                              <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1.5 rounded-lg transition-all">
+                                <ExternalLink className="w-3 h-3" />Otwórz dokument
+                              </a>
+                            ) : null}
+                            {doc.note && (
+                              <p className="text-[11px] text-slate-400 italic">{doc.note}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-6 bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <p className="text-sm text-amber-900 font-medium">{nb('Nie możesz znaleźć któregoś z dokumentów? Skontaktuj się z Członkiem Zarządu ds. Administracji SSUEW lub bezpośrednio z Archiwum UEW.')}</p>
+            </div>
+          </section>
+
           {/* ANEKSY */}
           <section id="aneksy" className="scroll-mt-20 mb-16">
             <SectionTitle icon={Archive} chapter="Aneksy 28–29" title="Aneksy i matryce klasyfikacyjne" color="amber" />
@@ -827,7 +1006,7 @@ export default function ArchiwizacjaPage() {
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mb-6">
               <h3 className="font-black text-slate-700 text-sm uppercase tracking-widest mb-4">Aneks 29 — miniwzór opisu teczki</h3>
               <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 font-mono text-sm text-slate-700 space-y-2">
-                {[['Nazwa jednostki:','Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu'],['Znak akt:','RUSS.0631'],['Kategoria archiwalna:','A'],['Tytuł teczki:','Imprezy uczelniane – Wigilia Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu'],['Daty skrajne:','2025'],['Nr tomu:','1'],['Sygnatura archiwalna:','(uzupełniana przy przekazaniu do Archiwum)']].map(([k, v]) => (
+                {[['Nazwa jednostki:', 'Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu'], ['Znak akt:', 'RUSS.0631'], ['Kategoria archiwalna:', 'A'], ['Tytuł teczki:', 'Imprezy uczelniane – Wigilia Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu'], ['Daty skrajne:', '2025'], ['Nr tomu:', '1'], ['Sygnatura archiwalna:', '(uzupełniana przy przekazaniu do Archiwum)']].map(([k, v]) => (
                   <div key={k} className="flex flex-wrap gap-2">
                     <span className="font-bold text-slate-500 w-48 shrink-0">{k}</span>
                     <span className="text-slate-800">{v}</span>
@@ -840,7 +1019,7 @@ export default function ArchiwizacjaPage() {
             <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6">
               <h3 className="font-black text-amber-900 text-sm uppercase tracking-widest mb-4">Osiem zasad na koniec</h3>
               <div className="grid sm:grid-cols-2 gap-2">
-                {['Nie improwizuj klas JRWA','Odkładaj dokumenty od początku sprawy, nie po czasie','Trzymaj jedną klasę i jedną kategorię w jednej teczce','Archiwizuj to, co finalne i istotne','Opisuj teczki konsekwentnie i formalnie','Oddzielaj kategorię A od B','Rób regularny przegląd dokumentacji w ciągu roku','Nie bój się konsultować spraw z Archiwum UEW'].map((rule, i) => (
+                {['Nie improwizuj klas JRWA', 'Odkładaj dokumenty od początku sprawy, nie po czasie', 'Trzymaj jedną klasę i jedną kategorię w jednej teczce', 'Archiwizuj to, co finalne i istotne', 'Opisuj teczki konsekwentnie i formalnie', 'Oddzielaj kategorię A od B', 'Rób regularny przegląd dokumentacji w ciągu roku/podczas trwania projektu', 'Nie bój się konsultować spraw z Członkiem Zarządu ds. Administracji SSUEW'].map((rule, i) => (
                   <div key={i} className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <p className="text-sm text-amber-900 font-medium">{rule}</p>
@@ -856,7 +1035,7 @@ export default function ArchiwizacjaPage() {
       {/* WRÓĆ DO GÓRY */}
       {showScrollTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-24 right-6 z-50 w-12 h-12 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+          className="fixed bottom-24 right-4 z-50 w-12 h-15 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg shadow-amber-500/30 flex items-center justify-center transition-all hover:scale-110 active:scale-95"
           title="Wróć do góry">
           <ArrowUp className="w-5 h-5" />
         </button>

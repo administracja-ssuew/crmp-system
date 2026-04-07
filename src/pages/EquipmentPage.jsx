@@ -657,7 +657,7 @@ export default function EquipmentPage() {
                           <img src="/podpis-final.png" alt="podpis" className="max-h-16 max-w-[220px] object-contain block" />
                         </div>
                         <p className="border-t border-black pt-1 font-bold">ZATWIERDZIŁ</p>
-                        <p className="text-slate-500">Przewodniczący Zarządu SSUEW</p>
+                        <p className="text-slate-500">Członek Zarządu ds. Administracji SSUEW</p>
                       </div>
                       <div className="w-1/2 pl-4">
                         <div className="h-12 flex items-end justify-center mb-1">

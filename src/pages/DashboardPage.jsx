@@ -17,11 +17,11 @@ const Icons = {
 const formatDate = (rawDate) => {
   if (!rawDate) return 'Brak';
   if (rawDate === 'Dzisiaj' || rawDate === 'Wczoraj') return rawDate;
-  
+
   try {
     const dateObj = new Date(rawDate);
-    if (isNaN(dateObj.getTime())) return rawDate; 
-    
+    if (isNaN(dateObj.getTime())) return rawDate;
+
     return dateObj.toLocaleDateString('pl-PL', {
       day: '2-digit', month: '2-digit', year: 'numeric'
     });
@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const [dismissedNotices, setDismissedNotices] = useState(
     () => JSON.parse(localStorage.getItem('cra_dismissed_notices') || '[]')
   );
-  
+
   // === STANY KREATORA OGŁOSZEŃ (TYLKO DLA ADMINA) ===
   const [showNoticeModal, setShowNoticeModal] = useState(false);
   const [isSubmittingNotice, setIsSubmittingNotice] = useState(false);
@@ -70,7 +70,7 @@ export default function DashboardPage() {
         clearTimeout(timeoutId);
         const data = await response.json();
         if (!data.error && Array.isArray(data)) {
-          setNotices(data.reverse()); 
+          setNotices(data.reverse());
         }
       } catch (error) {
         if (error.name !== 'AbortError') {
@@ -118,10 +118,10 @@ export default function DashboardPage() {
   // GLOBALNE USUWANIE OGŁOSZENIA (Tylko Admin)
   const handleDeleteNoticeGlobal = async (id) => {
     if (!window.confirm("Czy na pewno chcesz trwale usunąć to ogłoszenie z tablicy wszystkich studentów?")) return;
-    
+
     // Usuwamy optymistycznie od razu ze strony
     setNotices(notices.filter(n => n.id !== id));
-    
+
     try {
       // Wysyłamy sygnał "delete" do Apps Script
       await fetch(NOTICES_API_URL, {
@@ -181,13 +181,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-50">
-      
+
       {/* TŁO */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-slate-100/50 to-blue-100/30 pointer-events-none z-0"></div>
 
       <div className="relative z-10 w-full max-w-6xl flex flex-col items-center pt-16">
-        
+
         {/* NAGŁÓWEK */}
         <header className="text-center mb-10 animate-fadeIn">
           <div className="inline-flex items-center justify-center gap-2 px-4 py-1 mb-4 rounded-full border border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-sm">
@@ -206,16 +206,16 @@ export default function DashboardPage() {
         {/* GŁÓWNY PRZYCISK: SYSTEM WERYFIKACJI (SKANER QR) */}
         {/* ==================================================== */}
         <div className="w-full max-w-3xl mb-8 animate-fadeIn">
-          <Link 
-            to="/skaner" 
+          <Link
+            to="/skaner"
             className="group relative overflow-hidden bg-gradient-to-r from-indigo-600 to-violet-600 rounded-[2rem] p-6 md:p-8 text-white shadow-xl hover:shadow-2xl hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all duration-300 flex items-center gap-5 w-full"
           >
             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-700 pointer-events-none"></div>
-            
+
             <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
               <span className="text-2xl md:text-3xl">📷</span>
             </div>
-            
+
             <div className="flex-1">
               <h3 className="text-xl md:text-2xl font-black mb-1 tracking-tight drop-shadow-sm">System Weryfikacji (Skaner QR)</h3>
               <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-indigo-100">
@@ -233,11 +233,11 @@ export default function DashboardPage() {
         {/* PANEL ADMINISTRATORA I TABLICA OGŁOSZEŃ */}
         {/* ==================================================== */}
         <div className="w-full max-w-3xl mb-10 relative">
-          
+
           {/* Przycisk dodawania (Tylko dla Adminów) */}
           {isAdmin && (
             <div className="absolute -top-10 right-0 z-10 animate-fadeIn">
-              <button 
+              <button
                 onClick={() => setShowNoticeModal(true)}
                 className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all hover:-translate-y-0.5"
               >
@@ -253,18 +253,18 @@ export default function DashboardPage() {
                 <div className="w-full h-16 bg-slate-200/50 animate-pulse rounded-2xl"></div>
               ) : (
                 activeNotices.map((notice) => (
-                  <div 
-                    key={notice.id} 
+                  <div
+                    key={notice.id}
                     className={`flex items-start md:items-center justify-between p-4 rounded-2xl border shadow-sm transition-all group backdrop-blur-sm animate-slideDown
-                      ${notice.type === 'urgent' ? 'bg-rose-50/90 border-rose-200 text-rose-900' : 
-                        notice.type === 'warning' ? 'bg-amber-50/90 border-amber-200 text-amber-900' : 
-                        'bg-white/90 border-slate-200 text-slate-700'}`}
+                      ${notice.type === 'urgent' ? 'bg-rose-50/90 border-rose-200 text-rose-900' :
+                        notice.type === 'warning' ? 'bg-amber-50/90 border-amber-200 text-amber-900' :
+                          'bg-white/90 border-slate-200 text-slate-700'}`}
                   >
                     <div className="flex items-start md:items-center gap-4 pr-4">
                       <div className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center
-                        ${notice.type === 'urgent' ? 'bg-rose-200/50 text-rose-600' : 
-                          notice.type === 'warning' ? 'bg-amber-200/50 text-amber-600' : 
-                          'bg-slate-100 text-slate-500'}`}>
+                        ${notice.type === 'urgent' ? 'bg-rose-200/50 text-rose-600' :
+                          notice.type === 'warning' ? 'bg-amber-200/50 text-amber-600' :
+                            'bg-slate-100 text-slate-500'}`}>
                         <Icons.Bell />
                       </div>
                       <div>
@@ -276,11 +276,11 @@ export default function DashboardPage() {
                         <p className="text-sm font-semibold leading-snug">{notice.text}</p>
                       </div>
                     </div>
-                    
+
                     {/* Przyciski kontroli nad ogłoszeniem */}
                     <div className="shrink-0 flex items-center gap-1">
                       {isAdmin && (
-                        <button 
+                        <button
                           onClick={() => handleDeleteNoticeGlobal(notice.id)}
                           className="p-2 rounded-full hover:bg-rose-100 text-rose-400 hover:text-rose-600 transition-colors"
                           title="Usuń to ogłoszenie dla wszystkich (Admin)"
@@ -288,8 +288,8 @@ export default function DashboardPage() {
                           <Icons.Trash />
                         </button>
                       )}
-                      <button 
-                        onClick={() => handleDismiss(notice.id)} 
+                      <button
+                        onClick={() => handleDismiss(notice.id)}
                         className="p-2 rounded-full hover:bg-black/5 transition-colors opacity-50 hover:opacity-100"
                         title="Zrozumiałem, ukryj dla mnie"
                       >
@@ -305,34 +305,34 @@ export default function DashboardPage() {
 
         {/* === WYSZUKIWARKA CRED === */}
         <div className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-blue-900/5 border border-white mb-10 animate-slideUp">
-          
+
           <div className="mb-4 pl-2">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Sprawdź status swojej sprawy w systemie CRED</h3>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 items-center">
-             <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔎</div>
-             <input 
-               type="text" 
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-               placeholder="Wpisz znak sprawy CRED..." 
-               className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
-             />
-             <button 
-               onClick={handleSearch}
-               disabled={isSearching}
-               className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-lg shadow-blue-200 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 whitespace-nowrap"
-             >
-               {isSearching ? 'Szukanie...' : 'Szukaj Pisma'}
-             </button>
+            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔎</div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Wpisz znak sprawy CRED..."
+              className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
+            />
+            <button
+              onClick={handleSearch}
+              disabled={isSearching}
+              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-lg shadow-blue-200 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 whitespace-nowrap"
+            >
+              {isSearching ? 'Szukanie...' : 'Szukaj Pisma'}
+            </button>
           </div>
-          
+
           <div className="mt-4 pl-2">
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-               * Planowany dzień zakończenia sprawy wlicza w siebie czas niezbędny na uzyskanie podpisów Władz Uczelni.
-             </p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+              * Planowany dzień zakończenia sprawy wlicza w siebie czas niezbędny na uzyskanie podpisów Władz Uczelni.
+            </p>
           </div>
 
           {searchError && (
@@ -340,17 +340,17 @@ export default function DashboardPage() {
               ❌ {searchError}
             </div>
           )}
-          
+
           {searchResult && (
             <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 border-b border-emerald-200/50 pb-3">
-                 <div>
-                   <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Znaleziono dokument</span>
-                   <h3 className="font-black text-slate-800 text-lg md:text-xl break-all">{searchResult.znak}</h3>
-                 </div>
-                 <span className="shrink-0 px-4 py-2 bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm uppercase">
-                   {searchResult.status}
-                 </span>
+                <div>
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Znaleziono dokument</span>
+                  <h3 className="font-black text-slate-800 text-lg md:text-xl break-all">{searchResult.znak}</h3>
+                </div>
+                <span className="shrink-0 px-4 py-2 bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm uppercase">
+                  {searchResult.status}
+                </span>
               </div>
               <div className="grid grid-cols-2 gap-4 pt-1">
                 <div>
@@ -367,7 +367,7 @@ export default function DashboardPage() {
         </div>
 
         {/* === SIATKA 6 KAFELKÓW === */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{animationDelay: '0.1s'}}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{ animationDelay: '0.1s' }}>
           <Card to="/sprzet" icon="📦" title="Baza Sprzętu" subtitle="Katalog i Rezerwacje" colorFrom="from-orange-500" colorTo="to-red-600" buttonText="Otwórz Magazyn" />
           <Card to="/mapa" icon="🗺️" title="Mapa Kampusu" subtitle="Banery i Plakaty" colorFrom="from-blue-500" colorTo="to-blue-700" buttonText="Otwórz Mapę" />
           <Card to="/rejestr" icon="📋" title="Rejestr Standów" subtitle="Harmonogram stoisk promocyjnych" colorFrom="from-indigo-600" colorTo="to-purple-800" buttonText="Sprawdź Terminy" />
@@ -390,7 +390,7 @@ export default function DashboardPage() {
             to="/archiwum"
             icon="🗄️"
             title="Przewodnik Archiwizacji"
-            subtitle="JRWA, klasy akt, checklista roczna i matryca klasyfikacyjna"
+            subtitle="JRWA, klasy akt, checklista roczna, matryca klasyfikacyjna"
             colorFrom="from-amber-700"
             colorTo="to-yellow-900"
             buttonText="Otwórz Przewodnik"
@@ -403,8 +403,8 @@ export default function DashboardPage() {
         </div>
 
         <footer className="mt-16 opacity-50 flex flex-col items-center gap-2">
-            <div className="h-[1px] w-10 bg-slate-300"></div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Powered by Samorząd Studentów UEW</p>
+          <div className="h-[1px] w-10 bg-slate-300"></div>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Powered by Samorząd Studentów UEW</p>
         </footer>
       </div>
 
@@ -414,7 +414,7 @@ export default function DashboardPage() {
       {showNoticeModal && isAdmin && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmittingNotice && setShowNoticeModal(false)}></div>
-          
+
           <form onSubmit={handleSubmitNotice} className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-bounceIn">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
               <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">
@@ -424,35 +424,35 @@ export default function DashboardPage() {
                 <Icons.Close />
               </button>
             </div>
-            
+
             <div className="p-6 space-y-5">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Grupa Docelowa</label>
-                <select 
-                  value={noticeForm.target} 
-                  onChange={(e) => setNoticeForm({...noticeForm, target: e.target.value})}
+                <select
+                  value={noticeForm.target}
+                  onChange={(e) => setNoticeForm({ ...noticeForm, target: e.target.value })}
                   className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                 >
                   <option value="ALL">Wszyscy Użytkownicy (Studenci, Organizacje)</option>
                   <option value="ADMIN">Tylko Zarząd / Administratorzy</option>
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Priorytet (Kolor Kafelka)</label>
                 <div className="grid grid-cols-3 gap-2">
-                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'info'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Zwykła<br/>(Niebieski)</button>
-                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'warning'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Ważne<br/>(Żółty)</button>
-                  <button type="button" onClick={() => setNoticeForm({...noticeForm, type: 'urgent'})} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'urgent' ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Pilne!<br/>(Czerwony)</button>
+                  <button type="button" onClick={() => setNoticeForm({ ...noticeForm, type: 'info' })} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'info' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Zwykła<br />(Niebieski)</button>
+                  <button type="button" onClick={() => setNoticeForm({ ...noticeForm, type: 'warning' })} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Ważne<br />(Żółty)</button>
+                  <button type="button" onClick={() => setNoticeForm({ ...noticeForm, type: 'urgent' })} className={`p-3 rounded-xl border text-xs font-bold transition-all ${noticeForm.type === 'urgent' ? 'bg-rose-50 border-rose-500 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}>Pilne!<br />(Czerwony)</button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Treść Komunikatu</label>
-                <textarea 
+                <textarea
                   required
                   value={noticeForm.text}
-                  onChange={(e) => setNoticeForm({...noticeForm, text: e.target.value})}
+                  onChange={(e) => setNoticeForm({ ...noticeForm, text: e.target.value })}
                   placeholder="Np. Przypominamy o konieczności rozliczenia projektów do końca tygodnia!"
                   className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-medium text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none h-24"
                 />
@@ -469,8 +469,8 @@ export default function DashboardPage() {
               <button type="button" onClick={() => { setShowNoticeModal(false); setNoticeError(''); }} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
                 Anuluj
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSubmittingNotice}
                 className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black shadow-lg shadow-indigo-600/30 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100"
               >
