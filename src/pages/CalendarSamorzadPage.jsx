@@ -116,6 +116,22 @@ export default function CalendarSamorzadPage({ userEmail }) {
     setBookingError('');
     if (!bookingForm.title || !bookingForm.date) return setBookingError('Wypełnij wymagane pola.');
     if (bookingForm.start >= bookingForm.end) return setBookingError('Koniec musi być po starcie.');
+
+    const campusRules = CAMPUS_ROOMS[bookingForm.room];
+    if (campusRules) {
+      const selectedDate = new Date(bookingForm.date + 'T12:00:00');
+      const dayOfWeek = selectedDate.getDay();
+      if (!campusRules.days.includes(dayOfWeek)) {
+        return setBookingError(`Sala ${bookingForm.room} nie jest dostępna w wybranym dniu tygodnia.`);
+      }
+      const toFloat = (timeStr) => parseFloat(timeStr.split(':')[0]) + parseFloat(timeStr.split(':')[1] || 0)/60;
+      const reqStart = toFloat(bookingForm.start);
+      const reqEnd = toFloat(bookingForm.end);
+      if (reqStart < campusRules.start || reqEnd > campusRules.end) {
+        return setBookingError(`Sala ${bookingForm.room} jest dostępna tylko w godzinach ${campusRules.start}:00 - ${campusRules.end}:00.`);
+      }
+    }
+
     if (checkCollision(bookingForm)) return setBookingError('KOLIZJA! Sala jest zajęta.');
 
     setIsSubmitting(true);

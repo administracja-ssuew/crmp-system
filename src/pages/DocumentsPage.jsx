@@ -427,21 +427,39 @@ export default function DocumentsPage() {
     if (systemPrompt) {
       body.system_instruction = { parts: [{ text: systemPrompt }] };
     }
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+    
+    const fallbackModels = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-pro-latest'];
+    let lastError = null;
+
+    for (const model of fallbackModels) {
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          }
+        );
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn(`[LEX AI] Model ${model} failed with ${res.status}:`, errText);
+          lastError = new Error(`Błąd API Gemini (${res.status}): Usługa jest chwilowo niedostępna. Zmiana modelu...`);
+          
+          if (res.status === 400 && errText.toLowerCase().includes('api key')) {
+            throw new Error(`Błąd API Gemini (400): Nieprawidłowy lub brakujący klucz API.`);
+          }
+          continue; 
+        }
+
+        const data = await res.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      } catch (err) {
+        lastError = err;
       }
-    );
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error(`Gemini API Error: ${res.status} ${res.statusText}`, errText);
-      throw new Error(`Błąd API Gemini (${res.status}): Usługa jest chwilowo niedostępna. Spróbuj ponownie za chwilę.`);
     }
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    throw lastError || new Error(`Błąd API Gemini: Wszystkie strumienie AI są obecnie przeciążone. Spróbuj ponownie za 15 minut.`);
   };
 
   const handleSuggestJustification = async () => {
@@ -777,7 +795,7 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                       { key: 'imie_nazwisko', label: 'Imię i Nazwisko', placeholder: 'Jan Kowalski' },
                       { key: 'email', label: 'Email', placeholder: 'jan.kowalski@samorzad.ue.wroc.pl' },
                       { key: 'telefon', label: 'Telefon', placeholder: '+48 123 456 789' },
-                      { key: 'funkcja', label: 'Funkcja w Samorządzie', placeholder: 'np. Przewodniczący Komisji Kultury' },
+                      { key: 'funkcja', label: 'Funkcja w Samorządzie', placeholder: 'np. Członek Komisji Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu' },
                       { key: 'nr_indeksu', label: 'Nr indeksu', placeholder: '123456' },
                     ].map(f => (
                       <div key={f.key}>
