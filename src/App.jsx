@@ -28,6 +28,7 @@ import AccessListPage from './pages/AccessListPage';
 import AdminAccessPanel from './pages/AdminAccessPanel';
 import AIBot from './AIBot';
 import ArchiwizacjaPage from './pages/ArchiwizacjaPage';
+import RodoPage from './pages/RodoPage';
 
 function BackButton() {
   const location = useLocation();
@@ -152,6 +153,7 @@ function AppContent() {
         <Route path="/lista-dostepowa" element={<ProtectedRoute><AccessListPage /></ProtectedRoute>} />
         <Route path="/admin-dostep" element={<AdminRoute><AdminAccessPanel /></AdminRoute>} />
         <Route path="/archiwum" element={<ProtectedRoute><ArchiwizacjaPage /></ProtectedRoute>} />
+        <Route path="/rodo" element={<ProtectedRoute><RodoPage /></ProtectedRoute>} />
 
         {/* CATCH ALL */}
         <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />

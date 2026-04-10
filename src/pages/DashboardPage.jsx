@@ -379,6 +379,7 @@ export default function DashboardPage() {
             colorTo="to-yellow-900"
             buttonText="Otwórz Przewodnik"
           />
+          <Card to="/rodo" icon="🔒" title="Hub RODO" subtitle="Kompendium, dokumenty i narzędzia ochrony danych" colorFrom="from-rose-600" colorTo="to-rose-900" buttonText="Otwórz Hub" />
           {isAdmin && (
             <>
               <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
