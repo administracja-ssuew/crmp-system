@@ -186,6 +186,299 @@ const KLAUZULE = [
   },
 ];
 
+// ─── DANE — DOKUMENTY WEWNĘTRZNE ─────────────────────────────────────────────
+
+const POLITYKA_TEXT = `POLITYKA PRYWATNOŚCI
+Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu
+
+§ 1
+1. Niniejsza Polityka Prywatności określa zasady przetwarzania danych osobowych w Samorządzie Studentów Uniwersytetu Ekonomicznego we Wrocławiu, zwanym dalej „SSUEW".
+2. Polityka została sporządzona w wykonaniu obowiązków informacyjnych administratora wynikających w szczególności z:
+   a. Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. (RODO),
+   b. Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2025/2518.
+3. SSUEW przetwarza dane osobowe zgodnie z zasadami: legalności, rzetelności i przejrzystości, ograniczenia celu, minimalizacji danych, prawidłowości, ograniczenia przechowywania, integralności i poufności oraz rozliczalności.
+4. Polityka ma zastosowanie do osób, których dane osobowe są przetwarzane w związku z działalnością SSUEW, w szczególności: kandydatów do struktur SSUEW, członków SSUEW, uczestników wydarzeń, interesariuszy oraz kontrahentów/współpracowników w zakresie realizowanych projektów.
+5. Szczegółowe zasady organizacyjne i techniczne przetwarzania danych osobowych, w tym tryb nadawania upoważnień, zasady dostępu do danych, procedury reagowania na naruszenia oraz przekazywania dokumentacji, określa Instrukcja przetwarzania danych osobowych obowiązująca w SSUEW.
+
+§ 2
+[KOREKTA PRAWNA — §2]: Poniższe brzmienie zastępuje pierwotną treść §2, w której SSUEW był błędnie wskazany jako administrator danych w rozumieniu RODO. SSUEW nie posiada osobowości prawnej i nie może pełnić funkcji administratora (art. 111 ustawy PSW).
+1. Administratorem danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu (UEW), ul. Komandorska 118/120, 53-345 Wrocław.
+2. SSUEW przetwarza dane osobowe jako jednostka organizacyjna UEW, na podstawie upoważnień udzielonych przez Administratora, w zakresie swojej działalności statutowej wynikającej z art. 111 ustawy Prawo o szkolnictwie wyższym i nauce.
+3. Inspektor Ochrony Danych UEW jest właściwym IOD dla procesów przetwarzania danych realizowanych przez SSUEW. Kontakt: iod@ue.wroc.pl.
+4. W zakresie, w jakim dane osobowe są przetwarzane bezpośrednio przez UEW w ramach jego własnych zadań ustawowych i organizacyjnych, zasady ich przetwarzania określają odrębne regulacje UEW.
+
+§ 3
+1. W sprawach związanych z ochroną danych osobowych możliwy jest kontakt z Inspektorem Ochrony Danych UEW: e-mail: iod@ue.wroc.pl.
+2. Kontakt z IOD może dotyczyć w szczególności: realizacji praw osób, których dane dotyczą, wyjaśniania podstaw przetwarzania danych, zgłaszania naruszeń ochrony danych oraz konsultacji w zakresie zgodności działań SSUEW z przepisami.
+
+§ 4
+1. SSUEW przetwarza dane osobowe w jasno określonych i prawnie uzasadnionych celach, w szczególności:
+   a. rekrutacja do organów, komisji, pionów i zespołów SSUEW,
+   b. obsługa członków SSUEW w trakcie kadencji (organizacja pracy, ewidencja składu, realizacja zadań),
+   c. organizacja wydarzeń, konferencji, szkoleń i projektów (rejestracja uczestników, komunikacja organizacyjna, rozliczenie),
+   d. realizacja obowiązków finansowych i rozliczeniowych (wydatki, dotacje, umowy, faktury),
+   e. prowadzenie korespondencji i obsługa zapytań kierowanych do SSUEW,
+   f. działania informacyjne i promocyjne SSUEW, w tym publikacja relacji z wydarzeń (w zakresie przewidzianym prawem i zasadami SSUEW).
+2. Cele, kategorie danych, podstawy prawne oraz okresy przetwarzania danych osobowych zostały szczegółowo ujęte w Rejestrze Czynności Przetwarzania prowadzonym przez SSUEW, zgodnie z Instrukcją przetwarzania danych osobowych.
+3. Podstawami prawnymi przetwarzania danych są, zależnie od celu:
+   a. art. 6 ust. 1 lit. e RODO – przetwarzanie niezbędne do wykonania zadania realizowanego w interesie publicznym (działalność przedstawicielska i organizacyjna SSUEW),
+   b. art. 6 ust. 1 lit. c RODO – przetwarzanie niezbędne do wypełnienia obowiązku prawnego (w szczególności obowiązki rozliczeniowe/archiwalne),
+   c. art. 6 ust. 1 lit. f RODO – prawnie uzasadniony interes (zapewnienie sprawnej organizacji działania, bezpieczeństwo organizacyjne, obsługa korespondencji),
+   d. art. 6 ust. 1 lit. a RODO – zgoda osoby, której dane dotyczą, wyłącznie w zakresie danych fakultatywnych lub działań niewymaganych celem głównym (np. dodatkowe informacje dobrowolne; określone formy promocji, jeśli wymagają zgody). Uwaga: art. 6(1)(b) – umowa – stosowany wyłącznie tam, gdzie formalnie zawierana jest umowa, np. umowa wolontariacka.
+4. W przypadkach przetwarzania opartego o art. 6 ust. 1 lit. f RODO SSUEW dokonuje oceny równowagi interesów (test równowagi), uwzględniając prawa i wolności osób, których dane dotyczą.
+5. Cofnięcie zgody pozostaje bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem.
+
+§ 5
+1. SSUEW przetwarza wyłącznie dane adekwatne i niezbędne do realizacji celów wskazanych w § 4.
+2. Zakres przetwarzanych danych może obejmować w szczególności: dane identyfikacyjne (np. imię, nazwisko), dane kontaktowe (np. adres e-mail, numer telefonu), dane organizacyjne (np. rola w projekcie, komisja, kadencja), dane finansowe (wyłącznie w zakresie wymaganym przepisami i rozliczeniem), wizerunek utrwalony w materiałach dokumentujących wydarzenia (jeżeli przetwarzanie jest prowadzone w danym procesie), inne dane przekazane dobrowolnie przez osobę, której dane dotyczą – z zastrzeżeniem zasady minimalizacji.
+
+§ 6
+1. SSUEW pozyskuje dane osobowe przede wszystkim bezpośrednio od osób, których dane dotyczą (np. w formularzach rekrutacyjnych, rejestracji uczestników, korespondencji).
+2. W uzasadnionych przypadkach, w zakresie niezbędnym do organizacji działania SSUEW, dane mogą pochodzić z zasobów organizacyjnych UEW (np. weryfikacja statusu studenta), przy czym podstawy i zakres takiego pozyskania są każdorazowo ograniczone do niezbędnego minimum.
+
+§ 7
+1. Odbiorcami danych osobowych mogą być:
+   a. organy i komisje SSUEW — wyłącznie w zakresie niezbędnym do realizacji ich zadań,
+   b. UEW — w zakresie wynikającym z przepisów prawa oraz regulacji wewnętrznych (np. rozliczenia, archiwizacja),
+   c. podmioty współpracujące przy realizacji wydarzeń lub projektów (np. obsługa techniczna, druk, podwykonawcy) — wyłącznie na podstawie odpowiednich umów/porozumień oraz w zakresie niezbędnym do realizacji celu.
+2. SSUEW nie udostępnia danych „na żądanie nieformalne" — każdorazowo ocenia podstawę prawną i zakres udostępnienia.
+
+§ 8
+1. Dane osobowe co do zasady nie są przekazywane do państw trzecich ani organizacji międzynarodowych.
+2. Jeżeli w ramach stosowanych narzędzi informatycznych dojdzie do transferu danych poza EOG, SSUEW zapewni podstawę legalizującą transfer zgodnie z Rozdziałem V RODO oraz — w razie potrzeby — zasięgnie opinii IOD UEW (iod@ue.wroc.pl).
+
+§ 9
+1. Dane osobowe są przechowywane:
+   a. przez czas trwania kadencji, projektu lub procesu organizacyjnego, którego dotyczą,
+   b. następnie przez okres wynikający z przepisów archiwalnych, w szczególności zgodnie z Jednolitym Rzeczowym Wykazem Akt UEW (JRWA UEW), a także wymogami rozliczeniowymi.
+2. Po upływie okresów wskazanych w ust. 1 dane są usuwane lub archiwizowane — w zależności od charakteru dokumentacji.
+3. Szczegółowe zasady archiwizacji, usuwania oraz przekazywania dokumentacji zawierającej dane osobowe określa Instrukcja przetwarzania danych osobowych, z uwzględnieniem JRWA UEW.
+
+§ 10
+1. Osobie, której dane dotyczą, przysługuje prawo do:
+   a. dostępu do danych,
+   b. sprostowania danych,
+   c. usunięcia danych — w przypadkach przewidzianych prawem,
+   d. ograniczenia przetwarzania,
+   e. sprzeciwu wobec przetwarzania — w przypadkach, gdy podstawą jest art. 6 ust. 1 lit. e lub f RODO,
+   f. przenoszenia danych — w przypadkach, gdy podstawą jest zgoda lub umowa, a przetwarzanie odbywa się w sposób zautomatyzowany.
+2. Osobie, której dane dotyczą, przysługuje prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych.
+
+§ 11
+1. Wnioski dotyczące praw osób, których dane dotyczą, można składać drogą elektroniczną na adres IOD UEW wskazany w § 3, ewentualnie za pośrednictwem oficjalnego kanału kontaktu SSUEW.
+2. Tryb obsługi wniosków osób, których dane dotyczą, w tym zasady identyfikacji wnioskodawcy oraz dokumentowania realizacji wniosków, określa Instrukcja przetwarzania danych osobowych obowiązująca w SSUEW.
+3. SSUEW może żądać dodatkowych informacji niezbędnych do weryfikacji tożsamości wnioskodawcy — wyłącznie w zakresie koniecznym dla ochrony danych przed nieuprawnionym ujawnieniem.
+4. Odpowiedź na wniosek udzielana jest w terminach przewidzianych w RODO, z uwzględnieniem charakteru wniosku i stopnia jego złożoności.
+
+§ 12
+1. Podanie danych osobowych może być:
+   a. wymogiem organizacyjnym — gdy jest niezbędne do realizacji celu (np. rekrutacja do struktur, udział w wydarzeniu wymagającym rejestracji, rozliczenie),
+   b. dobrowolne — gdy dotyczy danych fakultatywnych.
+2. Konsekwencją niepodania danych niezbędnych może być brak możliwości udziału w rekrutacji, wydarzeniu lub realizacji określonego procesu organizacyjnego.
+
+§ 13
+1. Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu nie stosuje zautomatyzowanego podejmowania decyzji, w tym profilowania, które wywoływałoby skutki prawne wobec osoby lub w podobny sposób istotnie na nią wpływało.
+
+§ 14
+1. SSUEW stosuje adekwatne środki techniczne i organizacyjne, mające na celu zapewnienie stopnia bezpieczeństwa odpowiadającego ryzyku, w szczególności:
+   a. kontrolę dostępu i upoważnienia imienne,
+   b. ograniczenie dostępu do zasobów zgodnie z zasadą „need-to-know",
+   c. zabezpieczenia organizacyjne dotyczące obiegu dokumentów i repozytoriów,
+   d. procedury reagowania na incydenty oraz dokumentowanie naruszeń,
+   e. działania porządkujące i archiwizacyjne na zakończenie kadencji/projektów.
+2. Szczegółowe zasady nadawania i cofania upoważnień, prowadzenia ewidencji dostępu, dokumentowania naruszeń oraz przekazywania dokumentacji określa Instrukcja przetwarzania danych osobowych wraz z załącznikami.
+3. Osoby przetwarzające dane w imieniu SSUEW są zobowiązane do zachowania poufności oraz przestrzegania wewnętrznych regulacji SSUEW.
+
+§ 15
+1. Polityka podlega okresowej weryfikacji i aktualizacji, w szczególności w przypadku:
+   a. zmiany przepisów prawa,
+   b. zmiany zakresu działalności SSUEW,
+   c. wprowadzenia nowych procesów przetwarzania danych.
+2. Aktualna wersja Polityki jest publikowana w sposób zwyczajowo przyjęty w SSUEW.
+
+§ 16
+1. Instrukcja przetwarzania danych osobowych stanowi dokument wykonawczy do niniejszej Polityki Prywatności. W przypadku rozbieżności pomiędzy postanowieniami Polityki a Instrukcji, pierwszeństwo mają postanowienia Polityki w zakresie obowiązków informacyjnych, a Instrukcji — w zakresie organizacyjnym i proceduralnym.`;
+
+const INSTRUKCJA_TEXT = `INSTRUKCJA PRZETWARZANIA DANYCH OSOBOWYCH
+w Samorządzie Studentów Uniwersytetu Ekonomicznego we Wrocławiu
+
+ROZDZIAŁ I
+POSTANOWIENIA OGÓLNE
+
+§ 1
+1. Instrukcja określa zasady, tryb oraz odpowiedzialność w zakresie przetwarzania danych osobowych w Samorządzie Studentów Uniwersytetu Ekonomicznego we Wrocławiu, zwanym dalej „SSUEW".
+2. Celem Instrukcji jest zapewnienie zgodności przetwarzania danych osobowych z:
+   a. Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO),
+   b. Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2025/2518,
+   c. regulacjami wewnętrznymi UEW i SSUEW.
+3. Instrukcja ma charakter wewnętrzny i wiążący dla wszystkich osób przetwarzających dane osobowe w ramach działalności SSUEW.
+4. Instrukcja stanowi wykonanie Polityki Prywatności Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu i określa szczegółowe zasady organizacyjne oraz proceduralne przetwarzania danych osobowych w SSUEW.
+
+§ 2
+1. Dane osobowe w SSUEW są przetwarzane zgodnie z zasadami określonymi w art. 5 RODO, w szczególności zasadą:
+   a. legalności, rzetelności i przejrzystości,
+   b. ograniczenia celu,
+   c. minimalizacji danych,
+   d. prawidłowości,
+   e. ograniczenia przechowywania,
+   f. integralności i poufności,
+   g. rozliczalności.
+2. Każda osoba przetwarzająca dane osobowe w imieniu SSUEW jest zobowiązana do stosowania powyższych zasad w praktyce.
+
+§ 3
+1. Instrukcja obowiązuje w szczególności:
+   a. Przewodniczącego SSUEW,
+   b. członków Prezydium oraz Zarządu SSUEW,
+   c. członków Rady Uczelnianej Samorządu Studentów,
+   d. członków komisji, pionów i zespołów roboczych bądź projektowych,
+   e. inne osoby przetwarzające dane osobowe w imieniu SSUEW.
+2. Każda osoba, o której mowa w ust. 1, przetwarza dane osobowe wyłącznie w zakresie powierzonych zadań.
+
+ROZDZIAŁ II
+ADMINISTRATOR DANYCH I ODPOWIEDZIALNOŚĆ
+
+§ 4
+[KOREKTA PRAWNA — §4]: Poniższe brzmienie zastępuje pierwotną treść §4, w której SSUEW był błędnie wskazany jako administrator danych. SSUEW nie posiada osobowości prawnej (art. 111 ustawy PSW) i nie może pełnić funkcji administratora w rozumieniu art. 4 pkt 7 RODO.
+1. Administratorem danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu (UEW), ul. Komandorska 118/120, 53-345 Wrocław.
+2. SSUEW przetwarza dane osobowe jako jednostka organizacyjna UEW, na podstawie upoważnień udzielonych przez Administratora, w zakresie swojej działalności statutowej wynikającej z art. 111 ustawy Prawo o szkolnictwie wyższym i nauce.
+
+§ 5
+1. Przewodniczący SSUEW, Prezydium oraz Zarząd SSUEW odpowiadają za:
+   a. organizację systemu ochrony danych osobowych,
+   b. zapewnienie zgodności przetwarzania danych z RODO,
+   c. prowadzenie i aktualizację Rejestru Czynności Przetwarzania.
+2. Członek Zarządu do spraw Administracji sprawuje bieżący nadzór nad stosowaniem Instrukcji.
+3. Rejestr Czynności Przetwarzania prowadzony jest zgodnie z Załącznikiem nr 4 do Instrukcji, a szczegółowy wykaz czynności przetwarzania danych osobowych określa Załącznik nr 4A.
+4. Członek Zarządu ds. Administracji wykonuje w imieniu Administratora Danych (UEW) czynności związane z nadawaniem i cofaniem upoważnień do przetwarzania danych osobowych w ramach SSUEW.
+
+§ 6
+1. SSUEW współpracuje z Inspektorem Ochrony Danych Uniwersytetu Ekonomicznego we Wrocławiu (IOD UEW) w zakresie ochrony danych osobowych. Kontakt: iod@ue.wroc.pl.
+2. Inspektor Ochrony Danych pełni funkcję doradczą i opiniodawczą w sprawach dotyczących zgodności przetwarzania danych osobowych z przepisami prawa.
+3. Zarząd SSUEW może zasięgać opinii Inspektora Ochrony Danych w szczególności w przypadku:
+   a. planowania nowych procesów przetwarzania danych,
+   b. wystąpienia naruszenia ochrony danych,
+   c. wątpliwości co do podstaw prawnych przetwarzania.
+
+ROZDZIAŁ III
+UPOWAŻNIENIA I DOSTĘP DO DANYCH
+
+§ 7
+1. Dostęp do danych osobowych mogą posiadać wyłącznie osoby imiennie upoważnione.
+2. Upoważnienie:
+   a. ma formę pisemną lub elektroniczną,
+   b. określa zakres danych i czynności,
+   c. jest nadawane na czas pełnienia funkcji lub realizacji zadania.
+3. Upoważnienia do przetwarzania danych osobowych nadaje Członek Zarządu ds. Administracji, działający w imieniu Administratora Danych (UEW), na podstawie art. 29 RODO.
+4. Upoważnienie do przetwarzania danych osobowych sporządza się według wzoru stanowiącego Załącznik nr 1 do niniejszej Instrukcji.
+5. Zabrania się przetwarzania danych osobowych bez upoważnienia.
+6. Upoważnienie nadawane jest z chwilą objęcia funkcji w organach SSUEW lub przed rozpoczęciem realizacji zadania wymagającego dostępu do danych osobowych.
+
+§ 8
+1. Upoważnienie wygasa z chwilą:
+   a. zakończenia kadencji/projektu,
+   b. rezygnacji z funkcji,
+   c. cofnięcia decyzją Zarządu.
+2. Cofnięcie upoważnienia obejmuje w szczególności:
+   a. odebranie dostępu do plików, dysków, skrzynek e-mail i systemów,
+   b. zwrot lub przekazanie dokumentacji.
+3. Upoważnienie wygasa z mocy prawa z chwilą zakończenia kadencji lub projektu, rezygnacji z funkcji, odwołania, cofnięcia decyzją Zarządu albo utraty statusu studenta.
+
+§ 9
+1. Członek Zarządu ds. Administracji prowadzi ewidencję upoważnień do przetwarzania danych osobowych oraz ewidencję ich cofnięć, zgodnie z Załącznikiem nr 3 do Instrukcji.
+2. Dostęp do danych osobowych w systemach i repozytoriach SSUEW jest nadawany wyłącznie po udzieleniu upoważnienia oraz w zakresie niezbędnym do realizacji zadań („need-to-know").
+3. Ewidencja, o której mowa w ust. 1, jest prowadzona w formie pozwalającej na wykazanie rozliczalności.
+4. Upoważnienia dla aktualnego Przewodniczącego, Członków Zarządu, Prezydium oraz innych osób pełniących funkcje w SSUEW wpisuje się do ewidencji z adnotacją „upoważnienie nadane z chwilą objęcia funkcji".
+
+ROZDZIAŁ IV
+ZASADY PRZETWARZANIA DANYCH W PRAKTYCE
+
+§ 10
+1. Udostępnienie danych osobowych podmiotom zewnętrznym lub dopuszczenie ich do przetwarzania danych w imieniu SSUEW może nastąpić wyłącznie w zakresie niezbędnym i na podstawie decyzji Członka Zarządu ds. Administracji, który działa w imieniu Przewodniczącego, Prezydium oraz Zarządu SSUEW.
+2. W przypadku korzystania z usług podmiotu, który przetwarza dane w imieniu SSUEW, Członek Zarządu ds. Administracji zapewnia zawarcie umowy powierzenia przetwarzania danych (art. 28 RODO) lub innej odpowiedniej podstawy prawnej.
+3. W przypadku wątpliwości, o których mowa w ust. 1–2, Członek Zarządu ds. Administracji zasięga opinii IOD UEW.
+
+§ 11
+1. Dane osobowe mogą być przetwarzane wyłącznie:
+   a. w systemach i repozytoriach wskazanych przez Zarząd,
+   b. na służbowych kontach e-mail i dyskach.
+2. Zabrania się przechowywania danych:
+   a. na prywatnych kontach e-mail,
+   b. na prywatnych nośnikach danych,
+   c. w niezabezpieczonych lokalizacjach.
+
+§ 12
+1. Każda osoba przetwarzająca dane:
+   a. przetwarza wyłącznie dane niezbędne do realizacji zadania,
+   b. jest zobowiązana do zachowania poufności.
+2. Obowiązek poufności obowiązuje również po zakończeniu pełnienia funkcji.
+3. Przed uzyskaniem dostępu do danych osobowych osoba upoważniona składa oświadczenie o poufności i zapoznaniu się z Instrukcją, zgodnie ze wzorem stanowiącym Załącznik nr 2 do Instrukcji.
+
+§ 13
+1. Przed rozpoczęciem nowego projektu, wydarzenia lub inicjatywy wymagającej przetwarzania danych osobowych, Członek Zarządu ds. Administracji SSUEW (w imieniu Przewodniczącego, Prezydium oraz Zarządu SSUEW) dokonuje oceny zgodności planowanego przetwarzania z RODO.
+2. W przypadku istotnej zmiany zakresu lub celu przetwarzania danych, Rejestr Czynności Przetwarzania podlega aktualizacji.
+3. W razie potrzeby Zarząd zasięga opinii Inspektora Ochrony Danych UEW.
+
+ROZDZIAŁ V
+NARUSZENIA OCHRONY DANYCH
+
+§ 14
+1. Każde podejrzenie naruszenia ochrony danych osobowych należy niezwłocznie zgłosić Przewodniczącemu lub Członkom Prezydium, lub Członkom Zarządu SSUEW.
+2. Naruszeniem jest w szczególności:
+   a. utrata danych,
+   b. nieuprawniony dostęp,
+   c. wysłanie danych do niewłaściwego adresata.
+3. Szczegółowy tryb postępowania w przypadku naruszenia ochrony danych osobowych określa Załącznik nr 4A do Instrukcji.
+
+§ 15
+1. Członek Zarządu ds. Administracji (w imieniu Przewodniczącego, Członków Prezydium oraz Członków Zarządu SSUEW):
+   a. dokonuje analizy naruszenia,
+   b. dokumentuje zdarzenie (Karta Incydentu — Załącznik nr 4A),
+   c. niezwłocznie informuje IOD UEW (iod@ue.wroc.pl) i współpracuje przy podejmowaniu decyzji o ewentualnym zgłoszeniu do Prezesa UODO (termin: 72 godziny od wykrycia, art. 33 RODO).
+2. Postępowanie odbywa się zgodnie z zasadą rozliczalności.
+3. Dokumentowanie naruszeń oraz prowadzenie rejestru naruszeń ochrony danych osobowych odbywa się zgodnie z Załącznikiem nr 7 do Instrukcji.
+
+ROZDZIAŁ VI
+PRZEKAZANIE KADENCJI I ARCHIWIZACJA
+
+§ 16
+1. Przekazanie kadencji obejmuje w szczególności:
+   a. przekazanie dokumentacji,
+   b. uporządkowanie repozytoriów,
+   c. cofnięcie dostępów ustępującym osobom.
+2. Przekazanie kadencji dokumentuje się protokołem.
+3. Przekazanie kadencji w zakresie danych osobowych dokumentuje się protokołem sporządzonym zgodnie z Załącznikiem nr 5 do Instrukcji.
+
+§ 17
+1. Dane osobowe, które nie podlegają archiwizacji albo których dalsze przechowywanie nie jest niezbędne, podlegają usunięciu lub zniszczeniu w sposób uniemożliwiający ich odtworzenie.
+2. Usunięcie obejmuje w szczególności: repozytoria, pocztę elektroniczną, kopie robocze oraz pliki tymczasowe.
+3. Czynności, o których mowa w ust. 1–2, mogą podlegać odnotowaniu w protokole przekazania kadencji lub w dokumentacji projektu.
+
+§ 18
+1. Dokumentacja zawierająca dane osobowe podlega archiwizacji zgodnie z JRWA UEW.
+2. Dostęp do archiwum ma wyłącznie Zarząd lub osoby przez niego upoważnione.
+
+§ 19
+1. Załączniki do niniejszej Instrukcji stanowią jej integralną część i mają charakter wiążący. Stosowanie Instrukcji bez stosowania właściwych załączników uznaje się za naruszenie jej postanowień.
+2. Integralną część niniejszej Instrukcji stanowi Załącznik nr 8 — Klauzula Informacyjna RODO, określająca obowiązki informacyjne Administratora Danych wobec osób, których dane osobowe są przetwarzane w ramach działalności Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu.
+
+ROZDZIAŁ VII
+POSTANOWIENIA KOŃCOWE
+
+§ 20
+1. Naruszenie postanowień Instrukcji może skutkować:
+   a. cofnięciem upoważnienia,
+   b. odpowiedzialnością organizacyjną,
+   c. innymi konsekwencjami przewidzianymi w regulacjach SSUEW.
+2. Instrukcja nie wyłącza odpowiedzialności wynikającej z przepisów powszechnie obowiązujących.
+
+§ 21
+1. Osoby przetwarzające dane osobowe w ramach SSUEW są zobowiązane do zapoznania się z niniejszą Instrukcją.
+2. Przewodniczący, Prezydium oraz Zarząd SSUEW może podejmować działania informacyjne lub szkoleniowe mające na celu podnoszenie świadomości w zakresie ochrony danych osobowych.
+
+§ 22
+1. Instrukcja wchodzi w życie z dniem jej przyjęcia uchwałą/zarządzeniem właściwego organu SSUEW.
+2. Instrukcja podlega okresowej weryfikacji.`;
+
 // ─── KOMPONENT: klauzula — musi być osobnym komponentem (nie inline w .map())
 //     Powód: useState jest używany w środku, a Hooks nie mogą być w pętlach/mapach
 
@@ -503,6 +796,15 @@ export default function RodoPage() {
               );
             })}
           </nav>
+          <div className="px-4 mt-6 pt-4 border-t border-slate-100">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">IOD UEW</p>
+            <p className="text-xs text-slate-600 mb-4">iod@ue.wroc.pl</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Czł. Zarządu ds. Administracji</p>
+            <p className="text-xs font-bold text-slate-700 mb-0.5">Mikołaj Radliński</p>
+            <p className="text-[11px] text-slate-500 mb-0.5">+48 514 174 791</p>
+            <p className="text-[11px] text-slate-500 break-all">mikolaj.radlinski@samorzad.ue.wroc.pl</p>
+            <p className="text-[11px] text-slate-500 break-all">administracja@samorzad.ue.wroc.pl</p>
+          </div>
         </aside>
 
         {/* TREŚĆ */}
@@ -755,27 +1057,27 @@ export default function RodoPage() {
           {/* ══════════════════════════════════ DOKUMENTY */}
 
           <section id="doc-polityka" className="scroll-mt-20 mb-14">
-            <SectionTitle icon={FileText} chapter="Dokumenty — 1" title="Polityka Ochrony Danych Osobowych" color="slate" />
-            <Card className="space-y-5">
-              {[['§ 1. Postanowienia ogólne',nb('Niniejsza Polityka Ochrony Danych Osobowych określa zasady przetwarzania i ochrony danych osobowych przez Samorząd Studentów UEW (Administrator).')],['§ 2. Administrator danych',nb('Administrator: Samorząd Studentów UEW, ul. Komandorska 118/120, 53-345 Wrocław. Kontakt RODO: rodo@samorzad.ue.wroc.pl')],['§ 3. Zakres i cele',nb('Dane przetwarzane są wyłącznie w zakresie i celach niezbędnych do realizacji działalności statutowej SSUEW.')],['§ 4. Podstawy prawne',nb('Dane przetwarzane są na podstawie art. 6 RODO (zgoda, umowa, obowiązek prawny, interes publiczny) oraz art. 9 RODO dla danych szczególnych kategorii.')],['§ 5. Prawa osób',nb('Każdej osobie przysługuje prawo dostępu, sprostowania, usunięcia, ograniczenia, przenoszenia i sprzeciwu. Wnioski: rodo@samorzad.ue.wroc.pl. Odpowiedź w ciągu 30 dni.')],['§ 6. Bezpieczeństwo',nb('Stosowane są środki techniczne i organizacyjne: kontrola dostępu, szyfrowanie, polityka haseł i szkolenia.')],['§ 7. Retencja',nb('Dane przechowywane są przez okresy określone w RCP. Po ich upływie — trwałe usunięcie.')],['§ 8. Postanowienia końcowe',nb('Polityka podlega przeglądowi co najmniej raz w roku akademickim oraz przy istotnych zmianach.')]].map(([para, tresc]) => (
-                <div key={para} className="border-l-2 border-rose-100 pl-4">
-                  <p className="font-black text-slate-800 text-sm mb-1">{para}</p>
-                  <p className="text-sm text-slate-600">{tresc}</p>
-                </div>
-              ))}
+            <SectionTitle icon={FileText} chapter="Dokumenty — 1" title="Polityka Prywatności SSUEW" color="slate" />
+            <Card className="!p-0 overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-3">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Dokument wewnętrzny SSUEW · §§ 1–16</p>
+              </div>
+              <div className="overflow-y-auto max-h-[600px]">
+                <pre className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-sans p-6">{POLITYKA_TEXT}</pre>
+              </div>
             </Card>
           </section>
 
           <section id="doc-instrukcja" className="scroll-mt-20 mb-14">
-            <SectionTitle icon={FileText} chapter="Dokumenty — 2" title="Instrukcja zarządzania systemem informatycznym" color="slate" />
-            <div className="space-y-3">
-              {[['Rozdział 1. Cel i zakres',nb('Instrukcja określa zasady bezpiecznego użytkowania systemów IT przetwarzających dane osobowe w SSUEW.')],['Rozdział 2. Hasła i uwierzytelnianie',nb('Wymagania: min. 12 znaków, wielkie i małe litery, cyfry, znaki specjalne. Zakaz używania tych samych haseł w różnych serwisach. Obowiązkowe 2FA. Zmiana co 6 miesięcy lub natychmiast po podejrzeniu kompromitacji.')],['Rozdział 3. Kontrola dostępu',nb('Dostęp do danych wyłącznie dla osób z podpisanym upoważnieniem. Zasada minimalnych uprawnień. Po zakończeniu kadencji: natychmiastowe odebranie dostępów.')],['Rozdział 4. Kopie zapasowe',nb('Krytyczne dane: kopia tygodniowa na zewnętrznym nośniku w zamkniętym pomieszczeniu. Testowanie odtworzenia kopii co kwartał.')],['Rozdział 5. Praca zdalna',nb('Zakaz przechowywania danych na prywatnych urządzeniach bez szyfrowania. Blokowanie ekranu po 5 minutach bezczynności.')],['Rozdział 6. Incydenty bezpieczeństwa',nb('Każdy incydent zgłaszany niezwłocznie osobie odpowiedzialnej za RODO. Przy naruszeniu: procedura zgłoszenia do UODO w ciągu 72 godzin.')],['Rozdział 7. Usuwanie danych',nb('Dokumenty papierowe: niszczarka min. P-4. Nośniki elektroniczne: certyfikowane zerowanie lub fizyczne zniszczenie.')]].map(([rozdzial, tresc]) => (
-                <Card key={rozdzial} className="flex items-start gap-4 !p-5">
-                  <div className="w-2 h-2 bg-rose-500 rounded-full shrink-0 mt-2" />
-                  <div><p className="font-black text-slate-800 text-sm mb-1.5">{rozdzial}</p><p className="text-sm text-slate-600">{tresc}</p></div>
-                </Card>
-              ))}
-            </div>
+            <SectionTitle icon={FileText} chapter="Dokumenty — 2" title="Instrukcja Przetwarzania Danych Osobowych" color="slate" />
+            <Card className="!p-0 overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-200 px-6 py-3">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Dokument wewnętrzny SSUEW · Rozdziały I–VII · §§ 1–22</p>
+              </div>
+              <div className="overflow-y-auto max-h-[600px]">
+                <pre className="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed font-sans p-6">{INSTRUKCJA_TEXT}</pre>
+              </div>
+            </Card>
           </section>
 
           <section id="doc-rcp" className="scroll-mt-20 mb-14">
