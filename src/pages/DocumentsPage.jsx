@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { useGASFetch } from '../hooks/useGASFetch';
 
 // !!! TUTAJ WKLEJ LINK DO TWOJEGO SKRYPTU BAZY DOKUMENTÓW Z GOOGLE SHEETS !!!
 const DOCS_API_URL = 'https://script.google.com/macros/s/AKfycby06P_0sI4H0PMMrBQgTwp9fF_ftGrNFUMpEdYcWOrQMqPqdsT9-CmbE1Ir-2a1DlldiQ/exec';
@@ -150,8 +151,12 @@ export default function DocumentsPage() {
 
   const [activeView, setActiveView] = useState('LEX');
 
-  const [documents, setDocuments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: rawDocs, loading: isLoading } = useGASFetch(DOCS_API_URL);
+  const documents = useMemo(() => {
+    if (!Array.isArray(rawDocs)) return [];
+    return [...rawDocs].sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+  }, [rawDocs]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('Wszystkie');
 
@@ -184,26 +189,6 @@ export default function DocumentsPage() {
   const [docSummaries, setDocSummaries] = useState({});
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
-  useEffect(() => {
-    const fetchDocs = async () => {
-      setIsLoading(true);
-      try {
-        const [response] = await Promise.all([
-          fetch(DOCS_API_URL),
-          new Promise(resolve => setTimeout(resolve, 800))
-        ]);
-        const data = await response.json();
-        if (!data.error && Array.isArray(data)) {
-          setDocuments(data.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0)));
-        }
-      } catch (error) {
-        console.error("Błąd pobierania dokumentów:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDocs();
-  }, []);
 
   const categoriesFromSheets = ['Wszystkie', ...new Set(documents.map(doc => doc.category).filter(Boolean))];
 
@@ -423,12 +408,15 @@ export default function DocumentsPage() {
 
   const callGeminiAPI = async (prompt, systemPrompt = null) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    if (!apiKey) throw new Error('Brak klucza API Gemini (VITE_GEMINI_API_KEY). Skontaktuj się z administratorem systemu.');
+
     const body = { contents: [{ parts: [{ text: prompt }] }] };
     if (systemPrompt) {
       body.system_instruction = { parts: [{ text: systemPrompt }] };
     }
-    
-    const fallbackModels = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-pro-latest'];
+
+    // Modele w kolejności preferowanej — wszystkie są prawidłowymi nazwami w Gemini API
+    const fallbackModels = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
     let lastError = null;
 
     for (const model of fallbackModels) {
@@ -444,22 +432,36 @@ export default function DocumentsPage() {
 
         if (!res.ok) {
           const errText = await res.text();
-          console.warn(`[LEX AI] Model ${model} failed with ${res.status}:`, errText);
-          lastError = new Error(`Błąd API Gemini (${res.status}): Usługa jest chwilowo niedostępna. Zmiana modelu...`);
-          
+          console.warn(`[LEX AI] Model ${model} zwrócił ${res.status}:`, errText);
           if (res.status === 400 && errText.toLowerCase().includes('api key')) {
-            throw new Error(`Błąd API Gemini (400): Nieprawidłowy lub brakujący klucz API.`);
+            throw new Error('Nieprawidłowy klucz API Gemini. Skontaktuj się z administratorem systemu.');
           }
-          continue; 
+          lastError = new Error(`Gemini ${model} niedostępny (${res.status})`);
+          continue;
         }
 
         const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+        // Wykryj blokadę content safety lub pustą odpowiedź
+        if (!text) {
+          const finishReason = data.candidates?.[0]?.finishReason;
+          if (finishReason === 'SAFETY') {
+            throw new Error('Gemini odrzucił zapytanie ze względów bezpieczeństwa. Spróbuj uprościć opis podania.');
+          }
+          throw new Error('Gemini zwrócił pustą odpowiedź. Spróbuj ponownie.');
+        }
+
+        return text;
       } catch (err) {
+        // Błędy krytyczne (API key, safety) — nie próbuj kolejnych modeli
+        if (err.message.includes('klucz API') || err.message.includes('bezpieczeństwa') || err.message.includes('pustą odpowiedź')) {
+          throw err;
+        }
         lastError = err;
       }
     }
-    throw lastError || new Error(`Błąd API Gemini: Wszystkie strumienie AI są obecnie przeciążone. Spróbuj ponownie za 15 minut.`);
+    throw lastError || new Error('Wszystkie modele Gemini są chwilowo niedostępne. Spróbuj ponownie za kilka minut.');
   };
 
   const handleSuggestJustification = async () => {

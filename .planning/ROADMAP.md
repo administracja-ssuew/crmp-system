@@ -11,6 +11,9 @@
 - [ ] **Phase 3: Lista Dostępowa** — Build new monthly access list module (form, admin panel, PDF generation, approved list view)
 - [x] **Phase 4: Kompendium + Księga Inwentarzowa** — Redesign KompendiumPage and add new KsiegaInwentarzPage tab (completed 2026-04-05)
 - [x] **Phase 5: Mapa Kampusu** — Improve MapPage interactivity and prepare integration point for new Photoshop campus map (completed 2026-04-05)
+- [x] **Phase 6: Optymalizacja Wydajności** — Centralny hook useGASFetch (cache + stale-while-revalidate + retry), Skeleton UI, useDebounce na wyszukiwarki (completed 2026-04-10)
+- [x] **Phase 7: Jakość Kodu** — Error Boundary, centralna obsługa błędów (completed 2026-04-10)
+- [x] **Phase 8: Moje Wnioski** — Sekcja agregująca wnioski użytkownika na Dashboardzie (completed 2026-04-10)
 
 ---
 
@@ -99,6 +102,36 @@
 
 ---
 
+### Phase 6: Optymalizacja Wydajności
+**Goal:** Zakładki ładują się natychmiastowo dla powracających użytkowników; wyszukiwanie jest płynne; ładowanie ma czytelną wizualizację zamiast tekstu
+**Depends on:** Nothing (cross-cutting refactor)
+**Requirements:** PERF-01, PERF-02, PERF-03
+**Success Criteria** (what must be TRUE):
+  1. Ponowne odwiedzenie StandsPage / EquipmentPage / DashboardPage w tej samej sesji wyświetla dane natychmiastowo (z cache) zamiast "Ładowanie..."
+  2. Dane odświeżają się w tle bez blokowania UI — użytkownik widzi świeże dane po ~12s bez kliknięcia "Odśwież"
+  3. Wpisywanie w pole wyszukiwania nie powoduje re-renderowania na każdy keystroke — debounce 300ms
+  4. Wszystkie strony z ładowaniem danych pokazują animowane skeleton placeholdery zamiast tekstu "Ładowanie..."
+  5. Przy awarii GAS endpoint automatycznie ponawia próbę 1x — użytkownik nie widzi błędu przy chwilowym timeout
+**Plans:**
+- [ ] 6.1 — Hook useGASFetch: src/hooks/useGASFetch.js z sessionStorage cache (TTL 5 min), stale-while-revalidate, AbortController timeout 12s, retry 1x — foundation dla 6.2
+- [ ] 6.2 — Migracja stron: StandsPage, EquipmentPage, DashboardPage zastępują inline fetch + useState na useGASFetch — depends on 6.1
+- [ ] 6.3 — Skeleton UI: src/components/SkeletonLoader.jsx (SkeletonCard, SkeletonTable, SkeletonLine) + zastąpienie "Ładowanie..." w zmigrowanych stronach — can run in parallel with 6.2
+- [ ] 6.4 — useDebounce: src/hooks/useDebounce.js + useMemo na filtry w EquipmentPage i StandsPage — depends on 6.2
+**UI hint**: no
+
+### Phase 7: Jakość Kodu
+**Goal:** Awaria jednej strony (np. GAS timeout) nie crashuje całej aplikacji; błędy są obsługiwane gracefully z możliwością recovery
+**Depends on:** Phase 6 (stale-while-revalidate zmniejsza prawdopodobieństwo błędów, ale Error Boundary nadal potrzebny)
+**Requirements:** QA-01
+**Success Criteria** (what must be TRUE):
+  1. Błąd renderowania na dowolnej podstronie wyświetla przyjazną wiadomość błędu z przyciskiem "Odśwież stronę" zamiast białego ekranu
+  2. Pozostałe części aplikacji (nawigacja, inne zakładki) nadal działają po błędzie jednej strony
+**Plans:**
+- [ ] 7.1 — ErrorBoundary: src/components/ErrorBoundary.jsx (class component) + owinięcie `<Routes>` w App.jsx
+**UI hint**: no
+
+---
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -108,6 +141,9 @@
 | 3. Lista Dostępowa | 0/5 | Not started | - |
 | 4. Kompendium + Księga Inwentarzowa | 2/3 | Complete    | 2026-04-05 |
 | 5. Mapa Kampusu | 3/3 | Complete    | 2026-04-05 |
+| 6. Optymalizacja Wydajności | 4/4 | Complete | 2026-04-10 |
+| 7. Jakość Kodu | 1/1 | Complete | 2026-04-10 |
+| 8. Moje Wnioski | 1/1 | Complete | 2026-04-10 |
 
 ---
 

@@ -1,6 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useGASFetch } from '../hooks/useGASFetch';
+import { useDebounce } from '../hooks/useDebounce';
+import { SkeletonGrid } from '../components/SkeletonLoader';
+
+const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
 const DIN_13169_ITEMS = [
   "Przylepiec na szpuli (5m x 2,5cm) - 2 szt.",
@@ -22,13 +27,9 @@ export default function EquipmentPage() {
   const { user, userRole } = useAuth();
   const isAdmin = userRole === 'logitech' || userRole === 'admin';
 
-  const [equipmentData, setEquipmentData] = useState([]);
-  const [allReservations, setAllReservations] = useState([]); 
-  const [allWydania, setAllWydania] = useState([]); 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { data: rawGASData, loading: isLoading, error, refresh } = useGASFetch(API_URL);
+
   const [isSubmittingAid, setIsSubmittingAid] = useState(false);
-  const [error, setError] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Wszystko');
@@ -49,95 +50,81 @@ export default function EquipmentPage() {
   const [firstAidHistory, setFirstAidHistory] = useState([]);
   const [allFirstAidReports, setAllFirstAidReports] = useState([]);
 
-  const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
-
   // Pomocnik: sprawdza czy id pasuje dokładnie (nie substring) w liście kodów oddzielonych przecinkami/średnikami
   const codeMatches = (codeStr, id) => {
     if (!codeStr || !id) return false;
     return String(codeStr).split(/[,;]\s*/).some(c => c.trim() === id.trim());
   };
 
-  const fetchData = (silent = false) => {
-    if (silent) setIsRefreshing(true);
-    else setIsLoading(true);
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) throw new Error(data.error);
-        const formattedData = data.sprzet.map(item => {
-          let icon = '📦';
-          if (item.TYP === 'OŚW') icon = '💡';
-          if (item.TYP === 'AUD') icon = '🔊';
-          if (item.TYP === 'WIZ') icon = '📷';
-          if (item.TYP === 'ADM') icon = '🚧';
-          if (item.RODZAJ === 'Apteczka') icon = '🚑';
+  // Dane pochodne z surowego GAS response
+  const allReservations = useMemo(() => rawGASData?.rezerwacje || [], [rawGASData]);
+  const allWydania = useMemo(() => rawGASData?.wydania || [], [rawGASData]);
+  const equipmentData = useMemo(() => {
+    if (!rawGASData?.sprzet) return [];
+    return rawGASData.sprzet.map(item => {
+      let icon = '📦';
+      if (item.TYP === 'OŚW') icon = '💡';
+      if (item.TYP === 'AUD') icon = '🔊';
+      if (item.TYP === 'WIZ') icon = '📷';
+      if (item.TYP === 'ADM') icon = '🚧';
+      if (item.RODZAJ === 'Apteczka') icon = '🚑';
 
-          // Stabilne ID: brak QR-kodu logujemy do konsoli zamiast generować losowy
-          const stableId = item.KOD_QR || (() => {
-            console.warn('[CRW] Brak KOD_QR dla:', item.NAZWA_SPRZĘTU);
-            return `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`;
-          })();
+      // Stabilne ID: brak QR-kodu logujemy do konsoli zamiast generować losowy
+      const stableId = item.KOD_QR || (() => {
+        console.warn('[CRW] Brak KOD_QR dla:', item.NAZWA_SPRZĘTU);
+        return `SSUEW-BRAK-${item.NAZWA_SPRZĘTU || 'X'}`;
+      })();
 
-          // Czyste formatowanie kategorii — bez wiszącego " / " gdy brakuje pola
-          const categoryParts = [item.RODZAJ, item.TYP].filter(Boolean);
-          const category = String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
-            ? 'Apteczki'
-            : categoryParts.join(' / ') || 'Inne';
+      // Czyste formatowanie kategorii — bez wiszącego " / " gdy brakuje pola
+      const categoryParts = [item.RODZAJ, item.TYP].filter(Boolean);
+      const category = String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
+        ? 'Apteczki'
+        : categoryParts.join(' / ') || 'Inne';
 
-          return {
-            id: stableId,
-            name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
-            category,
-            isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka',
-            status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
-            condition: item.UWAGI || 'Brak zastrzeżeń',
-            locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
-            description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
-            value: 'Zgodnie z ewidencją księgową',
-            warranty: 'Sprawdź protokół zakupu',
-            image: item.ZDJĘCIE || icon,
-            isRealImage: !!item.ZDJĘCIE,
-            link: item.LINK || null
-          };
-        });
-        setEquipmentData(formattedData);
-        setAllReservations(data.rezerwacje || []);
-        setAllWydania(data.wydania || []);
-        const rawReports = data.apteczkiBraki || data.braki_apteczek || data.apteczki_braki || data.firstAidReports || [];
-        const normalizeReport = (r) => {
-          if (r.ID !== undefined || r.Apteczka_Nazwa !== undefined || r.Powod !== undefined) return r;
-          const vals = Object.values(r);
-          if (vals.length >= 7) return { ID: vals[0], Data_Zgloszenia: vals[1], Apteczka_ID: vals[2], Apteczka_Nazwa: vals[3], Osoba: vals[4], Powod: vals[5], Zuzyte_Materialy: vals[6], Status: vals[7] || 'Oczekuje' };
-          return r;
-        };
-        const allReports = rawReports.map(normalizeReport);
-        const activeReports = allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane'));
-        setAllFirstAidReports(activeReports);
-        const myReports = allReports.filter(r =>
-          r.Osoba && user?.email && r.Osoba.toLowerCase() === user.email.toLowerCase()
-        );
-        setFirstAidHistory(myReports);
-        setIsLoading(false);
-        setIsRefreshing(false);
-      })
-      .catch((err) => {
-        console.error('[CRW] fetchData error:', err);
-        if (!silent) setError("Nie udało się pobrać bazy sprzętu z CRW.");
-        else console.warn('[CRW] Cichy odczyt nie powiódł się — dane mogą być nieaktualne.');
-        setIsLoading(false);
-        setIsRefreshing(false);
-      });
-  };
+      return {
+        id: stableId,
+        name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
+        category,
+        isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka',
+        status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
+        condition: item.UWAGI || 'Brak zastrzeżeń',
+        locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
+        description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
+        value: 'Zgodnie z ewidencją księgową',
+        warranty: 'Sprawdź protokół zakupu',
+        image: item.ZDJĘCIE || icon,
+        isRealImage: !!item.ZDJĘCIE,
+        link: item.LINK || null
+      };
+    });
+  }, [rawGASData]);
 
-  useEffect(() => { fetchData(); }, []);
+  // firstAidReports: inicjalizowane z rawGASData; optimistic updates możliwe przez setAllFirstAidReports
+  useEffect(() => {
+    if (!rawGASData) return;
+    const rawReports = rawGASData.apteczkiBraki || rawGASData.braki_apteczek || rawGASData.apteczki_braki || rawGASData.firstAidReports || [];
+    const normalizeReport = (r) => {
+      if (r.ID !== undefined || r.Apteczka_Nazwa !== undefined || r.Powod !== undefined) return r;
+      const vals = Object.values(r);
+      if (vals.length >= 7) return { ID: vals[0], Data_Zgloszenia: vals[1], Apteczka_ID: vals[2], Apteczka_Nazwa: vals[3], Osoba: vals[4], Powod: vals[5], Zuzyte_Materialy: vals[6], Status: vals[7] || 'Oczekuje' };
+      return r;
+    };
+    const allReports = rawReports.map(normalizeReport);
+    const activeReports = allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane'));
+    setAllFirstAidReports(activeReports);
+    const myReports = allReports.filter(r =>
+      r.Osoba && user?.email && r.Osoba.toLowerCase() === user.email.toLowerCase()
+    );
+    setFirstAidHistory(myReports);
+  }, [rawGASData, user?.email]);
 
-  const allCategories = ['Wszystko', ...new Set(equipmentData.map(item => item.category))];
-
-  const filteredEquipment = equipmentData.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || item.id.toLowerCase().includes(searchTerm.toLowerCase());
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const allCategories = useMemo(() => ['Wszystko', ...new Set(equipmentData.map(item => item.category))], [equipmentData]);
+  const filteredEquipment = useMemo(() => equipmentData.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || item.id.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesCategory = selectedCategory === 'Wszystko' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
-  });
+  }), [equipmentData, debouncedSearch, selectedCategory]);
 
   const toggleCart = (item) => {
     if (cart.find(c => c.id === item.id)) setCart(cart.filter(c => c.id !== item.id));
@@ -199,7 +186,7 @@ export default function EquipmentPage() {
         setCart([]);
         setIsCheckoutOpen(false);
         setReservationData({ dateFrom: '', dateTo: '', purpose: '', contactName: '', contactPhone: '', contactEmail: '' });
-        fetchData(true); // cichy refresh — bez pełnego spinnera
+        refresh();
       } else {
         alert("Błąd po stronie serwera: " + (result.message || 'nieznany błąd'));
       }
@@ -298,7 +285,14 @@ export default function EquipmentPage() {
     });
   };
 
-  if (isLoading) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6"><div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div><h2 className="text-xl font-black text-slate-800">Łączenie z bazą CRW...</h2></div>;
+  if (isLoading) return (
+    <div className="min-h-screen bg-slate-50 p-6 pt-24 pb-20">
+      <div className="max-w-5xl mx-auto">
+        <div className="h-10 bg-gray-200 animate-pulse rounded-xl w-1/4 mb-8" />
+        <SkeletonGrid items={9} />
+      </div>
+    </div>
+  );
   if (error) return <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center"><div className="text-6xl mb-4">⚠️</div><h2 className="text-2xl font-black text-red-600 mb-2">Błąd synchronizacji</h2><p className="text-sm font-bold text-slate-600">{error}</p></div>;
 
   const dzisiaj = new Date().toLocaleDateString('pl-PL');

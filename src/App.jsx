@@ -1,5 +1,6 @@
 // Wymuszenie odświeżenia Vercela
 
+import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import { logout } from "./firebase";
@@ -124,6 +125,7 @@ function AppContent() {
       <UserProfile />
       <AIBot />
 
+      <ErrorBoundary>
       <Routes>
         {/* PUBLICZNE */}
         <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
@@ -154,6 +156,7 @@ function AppContent() {
         {/* CATCH ALL */}
         <Route path="*" element={<Navigate to={user ? "/" : "/login"} />} />
       </Routes>
+      </ErrorBoundary>
     </div>
   );
 }

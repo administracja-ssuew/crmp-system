@@ -38,6 +38,20 @@
 
 ## v2 Requirements
 
+### Wydajność (Performance)
+
+- **PERF-01**: Centralny hook `useGASFetch(url)` z cache sessionStorage (TTL 5 min), stale-while-revalidate (pokaż cache od razu, odśwież w tle) i retry 1x po timeout — zastąpić inline fetch + useState w każdej stronie
+- **PERF-02**: Skeleton UI — zastąpić wszystkie instancje tekstu "Ładowanie..." animowanymi szkieletowymi placeholderami (`SkeletonCard`, `SkeletonTable`)
+- **PERF-03**: `useDebounce(value, delay)` hook + `useMemo` na kosztowne filtry w EquipmentPage i StandsPage — debounce 300ms na search inputy
+
+### Jakość kodu (Quality)
+
+- **QA-01**: Centralny `ErrorBoundary` komponent — owinąć Route'y w App.jsx, by awaria jednej strony nie crashowała całej aplikacji
+
+### Moje Wnioski (UX)
+
+- **UX-01**: Sekcja "Moje Wnioski" na Dashboardzie — rozwijana lista agregująca wszystkie wnioski zalogowanego użytkownika z 4 źródeł: rezerwacje sprzętu (GAS), zgłoszenia apteczek (GAS), wnioski o dostęp (Firestore), lista dostępowa (Firestore); badge z liczbą oczekujących
+
 ### Bezpieczeństwo
 
 - **SEC-01**: Autoryzacja server-side na endpointach /api/approve-request i /api/reject-request (Firebase ID token verification)
@@ -58,6 +72,10 @@
 | Real-time powiadomienia push | Maile Resend wystarczą do obecnej skali |
 | OAuth przez inne providery niż Google | Spójność z Google Workspace SSUEW |
 | Własna baza danych / migracja z Google Sheets | Za duży koszt przy obecnej architekturze |
+| TypeScript | Duże ryzyko regresji, brak natychmiastowej korzyści dla użytkownika |
+| PWA / Service Worker | useGASFetch cache + skeleton dają 80% efektu bez złożoności PWA |
+| WebSockets / Supabase Realtime | Overkill dla obecnej skali; auto-refresh w tle wystarczy |
+| Dark mode | Nie zgłoszone przez użytkowników; estetyka nie jest priorytetem |
 
 ## Traceability
 
@@ -79,12 +97,18 @@
 | KOMP-02 | Phase 4 | Complete |
 | INV-01 | Phase 4 | Complete |
 | MAP-01 | Phase 5 | Complete |
+| PERF-01 | Phase 6 | Complete |
+| PERF-02 | Phase 6 | Complete |
+| PERF-03 | Phase 6 | Complete |
+| QA-01 | Phase 7 | Complete |
+| UX-01 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 16 total
-- Mapped to phases: 16
+- v2 requirements: 4 total
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-04 after initialization*
+*Last updated: 2026-04-10 — dodano wymagania wydajnościowe (PERF) i jakościowe (QA)*

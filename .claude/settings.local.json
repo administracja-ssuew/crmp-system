@@ -15,7 +15,10 @@
       "Skill(gsd:plan-phase)",
       "Skill(gsd:plan-phase:*)",
       "Bash(node __TRACKED_VAR__/.claude/get-shit-done/bin/gsd-tools.cjs phase complete 4)",
-      "Bash(cp /tmp/verification.md \".planning/phases/04-kompendium-ksi-ga-inwentarzowa/04-VERIFICATION.md\")"
+      "Bash(cp /tmp/verification.md \".planning/phases/04-kompendium-ksi-ga-inwentarzowa/04-VERIFICATION.md\")",
+      "Bash(wc -l /c/Users/Mikołaj/Downloads/stand-dashboard-main/src/pages/*.jsx)",
+      "Bash(xargs wc:*)",
+      "Bash(ls -lah /c/Users/Mikołaj/Downloads/stand-dashboard-main/.env*)"
     ]
   }
 }

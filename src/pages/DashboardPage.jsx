@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CRED_API_URL, NOTICES_API_URL } from '../config';
+import { useGASFetch } from '../hooks/useGASFetch';
+import MyApplications from '../components/MyApplications';
 
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
@@ -34,8 +36,11 @@ export default function DashboardPage() {
   const isAdmin = userRole === 'admin';
 
   // === STANY OGŁOSZEŃ ===
+  const _noticesEnabled = NOTICES_API_URL !== "TUTAJ_WKLEJ_LINK_DO_OGLOSZEN_Z_APPS_SCRIPT";
+  const { data: rawNotices, loading: isLoadingNotices } = useGASFetch(
+    _noticesEnabled ? NOTICES_API_URL : null
+  );
   const [notices, setNotices] = useState([]);
-  const [isLoadingNotices, setIsLoadingNotices] = useState(true);
   const [dismissedNotices, setDismissedNotices] = useState(
     () => JSON.parse(localStorage.getItem('cra_dismissed_notices') || '[]')
   );
@@ -52,36 +57,12 @@ export default function DashboardPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-  // POBIERANIE OGŁOSZEŃ
+  // Synchronizuj ogłoszenia z rawNotices (cache → natychmiastowe ładowanie przy kolejnych wizytach)
+  // notices pozostaje jako mutable state dla lokalnych operacji add/delete
   useEffect(() => {
-    const fetchNotices = async () => {
-      setIsLoadingNotices(true);
-      try {
-        if (NOTICES_API_URL === "TUTAJ_WKLEJ_LINK_DO_OGLOSZEN_Z_APPS_SCRIPT") {
-          setIsLoadingNotices(false); return;
-        }
-        // (L) Timeout 12s dla ogłoszeń — nie-krytyczna treść
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-        const [response] = await Promise.all([
-          fetch(NOTICES_API_URL, { signal: controller.signal }),
-          new Promise(resolve => setTimeout(resolve, 600))
-        ]);
-        clearTimeout(timeoutId);
-        const data = await response.json();
-        if (!data.error && Array.isArray(data)) {
-          setNotices(data.reverse());
-        }
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error("Błąd pobierania ogłoszeń:", error);
-        }
-      } finally {
-        setIsLoadingNotices(false);
-      }
-    };
-    fetchNotices();
-  }, []);
+    if (!rawNotices || !Array.isArray(rawNotices)) return;
+    setNotices([...rawNotices].reverse());
+  }, [rawNotices]);
 
   // DODAWANIE NOWEGO OGŁOSZENIA
   const handleSubmitNotice = async (e) => {
@@ -365,6 +346,9 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* === MOJE WNIOSKI === */}
+        <MyApplications userEmail={user?.email} />
 
         {/* === SIATKA 6 KAFELKÓW === */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 w-full animate-slideUp" style={{ animationDelay: '0.1s' }}>

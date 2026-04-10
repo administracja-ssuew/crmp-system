@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useGASFetch } from '../hooks/useGASFetch';
+import { useDebounce } from '../hooks/useDebounce';
+import { SkeletonCard } from '../components/SkeletonLoader';
 
 // === KONFIGURACJA ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbwNtQx8na9KJnx6RvdwgzcmPM07Vym5dqgjrGJCXTxOMxdv2Q2kGqquME3uqpgSTBs/exec"; 
@@ -20,10 +23,11 @@ export default function StandsPage() {
   const { user, userRole } = useAuth();
   const isAdmin = userRole === 'admin';
 
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { data: rawData, loading, error, refresh } = useGASFetch(DATA_URL);
+  const data = useMemo(() => rawData?.bookings || (Array.isArray(rawData) ? rawData : []), [rawData]);
+
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
   
   const [isModalOpen, setIsModalOpen] = useState(false); 
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false); 
@@ -46,29 +50,9 @@ export default function StandsPage() {
   const [viewMode, setViewMode] = useState('list'); 
   const [weekOffset, setWeekOffset] = useState(0); 
 
-  const fetchData = () => {
-    setLoading(true);
-    fetch(DATA_URL)
-      .then(res => res.json())
-      .then(json => {
-        const bookings = json.bookings || json || [];
-        setData(bookings);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Błąd:", err);
-        setError("Błąd połączenia z bazą.");
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [activeTab, searchTerm, viewMode]);
+  }, [activeTab, debouncedSearch, viewMode]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -85,7 +69,7 @@ export default function StandsPage() {
       if (result.success) {
         setIsAdminModalOpen(false);
         setAddForm({ ...addForm, org: '', title: '' });
-        fetchData(); 
+        refresh();
       } else {
         alert("Błąd dodawania zapisu do bazy.");
       }
@@ -107,7 +91,7 @@ export default function StandsPage() {
       const result = await response.json();
 
       if (result.success) {
-        fetchData(); 
+        refresh();
       } else {
         alert("Błąd aktualizacji statusu.");
       }
@@ -132,13 +116,13 @@ export default function StandsPage() {
 
   const currentOccupancy = getOccupancyForDate(selectedMapDate);
 
-  const getProcessedData = () => {
+  const processedData = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
+    const search = debouncedSearch.toLowerCase();
     let filtered = data.filter(item => {
-      const search = searchTerm.toLowerCase();
       const org = (item.org || '').toLowerCase();
       const bCode = (item.building || '');
-      const bName = (BUILDING_INFO[bCode]?.name || bCode).toLowerCase(); 
+      const bName = (BUILDING_INFO[bCode]?.name || bCode).toLowerCase();
       return org.includes(search) || bName.includes(search) || bCode.toLowerCase().includes(search);
     });
 
@@ -156,9 +140,7 @@ export default function StandsPage() {
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
     return filtered;
-  };
-
-  const processedData = getProcessedData();
+  }, [data, debouncedSearch, activeTab]);
   const totalPages = Math.ceil(processedData.length / ITEMS_PER_PAGE);
   const paginatedData = processedData.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
 
@@ -192,9 +174,13 @@ export default function StandsPage() {
   const weekDays = getWeekDays();
 
   if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
-      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-      <p className="text-indigo-900 font-bold text-xs uppercase tracking-widest animate-pulse">Synchronizacja rejestru...</p>
+    <div className="min-h-screen bg-slate-50 p-6 pb-20 pt-24">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="h-10 bg-gray-200 animate-pulse rounded-xl w-1/3 mb-8" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} lines={4} />)}
+        </div>
+      </div>
     </div>
   );
 
