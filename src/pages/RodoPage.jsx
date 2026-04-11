@@ -677,61 +677,181 @@ export default function RodoPage() {
 
   // ─── GENERATOR PDF ───────────────────────────────────────────────────────────
 
+  // ─── HELPER: jsPDF nie obsługuje polskich znaków w built-in fontach
+  const pl = s => String(s)
+    .replace(/ą/g,'a').replace(/Ą/g,'A').replace(/ć/g,'c').replace(/Ć/g,'C')
+    .replace(/ę/g,'e').replace(/Ę/g,'E').replace(/ł/g,'l').replace(/Ł/g,'L')
+    .replace(/ń/g,'n').replace(/Ń/g,'N').replace(/ó/g,'o').replace(/Ó/g,'O')
+    .replace(/ś/g,'s').replace(/Ś/g,'S').replace(/ź/g,'z').replace(/Ź/g,'Z')
+    .replace(/ż/g,'z').replace(/Ż/g,'Z');
+
   const generateUpowaznienie = () => {
-    const pdf  = new jsPDF();
-    const today = new Date().toLocaleDateString('pl-PL');
-    const m = 20; let y = 20;
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(13);
-    pdf.text('UPOWAŻNIENIE DO PRZETWARZANIA DANYCH OSOBOWYCH', 105, y, { align:'center' }); y += 7;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(9);
-    pdf.text('Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu', 105, y, { align:'center' }); y += 14;
-    pdf.setFontSize(10); pdf.text(`Wrocław, dnia ${today}`, m, y); y += 10;
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(11);
-    pdf.text(`UPOWAŻNIENIE NR ___/RODO/${new Date().getFullYear()}`, m, y); y += 10;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(10);
-    ['Na podstawie art. 29 Rozporządzenia (UE) 2016/679 (RODO) upoważnia się:','',
-     `Imię i nazwisko: ${genForm.imieNazwisko}`,`Funkcja: ${genForm.funkcja}`,'',
-     'do przetwarzania danych osobowych w zakresie niezbędnym do pełnienia',
-     'powierzonej funkcji w Samorządzie Studentów UEW, w szczególności:',
-    ].forEach(l => { pdf.text(l, m, y); y += 6; }); y += 2;
-    [genForm.dostepCRA && '- dostęp do systemu CRA', genForm.dostepDrive && '- dostęp do Google Drive SSUEW',
-     genForm.dostepPoczta && '- dostęp do poczty samorządowej', genForm.dostepFizyczny && '- dostęp do dokumentacji fizycznej',
-     genForm.dostepArchiwum && '- dostęp do archiwum dokumentów',
-    ].filter(Boolean).forEach(l => { pdf.text(l, m + 4, y); y += 6; }); y += 4;
-    [`Upoważnienie obowiązuje do: ${genForm.dataDo || '_______________'}`,'',
-     genForm.uwagi ? `Uwagi: ${genForm.uwagi}` : null,'',
-     'Osoba upoważniona zobowiązuje się do zachowania przetwarzanych danych','w ścisłej tajemnicy.','','',
-     '..................................          ..................................',
-     'Zarząd SSUEW (podpis i pieczęć)          Osoba upoważniona (podpis)',
-    ].filter(l => l !== null).forEach(l => { pdf.text(l, m, y); y += 6; });
-    pdf.save(`upowaznienie_${genForm.imieNazwisko.replace(/\s+/g,'_') || 'rodo'}.pdf`);
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const M = 20;          // lewy margines
+    const W = 170;         // szerokość tekstu (210 - 2*20)
+    const lh = (fs) => fs * 0.4 + 1.5; // odstęp linii w mm dla danego font-size pt
+    let y = 22;
+
+    const addLine = (txt, fs, bold, indent = 0, center = false) => {
+      pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+      pdf.setFontSize(fs);
+      const lines = pdf.splitTextToSize(pl(txt), W - indent);
+      if (y + lines.length * lh(fs) > 277) { pdf.addPage(); y = 20; }
+      lines.forEach(l => {
+        if (center) pdf.text(l, 105, y, { align: 'center' });
+        else pdf.text(l, M + indent, y);
+        y += lh(fs);
+      });
+    };
+    const gap = (mm = 4) => { y += mm; };
+    const hr = () => { pdf.setDrawColor(180); pdf.line(M, y, M + W, y); gap(4); pdf.setDrawColor(0); };
+
+    // Nagłówek
+    addLine('UPOWAZNIENIE DO PRZETWARZANIA DANYCH OSOBOWYCH', 13, true, 0, true);
+    gap(1);
+    addLine('Samorzad Studentow Uniwersytetu Ekonomicznego we Wroclawiu', 9, false, 0, true);
+    addLine(pl(`jednostka organizacyjna Administratora - Uniwersytetu Ekonomicznego we Wroclawiu`), 8, false, 0, true);
+    gap(3);
+    hr();
+
+    // Data i numer
+    addLine(pl(`Wroclaw, dnia ${new Date().toLocaleDateString('pl-PL')}`), 10, false);
+    gap(2);
+    addLine(pl(`Nr upowaznienia: ___/RODO/${new Date().getFullYear()}`), 11, true);
+    gap(5);
+
+    // Podstawa
+    addLine(pl('Na podstawie art. 29 Rozporzadzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO), dzialajac w imieniu Administratora – Uniwersytetu Ekonomicznego we Wroclawiu – upowazniam:'), 10, false);
+    gap(5);
+
+    // Dane osoby
+    pdf.setFillColor(248, 248, 252);
+    pdf.roundedRect(M, y - 2, W, 22, 2, 2, 'F');
+    addLine(pl(`Imie i nazwisko:   ${genForm.imieNazwisko}`), 10, false, 3);
+    addLine(pl(`Funkcja:           ${genForm.funkcja}`), 10, false, 3);
+    gap(6);
+
+    // Zakres
+    addLine(pl('do przetwarzania danych osobowych w zakresie niezbednym do pelnienia powierzonej funkcji w Samorzadzie Studentow UEW, w szczegolnosci:'), 10, false);
+    gap(2);
+    const dostepy = [
+      genForm.dostepCRA      && pl('dostep do systemu CRA'),
+      genForm.dostepDrive    && pl('dostep do Google Drive SSUEW'),
+      genForm.dostepPoczta   && pl('dostep do poczty samorzadowej (@samorzad.ue.wroc.pl)'),
+      genForm.dostepFizyczny && pl('dostep do dokumentacji fizycznej'),
+      genForm.dostepArchiwum && pl('dostep do archiwum dokumentow'),
+    ].filter(Boolean);
+    if (dostepy.length === 0) {
+      addLine('(brak zaznaczonego zakresu dostepu)', 10, false, 6);
+    } else {
+      dostepy.forEach(d => { addLine(`\u2022  ${d}`, 10, false, 6); });
+    }
+    gap(4);
+
+    // Okres
+    addLine(pl(`Upowaznienie obowiazuje do: ${genForm.dataDo ? new Date(genForm.dataDo).toLocaleDateString('pl-PL') : '_______________'}`), 10, true);
+    gap(2);
+    if (genForm.uwagi?.trim()) {
+      addLine(pl(`Uwagi: ${genForm.uwagi}`), 9, false);
+      gap(2);
+    }
+
+    // Zobowiązanie
+    gap(2);
+    addLine(pl('Osoba upowazn iona zobowiazuje sie do zachowania w tajemnicy wszelkich danych osobowych przetwarzanych w zwiazku z pelniona funkcja, rowniez po jej zakonczeniu.'), 9, false);
+    gap(8);
+
+    hr();
+
+    // Podpisy
+    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+    const col1 = M, col2 = M + W / 2 + 5;
+    pdf.text('........................................', col1, y);
+    pdf.text('........................................', col2, y);
+    y += lh(9);
+    pdf.text(pl('Czl. Zarzadu ds. Administracji SSUEW'), col1, y);
+    pdf.text(pl('Osoba upowazn iona (podpis)'), col2, y);
+    y += lh(9);
+    pdf.text(pl('(dzialajacy/-a w imieniu Administratora)'), col1, y);
+    gap(10);
+
+    // Stopka
+    pdf.setFontSize(7); pdf.setTextColor(120);
+    pdf.text(pl('Kontakt IOD UEW: iod@ue.wroc.pl  |  Dokument sporzadzony w systemie CRA SSUEW'), 105, 287, { align: 'center' });
+
+    pdf.save(`upowaznienie_${pl(genForm.imieNazwisko).replace(/\s+/g,'_') || 'rodo'}.pdf`);
   };
 
   // ─── INCYDENT PDF ─────────────────────────────────────────────────────────────
 
   const generateIncydentPDF = () => {
-    const pdf = new jsPDF(); const today = new Date().toLocaleString('pl-PL');
-    let y = 20; const m = 20; const pw = 170;
-    pdf.setFont('helvetica','bold'); pdf.setFontSize(12);
-    pdf.text('REJESTR NARUSZEŃ OCHRONY DANYCH OSOBOWYCH', 105, y, { align:'center' }); y += 7;
-    pdf.setFont('helvetica','normal'); pdf.setFontSize(9);
-    pdf.text('Samorząd Studentów UEW', 105, y, { align:'center' }); y += 5;
-    pdf.text(`Sporządzono: ${today}`, 105, y, { align:'center' }); y += 12;
-    INCIDENT_STEPS.slice(0,-1).forEach((s,si) => {
-      pdf.setFont('helvetica','bold'); pdf.setFontSize(10);
-      pdf.text(`${si+1}. ${s.label}`, m, y); y += 6;
-      pdf.setFont('helvetica','normal'); pdf.setFontSize(9);
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const M = 20; const W = 170;
+    const lh = (fs) => fs * 0.4 + 1.5;
+    let y = 22;
+
+    const addLine = (txt, fs, bold, indent = 0, center = false) => {
+      pdf.setFont('helvetica', bold ? 'bold' : 'normal');
+      pdf.setFontSize(fs);
+      const lines = pdf.splitTextToSize(pl(String(txt)), W - indent);
+      if (y + lines.length * lh(fs) > 277) { pdf.addPage(); y = 20; }
+      lines.forEach(l => {
+        if (center) pdf.text(l, 105, y, { align: 'center' });
+        else pdf.text(l, M + indent, y);
+        y += lh(fs);
+      });
+    };
+    const gap = (mm = 4) => { y += mm; };
+    const hr = (light = false) => {
+      pdf.setDrawColor(light ? 210 : 160);
+      pdf.line(M, y, M + W, y);
+      gap(light ? 3 : 4);
+      pdf.setDrawColor(0);
+    };
+
+    // Nagłówek
+    addLine('KARTA INCYDENTU', 14, true, 0, true);
+    addLine('NARUSZENIE OCHRONY DANYCH OSOBOWYCH', 11, true, 0, true);
+    gap(1);
+    addLine(pl('Samorzad Studentow UEW (j.o. Administratora - Uniwersytetu Ekonomicznego we Wroclawiu)'), 8, false, 0, true);
+    addLine(pl(`Sporzadzono: ${new Date().toLocaleString('pl-PL')}`), 8, false, 0, true);
+    gap(3);
+    hr();
+
+    INCIDENT_STEPS.slice(0, -1).forEach((s, si) => {
+      // Nagłówek sekcji
+      pdf.setFillColor(245, 245, 250);
+      pdf.rect(M, y - 1, W, lh(10) + 2, 'F');
+      addLine(pl(`${si + 1}. ${s.label}`), 10, true);
+      gap(1);
+
       s.fields.forEach(f => {
-        pdf.text(`${f}:`, m+4, y); y += 5;
-        const val = incAnswers[`${si}_${f}`] || '—';
-        pdf.splitTextToSize(val, pw-10).forEach(l => { pdf.text(l, m+8, y); y += 5; });
-        y += 2; if (y > 270) { pdf.addPage(); y = 20; }
-      }); y += 3;
+        addLine(pl(`${f}:`), 9, true, 2);
+        const val = incAnswers[`${si}_${f}`]?.trim() || '—';
+        addLine(pl(val), 9, false, 6);
+        gap(2);
+      });
+      hr(true);
     });
-    y += 5; pdf.setFontSize(9);
-    pdf.text('Podpis sporządzającego: ..............................', m, y); y += 7;
-    pdf.text('Podpis osoby odpow. za RODO: ..............................', m, y);
-    pdf.save(`incydent_rodo_${new Date().toISOString().slice(0,10)}.pdf`);
+
+    gap(4);
+    hr();
+
+    // Podpisy
+    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
+    const col1 = M, col2 = M + W / 2 + 5;
+    pdf.text('........................................', col1, y);
+    pdf.text('........................................', col2, y);
+    y += lh(9) + 1;
+    pdf.text(pl('Sporzadzajacy/-a'), col1, y);
+    pdf.text(pl('Czl. Zarzadu ds. Administracji SSUEW'), col2, y);
+    gap(8);
+
+    // Stopka
+    pdf.setFontSize(7); pdf.setTextColor(120);
+    pdf.text(pl('Kontakt IOD UEW: iod@ue.wroc.pl  |  Zgloszenie do UODO w ciagu 72h od wykrycia (art. 33 RODO)'), 105, 287, { align: 'center' });
+
+    pdf.save(`incydent_rodo_${new Date().toISOString().slice(0, 10)}.pdf`);
     setIncDone(true);
   };
 
@@ -1171,7 +1291,7 @@ export default function RodoPage() {
               <p className="font-black text-amber-900 text-sm">Uwaga prawna — czy klauzule są wystarczające?</p>
               <p className="text-sm text-amber-800 leading-relaxed">{nb('Wzory poniżej są zgodne strukturalnie z art. 13 RODO — obejmują wszystkie obowiązkowe elementy (cel, podstawę, odbiorców, prawa, UODO). Są dobrym punktem startowym.')}</p>
               <ul className="space-y-1.5 text-sm text-amber-800">
-                {['Miejsca oznaczone [nawiasami] MUSZĄ być uzupełnione przed każdym użyciem — pustego wzoru nie wolno wysyłać.','Klauzula jest tak dobra, jak dokładne są wypełnione pola. Zły CEL lub ZŁY OKRES = błąd prawny.','Dla danych szczególnych kategorii (zdrowie, religia, poglądy) klauzula wymaga rozbudowania — skonsultuj z Uczelnianym IOD przed użyciem.','Na potrzeby wewnętrznych działań SSUEW wzory są wystarczające. Przed formalnym wdrożeniem dokumentów rekomendowana jest konsultacja z IOD UEW.'].map((p, i) => (
+                {['Miejsca oznaczone [nawiasami] MUSZĄ być uzupełnione przed każdym użyciem — pustego wzoru nie wolno wysyłać.','Klauzula jest tak dobra, jak dokładne są wypełnione pola. Zły CEL lub ZŁY OKRES = błąd prawny.','Dla danych szczególnych kategorii (zdrowie, religia, poglądy) klauzula wymaga rozbudowania — skonsultuj z Członkiem Zarządu ds. Administracji SSUEW przed użyciem.','Na potrzeby wewnętrznych działań SSUEW wzory są wystarczające. Przed formalnym wdrożeniem dokumentów rekomendowana jest konsultacja z IOD UEW.'].map((p, i) => (
                   <li key={i} className="flex items-start gap-2"><span className="text-amber-600 font-black shrink-0">→</span>{p}</li>
                 ))}
               </ul>
