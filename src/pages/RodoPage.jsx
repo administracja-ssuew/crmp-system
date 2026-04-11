@@ -7,6 +7,7 @@ import {
   UserCheck, Lock, Eye, EyeOff,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -680,32 +681,69 @@ export default function RodoPage() {
   // ─── HELPER: renderuje HTML do PDF przez pdf.html() — pełne Unicode, polskie znaki ─
 
   const renderHtmlToPdf = useCallback((htmlContent, filename, onDone) => {
-    // Overlay widoczny dla użytkownika — przykrywa dokument podczas renderowania
+    // Overlay — widoczny dla użytkownika podczas renderowania
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;inset:0;background:rgba(248,250,252,0.97);z-index:100001;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:sans-serif;pointer-events:all;';
     overlay.innerHTML = '<div style="font-size:15px;font-weight:700;color:#334155;">Generowanie PDF…</div><div style="font-size:12px;color:#64748b;">Proszę czekać</div>';
 
-    // Kontener HTML musi być widoczny (opacity:1) — html2canvas renderuje tylko widoczne elementy
+    // Kontener musi być widoczny — html2canvas nie renderuje elementów ukrytych
     const container = document.createElement('div');
-    container.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;z-index:100000;';
+    container.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;z-index:100000;padding:0;margin:0;';
     container.innerHTML = htmlContent;
 
     document.body.appendChild(overlay);
     document.body.appendChild(container);
 
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-    pdf.html(container, {
-      callback: (doc) => {
+    // Krótkie opóźnienie — czekamy aż przeglądarka wyrenderuje czcionki i układ
+    setTimeout(() => {
+      html2canvas(container, {
+        scale: 2,           // retina — ostrość tekstu
+        useCORS: true,
+        logging: false,
+        width: 794,
+        windowWidth: 794,
+        backgroundColor: '#ffffff',
+      }).then(canvas => {
         document.body.removeChild(container);
         document.body.removeChild(overlay);
-        doc.save(filename);
+
+        const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+        const pageW   = pdf.internal.pageSize.getWidth();   // 210mm
+        const pageH   = pdf.internal.pageSize.getHeight();  // 297mm
+        const margin  = 10;
+        const imgW    = pageW - margin * 2;                  // 190mm
+        const imgH    = (canvas.height / canvas.width) * imgW;
+
+        // Podział na strony jeśli treść dłuższa niż jedna strona
+        const availH = pageH - margin * 2;
+        const scale  = canvas.width / imgW; // px na mm
+        let srcY     = 0;
+        let pageNum  = 0;
+
+        while (srcY < canvas.height) {
+          if (pageNum > 0) pdf.addPage();
+
+          const slicePxH  = Math.min(availH * scale, canvas.height - srcY);
+          const sliceMmH  = slicePxH / scale;
+
+          // Wycinamy fragment canvasa
+          const slice = document.createElement('canvas');
+          slice.width  = canvas.width;
+          slice.height = slicePxH;
+          slice.getContext('2d').drawImage(
+            canvas, 0, srcY, canvas.width, slicePxH,
+            0, 0, canvas.width, slicePxH
+          );
+
+          pdf.addImage(slice.toDataURL('image/png'), 'PNG', margin, margin, imgW, sliceMmH);
+          srcY    += slicePxH;
+          pageNum += 1;
+        }
+
+        pdf.save(filename);
         if (onDone) onDone();
-      },
-      x: 10,
-      y: 10,
-      width: 190,       // mm — szerokość treści na A4 (210 - 2*10)
-      windowWidth: 794, // px — szerokość kontenera HTML
-    });
+      });
+    }, 300);
   }, []);
 
   // ─── GENERATOR UPOWAŻNIEŃ ────────────────────────────────────────────────────
