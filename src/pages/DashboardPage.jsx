@@ -63,6 +63,8 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [statsTab, setStatsTab] = useState('ranking'); // 'ranking' | 'chart' | 'today'
+  const [statsRefreshedAt, setStatsRefreshedAt] = useState(null);
 
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
@@ -71,6 +73,7 @@ export default function DashboardPage() {
       const rows = snap.docs.map(d => ({ path: d.id, ...d.data() }))
         .sort((a, b) => (b.total || 0) - (a.total || 0));
       setStats(rows);
+      setStatsRefreshedAt(new Date());
     } catch { setStats([]); }
     setStatsLoading(false);
   }, []);
@@ -79,29 +82,69 @@ export default function DashboardPage() {
 
   // === ADMIN: NOTATKI ===
   const [showNotes, setShowNotes] = useState(false);
+  const [notesTab, setNotesTab] = useState('notes'); // 'notes' | 'todo' | 'pins'
   const [notesText, setNotesText] = useState('');
   const [notesSaved, setNotesSaved] = useState(false);
   const [notesLoading, setNotesLoading] = useState(false);
+  const [todos, setTodos] = useState([]);
+  const [newTodo, setNewTodo] = useState('');
+  const [pins, setPins] = useState([]);
+  const [newPin, setNewPin] = useState('');
+  const [newPinColor, setNewPinColor] = useState('yellow');
 
   const loadNotes = useCallback(async () => {
     setNotesLoading(true);
     try {
       const snap = await getDoc(doc(db, 'admin_data', 'notes'));
-      setNotesText(snap.exists() ? snap.data().content || '' : '');
-    } catch { setNotesText(''); }
+      if (snap.exists()) {
+        const d = snap.data();
+        setNotesText(d.content || '');
+        setTodos(d.todos || []);
+        setPins(d.pins || []);
+      }
+    } catch { /* silent */ }
     setNotesLoading(false);
   }, []);
 
-  const saveNotes = useCallback(async () => {
+  const saveNotes = useCallback(async (overrideTodos, overridePins) => {
+    const todosToSave  = overrideTodos !== undefined ? overrideTodos  : todos;
+    const pinsToSave   = overridePins  !== undefined ? overridePins   : pins;
     try {
       await setDoc(doc(db, 'admin_data', 'notes'), {
         content: notesText,
+        todos: todosToSave,
+        pins: pinsToSave,
         updatedAt: Timestamp.now(),
       });
       setNotesSaved(true);
-      setTimeout(() => setNotesSaved(false), 2500);
+      setTimeout(() => setNotesSaved(false), 2000);
     } catch { /* silent */ }
-  }, [notesText]);
+  }, [notesText, todos, pins]);
+
+  const addTodo = () => {
+    if (!newTodo.trim()) return;
+    const next = [...todos, { id: Date.now(), text: newTodo.trim(), done: false }];
+    setTodos(next); setNewTodo('');
+    saveNotes(next, undefined);
+  };
+  const toggleTodo = (id) => {
+    const next = todos.map(t => t.id === id ? { ...t, done: !t.done } : t);
+    setTodos(next); saveNotes(next, undefined);
+  };
+  const deleteTodo = (id) => {
+    const next = todos.filter(t => t.id !== id);
+    setTodos(next); saveNotes(next, undefined);
+  };
+  const addPin = () => {
+    if (!newPin.trim()) return;
+    const next = [...pins, { id: Date.now(), text: newPin.trim(), color: newPinColor }];
+    setPins(next); setNewPin('');
+    saveNotes(undefined, next);
+  };
+  const deletePin = (id) => {
+    const next = pins.filter(p => p.id !== id);
+    setPins(next); saveNotes(undefined, next);
+  };
 
   useEffect(() => { if (showNotes && isAdmin) loadNotes(); }, [showNotes, isAdmin, loadNotes]);
 
@@ -479,90 +522,375 @@ export default function DashboardPage() {
       {/* ==================================================== */}
       {/* MODAL: STATYSTYKI (TYLKO DLA ADMINA) */}
       {/* ==================================================== */}
-      {showStats && isAdmin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowStats(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-bounceIn">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">📊 Statystyki odwiedzin</h3>
-              <button onClick={() => setShowStats(false)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-200 rounded-full transition-colors">
-                <Icons.Close />
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 p-6">
-              {statsLoading ? (
-                <div className="space-y-2">
-                  {[...Array(6)].map((_, i) => <div key={i} className="h-10 bg-slate-100 animate-pulse rounded-xl" />)}
+      {showStats && isAdmin && (() => {
+        const today = new Date().toISOString().slice(0, 10);
+        const totalVisits   = stats ? stats.reduce((s, r) => s + (r.total || 0), 0) : 0;
+        const totalPages    = stats ? stats.length : 0;
+        const todayVisits   = stats ? stats.reduce((s, r) => s + (r.days?.[today] || 0), 0) : 0;
+        const topPage       = stats?.[0];
+        const barColors     = ['bg-indigo-500','bg-violet-500','bg-blue-500','bg-sky-500','bg-cyan-500',
+                               'bg-teal-500','bg-emerald-500','bg-green-500','bg-amber-500','bg-orange-500'];
+
+        const tabs = [
+          { id: 'ranking', label: 'Ranking stron' },
+          { id: 'chart',   label: 'Wykres słupkowy' },
+          { id: 'today',   label: 'Dzisiaj' },
+        ];
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowStats(false)} />
+            <div className="relative bg-slate-950 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[88vh] flex flex-col overflow-hidden">
+
+              {/* NAGŁÓWEK */}
+              <div className="px-7 pt-7 pb-5 shrink-0">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">Panel Administracyjny</p>
+                    <h2 className="text-2xl font-black text-white">Statystyki Systemu</h2>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={loadStats} title="Odśwież"
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all text-base">
+                      ↻
+                    </button>
+                    <button onClick={() => setShowStats(false)}
+                      className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all">
+                      <Icons.Close />
+                    </button>
+                  </div>
                 </div>
-              ) : !stats || stats.length === 0 ? (
-                <p className="text-slate-400 text-sm text-center py-8">Brak danych statystycznych. Dane pojawią się po pierwszych odwiedzinach podstron.</p>
-              ) : (
-                <div className="space-y-2">
-                  {stats.map(row => {
-                    const label = '/' + row.path.replace(/_/g, '/').replace(/^\//, '');
-                    const max = stats[0]?.total || 1;
-                    const pct = Math.round(((row.total || 0) / max) * 100);
-                    return (
-                      <div key={row.path} className="flex items-center gap-3">
-                        <span className="text-xs font-mono text-slate-500 w-44 shrink-0 truncate">{label}</span>
-                        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                          <div className="h-2.5 bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
+
+                {/* KPI CARDS */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                  {[
+                    { label: 'Wszystkich wizyt',  value: statsLoading ? '…' : totalVisits.toLocaleString('pl-PL'), color: 'from-indigo-600 to-violet-600', icon: '👁' },
+                    { label: 'Dzisiaj',            value: statsLoading ? '…' : todayVisits.toLocaleString('pl-PL'), color: 'from-emerald-600 to-teal-600',   icon: '📅' },
+                    { label: 'Podstron w systemie',value: statsLoading ? '…' : totalPages,                          color: 'from-sky-600 to-blue-600',         icon: '📂' },
+                    { label: 'Najpopularniejsza',  value: statsLoading ? '…' : (topPage ? ('/' + topPage.path.replace(/_/g,'/').replace(/^\//,'')) : '—'),
+                      color: 'from-amber-600 to-orange-600', icon: '🏆', small: true },
+                  ].map((k, i) => (
+                    <div key={i} className={`bg-gradient-to-br ${k.color} rounded-2xl p-4`}>
+                      <div className="text-xl mb-1">{k.icon}</div>
+                      <div className={`font-black text-white leading-tight mb-1 ${k.small ? 'text-xs truncate' : 'text-2xl'}`}>{k.value}</div>
+                      <div className="text-[10px] font-bold text-white/70 uppercase tracking-wider">{k.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* TABS */}
+                <div className="flex gap-1 bg-white/5 p-1 rounded-xl">
+                  {tabs.map(t => (
+                    <button key={t.id} onClick={() => setStatsTab(t.id)}
+                      className={`flex-1 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                        statsTab === t.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-white/50 hover:text-white/80'}`}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TREŚĆ ZAKŁADKI */}
+              <div className="overflow-y-auto flex-1 px-7 pb-7">
+                {statsLoading ? (
+                  <div className="space-y-3 pt-2">
+                    {[...Array(7)].map((_, i) => <div key={i} className="h-10 bg-white/5 animate-pulse rounded-xl" />)}
+                  </div>
+                ) : !stats || stats.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-white/30">
+                    <div className="text-5xl mb-3">📭</div>
+                    <p className="text-sm font-bold">Brak danych</p>
+                    <p className="text-xs mt-1">Dane pojawią się po pierwszych odwiedzinach podstron</p>
+                  </div>
+                ) : statsTab === 'ranking' ? (
+                  <div className="space-y-2 pt-2">
+                    {stats.map((row, i) => {
+                      const label = '/' + row.path.replace(/_/g, '/').replace(/^\//, '');
+                      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                      return (
+                        <div key={row.path} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 rounded-2xl px-4 py-3 transition-colors">
+                          <span className="w-6 text-center text-sm shrink-0">{medal || <span className="text-white/30 text-xs font-bold">{i + 1}</span>}</span>
+                          <span className="flex-1 text-sm font-mono text-white/80 truncate">{label}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {row.days?.[today] > 0 && (
+                              <span className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">
+                                +{row.days[today]} dziś
+                              </span>
+                            )}
+                            <span className="text-base font-black text-white w-12 text-right">{row.total}</span>
+                          </div>
                         </div>
-                        <span className="text-xs font-black text-slate-700 w-10 text-right">{row.total}</span>
+                      );
+                    })}
+                  </div>
+                ) : statsTab === 'chart' ? (
+                  <div className="pt-4 space-y-3">
+                    {stats.slice(0, 12).map((row, i) => {
+                      const label = '/' + row.path.replace(/_/g, '/').replace(/^\//, '');
+                      const max = stats[0]?.total || 1;
+                      const pct = Math.round(((row.total || 0) / max) * 100);
+                      const color = barColors[i % barColors.length];
+                      return (
+                        <div key={row.path}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-mono text-white/60 truncate max-w-[240px]">{label}</span>
+                            <span className="text-xs font-black text-white ml-2">{row.total}</span>
+                          </div>
+                          <div className="h-3 bg-white/5 rounded-full overflow-hidden">
+                            <div className={`h-3 ${color} rounded-full transition-all duration-700`}
+                              style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : /* today */ (
+                  <div className="pt-2 space-y-2">
+                    {stats.filter(r => (r.days?.[today] || 0) > 0)
+                      .sort((a, b) => (b.days?.[today] || 0) - (a.days?.[today] || 0))
+                      .map(row => {
+                        const label = '/' + row.path.replace(/_/g, '/').replace(/^\//, '');
+                        const max = Math.max(...stats.map(r => r.days?.[today] || 0), 1);
+                        const pct = Math.round(((row.days?.[today] || 0) / max) * 100);
+                        return (
+                          <div key={row.path} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 rounded-2xl px-4 py-3 transition-colors">
+                            <span className="flex-1 text-sm font-mono text-white/80 truncate">{label}</span>
+                            <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden shrink-0">
+                              <div className="h-2 bg-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                            <span className="text-emerald-400 font-black text-sm w-8 text-right shrink-0">{row.days[today]}</span>
+                          </div>
+                        );
+                      })}
+                    {stats.every(r => !(r.days?.[today] > 0)) && (
+                      <div className="text-center py-12 text-white/30">
+                        <div className="text-4xl mb-2">🌙</div>
+                        <p className="text-sm font-bold">Brak odwiedzin dzisiaj</p>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
-              <p className="text-[10px] text-slate-300 text-center mt-6 uppercase tracking-widest">Dane zbierane od momentu wdrożenia · tylko zalogowani użytkownicy</p>
-            </div>
-            <div className="p-4 border-t border-slate-100 shrink-0 flex justify-end">
-              <button onClick={loadStats} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
-                Odśwież dane
-              </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* FOOTER */}
+              <div className="px-7 py-4 border-t border-white/10 shrink-0 flex items-center justify-between">
+                <p className="text-[10px] text-white/20 uppercase tracking-widest">
+                  {statsRefreshedAt ? `Odświeżono: ${statsRefreshedAt.toLocaleTimeString('pl-PL')}` : 'Tylko zalogowani użytkownicy'}
+                </p>
+                <button onClick={loadStats}
+                  className="text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider">
+                  Odśwież
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ==================================================== */}
       {/* MODAL: NOTATKI (TYLKO DLA ADMINA) */}
       {/* ==================================================== */}
-      {showNotes && isAdmin && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowNotes(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-bounceIn">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">📝 Notatki Zarządu</h3>
-              <button onClick={() => setShowNotes(false)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-200 rounded-full transition-colors">
-                <Icons.Close />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
-              {notesLoading ? (
-                <div className="h-48 bg-slate-100 animate-pulse rounded-xl" />
-              ) : (
-                <textarea
-                  value={notesText}
-                  onChange={e => setNotesText(e.target.value)}
-                  placeholder="Wpisz notatki, TODO, przypomnienia dla Zarządu..."
-                  className="flex-1 min-h-[240px] w-full border border-slate-200 rounded-2xl p-4 text-sm text-slate-800 font-medium resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
-                />
-              )}
-              <p className="text-[10px] text-slate-400 uppercase tracking-widest">Notatki zapisywane w Firestore · widoczne dla wszystkich adminów</p>
-            </div>
-            <div className="p-6 border-t border-slate-100 shrink-0 flex justify-end gap-3">
-              <button onClick={() => setShowNotes(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
-                Zamknij
-              </button>
-              <button onClick={saveNotes} disabled={notesLoading}
-                className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black shadow-lg shadow-violet-600/30 transition-all active:scale-95 disabled:opacity-70">
-                {notesSaved ? '✓ Zapisano!' : 'Zapisz notatki'}
-              </button>
+      {showNotes && isAdmin && (() => {
+        const PIN_COLORS = {
+          yellow: { bg: 'bg-amber-400',   text: 'text-amber-900',  border: 'border-amber-300',  card: 'bg-amber-50'   },
+          blue:   { bg: 'bg-blue-500',    text: 'text-blue-900',   border: 'border-blue-300',   card: 'bg-blue-50'    },
+          green:  { bg: 'bg-emerald-500', text: 'text-emerald-900',border: 'border-emerald-300',card: 'bg-emerald-50' },
+          red:    { bg: 'bg-rose-500',    text: 'text-rose-900',   border: 'border-rose-300',   card: 'bg-rose-50'    },
+          purple: { bg: 'bg-violet-500',  text: 'text-violet-900', border: 'border-violet-300', card: 'bg-violet-50'  },
+        };
+        const notesTabDefs = [
+          { id: 'notes', label: '📝 Notatki',    icon: '📝' },
+          { id: 'todo',  label: '✅ TODO',        icon: '✅' },
+          { id: 'pins',  label: '📌 Pinezki',     icon: '📌' },
+        ];
+        const doneTodos = todos.filter(t => t.done).length;
+
+        return (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowNotes(false)} />
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden">
+
+              {/* NAGŁÓWEK */}
+              <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-7 pt-6 pb-0 shrink-0">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-[10px] font-black text-violet-200 uppercase tracking-[0.2em] mb-0.5">Panel Administracyjny</p>
+                    <h2 className="text-xl font-black text-white">Notatki Zarządu</h2>
+                  </div>
+                  <button onClick={() => setShowNotes(false)}
+                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all">
+                    <Icons.Close />
+                  </button>
+                </div>
+                {/* TABS */}
+                <div className="flex gap-0.5">
+                  {notesTabDefs.map(t => (
+                    <button key={t.id} onClick={() => setNotesTab(t.id)}
+                      className={`px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all ${
+                        notesTab === t.id
+                          ? 'bg-white text-violet-700'
+                          : 'text-violet-200 hover:text-white hover:bg-white/10'}`}>
+                      {t.label}
+                      {t.id === 'todo' && todos.length > 0 && (
+                        <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${notesTab === 'todo' ? 'bg-violet-100 text-violet-600' : 'bg-white/20 text-white'}`}>
+                          {doneTodos}/{todos.length}
+                        </span>
+                      )}
+                      {t.id === 'pins' && pins.length > 0 && (
+                        <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${notesTab === 'pins' ? 'bg-violet-100 text-violet-600' : 'bg-white/20 text-white'}`}>
+                          {pins.length}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TREŚĆ */}
+              <div className="flex-1 overflow-y-auto">
+
+                {/* --- NOTATKI --- */}
+                {notesTab === 'notes' && (
+                  notesLoading ? (
+                    <div className="p-6"><div className="h-52 bg-slate-100 animate-pulse rounded-2xl" /></div>
+                  ) : (
+                    <div className="p-6 flex flex-col gap-3 h-full">
+                      <textarea
+                        value={notesText}
+                        onChange={e => setNotesText(e.target.value)}
+                        placeholder="Swobodne notatki, agendy spotkań, linki, przypomnienia…"
+                        className="w-full min-h-[280px] border border-slate-200 rounded-2xl p-4 text-sm text-slate-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all font-medium"
+                      />
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">Widoczne dla wszystkich adminów · Firestore</p>
+                        <button onClick={() => saveNotes()}
+                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black shadow-lg transition-all active:scale-95 ${
+                            notesSaved
+                              ? 'bg-emerald-500 text-white shadow-emerald-500/30'
+                              : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-600/30'}`}>
+                          {notesSaved ? '✓ Zapisano!' : 'Zapisz'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                )}
+
+                {/* --- TODO --- */}
+                {notesTab === 'todo' && (
+                  <div className="p-6 space-y-4">
+                    {/* Dodaj nowe */}
+                    <div className="flex gap-2">
+                      <input
+                        value={newTodo}
+                        onChange={e => setNewTodo(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addTodo()}
+                        placeholder="Nowe zadanie… (Enter, aby dodać)"
+                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
+                      />
+                      <button onClick={addTodo}
+                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-violet-600/20">
+                        +
+                      </button>
+                    </div>
+
+                    {/* Lista */}
+                    {todos.length === 0 ? (
+                      <div className="text-center py-10 text-slate-300">
+                        <div className="text-4xl mb-2">☑️</div>
+                        <p className="text-sm font-bold">Lista zadań jest pusta</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {todos.filter(t => !t.done).map(t => (
+                          <div key={t.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 group">
+                            <button onClick={() => toggleTodo(t.id)}
+                              className="w-5 h-5 rounded border-2 border-slate-300 hover:border-violet-500 flex items-center justify-center shrink-0 transition-colors" />
+                            <span className="flex-1 text-sm text-slate-700 font-medium">{t.text}</span>
+                            <button onClick={() => deleteTodo(t.id)}
+                              className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
+                              <Icons.Trash />
+                            </button>
+                          </div>
+                        ))}
+                        {todos.some(t => t.done) && (
+                          <>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">Ukończone</p>
+                            {todos.filter(t => t.done).map(t => (
+                              <div key={t.id} className="flex items-center gap-3 bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-3 group opacity-60">
+                                <button onClick={() => toggleTodo(t.id)}
+                                  className="w-5 h-5 rounded bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center shrink-0 text-white text-xs font-black">
+                                  ✓
+                                </button>
+                                <span className="flex-1 text-sm text-slate-400 line-through">{t.text}</span>
+                                <button onClick={() => deleteTodo(t.id)}
+                                  className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
+                                  <Icons.Trash />
+                                </button>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* --- PINEZKI --- */}
+                {notesTab === 'pins' && (
+                  <div className="p-6 space-y-4">
+                    {/* Dodaj nową */}
+                    <div className="flex gap-2">
+                      <input
+                        value={newPin}
+                        onChange={e => setNewPin(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && addPin()}
+                        placeholder="Nowa pinezka… (Enter, aby dodać)"
+                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
+                      />
+                      {/* Wybór koloru */}
+                      <div className="flex gap-1 items-center bg-slate-50 border border-slate-200 rounded-xl px-2">
+                        {Object.entries(PIN_COLORS).map(([key, c]) => (
+                          <button key={key} onClick={() => setNewPinColor(key)}
+                            className={`w-5 h-5 rounded-full ${c.bg} transition-transform ${newPinColor === key ? 'scale-125 ring-2 ring-offset-1 ring-slate-400' : 'hover:scale-110'}`} />
+                        ))}
+                      </div>
+                      <button onClick={addPin}
+                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-violet-600/20">
+                        +
+                      </button>
+                    </div>
+
+                    {/* Siatka pinezek */}
+                    {pins.length === 0 ? (
+                      <div className="text-center py-10 text-slate-300">
+                        <div className="text-4xl mb-2">📌</div>
+                        <p className="text-sm font-bold">Brak pinezek</p>
+                        <p className="text-xs mt-1">Dodaj krótką notatkę z kolorem</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {pins.map(pin => {
+                          const c = PIN_COLORS[pin.color] || PIN_COLORS.yellow;
+                          return (
+                            <div key={pin.id} className={`${c.card} border ${c.border} rounded-2xl p-4 relative group shadow-sm`}>
+                              <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${c.bg} shadow-sm`} />
+                              <button onClick={() => deletePin(pin.id)}
+                                className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 w-5 h-5 bg-white/80 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition-all shadow-sm">
+                                <span className="text-[10px] font-black">×</span>
+                              </button>
+                              <p className={`text-sm font-semibold ${c.text} leading-snug pr-4 pt-2`}>{pin.text}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ==================================================== */}
       {/* MODAL DODAWANIA OGŁOSZENIA (TYLKO DLA ADMINA) */}
