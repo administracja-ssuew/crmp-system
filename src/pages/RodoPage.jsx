@@ -677,183 +677,149 @@ export default function RodoPage() {
 
   // ─── GENERATOR PDF ───────────────────────────────────────────────────────────
 
-  // ─── HELPER: jsPDF nie obsługuje polskich znaków w built-in fontach
-  const pl = s => String(s)
-    .replace(/ą/g,'a').replace(/Ą/g,'A').replace(/ć/g,'c').replace(/Ć/g,'C')
-    .replace(/ę/g,'e').replace(/Ę/g,'E').replace(/ł/g,'l').replace(/Ł/g,'L')
-    .replace(/ń/g,'n').replace(/Ń/g,'N').replace(/ó/g,'o').replace(/Ó/g,'O')
-    .replace(/ś/g,'s').replace(/Ś/g,'S').replace(/ź/g,'z').replace(/Ź/g,'Z')
-    .replace(/ż/g,'z').replace(/Ż/g,'Z');
+  // ─── HELPER: renderuje HTML do PDF przez pdf.html() — pełne Unicode, polskie znaki ─
 
-  const generateUpowaznienie = () => {
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-    const M = 20;          // lewy margines
-    const W = 170;         // szerokość tekstu (210 - 2*20)
-    const lh = (fs) => fs * 0.4 + 1.5; // odstęp linii w mm dla danego font-size pt
-    let y = 22;
+  const renderHtmlToPdf = useCallback((htmlContent, filename, onDone) => {
+    const container = document.createElement('div');
+    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;';
+    container.innerHTML = htmlContent;
+    document.body.appendChild(container);
+    const pdf = new jsPDF({ unit: 'px', format: 'a4', hotfixes: ['px_scaling'] });
+    pdf.html(container, {
+      callback: (doc) => {
+        document.body.removeChild(container);
+        doc.save(filename);
+        if (onDone) onDone();
+      },
+      x: 0, y: 0,
+      width: 794,
+      windowWidth: 794,
+      margin: [30, 40, 30, 40],
+    });
+  }, []);
 
-    const addLine = (txt, fs, bold, indent = 0, center = false) => {
-      pdf.setFont('helvetica', bold ? 'bold' : 'normal');
-      pdf.setFontSize(fs);
-      const lines = pdf.splitTextToSize(pl(txt), W - indent);
-      if (y + lines.length * lh(fs) > 277) { pdf.addPage(); y = 20; }
-      lines.forEach(l => {
-        if (center) pdf.text(l, 105, y, { align: 'center' });
-        else pdf.text(l, M + indent, y);
-        y += lh(fs);
-      });
-    };
-    const gap = (mm = 4) => { y += mm; };
-    const hr = () => { pdf.setDrawColor(180); pdf.line(M, y, M + W, y); gap(4); pdf.setDrawColor(0); };
+  // ─── GENERATOR UPOWAŻNIEŃ ────────────────────────────────────────────────────
 
-    // Nagłówek
-    addLine('UPOWAZNIENIE DO PRZETWARZANIA DANYCH OSOBOWYCH', 13, true, 0, true);
-    gap(1);
-    addLine('Samorzad Studentow Uniwersytetu Ekonomicznego we Wroclawiu', 9, false, 0, true);
-    addLine(pl(`jednostka organizacyjna Administratora - Uniwersytetu Ekonomicznego we Wroclawiu`), 8, false, 0, true);
-    gap(3);
-    hr();
+  const generateUpowaznienie = useCallback(() => {
+    const dostepyHtml = [
+      genForm.dostepCRA      && '<li>dostęp do systemu CRA</li>',
+      genForm.dostepDrive    && '<li>dostęp do Google Drive SSUEW</li>',
+      genForm.dostepPoczta   && '<li>dostęp do poczty samorządowej (@samorzad.ue.wroc.pl)</li>',
+      genForm.dostepFizyczny && '<li>dostęp do dokumentacji fizycznej</li>',
+      genForm.dostepArchiwum && '<li>dostęp do archiwum dokumentów</li>',
+    ].filter(Boolean).join('') || '<li><em>(brak zaznaczonego zakresu dostępu)</em></li>';
 
-    // Data i numer
-    addLine(pl(`Wroclaw, dnia ${new Date().toLocaleDateString('pl-PL')}`), 10, false);
-    gap(2);
-    addLine(pl(`Nr upowaznienia: ___/RODO/${new Date().getFullYear()}`), 11, true);
-    gap(5);
+    const dataDoStr = genForm.dataDo
+      ? new Date(genForm.dataDo).toLocaleDateString('pl-PL')
+      : '_______________';
 
-    // Podstawa
-    addLine(pl('Na podstawie art. 29 Rozporzadzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO), dzialajac w imieniu Administratora – Uniwersytetu Ekonomicznego we Wroclawiu – upowazniam:'), 10, false);
-    gap(5);
+    const html = `
+      <div style="font-family:Arial,sans-serif;font-size:11px;color:#111;line-height:1.65;padding:0 10px;">
+        <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:12px;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Upoważnienie do przetwarzania danych osobowych</div>
+          <div style="font-size:10px;">Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu</div>
+          <div style="font-size:9px;color:#555;">(jednostka organizacyjna Administratora — Uniwersytetu Ekonomicznego we Wrocławiu)</div>
+        </div>
 
-    // Dane osoby
-    pdf.setFillColor(248, 248, 252);
-    pdf.roundedRect(M, y - 2, W, 22, 2, 2, 'F');
-    addLine(pl(`Imie i nazwisko:   ${genForm.imieNazwisko}`), 10, false, 3);
-    addLine(pl(`Funkcja:           ${genForm.funkcja}`), 10, false, 3);
-    gap(6);
+        <table style="width:100%;margin-bottom:12px;font-size:10px;"><tr>
+          <td>Wrocław, dnia <strong>${new Date().toLocaleDateString('pl-PL')}</strong></td>
+          <td style="text-align:right;">Nr: <strong>___/RODO/${new Date().getFullYear()}</strong></td>
+        </tr></table>
 
-    // Zakres
-    addLine(pl('do przetwarzania danych osobowych w zakresie niezbednym do pelnienia powierzonej funkcji w Samorzadzie Studentow UEW, w szczegolnosci:'), 10, false);
-    gap(2);
-    const dostepy = [
-      genForm.dostepCRA      && pl('dostep do systemu CRA'),
-      genForm.dostepDrive    && pl('dostep do Google Drive SSUEW'),
-      genForm.dostepPoczta   && pl('dostep do poczty samorzadowej (@samorzad.ue.wroc.pl)'),
-      genForm.dostepFizyczny && pl('dostep do dokumentacji fizycznej'),
-      genForm.dostepArchiwum && pl('dostep do archiwum dokumentow'),
-    ].filter(Boolean);
-    if (dostepy.length === 0) {
-      addLine('(brak zaznaczonego zakresu dostepu)', 10, false, 6);
-    } else {
-      dostepy.forEach(d => { addLine(`\u2022  ${d}`, 10, false, 6); });
-    }
-    gap(4);
+        <p style="margin:0 0 12px;">Na podstawie art. 29 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO), działając w imieniu Administratora — Uniwersytetu Ekonomicznego we Wrocławiu — upoważniam:</p>
 
-    // Okres
-    addLine(pl(`Upowaznienie obowiazuje do: ${genForm.dataDo ? new Date(genForm.dataDo).toLocaleDateString('pl-PL') : '_______________'}`), 10, true);
-    gap(2);
-    if (genForm.uwagi?.trim()) {
-      addLine(pl(`Uwagi: ${genForm.uwagi}`), 9, false);
-      gap(2);
-    }
+        <div style="background:#f4f4fb;border:1px solid #ccc;border-radius:4px;padding:10px 14px;margin:0 0 12px;">
+          <div style="margin-bottom:5px;"><strong>Imię i nazwisko:</strong>&nbsp; ${genForm.imieNazwisko}</div>
+          <div><strong>Funkcja:</strong>&nbsp; ${genForm.funkcja}</div>
+        </div>
 
-    // Zobowiązanie
-    gap(2);
-    addLine(pl('Osoba upowazn iona zobowiazuje sie do zachowania w tajemnicy wszelkich danych osobowych przetwarzanych w zwiazku z pelniona funkcja, rowniez po jej zakonczeniu.'), 9, false);
-    gap(8);
+        <p style="margin:0 0 6px;">do przetwarzania danych osobowych w zakresie niezbędnym do pełnienia powierzonej funkcji w Samorządzie Studentów UEW, w szczególności:</p>
+        <ul style="margin:0 0 12px 18px;padding:0;">${dostepyHtml}</ul>
 
-    hr();
+        <p style="margin:0 0 6px;"><strong>Upoważnienie obowiązuje do:</strong>&nbsp; ${dataDoStr}</p>
+        ${genForm.uwagi?.trim() ? `<p style="margin:0 0 12px;"><strong>Uwagi:</strong>&nbsp; ${genForm.uwagi}</p>` : ''}
 
-    // Podpisy
-    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
-    const col1 = M, col2 = M + W / 2 + 5;
-    pdf.text('........................................', col1, y);
-    pdf.text('........................................', col2, y);
-    y += lh(9);
-    pdf.text(pl('Czl. Zarzadu ds. Administracji SSUEW'), col1, y);
-    pdf.text(pl('Osoba upowazn iona (podpis)'), col2, y);
-    y += lh(9);
-    pdf.text(pl('(dzialajacy/-a w imieniu Administratora)'), col1, y);
-    gap(10);
+        <p style="margin:14px 0;font-size:10px;color:#333;background:#fafafa;border-left:3px solid #bbb;padding:8px 10px;">
+          Osoba upoważniona zobowiązuje się do zachowania w tajemnicy wszelkich danych osobowych przetwarzanych w związku z pełnioną funkcją, również po jej zakończeniu (art. 28 ust. 3 lit. b RODO).
+        </p>
 
-    // Stopka
-    pdf.setFontSize(7); pdf.setTextColor(120);
-    pdf.text(pl('Kontakt IOD UEW: iod@ue.wroc.pl  |  Dokument sporzadzony w systemie CRA SSUEW'), 105, 287, { align: 'center' });
+        <p style="font-size:9px;color:#555;margin:0 0 50px;">
+          <strong>Podstawa prawna:</strong> art. 29 RODO, art. 111 ustawy Prawo o szkolnictwie wyższym i nauce.<br/>
+          Upoważnienie wydane przez Członka Zarządu ds. Administracji SSUEW działającego w imieniu Administratora — UEW.
+        </p>
 
-    pdf.save(`upowaznienie_${pl(genForm.imieNazwisko).replace(/\s+/g,'_') || 'rodo'}.pdf`);
-  };
+        <table style="width:100%;margin-top:70px;font-size:10px;"><tr>
+          <td style="width:46%;text-align:center;border-top:1px solid #444;padding-top:8px;">
+            Członek Zarządu ds. Administracji SSUEW<br/>
+            <span style="font-size:9px;color:#666;">(działający/a w imieniu Administratora — UEW)</span>
+          </td>
+          <td style="width:8%;"></td>
+          <td style="width:46%;text-align:center;border-top:1px solid #444;padding-top:8px;">
+            Osoba upoważniona — podpis i data
+          </td>
+        </tr></table>
+
+        <div style="margin-top:40px;border-top:1px solid #ddd;padding-top:6px;font-size:8px;color:#888;text-align:center;">
+          Kontakt IOD UEW: iod@ue.wroc.pl &nbsp;|&nbsp; Dokument sporządzony w systemie CRA SSUEW
+        </div>
+      </div>`;
+
+    renderHtmlToPdf(html, `upowaznienie_${genForm.imieNazwisko.replace(/\s+/g,'_') || 'rodo'}.pdf`);
+  }, [genForm, renderHtmlToPdf]);
 
   // ─── INCYDENT PDF ─────────────────────────────────────────────────────────────
 
-  const generateIncydentPDF = () => {
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
-    const M = 20; const W = 170;
-    const lh = (fs) => fs * 0.4 + 1.5;
-    let y = 22;
-
-    const addLine = (txt, fs, bold, indent = 0, center = false) => {
-      pdf.setFont('helvetica', bold ? 'bold' : 'normal');
-      pdf.setFontSize(fs);
-      const lines = pdf.splitTextToSize(pl(String(txt)), W - indent);
-      if (y + lines.length * lh(fs) > 277) { pdf.addPage(); y = 20; }
-      lines.forEach(l => {
-        if (center) pdf.text(l, 105, y, { align: 'center' });
-        else pdf.text(l, M + indent, y);
-        y += lh(fs);
-      });
-    };
-    const gap = (mm = 4) => { y += mm; };
-    const hr = (light = false) => {
-      pdf.setDrawColor(light ? 210 : 160);
-      pdf.line(M, y, M + W, y);
-      gap(light ? 3 : 4);
-      pdf.setDrawColor(0);
-    };
-
-    // Nagłówek
-    addLine('KARTA INCYDENTU', 14, true, 0, true);
-    addLine('NARUSZENIE OCHRONY DANYCH OSOBOWYCH', 11, true, 0, true);
-    gap(1);
-    addLine(pl('Samorzad Studentow UEW (j.o. Administratora - Uniwersytetu Ekonomicznego we Wroclawiu)'), 8, false, 0, true);
-    addLine(pl(`Sporzadzono: ${new Date().toLocaleString('pl-PL')}`), 8, false, 0, true);
-    gap(3);
-    hr();
-
-    INCIDENT_STEPS.slice(0, -1).forEach((s, si) => {
-      // Nagłówek sekcji
-      pdf.setFillColor(245, 245, 250);
-      pdf.rect(M, y - 1, W, lh(10) + 2, 'F');
-      addLine(pl(`${si + 1}. ${s.label}`), 10, true);
-      gap(1);
-
-      s.fields.forEach(f => {
-        addLine(pl(`${f}:`), 9, true, 2);
+  const generateIncydentPDF = useCallback(() => {
+    const sekcjeHtml = INCIDENT_STEPS.slice(0, -1).map((s, si) => {
+      const fieldsHtml = s.fields.map(f => {
         const val = incAnswers[`${si}_${f}`]?.trim() || '—';
-        addLine(pl(val), 9, false, 6);
-        gap(2);
-      });
-      hr(true);
-    });
+        return `
+          <div style="margin-bottom:10px;">
+            <div style="font-weight:bold;font-size:10px;color:#333;margin-bottom:3px;">${f}:</div>
+            <div style="background:#fafafa;border:1px solid #ddd;border-radius:3px;padding:7px 10px;min-height:22px;font-size:10px;">${val}</div>
+          </div>`;
+      }).join('');
+      return `
+        <div style="margin-bottom:16px;">
+          <div style="background:#ededf5;border-left:3px solid #555;padding:5px 10px;font-weight:bold;font-size:11px;margin-bottom:8px;">${si + 1}. ${s.label}</div>
+          ${fieldsHtml}
+        </div>`;
+    }).join('');
 
-    gap(4);
-    hr();
+    const html = `
+      <div style="font-family:Arial,sans-serif;font-size:11px;color:#111;line-height:1.65;padding:0 10px;">
+        <div style="text-align:center;border-bottom:2px solid #222;padding-bottom:12px;margin-bottom:16px;">
+          <div style="font-size:14px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;">Karta Incydentu</div>
+          <div style="font-size:11px;font-weight:bold;">Naruszenie ochrony danych osobowych</div>
+          <div style="font-size:9px;color:#555;margin-top:4px;">Samorząd Studentów UEW (j.o. Administratora — Uniwersytetu Ekonomicznego we Wrocławiu)</div>
+          <div style="font-size:9px;color:#555;">Sporządzono: ${new Date().toLocaleString('pl-PL')}</div>
+        </div>
 
-    // Podpisy
-    pdf.setFontSize(9); pdf.setFont('helvetica', 'normal');
-    const col1 = M, col2 = M + W / 2 + 5;
-    pdf.text('........................................', col1, y);
-    pdf.text('........................................', col2, y);
-    y += lh(9) + 1;
-    pdf.text(pl('Sporzadzajacy/-a'), col1, y);
-    pdf.text(pl('Czl. Zarzadu ds. Administracji SSUEW'), col2, y);
-    gap(8);
+        ${sekcjeHtml}
 
-    // Stopka
-    pdf.setFontSize(7); pdf.setTextColor(120);
-    pdf.text(pl('Kontakt IOD UEW: iod@ue.wroc.pl  |  Zgloszenie do UODO w ciagu 72h od wykrycia (art. 33 RODO)'), 105, 287, { align: 'center' });
+        <p style="font-size:9px;color:#555;background:#fafafa;border-left:3px solid #bbb;padding:7px 10px;margin:0 0 50px;">
+          <strong>Podstawa prawna:</strong> art. 33 ust. 5 RODO — obowiązek dokumentowania naruszeń.<br/>
+          Przy prawdopodobnym ryzyku: niezwłoczne zgłoszenie do IOD UEW (iod@ue.wroc.pl), następnie do UODO w ciągu 72 godzin od wykrycia.
+        </p>
 
-    pdf.save(`incydent_rodo_${new Date().toISOString().slice(0, 10)}.pdf`);
-    setIncDone(true);
-  };
+        <table style="width:100%;margin-top:70px;font-size:10px;"><tr>
+          <td style="width:46%;text-align:center;border-top:1px solid #444;padding-top:8px;">
+            Sporządzający/a — podpis i data
+          </td>
+          <td style="width:8%;"></td>
+          <td style="width:46%;text-align:center;border-top:1px solid #444;padding-top:8px;">
+            Członek Zarządu ds. Administracji SSUEW<br/>
+            <span style="font-size:9px;color:#666;">(podpis i data)</span>
+          </td>
+        </tr></table>
+
+        <div style="margin-top:40px;border-top:1px solid #ddd;padding-top:6px;font-size:8px;color:#888;text-align:center;">
+          Kontakt IOD UEW: iod@ue.wroc.pl &nbsp;|&nbsp; Zgłoszenie do UODO w ciągu 72h od wykrycia (art. 33 RODO)
+        </div>
+      </div>`;
+
+    renderHtmlToPdf(html, `incydent_rodo_${new Date().toISOString().slice(0,10)}.pdf`, () => setIncDone(true));
+  }, [incAnswers, renderHtmlToPdf]);
 
 
   const progress = Math.round((checks.length / CHECKLIST_ITEMS.length) * 100);
@@ -1352,7 +1318,7 @@ export default function RodoPage() {
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Funkcja / stanowisko</label>
                   <input type="text" value={genForm.funkcja}
                     onChange={e => setGenForm(p => ({ ...p, funkcja: e.target.value }))}
-                    placeholder="Sekretarz Zarządu"
+                    placeholder="Członek Zarządu ds. Administracji Projektu X"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-medium text-slate-800 focus:outline-none focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 transition-all" />
                 </div>
                 <div>
