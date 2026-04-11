@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CRED_API_URL, NOTICES_API_URL } from '../config';
 import { useGASFetch } from '../hooks/useGASFetch';
 import MyApplications from '../components/MyApplications';
+import { db } from '../firebase';
+import { collection, getDocs, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
@@ -56,6 +58,52 @@ export default function DashboardPage() {
   const [searchResult, setSearchResult] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+
+  // === ADMIN: STATYSTYKI ===
+  const [showStats, setShowStats] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  const loadStats = useCallback(async () => {
+    setStatsLoading(true);
+    try {
+      const snap = await getDocs(collection(db, 'page_stats'));
+      const rows = snap.docs.map(d => ({ path: d.id, ...d.data() }))
+        .sort((a, b) => (b.total || 0) - (a.total || 0));
+      setStats(rows);
+    } catch { setStats([]); }
+    setStatsLoading(false);
+  }, []);
+
+  useEffect(() => { if (showStats && isAdmin) loadStats(); }, [showStats, isAdmin, loadStats]);
+
+  // === ADMIN: NOTATKI ===
+  const [showNotes, setShowNotes] = useState(false);
+  const [notesText, setNotesText] = useState('');
+  const [notesSaved, setNotesSaved] = useState(false);
+  const [notesLoading, setNotesLoading] = useState(false);
+
+  const loadNotes = useCallback(async () => {
+    setNotesLoading(true);
+    try {
+      const snap = await getDoc(doc(db, 'admin_data', 'notes'));
+      setNotesText(snap.exists() ? snap.data().content || '' : '');
+    } catch { setNotesText(''); }
+    setNotesLoading(false);
+  }, []);
+
+  const saveNotes = useCallback(async () => {
+    try {
+      await setDoc(doc(db, 'admin_data', 'notes'), {
+        content: notesText,
+        updatedAt: Timestamp.now(),
+      });
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2500);
+    } catch { /* silent */ }
+  }, [notesText]);
+
+  useEffect(() => { if (showNotes && isAdmin) loadNotes(); }, [showNotes, isAdmin, loadNotes]);
 
   // Synchronizuj ogłoszenia z rawNotices (cache → natychmiastowe ładowanie przy kolejnych wizytach)
   // notices pozostaje jako mutable state dla lokalnych operacji add/delete
@@ -383,15 +431,138 @@ export default function DashboardPage() {
           {isAdmin && (
             <>
               <Card to="/wnioski" icon="📥" title="Panel Wniosków" subtitle="Zarządzaj dostępem do CRA" colorFrom="from-rose-500" colorTo="to-pink-700" buttonText="Rozpatrz Wnioski" />
+
+              {/* KAFELEK: STATYSTYKI */}
+              <button onClick={() => setShowStats(true)}
+                className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)] text-left">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-700 to-slate-900 group-hover:scale-110 transition-transform duration-700 -z-10" />
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10" />
+                <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">📊</div>
+                  <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight">Statystyki Systemu</h2>
+                  <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">Odwiedziny i aktywność — tylko Admin</p>
+                  <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
+                    Otwórz Statystyki
+                  </div>
+                </div>
+              </button>
+
+              {/* KAFELEK: NOTATKI */}
+              <button onClick={() => setShowNotes(true)}
+                className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)] text-left">
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-700 to-purple-900 group-hover:scale-110 transition-transform duration-700 -z-10" />
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10" />
+                <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">📝</div>
+                  <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight">Notatki Zarządu</h2>
+                  <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">Wspólna tablica notatek — tylko Admin</p>
+                  <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
+                    Otwórz Notatki
+                  </div>
+                </div>
+              </button>
             </>
           )}
         </div>
 
-        <footer className="mt-16 opacity-50 flex flex-col items-center gap-2">
-          <div className="h-[1px] w-10 bg-slate-300"></div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Powered by Samorząd Studentów UEW</p>
+        <footer className="mt-16 flex flex-col items-center gap-2">
+          <div className="h-[1px] w-10 bg-slate-300 opacity-50"></div>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] opacity-50">Powered by Samorząd Studentów UEW</p>
+          {/* Podpis autora — celowo dyskretny, ale trwale obecny w kodzie i renderze */}
+          <p className="text-[9px] text-slate-300 tracking-[0.15em] select-none mt-1">
+            system by{' '}
+            <span className="font-semibold text-slate-300/70">Mikołaj Radliński</span>
+          </p>
         </footer>
       </div>
+
+      {/* ==================================================== */}
+      {/* MODAL: STATYSTYKI (TYLKO DLA ADMINA) */}
+      {/* ==================================================== */}
+      {showStats && isAdmin && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowStats(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-bounceIn">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">📊 Statystyki odwiedzin</h3>
+              <button onClick={() => setShowStats(false)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-200 rounded-full transition-colors">
+                <Icons.Close />
+              </button>
+            </div>
+            <div className="overflow-y-auto flex-1 p-6">
+              {statsLoading ? (
+                <div className="space-y-2">
+                  {[...Array(6)].map((_, i) => <div key={i} className="h-10 bg-slate-100 animate-pulse rounded-xl" />)}
+                </div>
+              ) : !stats || stats.length === 0 ? (
+                <p className="text-slate-400 text-sm text-center py-8">Brak danych statystycznych. Dane pojawią się po pierwszych odwiedzinach podstron.</p>
+              ) : (
+                <div className="space-y-2">
+                  {stats.map(row => {
+                    const label = '/' + row.path.replace(/_/g, '/').replace(/^\//, '');
+                    const max = stats[0]?.total || 1;
+                    const pct = Math.round(((row.total || 0) / max) * 100);
+                    return (
+                      <div key={row.path} className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-slate-500 w-44 shrink-0 truncate">{label}</span>
+                        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                          <div className="h-2.5 bg-indigo-500 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs font-black text-slate-700 w-10 text-right">{row.total}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-[10px] text-slate-300 text-center mt-6 uppercase tracking-widest">Dane zbierane od momentu wdrożenia · tylko zalogowani użytkownicy</p>
+            </div>
+            <div className="p-4 border-t border-slate-100 shrink-0 flex justify-end">
+              <button onClick={loadStats} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                Odśwież dane
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL: NOTATKI (TYLKO DLA ADMINA) */}
+      {/* ==================================================== */}
+      {showNotes && isAdmin && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowNotes(false)} />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-bounceIn">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h3 className="font-black text-slate-800 text-lg flex items-center gap-2">📝 Notatki Zarządu</h3>
+              <button onClick={() => setShowNotes(false)} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:bg-slate-200 rounded-full transition-colors">
+                <Icons.Close />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
+              {notesLoading ? (
+                <div className="h-48 bg-slate-100 animate-pulse rounded-xl" />
+              ) : (
+                <textarea
+                  value={notesText}
+                  onChange={e => setNotesText(e.target.value)}
+                  placeholder="Wpisz notatki, TODO, przypomnienia dla Zarządu..."
+                  className="flex-1 min-h-[240px] w-full border border-slate-200 rounded-2xl p-4 text-sm text-slate-800 font-medium resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
+                />
+              )}
+              <p className="text-[10px] text-slate-400 uppercase tracking-widest">Notatki zapisywane w Firestore · widoczne dla wszystkich adminów</p>
+            </div>
+            <div className="p-6 border-t border-slate-100 shrink-0 flex justify-end gap-3">
+              <button onClick={() => setShowNotes(false)} className="px-5 py-2.5 text-sm font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors">
+                Zamknij
+              </button>
+              <button onClick={saveNotes} disabled={notesLoading}
+                className="flex items-center gap-2 px-6 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black shadow-lg shadow-violet-600/30 transition-all active:scale-95 disabled:opacity-70">
+                {notesSaved ? '✓ Zapisano!' : 'Zapisz notatki'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ==================================================== */}
       {/* MODAL DODAWANIA OGŁOSZENIA (TYLKO DLA ADMINA) */}

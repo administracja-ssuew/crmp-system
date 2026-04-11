@@ -3,7 +3,8 @@
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
-import { logout } from "./firebase";
+import { logout, db } from "./firebase";
+import { doc, setDoc, increment } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, Link, Navigate } from 'react-router-dom';
 
@@ -29,6 +30,23 @@ import AdminAccessPanel from './pages/AdminAccessPanel';
 import AIBot from './AIBot';
 import ArchiwizacjaPage from './pages/ArchiwizacjaPage';
 import RodoPage from './pages/RodoPage';
+
+// === ŚLEDZENIE ODWIEDZIN (tylko dla zalogowanych) ===
+function PageTracker() {
+  const location = useLocation();
+  const { user } = useAuth();
+  useEffect(() => {
+    if (!user) return;
+    const path = location.pathname.replace(/\//g, '_').replace(/^_/, '') || 'home';
+    const today = new Date().toISOString().slice(0, 10);
+    setDoc(
+      doc(db, 'page_stats', path),
+      { total: increment(1), [`days.${today}`]: increment(1) },
+      { merge: true }
+    ).catch(() => {});
+  }, [location.pathname, user]);
+  return null;
+}
 
 function BackButton() {
   const location = useLocation();
@@ -122,6 +140,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-blue-200 relative">
+      <PageTracker />
       <BackButton />
       <UserProfile />
       <AIBot />
