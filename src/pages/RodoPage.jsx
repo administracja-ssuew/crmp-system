@@ -144,8 +144,8 @@ const LINKI = [
     color: 'rose',
     items: [
       { title: 'Strona główna UODO', desc: 'Oficjalny organ nadzorczy — informacje, poradniki, formularze zgłoszenia naruszenia, wzory klauzul i wyjaśnienia dla podmiotów przetwarzających.', url: 'https://uodo.gov.pl', badge: 'uodo.gov.pl' },
-      { title: 'Poradniki i wskazówki UODO', desc: 'Sekcja poradnikowa dla podmiotów — m.in. wytyczne dot. zgód, klauzul informacyjnych i praw osób. Rekomendowane jako uzupełnienie tego Hubu.', url: 'https://uodo.gov.pl/pl/83', badge: 'Poradniki' },
-      { title: 'Formularz zgłoszenia naruszenia do UODO', desc: 'Oficjalny formularz zgłoszenia naruszenia ochrony danych osobowych. Obowiązkowe przy naruszeniach wysokiego ryzyka — termin 72 godziny od wykrycia.', url: 'https://uodo.gov.pl/pl/134/233', badge: 'Zgłoszenie' },
+      { title: 'Poradniki i wskazówki UODO', desc: 'Sekcja poradnikowa dla podmiotów — m.in. wytyczne dot. zgód, klauzul informacyjnych i praw osób. Rekomendowane jako uzupełnienie tego Hubu.', url: 'https://uodo.gov.pl/pl/537', badge: 'Poradniki' },
+      { title: 'Formularz zgłoszenia naruszenia do UODO', desc: 'Oficjalny formularz zgłoszenia naruszenia ochrony danych osobowych. Obowiązkowe przy naruszeniach wysokiego ryzyka — termin 72 godziny od wykrycia.', url: 'https://www.biznes.gov.pl/pl/e-uslugi/00_0889_00', badge: 'Zgłoszenie' },
     ],
   },
   {
@@ -201,7 +201,6 @@ Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu
 5. Szczegółowe zasady organizacyjne i techniczne przetwarzania danych osobowych, w tym tryb nadawania upoważnień, zasady dostępu do danych, procedury reagowania na naruszenia oraz przekazywania dokumentacji, określa Instrukcja przetwarzania danych osobowych obowiązująca w SSUEW.
 
 § 2
-[KOREKTA PRAWNA — §2]: Poniższe brzmienie zastępuje pierwotną treść §2, w której SSUEW był błędnie wskazany jako administrator danych w rozumieniu RODO. SSUEW nie posiada osobowości prawnej i nie może pełnić funkcji administratora (art. 111 ustawy PSW).
 1. Administratorem danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu (UEW), ul. Komandorska 118/120, 53-345 Wrocław.
 2. SSUEW przetwarza dane osobowe jako jednostka organizacyjna UEW, na podstawie upoważnień udzielonych przez Administratora, w zakresie swojej działalności statutowej wynikającej z art. 111 ustawy Prawo o szkolnictwie wyższym i nauce.
 3. Inspektor Ochrony Danych UEW jest właściwym IOD dla procesów przetwarzania danych realizowanych przez SSUEW. Kontakt: iod@ue.wroc.pl.
@@ -338,7 +337,6 @@ ROZDZIAŁ II
 ADMINISTRATOR DANYCH I ODPOWIEDZIALNOŚĆ
 
 § 4
-[KOREKTA PRAWNA — §4]: Poniższe brzmienie zastępuje pierwotną treść §4, w której SSUEW był błędnie wskazany jako administrator danych. SSUEW nie posiada osobowości prawnej (art. 111 ustawy PSW) i nie może pełnić funkcji administratora w rozumieniu art. 4 pkt 7 RODO.
 1. Administratorem danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu (UEW), ul. Komandorska 118/120, 53-345 Wrocław.
 2. SSUEW przetwarza dane osobowe jako jednostka organizacyjna UEW, na podstawie upoważnień udzielonych przez Administratora, w zakresie swojej działalności statutowej wynikającej z art. 111 ustawy Prawo o szkolnictwie wyższym i nauce.
 
@@ -502,6 +500,50 @@ function KlauzulaCard({ tytul, tresc }) {
 }
 
 // ─── GŁÓWNY KOMPONENT ─────────────────────────────────────────────────────────
+
+// ─── SUB-KOMPONENTY (muszą być POZA RodoPage, by nie były tworzone na nowo przy każdym setState)
+
+function SectionTitle({ icon: Icon, chapter, title, color = 'rose' }) {
+  const palette = {
+    rose:   ['bg-rose-100',   'text-rose-600',   'text-rose-500'],
+    amber:  ['bg-amber-100',  'text-amber-600',  'text-amber-500'],
+    blue:   ['bg-blue-100',   'text-blue-600',   'text-blue-500'],
+    teal:   ['bg-teal-100',   'text-teal-600',   'text-teal-500'],
+    red:    ['bg-red-100',    'text-red-600',     'text-red-500'],
+    purple: ['bg-purple-100', 'text-purple-600', 'text-purple-500'],
+    slate:  ['bg-slate-100',  'text-slate-600',  'text-slate-500'],
+    green:  ['bg-green-100',  'text-green-600',  'text-green-500'],
+    indigo: ['bg-indigo-100', 'text-indigo-600', 'text-indigo-500'],
+  };
+  const [bg, ic, lbl] = palette[color] || palette.rose;
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shrink-0`}><Icon className={`w-5 h-5 ${ic}`} /></div>}
+      <div>
+        <p className={`text-[10px] font-black uppercase tracking-widest ${lbl} mb-0.5`}>{chapter}</p>
+        <h2 className="text-2xl font-black text-slate-800">{title}</h2>
+      </div>
+    </div>
+  );
+}
+
+function InfoBox({ children, color = 'rose' }) {
+  const map = { rose:'bg-rose-50 border-rose-200 text-rose-900', amber:'bg-amber-50 border-amber-200 text-amber-900', blue:'bg-blue-50 border-blue-200 text-blue-900', green:'bg-green-50 border-green-200 text-green-900', red:'bg-red-50 border-red-200 text-red-900', slate:'bg-slate-50 border-slate-200 text-slate-700' };
+  return <div className={`rounded-xl border p-4 text-sm font-medium leading-relaxed ${map[color] || map.rose}`}>{children}</div>;
+}
+
+function Card({ children, className = '' }) {
+  return <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>{children}</div>;
+}
+
+function Rule({ n, children }) {
+  return (
+    <div className="flex items-start gap-3 bg-white border border-slate-200 rounded-xl p-4">
+      <span className="w-6 h-6 bg-rose-100 text-rose-700 rounded-full text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{n}</span>
+      <p className="text-sm text-slate-700 leading-relaxed font-medium">{children}</p>
+    </div>
+  );
+}
 
 export default function RodoPage() {
   const { userRole } = useAuth();
@@ -693,47 +735,6 @@ export default function RodoPage() {
     setIncDone(true);
   };
 
-  // ─── SUB-KOMPONENTY ───────────────────────────────────────────────────────────
-
-  const SectionTitle = ({ icon: Icon, chapter, title, color = 'rose' }) => {
-    const palette = {
-      rose:   ['bg-rose-100',   'text-rose-600',   'text-rose-500'],
-      amber:  ['bg-amber-100',  'text-amber-600',  'text-amber-500'],
-      blue:   ['bg-blue-100',   'text-blue-600',   'text-blue-500'],
-      teal:   ['bg-teal-100',   'text-teal-600',   'text-teal-500'],
-      red:    ['bg-red-100',    'text-red-600',     'text-red-500'],
-      purple: ['bg-purple-100', 'text-purple-600', 'text-purple-500'],
-      slate:  ['bg-slate-100',  'text-slate-600',  'text-slate-500'],
-      green:  ['bg-green-100',  'text-green-600',  'text-green-500'],
-      indigo: ['bg-indigo-100', 'text-indigo-600', 'text-indigo-500'],
-    };
-    const [bg, ic, lbl] = palette[color] || palette.rose;
-    return (
-      <div className="flex items-center gap-3 mb-6">
-        {Icon && <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center shrink-0`}><Icon className={`w-5 h-5 ${ic}`} /></div>}
-        <div>
-          <p className={`text-[10px] font-black uppercase tracking-widest ${lbl} mb-0.5`}>{chapter}</p>
-          <h2 className="text-2xl font-black text-slate-800">{title}</h2>
-        </div>
-      </div>
-    );
-  };
-
-  const InfoBox = ({ children, color = 'rose' }) => {
-    const map = { rose:'bg-rose-50 border-rose-200 text-rose-900', amber:'bg-amber-50 border-amber-200 text-amber-900', blue:'bg-blue-50 border-blue-200 text-blue-900', green:'bg-green-50 border-green-200 text-green-900', red:'bg-red-50 border-red-200 text-red-900', slate:'bg-slate-50 border-slate-200 text-slate-700' };
-    return <div className={`rounded-xl border p-4 text-sm font-medium leading-relaxed ${map[color] || map.rose}`}>{children}</div>;
-  };
-
-  const Card = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>{children}</div>
-  );
-
-  const Rule = ({ n, children }) => (
-    <div className="flex items-start gap-3 bg-white border border-slate-200 rounded-xl p-4">
-      <span className="w-6 h-6 bg-rose-100 text-rose-700 rounded-full text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{n}</span>
-      <p className="text-sm text-slate-700 leading-relaxed font-medium">{children}</p>
-    </div>
-  );
 
   const progress = Math.round((checks.length / CHECKLIST_ITEMS.length) * 100);
   const allDone  = checks.length === CHECKLIST_ITEMS.length;
@@ -862,12 +863,12 @@ export default function RodoPage() {
             <SectionTitle icon={Lock} chapter="Dla Członka Samorządu — 2" title="Przechowywanie danych" color="indigo" />
             <Card className="space-y-2 mb-4">
               {[
-                ['Dane na urządzeniach prywatnych', 'Danych osobowych (list uczestników, danych kontaktowych) nie przechowuje się na prywatnych urządzeniach bez szyfrowania. Bezpieczna alternatywa: Google Drive Samorządu lub CRA.'],
+                ['Dane na urządzeniach prywatnych', 'Danych osobowych (list uczestników, danych kontaktowych) nie przechowuje się na prywatnych urządzeniach bez szyfrowania. Bezpieczna alternatywa: Google Drive Samorządu.'],
                 ['Pendrive i nośniki zewnętrzne', 'Jeśli przenosisz dane na nośniku — zaszyfruj go lub stosuj dostęp hasłem. Po zakończeniu projektu — skasuj dane z nośnika.'],
                 ['Foldery Google Drive', 'Upewnij się, że foldery z danymi osobowymi mają ograniczony dostęp — tylko dla osób, które faktycznie z nich korzystają.'],
                 ['Poczta email', 'Nie wysyłaj list z danymi osobowymi na prywatne skrzynki. Używaj kont @samorzad.ue.wroc.pl lub działowych adresów SSUEW.'],
                 ['Papierowe dokumenty', 'Przechowywane w zamkniętej szafce lub pomieszczeniu. Po upływie okresu retencji — niszczarka (min. P-4). Nie wyrzucaj do kosza niezniszczonych dokumentów.'],
-                ['Czas przechowywania', 'Po zakończeniu celu (np. po evencie) — usuń listę uczestników lub zanonimizuj dane. Nie przechowuj danych „na wszelki wypadek".'],
+                ['Czas przechowywania', 'Po zakończeniu celu (np. po wydarzeniu) — przekaż materiały do archiwizacji i usuń listę uczestników lub zanonimizuj dane. Nie przechowuj danych „na wszelki wypadek".'],
               ].map(([tytul, opis], i) => (
                 <div key={i} className="flex items-start gap-4 bg-white border border-slate-200 rounded-xl p-4">
                   <div className="w-2 h-2 bg-indigo-400 rounded-full shrink-0 mt-2" />
@@ -893,14 +894,14 @@ export default function RodoPage() {
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                   <p className="font-black text-red-800 text-sm mb-2">Nie wolno udostępniać</p>
                   <ul className="space-y-1.5">
-                    {['Sponsorom lub partnerom bez zgody uczestników','Organizacjom zewnętrznym w celach promocyjnych','Prasie studenckiej bez zgody osób','Na prywatny użytek, nawet jeśli jesteś organizatorem'].map((t,i) => (
+                    {['Sponsorom lub partnerom bez zgody uczestników','Organizacjom zewnętrznym w celach promocyjnych','Partnerom zewnętrznym bez zgody osób','Na prywatny użytek, nawet jeśli jesteś organizatorem'].map((t,i) => (
                       <li key={i} className="flex items-start gap-2 text-xs text-red-800"><X className="w-3.5 h-3.5 shrink-0 mt-0.5 text-red-500" />{t}</li>
                     ))}
                   </ul>
                 </div>
               </div>
             </Card>
-            <InfoBox color="slate">{nb('Jeśli ktoś prosi o listę uczestników, bazę mailową lub inne dane — skieruj sprawę do osoby odpowiedzialnej za RODO w Samorządzie, zanim cokolwiek wyślesz.')}</InfoBox>
+            <InfoBox color="slate">{nb('Jeśli ktoś prosi o listę uczestników, bazę mailową lub inne dane — skieruj sprawę do Członka Zarządu ds. Administracji SSUEW odpowiedzialnego za RODO w Samorządzie, zanim cokolwiek wyślesz.')}</InfoBox>
           </section>
 
           {/* ══════════════════════════════════ KOMPENDIUM */}
