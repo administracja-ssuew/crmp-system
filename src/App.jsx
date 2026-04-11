@@ -35,6 +35,24 @@ import RodoPage from './pages/RodoPage';
 function PageTracker() {
   const location = useLocation();
   const { user } = useAuth();
+
+  // Rejestruj unikalnego użytkownika raz przy zalogowaniu
+  useEffect(() => {
+    if (!user) return;
+    const today = new Date().toISOString().slice(0, 10);
+    setDoc(
+      doc(db, 'user_visits', user.uid),
+      {
+        displayName: user.displayName || '',
+        email: user.email || '',
+        lastSeen: today,
+        [`days.${today}`]: increment(1),
+      },
+      { merge: true }
+    ).catch(() => {});
+  }, [user]);
+
+  // Zliczaj wejścia na poszczególne podstrony
   useEffect(() => {
     if (!user) return;
     const path = location.pathname.replace(/\//g, '_').replace(/^_/, '') || 'home';
@@ -45,6 +63,7 @@ function PageTracker() {
       { merge: true }
     ).catch(() => {});
   }, [location.pathname, user]);
+
   return null;
 }
 

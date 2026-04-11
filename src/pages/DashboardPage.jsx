@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CRED_API_URL, NOTICES_API_URL } from '../config';
@@ -66,13 +66,25 @@ export default function DashboardPage() {
   const [statsTab, setStatsTab] = useState('ranking'); // 'ranking' | 'chart' | 'today'
   const [statsRefreshedAt, setStatsRefreshedAt] = useState(null);
 
+  const [uniqueUsers, setUniqueUsers] = useState(null);
+  const [todayUsers, setTodayUsers] = useState(null);
+
   const loadStats = useCallback(async () => {
     setStatsLoading(true);
     try {
-      const snap = await getDocs(collection(db, 'page_stats'));
-      const rows = snap.docs.map(d => ({ path: d.id, ...d.data() }))
+      const [pageSnap, userSnap] = await Promise.all([
+        getDocs(collection(db, 'page_stats')),
+        getDocs(collection(db, 'user_visits')),
+      ]);
+      const rows = pageSnap.docs.map(d => ({ path: d.id, ...d.data() }))
         .sort((a, b) => (b.total || 0) - (a.total || 0));
       setStats(rows);
+
+      const today = new Date().toISOString().slice(0, 10);
+      const users = userSnap.docs.map(d => d.data());
+      setUniqueUsers(users.length);
+      setTodayUsers(users.filter(u => u.lastSeen === today).length);
+
       setStatsRefreshedAt(new Date());
     } catch { setStats([]); }
     setStatsLoading(false);
@@ -91,6 +103,7 @@ export default function DashboardPage() {
   const [pins, setPins] = useState([]);
   const [newPin, setNewPin] = useState('');
   const [newPinColor, setNewPinColor] = useState('yellow');
+  const editorRef = useRef(null);
 
   const loadNotes = useCallback(async () => {
     setNotesLoading(true);
@@ -525,8 +538,8 @@ export default function DashboardPage() {
       {showStats && isAdmin && (() => {
         const today = new Date().toISOString().slice(0, 10);
         const totalVisits   = stats ? stats.reduce((s, r) => s + (r.total || 0), 0) : 0;
-        const totalPages    = stats ? stats.length : 0;
         const todayVisits   = stats ? stats.reduce((s, r) => s + (r.days?.[today] || 0), 0) : 0;
+        const totalPages    = stats ? stats.length : 0;
         const topPage       = stats?.[0];
         const barColors     = ['bg-indigo-500','bg-violet-500','bg-blue-500','bg-sky-500','bg-cyan-500',
                                'bg-teal-500','bg-emerald-500','bg-green-500','bg-amber-500','bg-orange-500'];
@@ -562,13 +575,14 @@ export default function DashboardPage() {
                 </div>
 
                 {/* KPI CARDS */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                   {[
-                    { label: 'Wszystkich wizyt',  value: statsLoading ? '…' : totalVisits.toLocaleString('pl-PL'), color: 'from-indigo-600 to-violet-600', icon: '👁' },
-                    { label: 'Dzisiaj',            value: statsLoading ? '…' : todayVisits.toLocaleString('pl-PL'), color: 'from-emerald-600 to-teal-600',   icon: '📅' },
-                    { label: 'Podstron w systemie',value: statsLoading ? '…' : totalPages,                          color: 'from-sky-600 to-blue-600',         icon: '📂' },
-                    { label: 'Najpopularniejsza',  value: statsLoading ? '…' : (topPage ? ('/' + topPage.path.replace(/_/g,'/').replace(/^\//,'')) : '—'),
-                      color: 'from-amber-600 to-orange-600', icon: '🏆', small: true },
+                    { label: 'Użytkowników w systemie', value: statsLoading ? '…' : (uniqueUsers ?? '…'),                                                                  color: 'from-indigo-600 to-violet-600', icon: '👥' },
+                    { label: 'Aktywnych dziś',           value: statsLoading ? '…' : (todayUsers ?? '…'),                                                                  color: 'from-emerald-600 to-teal-600',  icon: '🟢' },
+                    { label: 'Wszystkich wizyt',         value: statsLoading ? '…' : totalVisits.toLocaleString('pl-PL'),                                                  color: 'from-blue-600 to-sky-600',      icon: '👁' },
+                    { label: 'Wizyt dzisiaj',            value: statsLoading ? '…' : todayVisits.toLocaleString('pl-PL'),                                                  color: 'from-teal-600 to-cyan-600',     icon: '📅' },
+                    { label: 'Podstron w systemie',      value: statsLoading ? '…' : totalPages,                                                                            color: 'from-sky-600 to-blue-600',      icon: '📂' },
+                    { label: 'Najpopularniejsza',        value: statsLoading ? '…' : (topPage ? ('/' + topPage.path.replace(/_/g,'/').replace(/^\//,'')) : '—'),            color: 'from-amber-600 to-orange-600',  icon: '🏆', small: true },
                   ].map((k, i) => (
                     <div key={i} className={`bg-gradient-to-br ${k.color} rounded-2xl p-4`}>
                       <div className="text-xl mb-1">{k.icon}</div>
@@ -691,24 +705,108 @@ export default function DashboardPage() {
       {/* MODAL: NOTATKI (TYLKO DLA ADMINA) */}
       {/* ==================================================== */}
       {showNotes && isAdmin && (() => {
-        const PIN_COLORS = {
-          yellow: { bg: 'bg-amber-400',   text: 'text-amber-900',  border: 'border-amber-300',  card: 'bg-amber-50'   },
-          blue:   { bg: 'bg-blue-500',    text: 'text-blue-900',   border: 'border-blue-300',   card: 'bg-blue-50'    },
-          green:  { bg: 'bg-emerald-500', text: 'text-emerald-900',border: 'border-emerald-300',card: 'bg-emerald-50' },
-          red:    { bg: 'bg-rose-500',    text: 'text-rose-900',   border: 'border-rose-300',   card: 'bg-rose-50'    },
-          purple: { bg: 'bg-violet-500',  text: 'text-violet-900', border: 'border-violet-300', card: 'bg-violet-50'  },
+        // Kolory karteczek — gradient top + cień + tekst
+        const STICKER_THEMES = {
+          yellow: {
+            grad: 'from-amber-200 to-yellow-100',
+            fold: 'border-amber-300',
+            shadow: 'shadow-amber-200/60',
+            text: 'text-amber-950',
+            pin: 'bg-amber-400',
+            label: 'Żółta',
+          },
+          pink: {
+            grad: 'from-rose-200 to-pink-100',
+            fold: 'border-rose-300',
+            shadow: 'shadow-rose-200/60',
+            text: 'text-rose-950',
+            pin: 'bg-rose-400',
+            label: 'Różowa',
+          },
+          blue: {
+            grad: 'from-sky-200 to-blue-100',
+            fold: 'border-sky-300',
+            shadow: 'shadow-sky-200/60',
+            text: 'text-sky-950',
+            pin: 'bg-sky-500',
+            label: 'Niebieska',
+          },
+          green: {
+            grad: 'from-emerald-200 to-green-100',
+            fold: 'border-emerald-300',
+            shadow: 'shadow-emerald-200/60',
+            text: 'text-emerald-950',
+            pin: 'bg-emerald-500',
+            label: 'Zielona',
+          },
+          purple: {
+            grad: 'from-violet-200 to-purple-100',
+            fold: 'border-violet-300',
+            shadow: 'shadow-violet-200/60',
+            text: 'text-violet-950',
+            pin: 'bg-violet-500',
+            label: 'Fioletowa',
+          },
+          slate: {
+            grad: 'from-slate-200 to-slate-100',
+            fold: 'border-slate-300',
+            shadow: 'shadow-slate-200/60',
+            text: 'text-slate-900',
+            pin: 'bg-slate-500',
+            label: 'Szara',
+          },
         };
+
+        // Obrót karteczki na podstawie indeksu — efekt rozrzucenia
+        const ROTATIONS = ['-rotate-1', 'rotate-1', '-rotate-2', 'rotate-2', 'rotate-0', '-rotate-1', 'rotate-2'];
+
         const notesTabDefs = [
-          { id: 'notes', label: '📝 Notatki',    icon: '📝' },
-          { id: 'todo',  label: '✅ TODO',        icon: '✅' },
-          { id: 'pins',  label: '📌 Pinezki',     icon: '📌' },
+          { id: 'notes', label: '📝 Notatki' },
+          { id: 'todo',  label: '✅ TODO'    },
+          { id: 'pins',  label: '📌 Karteczki' },
         ];
         const doneTodos = todos.filter(t => t.done).length;
+
+        // Rich text toolbar actions
+        const fmt = (cmd, val) => { document.execCommand(cmd, false, val); editorRef.current?.focus(); };
+        const saveRich = () => {
+          const html = editorRef.current?.innerHTML || '';
+          setNotesText(html);
+          saveNotes();
+        };
+
+        const TOOLBAR = [
+          { label: 'B',  title: 'Pogrubienie',  action: () => fmt('bold'),          style: 'font-black' },
+          { label: 'I',  title: 'Kursywa',       action: () => fmt('italic'),        style: 'italic' },
+          { label: 'U',  title: 'Podkreślenie',  action: () => fmt('underline'),     style: 'underline' },
+          { label: 'S',  title: 'Przekreślenie', action: () => fmt('strikeThrough'), style: 'line-through' },
+          { sep: true },
+          { label: 'H1', title: 'Nagłówek 1',    action: () => fmt('formatBlock', '<h2>') },
+          { label: 'H2', title: 'Nagłówek 2',    action: () => fmt('formatBlock', '<h3>') },
+          { label: '¶',  title: 'Akapit',         action: () => fmt('formatBlock', '<p>') },
+          { sep: true },
+          { label: '•',  title: 'Lista punktowana', action: () => fmt('insertUnorderedList') },
+          { label: '1.', title: 'Lista numerowana', action: () => fmt('insertOrderedList') },
+          { sep: true },
+          { label: '↺',  title: 'Cofnij',         action: () => fmt('undo') },
+          { label: '↻',  title: 'Ponów',           action: () => fmt('redo') },
+          { sep: true },
+          { label: '✕',  title: 'Wyczyść formatowanie', action: () => fmt('removeFormat'), className: 'text-rose-400 hover:text-rose-600' },
+        ];
+
+        const TEXT_COLORS = [
+          { color: '#1e293b', label: 'Czarny' },
+          { color: '#dc2626', label: 'Czerwony' },
+          { color: '#2563eb', label: 'Niebieski' },
+          { color: '#16a34a', label: 'Zielony' },
+          { color: '#9333ea', label: 'Fioletowy' },
+          { color: '#ea580c', label: 'Pomarańczowy' },
+        ];
 
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowNotes(false)} />
-            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[88vh] flex flex-col overflow-hidden">
+            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
 
               {/* NAGŁÓWEK */}
               <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-7 pt-6 pb-0 shrink-0">
@@ -722,14 +820,11 @@ export default function DashboardPage() {
                     <Icons.Close />
                   </button>
                 </div>
-                {/* TABS */}
                 <div className="flex gap-0.5">
                   {notesTabDefs.map(t => (
                     <button key={t.id} onClick={() => setNotesTab(t.id)}
-                      className={`px-4 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all ${
-                        notesTab === t.id
-                          ? 'bg-white text-violet-700'
-                          : 'text-violet-200 hover:text-white hover:bg-white/10'}`}>
+                      className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all ${
+                        notesTab === t.id ? 'bg-white text-violet-700' : 'text-violet-200 hover:text-white hover:bg-white/10'}`}>
                       {t.label}
                       {t.id === 'todo' && todos.length > 0 && (
                         <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${notesTab === 'todo' ? 'bg-violet-100 text-violet-600' : 'bg-white/20 text-white'}`}>
@@ -747,64 +842,94 @@ export default function DashboardPage() {
               </div>
 
               {/* TREŚĆ */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto bg-slate-50">
 
-                {/* --- NOTATKI --- */}
+                {/* ══ NOTATKI (rich editor) ══ */}
                 {notesTab === 'notes' && (
                   notesLoading ? (
-                    <div className="p-6"><div className="h-52 bg-slate-100 animate-pulse rounded-2xl" /></div>
+                    <div className="p-6 space-y-3">
+                      <div className="h-10 bg-slate-200 animate-pulse rounded-xl" />
+                      <div className="h-64 bg-slate-100 animate-pulse rounded-2xl" />
+                    </div>
                   ) : (
-                    <div className="p-6 flex flex-col gap-3 h-full">
-                      <textarea
-                        value={notesText}
-                        onChange={e => setNotesText(e.target.value)}
-                        placeholder="Swobodne notatki, agendy spotkań, linki, przypomnienia…"
-                        className="w-full min-h-[280px] border border-slate-200 rounded-2xl p-4 text-sm text-slate-800 leading-relaxed resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all font-medium"
-                      />
-                      <div className="flex items-center justify-between">
+                    <div className="flex flex-col h-full">
+                      {/* TOOLBAR */}
+                      <div className="flex items-center gap-0.5 flex-wrap px-4 py-2.5 bg-white border-b border-slate-200 shrink-0">
+                        {TOOLBAR.map((btn, i) =>
+                          btn.sep ? (
+                            <div key={i} className="w-px h-5 bg-slate-200 mx-1" />
+                          ) : (
+                            <button key={i} onMouseDown={e => { e.preventDefault(); btn.action(); }}
+                              title={btn.title}
+                              className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-violet-50 hover:text-violet-700 transition-colors ${btn.className || ''} ${btn.style ? btn.style : ''}`}>
+                              {btn.label}
+                            </button>
+                          )
+                        )}
+                        {/* Kolory tekstu */}
+                        <div className="w-px h-5 bg-slate-200 mx-1" />
+                        {TEXT_COLORS.map(tc => (
+                          <button key={tc.color}
+                            onMouseDown={e => { e.preventDefault(); fmt('foreColor', tc.color); }}
+                            title={tc.label}
+                            className="w-5 h-5 rounded-full border-2 border-white shadow-sm hover:scale-125 transition-transform"
+                            style={{ background: tc.color }} />
+                        ))}
+                      </div>
+
+                      {/* EDYTOR — wygląd kartki papieru */}
+                      <div className="flex-1 p-5">
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+                          style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #e2e8f020 27px, #e2e8f020 28px)', backgroundPositionY: '8px' }}>
+                          <div
+                            ref={editorRef}
+                            contentEditable
+                            suppressContentEditableWarning
+                            onInput={() => {}}
+                            dangerouslySetInnerHTML={notesText ? { __html: notesText } : undefined}
+                            data-placeholder="Zacznij pisać… Zaznacz tekst i użyj paska formatowania powyżej."
+                            className="min-h-[280px] p-5 text-sm text-slate-800 leading-7 focus:outline-none [&_h2]:text-xl [&_h2]:font-black [&_h2]:text-slate-900 [&_h2]:mb-1 [&_h2]:mt-3 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mb-0.5 [&_h3]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* FOOTER */}
+                      <div className="px-5 pb-5 flex items-center justify-between shrink-0">
                         <p className="text-[10px] text-slate-400 uppercase tracking-widest">Widoczne dla wszystkich adminów · Firestore</p>
-                        <button onClick={() => saveNotes()}
-                          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black shadow-lg transition-all active:scale-95 ${
-                            notesSaved
-                              ? 'bg-emerald-500 text-white shadow-emerald-500/30'
-                              : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-600/30'}`}>
-                          {notesSaved ? '✓ Zapisano!' : 'Zapisz'}
+                        <button onMouseDown={e => e.preventDefault()} onClick={saveRich}
+                          className={`px-5 py-2.5 rounded-xl text-sm font-black shadow-lg transition-all active:scale-95 ${
+                            notesSaved ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-200'}`}>
+                          {notesSaved ? '✓ Zapisano!' : 'Zapisz notatki'}
                         </button>
                       </div>
                     </div>
                   )
                 )}
 
-                {/* --- TODO --- */}
+                {/* ══ TODO ══ */}
                 {notesTab === 'todo' && (
                   <div className="p-6 space-y-4">
-                    {/* Dodaj nowe */}
                     <div className="flex gap-2">
-                      <input
-                        value={newTodo}
-                        onChange={e => setNewTodo(e.target.value)}
+                      <input value={newTodo} onChange={e => setNewTodo(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && addTodo()}
                         placeholder="Nowe zadanie… (Enter, aby dodać)"
-                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
-                      />
+                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 shadow-sm" />
                       <button onClick={addTodo}
-                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-violet-600/20">
-                        +
+                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black shadow-lg shadow-violet-200 transition-all active:scale-95">
+                        + Dodaj
                       </button>
                     </div>
-
-                    {/* Lista */}
                     {todos.length === 0 ? (
-                      <div className="text-center py-10 text-slate-300">
-                        <div className="text-4xl mb-2">☑️</div>
+                      <div className="text-center py-14 text-slate-300">
+                        <div className="text-5xl mb-3">☑️</div>
                         <p className="text-sm font-bold">Lista zadań jest pusta</p>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         {todos.filter(t => !t.done).map(t => (
-                          <div key={t.id} className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 group">
+                          <div key={t.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-5 py-3.5 group shadow-sm hover:shadow-md transition-shadow">
                             <button onClick={() => toggleTodo(t.id)}
-                              className="w-5 h-5 rounded border-2 border-slate-300 hover:border-violet-500 flex items-center justify-center shrink-0 transition-colors" />
+                              className="w-5 h-5 rounded-md border-2 border-slate-300 hover:border-violet-500 flex items-center justify-center shrink-0 transition-colors" />
                             <span className="flex-1 text-sm text-slate-700 font-medium">{t.text}</span>
                             <button onClick={() => deleteTodo(t.id)}
                               className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
@@ -812,73 +937,82 @@ export default function DashboardPage() {
                             </button>
                           </div>
                         ))}
-                        {todos.some(t => t.done) && (
-                          <>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2 px-1">Ukończone</p>
-                            {todos.filter(t => t.done).map(t => (
-                              <div key={t.id} className="flex items-center gap-3 bg-slate-50/50 border border-slate-100 rounded-xl px-4 py-3 group opacity-60">
-                                <button onClick={() => toggleTodo(t.id)}
-                                  className="w-5 h-5 rounded bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center shrink-0 text-white text-xs font-black">
-                                  ✓
-                                </button>
-                                <span className="flex-1 text-sm text-slate-400 line-through">{t.text}</span>
-                                <button onClick={() => deleteTodo(t.id)}
-                                  className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
-                                  <Icons.Trash />
-                                </button>
-                              </div>
-                            ))}
-                          </>
-                        )}
+                        {todos.some(t => t.done) && <>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-3 px-1">Ukończone</p>
+                          {todos.filter(t => t.done).map(t => (
+                            <div key={t.id} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 group opacity-50">
+                              <button onClick={() => toggleTodo(t.id)}
+                                className="w-5 h-5 rounded-md bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center shrink-0 text-white text-[10px] font-black">✓</button>
+                              <span className="flex-1 text-sm text-slate-400 line-through">{t.text}</span>
+                              <button onClick={() => deleteTodo(t.id)}
+                                className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
+                                <Icons.Trash />
+                              </button>
+                            </div>
+                          ))}
+                        </>}
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* --- PINEZKI --- */}
+                {/* ══ KARTECZKI (sticky notes) ══ */}
                 {notesTab === 'pins' && (
-                  <div className="p-6 space-y-4">
+                  <div className="p-6 space-y-5">
                     {/* Dodaj nową */}
-                    <div className="flex gap-2">
-                      <input
-                        value={newPin}
-                        onChange={e => setNewPin(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addPin()}
-                        placeholder="Nowa pinezka… (Enter, aby dodać)"
-                        className="flex-1 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-violet-400 transition-all"
-                      />
-                      {/* Wybór koloru */}
-                      <div className="flex gap-1 items-center bg-slate-50 border border-slate-200 rounded-xl px-2">
-                        {Object.entries(PIN_COLORS).map(([key, c]) => (
-                          <button key={key} onClick={() => setNewPinColor(key)}
-                            className={`w-5 h-5 rounded-full ${c.bg} transition-transform ${newPinColor === key ? 'scale-125 ring-2 ring-offset-1 ring-slate-400' : 'hover:scale-110'}`} />
-                        ))}
+                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nowa karteczka</p>
+                      <textarea value={newPin} onChange={e => setNewPin(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), addPin())}
+                        placeholder="Treść karteczki… (Enter aby dodać, Shift+Enter nowa linia)"
+                        rows={2}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all" />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Kolor:</span>
+                          {Object.entries(STICKER_THEMES).map(([key, th]) => (
+                            <button key={key} onClick={() => setNewPinColor(key)} title={th.label}
+                              className={`w-6 h-6 rounded-full bg-gradient-to-br ${th.grad} border-2 transition-all ${newPinColor === key ? 'border-slate-600 scale-125 shadow-md' : 'border-white hover:scale-110 shadow-sm'}`} />
+                          ))}
+                        </div>
+                        <button onClick={addPin}
+                          className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-lg shadow-violet-200 transition-all active:scale-95">
+                          + Dodaj karteczkę
+                        </button>
                       </div>
-                      <button onClick={addPin}
-                        className="px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black transition-all active:scale-95 shadow-lg shadow-violet-600/20">
-                        +
-                      </button>
                     </div>
 
-                    {/* Siatka pinezek */}
+                    {/* Siatka karteczek */}
                     {pins.length === 0 ? (
-                      <div className="text-center py-10 text-slate-300">
-                        <div className="text-4xl mb-2">📌</div>
-                        <p className="text-sm font-bold">Brak pinezek</p>
-                        <p className="text-xs mt-1">Dodaj krótką notatkę z kolorem</p>
+                      <div className="text-center py-14 text-slate-300">
+                        <div className="text-5xl mb-3">📌</div>
+                        <p className="text-sm font-bold">Brak karteczek</p>
+                        <p className="text-xs mt-1 text-slate-400">Dodaj swoją pierwszą notatkę powyżej</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                        {pins.map(pin => {
-                          const c = PIN_COLORS[pin.color] || PIN_COLORS.yellow;
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {pins.map((pin, i) => {
+                          const th = STICKER_THEMES[pin.color] || STICKER_THEMES.yellow;
+                          const rot = ROTATIONS[i % ROTATIONS.length];
                           return (
-                            <div key={pin.id} className={`${c.card} border ${c.border} rounded-2xl p-4 relative group shadow-sm`}>
-                              <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${c.bg} shadow-sm`} />
+                            <div key={pin.id}
+                              className={`relative group ${rot} hover:rotate-0 hover:scale-105 transition-all duration-200 cursor-default`}>
+                              {/* Efekt zagięcia rogu */}
+                              <div className={`absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-br ${th.fold} opacity-40 rounded-tl-xl`}
+                                style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }} />
+                              {/* Karteczka */}
+                              <div className={`bg-gradient-to-br ${th.grad} rounded-2xl shadow-xl ${th.shadow} p-5 min-h-[130px] flex flex-col`}>
+                                {/* Pinezka */}
+                                <div className="flex justify-center mb-3">
+                                  <div className={`w-4 h-4 rounded-full ${th.pin} shadow-md ring-2 ring-white`} />
+                                </div>
+                                <p className={`text-sm font-medium ${th.text} leading-relaxed flex-1 whitespace-pre-wrap`}>{pin.text}</p>
+                              </div>
+                              {/* Usuń */}
                               <button onClick={() => deletePin(pin.id)}
-                                className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 w-5 h-5 bg-white/80 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 transition-all shadow-sm">
-                                <span className="text-[10px] font-black">×</span>
+                                className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all border border-slate-100 text-xs font-black">
+                                ×
                               </button>
-                              <p className={`text-sm font-semibold ${c.text} leading-snug pr-4 pt-2`}>{pin.text}</p>
                             </div>
                           );
                         })}
