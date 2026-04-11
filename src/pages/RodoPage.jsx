@@ -680,15 +680,24 @@ export default function RodoPage() {
   // ─── HELPER: renderuje HTML do PDF przez pdf.html() — pełne Unicode, polskie znaki ─
 
   const renderHtmlToPdf = useCallback((htmlContent, filename, onDone) => {
+    // Overlay widoczny dla użytkownika — przykrywa dokument podczas renderowania
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(248,250,252,0.97);z-index:100001;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;font-family:sans-serif;pointer-events:all;';
+    overlay.innerHTML = '<div style="font-size:15px;font-weight:700;color:#334155;">Generowanie PDF…</div><div style="font-size:12px;color:#64748b;">Proszę czekać</div>';
+
+    // Kontener HTML musi być widoczny (opacity:1) — html2canvas renderuje tylko widoczne elementy
     const container = document.createElement('div');
-    // MUSI być w widocznym obszarze — html2canvas nie renderuje position:fixed poza ekranem
-    container.style.cssText = 'position:absolute;top:0;left:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;z-index:-1;opacity:0;pointer-events:none;';
+    container.style.cssText = 'position:fixed;top:0;left:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;z-index:100000;';
     container.innerHTML = htmlContent;
+
+    document.body.appendChild(overlay);
     document.body.appendChild(container);
+
     const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
     pdf.html(container, {
       callback: (doc) => {
         document.body.removeChild(container);
+        document.body.removeChild(overlay);
         doc.save(filename);
         if (onDone) onDone();
       },
@@ -923,6 +932,23 @@ export default function RodoPage() {
 
           <section id="formularze" className="scroll-mt-20 mb-14">
             <SectionTitle icon={UserCheck} chapter="Dla Członka Samorządu — 1" title="Formularze i klauzule informacyjne" color="green" />
+
+            {/* ZAKAZ — dane szczególnych kategorii */}
+            <div className="bg-red-50 border-2 border-red-300 rounded-2xl p-5 mb-5 flex items-start gap-4">
+              <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-black text-red-800 text-sm mb-1.5 uppercase tracking-wide">Zakaz zbierania danych szczególnych kategorii</p>
+                <p className="text-xs text-red-700 leading-relaxed mb-2">
+                  SSUEW <strong>nie zbiera ani nie przetwarza</strong> danych szczególnych kategorii (art. 9 RODO):
+                  <strong> numerów PESEL</strong>, danych o zdrowiu, biometrycznych, genetycznych, etnicznych, politycznych, wyznaniowych, dotyczących życia seksualnego ani danych o wyrokach skazujących.
+                  Żaden formularz organizowany przez SSUEW nie może tych danych zbierać — pod żadnym pozorem.
+                </p>
+                <p className="text-xs text-red-800 font-semibold">
+                  W razie wątpliwości — przed uruchomieniem formularza skontaktuj się z <strong>Członkiem Zarządu ds. Administracji SSUEW</strong>: Mikołaj Radliński, +48 514 174 791.
+                </p>
+              </div>
+            </div>
+
             <Card className="space-y-4 mb-4">
               <p className="text-slate-700">{nb('Każdy formularz zbierający dane osobowe (zapisy na wydarzenie, ankieta, lista uczestników, rejestracja) musi zawierać klauzulę informacyjną. Bez niej zbieranie danych jest niezgodne z RODO.')}</p>
               <div className="space-y-2">

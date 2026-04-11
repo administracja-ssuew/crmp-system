@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import {
-  BookMarked, ChevronRight, ArrowUp,
-  ClipboardList, Table2, FileText, AlertOctagon, Package
+  BookMarked, CheckSquare, Square, ChevronRight, ArrowUp,
+  ClipboardList, Table2, FileText, AlertOctagon, Package,
+  Calculator, HelpCircle, RotateCcw,
 } from 'lucide-react';
 
 // === NAV DATA ===
@@ -14,11 +15,15 @@ const NAV_ITEMS = [
   { id: 'inwentaryzacja',  label: 'Inwentaryzacja otwarcia' },
   { id: 'czego-nie',       label: 'Czego nie wpisywać' },
   { id: 'relacja',         label: 'Relacja z ewidencją' },
+  { id: 'checklista',      label: 'Checklista wpisu' },
+  { id: 'kalkulator',      label: 'Kalkulator wartości' },
+  { id: 'faq',             label: 'FAQ' },
 ];
 
 const ALL_SECTION_IDS = [
   'czym-jest', 'zanim-zaczniesz', 'budowa',
   'lewa-strona', 'prawa-strona', 'inwentaryzacja', 'czego-nie', 'relacja',
+  'checklista', 'kalkulator', 'faq',
 ];
 
 // === DANE — LEWA STRONA (KOL. 1–7) ===
@@ -117,6 +122,35 @@ const PRAWA_KOLUMNY = [
   },
 ];
 
+// === DANE — CHECKLISTA WPISU ===
+const CHECKLIST_ITEMS = [
+  { id: 'w1',  text: 'Przygotuj dokument zakupu (faktura, rachunek, protokół spisu z natury)' },
+  { id: 'w2',  text: 'Odczytaj numer seryjny (S/N) bezpośrednio ze sprzętu' },
+  { id: 'w3',  text: 'Nadaj sprzętowi kod wewnętrzny SSUEW (np. SSUEW-LOG-001)' },
+  { id: 'w4',  text: 'Przygotuj hologram lub nalepkę z numerem inwentarzowym' },
+  { id: 'w5',  text: 'Kol. 1 (Nr Przychód): wpisz kolejny wolny numer — sprawdź poprzednią linię' },
+  { id: 'w6',  text: 'Kol. 3 (Data przychodu): wpisz datę z dokumentu, nie dzisiejszą datę' },
+  { id: 'w7',  text: 'Kol. 4 (Symbol i nr dowodu): przepisz numer faktury lub protokołu' },
+  { id: 'w8',  text: 'Kol. 5 (S/N): wpisz numer seryjny — przy meblach/akcesoriach zostaw puste' },
+  { id: 'w9',  text: 'Kol. 6 (Nazwa): [KOD SSUEW] Pełna nazwa modelu, stan: dobry/używany/zużyty' },
+  { id: 'w10', text: 'Kol. 7 (Cena jednostkowa): przepisz cenę z faktury w zł i gr' },
+  { id: 'w11', text: 'Kol. 8 (Ilość Przychód): wpisz liczbę sztuk' },
+  { id: 'w12', text: 'Kol. 11 (Wartość Przychód): ilość × cena jednostkowa' },
+  { id: 'w13', text: 'Kol. 10 i 13 (Stan ilości i wartości): zaktualizuj do nowego stanu' },
+  { id: 'w14', text: 'Kol. 15 (Uwagi): wpisz lokalizację i kod wewnętrzny SSUEW' },
+  { id: 'w15', text: 'Naklej hologram z numerem inwentarzowym bezpośrednio na sprzęt' },
+];
+
+// === DANE — FAQ ===
+const FAQ_ITEMS = [
+  { id: 'f1', q: 'Brak numeru seryjnego (S/N) — co wpisać?', a: 'Dla przedmiotów, które z natury nie mają S/N (meble, wieszaki, akcesoria) — kol. 5 zostawiasz pustą. Gwiazdka w nagłówku tej kolumny to sygnalizuje. Dla sprzętu elektronicznego brak S/N jest sytuacją wyjątkową — sprawdź spód urządzenia, opakowanie i dokumenty gwarancyjne.' },
+  { id: 'f2', q: 'Błędny wpis — jak poprawić?', a: 'Przekreśl błędną wartość jedną linią (musi pozostać czytelna), wpisz obok prawidłową i złóż parafkę z datą. W kol. 15 odnotuj: „korekta [data], podpis". Nie używaj korektora — każde zamazanie podważa wiarygodność dokumentu i stanowi błąd formalny.' },
+  { id: 'f3', q: 'Kiedy wypełniam kol. 2 (Nr kolejny Rozchód)?', a: 'Wyłącznie przy trwałym wykreśleniu przedmiotu z ewidencji: kasacja, kradzież, zniszczenie lub przekazanie na zewnątrz. Przy standardowym przyjęciu przedmiotu kol. 2 zostawiasz pustą.' },
+  { id: 'f4', q: 'Co wpisać w kol. 15 (Uwagi)?', a: 'Lokalizację przedmiotu (np. „Biuro SSUEW, D-105"), nadany kod wewnętrzny SSUEW, źródło wyceny jeśli brak faktury (np. „Wycena rynkowa z dn. 10.04.2026"), datę i parafkę przy każdej korekcie.' },
+  { id: 'f5', q: 'Sprzęt skradziony lub zniszczony — co z wpisem?', a: 'Nie usuwaj wpisu. Wypełnij kol. 2 (Nr Rozchód) i odnotuj w kol. 15 numer protokołu policyjnego lub kasacyjnego. Wpis możesz przekreślić jedną linią — musi pozostać czytelny.' },
+  { id: 'f6', q: 'Jeden wpis na kilka sztuk czy osobne wiersze?', a: 'Technicznie możesz wpisać ilość np. 3 w kol. 8. W praktyce zalecamy jeden wpis = jedna sztuka — grupowe wpisy utrudniają późniejsze wykreślenie jednego egzemplarza i komplikują inwentaryzację.' },
+];
+
 // === DANE — TABELA PORÓWNAWCZA ===
 const COMPARISON_ROWS = [
   { cecha: 'Charakter',      ksiega: 'Dokument prawny',                           ewidencja: 'Narzędzie operacyjne' },
@@ -129,7 +163,32 @@ export default function KsiegaInwentarzPage() {
   const [activeSection, setActiveSection] = useState('czym-jest');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [openAccordion, setOpenAccordion] = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
   const [readingProgress, setReadingProgress] = useState(0);
+
+  // Checklista — persystencja w sessionStorage
+  const [checks, setChecks] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('ksiega_checklist_v2') || '[]'); }
+    catch { return []; }
+  });
+  const toggleCheck = (id) => {
+    const next = checks.includes(id) ? checks.filter(x => x !== id) : [...checks, id];
+    setChecks(next);
+    sessionStorage.setItem('ksiega_checklist_v2', JSON.stringify(next));
+  };
+  const resetChecks = () => {
+    if (window.confirm('Zresetować postęp checklisty?')) {
+      setChecks([]);
+      sessionStorage.removeItem('ksiega_checklist_v2');
+    }
+  };
+
+  // Kalkulator wartości
+  const [kalc, setKalc] = useState({ cena: '', ilosc: '1' });
+  const kalcWartosc = (parseFloat(kalc.cena) || 0) * (parseInt(kalc.ilosc) || 0);
+  const kalcWartoscStr = kalcWartosc > 0
+    ? kalcWartosc.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : '—';
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -422,6 +481,119 @@ export default function KsiegaInwentarzPage() {
                 </p>
               </div>
             </Card>
+          </section>
+
+          {/* ═══ CHECKLISTA WPISU ═══ */}
+          <section id="checklista" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={CheckSquare} chapter="Narzędzie 1" title="Checklista — krok po kroku" color="emerald" />
+            <Card className="!p-0 overflow-hidden mb-4">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="h-2 bg-slate-100 rounded-full w-48 overflow-hidden">
+                    <div className="h-2 bg-emerald-500 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.round((checks.length / CHECKLIST_ITEMS.length) * 100)}%` }} />
+                  </div>
+                  <span className="text-sm font-bold text-slate-600">
+                    {checks.length}/{CHECKLIST_ITEMS.length}
+                  </span>
+                </div>
+                <button onClick={resetChecks}
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-red-500 font-semibold transition-colors">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Resetuj
+                </button>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {CHECKLIST_ITEMS.map(item => {
+                  const done = checks.includes(item.id);
+                  return (
+                    <button key={item.id} onClick={() => toggleCheck(item.id)}
+                      className={`w-full flex items-start gap-3 px-6 py-3.5 text-left transition-colors ${done ? 'bg-emerald-50' : 'hover:bg-slate-50'}`}>
+                      {done
+                        ? <CheckSquare className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                        : <Square className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />}
+                      <span className={`text-sm leading-relaxed ${done ? 'line-through text-slate-400' : 'text-slate-700'}`}>
+                        {item.text}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {checks.length === CHECKLIST_ITEMS.length && (
+                <div className="bg-emerald-600 text-white text-center text-sm font-bold py-3 px-6">
+                  Wpis kompletny — możesz nakleić hologram i zamknąć Księgę.
+                </div>
+              )}
+            </Card>
+            <p className="text-xs text-slate-400 text-center">Postęp zapisuje się w przeglądarce — zostanie zachowany po odświeżeniu strony.</p>
+          </section>
+
+          {/* ═══ KALKULATOR WARTOŚCI ═══ */}
+          <section id="kalkulator" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={Calculator} chapter="Narzędzie 2" title="Kalkulator wartości łącznej" color="blue" />
+            <Card className="space-y-5">
+              <p className="text-slate-600 text-sm">Oblicz wartość do wpisania w kol. 11 (Wartość Przychód) — iloczyn ceny jednostkowej (kol. 7) i ilości (kol. 8).</p>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Cena jednostkowa (zł)</label>
+                  <input
+                    type="number" min="0" step="0.01"
+                    value={kalc.cena}
+                    onChange={e => setKalc(k => ({ ...k, cena: e.target.value }))}
+                    placeholder="np. 1299.00"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Ilość (szt.)</label>
+                  <input
+                    type="number" min="1" step="1"
+                    value={kalc.ilosc}
+                    onChange={e => setKalc(k => ({ ...k, ilosc: e.target.value }))}
+                    placeholder="np. 3"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  />
+                </div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-6 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-black text-blue-500 uppercase tracking-widest mb-0.5">Wartość łączna (kol. 11)</p>
+                  <p className="text-2xl font-black text-blue-800 font-mono">
+                    {kalcWartoscStr} {kalcWartosc > 0 && <span className="text-base font-bold">zł</span>}
+                  </p>
+                </div>
+                {kalcWartosc > 0 && (
+                  <button onClick={() => setKalc({ cena: '', ilosc: '1' })}
+                    className="text-xs text-blue-400 hover:text-blue-700 font-semibold flex items-center gap-1 transition-colors">
+                    <RotateCcw className="w-3.5 h-3.5" /> Wyczyść
+                  </button>
+                )}
+              </div>
+            </Card>
+          </section>
+
+          {/* ═══ FAQ ═══ */}
+          <section id="faq" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={HelpCircle} chapter="FAQ" title="Najczęstsze pytania" color="amber" />
+            <div className="space-y-2">
+              {FAQ_ITEMS.map(item => {
+                const open = openFaq === item.id;
+                return (
+                  <div key={item.id} className="border border-slate-200 rounded-xl overflow-hidden">
+                    <button onClick={() => setOpenFaq(open ? null : item.id)}
+                      className="w-full flex items-center justify-between px-5 py-4 bg-white hover:bg-slate-50 transition-colors text-left gap-3">
+                      <span className="font-semibold text-slate-800 text-sm">{item.q}</span>
+                      <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
+                    </button>
+                    {open && (
+                      <div className="px-5 pb-4 pt-0 bg-amber-50 border-t border-amber-100">
+                        <p className="text-sm text-slate-700 leading-relaxed pt-3">{item.a}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </section>
 
           <div className="border-t border-slate-200 pt-8 pb-4">
