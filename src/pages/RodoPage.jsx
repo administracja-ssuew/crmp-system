@@ -681,20 +681,21 @@ export default function RodoPage() {
 
   const renderHtmlToPdf = useCallback((htmlContent, filename, onDone) => {
     const container = document.createElement('div');
-    container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;';
+    // MUSI być w widocznym obszarze — html2canvas nie renderuje position:fixed poza ekranem
+    container.style.cssText = 'position:absolute;top:0;left:0;width:794px;background:white;font-family:Arial,sans-serif;font-size:11px;z-index:-1;opacity:0;pointer-events:none;';
     container.innerHTML = htmlContent;
     document.body.appendChild(container);
-    const pdf = new jsPDF({ unit: 'px', format: 'a4', hotfixes: ['px_scaling'] });
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
     pdf.html(container, {
       callback: (doc) => {
         document.body.removeChild(container);
         doc.save(filename);
         if (onDone) onDone();
       },
-      x: 0, y: 0,
-      width: 794,
-      windowWidth: 794,
-      margin: [30, 40, 30, 40],
+      x: 10,
+      y: 10,
+      width: 190,       // mm — szerokość treści na A4 (210 - 2*10)
+      windowWidth: 794, // px — szerokość kontenera HTML
     });
   }, []);
 
@@ -1498,7 +1499,7 @@ export default function RodoPage() {
       {/* SCROLL TO TOP */}
       {showScrollTop && (
         <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-8 right-6 z-50 w-10 h-10 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:shadow-xl transition-all">
+          className="fixed bottom-24 right-6 z-50 w-10 h-10 bg-white border border-slate-200 rounded-full shadow-lg flex items-center justify-center text-slate-500 hover:text-slate-800 hover:shadow-xl transition-all">
           <ArrowUp className="w-4 h-4" />
         </button>
       )}
