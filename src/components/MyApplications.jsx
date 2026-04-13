@@ -123,9 +123,9 @@ export default function MyApplications({ userEmail }) {
 
     if (calendarData) {
       // 3. Rezerwacje sal i przestrzeni
-      const sale = calendarData.sale || [];
       const pending = calendarData.pending || [];
-      const rejected = calendarData.rejected || []; // Dodane wsparcie dla odrzuconych, jeśli GAS to obsłuży
+      const rejected = calendarData.rejected || []; 
+      const approvedReqs = calendarData.approved_reqs || []; // Będzie pobierane z Inbox Sheet
       
       const processEvent = (ev, statusLabel) => {
         const eventEmail = ev.email || ev.applicantName; 
@@ -134,8 +134,8 @@ export default function MyApplications({ userEmail }) {
             key: `cal-${ev.id || Math.random()}`,
             icon: '📅',
             type: 'Rezerwacja sali',
-            title: `${ev.room} — ${ev.title}`,
-            detail: `${ev.start} - ${ev.end}`,
+            title: ev.room && ev.title ? `${ev.room} — ${ev.title}` : ev.title || 'Rezerwacja',
+            detail: ev.start && ev.end ? `${ev.start} - ${ev.end}` : null,
             status: statusLabel,
             date: ev.date ? String(ev.date).substring(0, 10) : null,
             ts: ev.date || '',
@@ -143,7 +143,7 @@ export default function MyApplications({ userEmail }) {
         }
       };
 
-      sale.forEach(ev => processEvent(ev, 'approved'));
+      approvedReqs.forEach(ev => processEvent(ev, 'approved'));
       pending.forEach(ev => processEvent(ev, ev.status || 'pending'));
       rejected.forEach(ev => processEvent(ev, 'rejected'));
     }
