@@ -125,6 +125,7 @@ export default function MyApplications({ userEmail }) {
       // 3. Rezerwacje sal i przestrzeni
       const sale = calendarData.sale || [];
       const pending = calendarData.pending || [];
+      const rejected = calendarData.rejected || []; // Dodane wsparcie dla odrzuconych, jeśli GAS to obsłuży
       
       const processEvent = (ev, statusLabel) => {
         const eventEmail = ev.email || ev.applicantName; 
@@ -143,7 +144,8 @@ export default function MyApplications({ userEmail }) {
       };
 
       sale.forEach(ev => processEvent(ev, 'approved'));
-      pending.forEach(ev => processEvent(ev, 'pending'));
+      pending.forEach(ev => processEvent(ev, ev.status || 'pending'));
+      rejected.forEach(ev => processEvent(ev, 'rejected'));
     }
 
     return result;
