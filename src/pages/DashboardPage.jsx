@@ -5,8 +5,7 @@ import { CRED_API_URL, NOTICES_API_URL } from '../config';
 import { useGASFetch } from '../hooks/useGASFetch';
 import MyApplications from '../components/MyApplications';
 import { db } from '../firebase';
-import { collection, getDocs, addDoc, updateDoc, query, orderBy, Timestamp } from 'firebase/firestore';
-
+import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
@@ -105,14 +104,24 @@ export default function DashboardPage() {
   const [userActivity, setUserActivity] = useState([]); // dla zakładki Aktywność w statystykach
 
   const loadTickets = useCallback(async () => {
+    if (!user?.uid) return;
     setTicketsLoading(true);
     try {
-      const q = query(collection(db, 'helpdesk_tickets'), orderBy('createdAt', 'desc'));
+      const q = isAdmin 
+        ? query(collection(db, 'helpdesk_tickets'), orderBy('createdAt', 'desc'))
+        : query(collection(db, 'helpdesk_tickets'), where('userId', '==', user.uid));
+        
       const snap = await getDocs(q);
-      setTickets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      let fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      
+      if (!isAdmin) {
+        fetched.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+      }
+      
+      setTickets(fetched);
     } catch { setTickets([]); }
     setTicketsLoading(false);
-  }, []);
+  }, [isAdmin, user?.uid]);
 
   const submitTicket = async () => {
     if (!helpdeskForm.title.trim() || !helpdeskForm.description.trim()) return;
@@ -131,6 +140,7 @@ export default function DashboardPage() {
       });
       setHelpdeskForm({ category: 'bug', title: '', description: '' });
       setSubmitSuccess(true);
+      loadTickets();
       setTimeout(() => setSubmitSuccess(false), 4000);
     } catch { /* silent */ }
     setSubmitting(false);
