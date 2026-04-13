@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { CRED_API_URL, NOTICES_API_URL } from '../config';
 import { useGASFetch } from '../hooks/useGASFetch';
 import MyApplications from '../components/MyApplications';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, query, orderBy, Timestamp } from 'firebase/firestore';
 
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
@@ -84,6 +84,7 @@ export default function DashboardPage() {
       const users = userSnap.docs.map(d => d.data());
       setUniqueUsers(users.length);
       setTodayUsers(users.filter(u => u.lastSeen === today).length);
+      setUserActivity([...users].sort((a, b) => (b.lastSeen || '').localeCompare(a.lastSeen || '')));
 
       setStatsRefreshedAt(new Date());
     } catch { setStats([]); }
@@ -92,74 +93,76 @@ export default function DashboardPage() {
 
   useEffect(() => { if (showStats && isAdmin) loadStats(); }, [showStats, isAdmin, loadStats]);
 
-  // === ADMIN: NOTATKI ===
-  const [showNotes, setShowNotes] = useState(false);
-  const [notesTab, setNotesTab] = useState('notes'); // 'notes' | 'todo' | 'pins'
-  const [notesText, setNotesText] = useState('');
-  const [notesSaved, setNotesSaved] = useState(false);
-  const [notesLoading, setNotesLoading] = useState(false);
-  const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState('');
-  const [pins, setPins] = useState([]);
-  const [newPin, setNewPin] = useState('');
-  const [newPinColor, setNewPinColor] = useState('yellow');
-  const editorRef = useRef(null);
+  // === HELPDESK ===
+  const [showHelpdesk, setShowHelpdesk] = useState(false);
+  const [helpdeskTab, setHelpdeskTab] = useState('submit'); // 'submit' | 'my' | 'all' (admin)
+  const [helpdeskForm, setHelpdeskForm] = useState({ category: 'bug', title: '', description: '' });
+  const [tickets, setTickets] = useState([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [adminReply, setAdminReply] = useState({}); // { [ticketId]: replyText }
+  const [userActivity, setUserActivity] = useState([]); // dla zakładki Aktywność w statystykach
 
-  const loadNotes = useCallback(async () => {
-    setNotesLoading(true);
+  const loadTickets = useCallback(async () => {
+    setTicketsLoading(true);
     try {
-      const snap = await getDoc(doc(db, 'admin_data', 'notes'));
-      if (snap.exists()) {
-        const d = snap.data();
-        setNotesText(d.content || '');
-        setTodos(d.todos || []);
-        setPins(d.pins || []);
-      }
-    } catch { /* silent */ }
-    setNotesLoading(false);
+      const q = query(collection(db, 'helpdesk_tickets'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      setTickets(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch { setTickets([]); }
+    setTicketsLoading(false);
   }, []);
 
-  const saveNotes = useCallback(async (overrideTodos, overridePins) => {
-    const todosToSave  = overrideTodos !== undefined ? overrideTodos  : todos;
-    const pinsToSave   = overridePins  !== undefined ? overridePins   : pins;
+  const submitTicket = async () => {
+    if (!helpdeskForm.title.trim() || !helpdeskForm.description.trim()) return;
+    setSubmitting(true);
     try {
-      await setDoc(doc(db, 'admin_data', 'notes'), {
-        content: notesText,
-        todos: todosToSave,
-        pins: pinsToSave,
-        updatedAt: Timestamp.now(),
+      await addDoc(collection(db, 'helpdesk_tickets'), {
+        userId: user.uid,
+        userEmail: user.email,
+        userName: user.displayName || user.email,
+        category: helpdeskForm.category,
+        title: helpdeskForm.title.trim(),
+        description: helpdeskForm.description.trim(),
+        status: 'new',
+        createdAt: Timestamp.now(),
+        adminResponse: null,
       });
-      setNotesSaved(true);
-      setTimeout(() => setNotesSaved(false), 2000);
+      setHelpdeskForm({ category: 'bug', title: '', description: '' });
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 4000);
     } catch { /* silent */ }
-  }, [notesText, todos, pins]);
-
-  const addTodo = () => {
-    if (!newTodo.trim()) return;
-    const next = [...todos, { id: Date.now(), text: newTodo.trim(), done: false }];
-    setTodos(next); setNewTodo('');
-    saveNotes(next, undefined);
-  };
-  const toggleTodo = (id) => {
-    const next = todos.map(t => t.id === id ? { ...t, done: !t.done } : t);
-    setTodos(next); saveNotes(next, undefined);
-  };
-  const deleteTodo = (id) => {
-    const next = todos.filter(t => t.id !== id);
-    setTodos(next); saveNotes(next, undefined);
-  };
-  const addPin = () => {
-    if (!newPin.trim()) return;
-    const next = [...pins, { id: Date.now(), text: newPin.trim(), color: newPinColor }];
-    setPins(next); setNewPin('');
-    saveNotes(undefined, next);
-  };
-  const deletePin = (id) => {
-    const next = pins.filter(p => p.id !== id);
-    setPins(next); saveNotes(undefined, next);
+    setSubmitting(false);
   };
 
-  useEffect(() => { if (showNotes && isAdmin) loadNotes(); }, [showNotes, isAdmin, loadNotes]);
+  const updateTicketStatus = async (id, status) => {
+    try {
+      await updateDoc(doc(db, 'helpdesk_tickets', id), { status });
+      setTickets(ts => ts.map(t => t.id === id ? { ...t, status } : t));
+    } catch { /* silent */ }
+  };
+
+  const sendAdminReply = async (id) => {
+    const text = (adminReply[id] || '').trim();
+    if (!text) return;
+    try {
+      await updateDoc(doc(db, 'helpdesk_tickets', id), {
+        adminResponse: text,
+        respondedAt: Timestamp.now(),
+        status: 'in_progress',
+      });
+      setTickets(ts => ts.map(t => t.id === id ? { ...t, adminResponse: text, status: 'in_progress' } : t));
+      setAdminReply(r => ({ ...r, [id]: '' }));
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => {
+    if (showHelpdesk) {
+      loadTickets();
+      setHelpdeskTab(isAdmin ? 'all' : 'submit');
+    }
+  }, [showHelpdesk, isAdmin, loadTickets]);
 
   // Synchronizuj ogłoszenia z rawNotices (cache → natychmiastowe ładowanie przy kolejnych wizytach)
   // notices pozostaje jako mutable state dla lokalnych operacji add/delete
@@ -503,17 +506,22 @@ export default function DashboardPage() {
                 </div>
               </button>
 
-              {/* KAFELEK: NOTATKI */}
-              <button onClick={() => setShowNotes(true)}
+              {/* KAFELEK: HELPDESK — tylko Admin */}
+              <button onClick={() => setShowHelpdesk(true)}
                 className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)] text-left">
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-700 to-purple-900 group-hover:scale-110 transition-transform duration-700 -z-10" />
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 to-teal-800 group-hover:scale-110 transition-transform duration-700 -z-10" />
                 <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10" />
+                {tickets.filter(t => t.status === 'new').length > 0 && (
+                  <div className="absolute top-4 right-4 z-20 bg-rose-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg animate-pulse">
+                    {tickets.filter(t => t.status === 'new').length} nowych
+                  </div>
+                )}
                 <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
-                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">📝</div>
-                  <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight">Notatki Zarządu</h2>
-                  <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">Wspólna tablica notatek — tylko Admin</p>
+                  <div className="w-14 h-14 md:w-16 md:h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl md:text-3xl mb-4 shadow-inner border border-white/30 group-hover:rotate-12 transition-transform duration-300">🎫</div>
+                  <h2 className="text-xl md:text-2xl font-black text-white mb-1 tracking-tight">HelpDesk SSUEW</h2>
+                  <p className="text-white/80 font-bold text-[10px] md:text-xs uppercase tracking-widest mb-6 px-2">Zgłoszenia użytkowników — tylko Admin</p>
                   <div className="px-6 py-2 bg-white text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-xl">
-                    Otwórz Notatki
+                    Otwórz Panel
                   </div>
                 </div>
               </button>
@@ -524,6 +532,13 @@ export default function DashboardPage() {
         <footer className="mt-16 flex flex-col items-center gap-2">
           <div className="h-[1px] w-10 bg-slate-300 opacity-50"></div>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] opacity-50">Powered by Samorząd Studentów UEW</p>
+          {/* Przycisk zgłoszenia dla zwykłych użytkowników */}
+          {!isAdmin && (
+            <button onClick={() => { setHelpdeskTab('submit'); setShowHelpdesk(true); }}
+              className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-teal-600 transition-colors uppercase tracking-widest">
+              <span>🎫</span> Zgłoś problem lub sugestię
+            </button>
+          )}
           {/* Podpis autora — celowo dyskretny, ale trwale obecny w kodzie i renderze */}
           <p className="text-[9px] text-slate-300 tracking-[0.15em] select-none mt-1">
             system by{' '}
@@ -545,9 +560,10 @@ export default function DashboardPage() {
                                'bg-teal-500','bg-emerald-500','bg-green-500','bg-amber-500','bg-orange-500'];
 
         const tabs = [
-          { id: 'ranking', label: 'Ranking stron' },
-          { id: 'chart',   label: 'Wykres słupkowy' },
-          { id: 'today',   label: 'Dzisiaj' },
+          { id: 'ranking',   label: 'Ranking stron' },
+          { id: 'chart',     label: 'Wykres słupkowy' },
+          { id: 'today',     label: 'Dzisiaj' },
+          { id: 'activity',  label: 'Użytkownicy' },
         ];
 
         return (
@@ -658,7 +674,7 @@ export default function DashboardPage() {
                       );
                     })}
                   </div>
-                ) : /* today */ (
+                ) : statsTab === 'today' ? (
                   <div className="pt-2 space-y-2">
                     {stats.filter(r => (r.days?.[today] || 0) > 0)
                       .sort((a, b) => (b.days?.[today] || 0) - (a.days?.[today] || 0))
@@ -683,6 +699,33 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
+                ) : /* activity */ (
+                  <div className="pt-2 space-y-2">
+                    <p className="text-[10px] text-white/30 uppercase tracking-widest px-1 mb-3">Wszyscy zarejestrowani użytkownicy — sortowanie: ostatnia aktywność</p>
+                    {userActivity.map((u, i) => {
+                      const isToday = u.lastSeen === today;
+                      return (
+                        <div key={i} className="flex items-center gap-3 bg-white/5 hover:bg-white/10 rounded-2xl px-4 py-3 transition-colors">
+                          <div className={`w-2 h-2 rounded-full shrink-0 ${isToday ? 'bg-emerald-400' : 'bg-white/20'}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{u.displayName || '—'}</p>
+                            <p className="text-xs text-white/40 truncate">{u.email}</p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/40'}`}>
+                              {isToday ? 'Dziś' : (u.lastSeen || '—')}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {userActivity.length === 0 && (
+                      <div className="text-center py-12 text-white/30">
+                        <div className="text-4xl mb-2">👥</div>
+                        <p className="text-sm font-bold">Brak danych użytkowników</p>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -702,140 +745,55 @@ export default function DashboardPage() {
       })()}
 
       {/* ==================================================== */}
-      {/* MODAL: NOTATKI (TYLKO DLA ADMINA) */}
+      {/* MODAL: HELPDESK SSUEW */}
       {/* ==================================================== */}
-      {showNotes && isAdmin && (() => {
-        // Kolory karteczek — gradient top + cień + tekst
-        const STICKER_THEMES = {
-          yellow: {
-            grad: 'from-amber-200 to-yellow-100',
-            fold: 'border-amber-300',
-            shadow: 'shadow-amber-200/60',
-            text: 'text-amber-950',
-            pin: 'bg-amber-400',
-            label: 'Żółta',
-          },
-          pink: {
-            grad: 'from-rose-200 to-pink-100',
-            fold: 'border-rose-300',
-            shadow: 'shadow-rose-200/60',
-            text: 'text-rose-950',
-            pin: 'bg-rose-400',
-            label: 'Różowa',
-          },
-          blue: {
-            grad: 'from-sky-200 to-blue-100',
-            fold: 'border-sky-300',
-            shadow: 'shadow-sky-200/60',
-            text: 'text-sky-950',
-            pin: 'bg-sky-500',
-            label: 'Niebieska',
-          },
-          green: {
-            grad: 'from-emerald-200 to-green-100',
-            fold: 'border-emerald-300',
-            shadow: 'shadow-emerald-200/60',
-            text: 'text-emerald-950',
-            pin: 'bg-emerald-500',
-            label: 'Zielona',
-          },
-          purple: {
-            grad: 'from-violet-200 to-purple-100',
-            fold: 'border-violet-300',
-            shadow: 'shadow-violet-200/60',
-            text: 'text-violet-950',
-            pin: 'bg-violet-500',
-            label: 'Fioletowa',
-          },
-          slate: {
-            grad: 'from-slate-200 to-slate-100',
-            fold: 'border-slate-300',
-            shadow: 'shadow-slate-200/60',
-            text: 'text-slate-900',
-            pin: 'bg-slate-500',
-            label: 'Szara',
-          },
+      {showHelpdesk && (() => {
+        const CATEGORIES = [
+          { id: 'bug',        label: '🐛 Błąd w systemie',         color: 'bg-rose-100 text-rose-700 border-rose-200'   },
+          { id: 'question',   label: '❓ Pytanie / pomoc',          color: 'bg-blue-100 text-blue-700 border-blue-200'   },
+          { id: 'suggestion', label: '💡 Pomysł / sugestia',        color: 'bg-amber-100 text-amber-700 border-amber-200'},
+          { id: 'technical',  label: '🔧 Problem techniczny',       color: 'bg-slate-100 text-slate-700 border-slate-200'},
+        ];
+        const STATUS_MAP = {
+          new:         { label: 'Nowe',        color: 'bg-rose-100 text-rose-700'     },
+          in_progress: { label: 'W trakcie',   color: 'bg-amber-100 text-amber-700'   },
+          closed:      { label: 'Zamknięte',   color: 'bg-emerald-100 text-emerald-700' },
         };
+        const hdTabs = isAdmin
+          ? [{ id: 'all', label: '📋 Wszystkie zgłoszenia' }, { id: 'submit', label: '✏️ Nowe zgłoszenie' }]
+          : [{ id: 'submit', label: '✏️ Nowe zgłoszenie' }, { id: 'my', label: '📂 Moje zgłoszenia' }];
 
-        // Obrót karteczki na podstawie indeksu — efekt rozrzucenia
-        const ROTATIONS = ['-rotate-1', 'rotate-1', '-rotate-2', 'rotate-2', 'rotate-0', '-rotate-1', 'rotate-2'];
-
-        const notesTabDefs = [
-          { id: 'notes', label: '📝 Notatki' },
-          { id: 'todo',  label: '✅ TODO'    },
-          { id: 'pins',  label: '📌 Karteczki' },
-        ];
-        const doneTodos = todos.filter(t => t.done).length;
-
-        // Rich text toolbar actions
-        const fmt = (cmd, val) => { document.execCommand(cmd, false, val); editorRef.current?.focus(); };
-        const saveRich = () => {
-          const html = editorRef.current?.innerHTML || '';
-          setNotesText(html);
-          saveNotes();
-        };
-
-        const TOOLBAR = [
-          { label: 'B',  title: 'Pogrubienie',  action: () => fmt('bold'),          style: 'font-black' },
-          { label: 'I',  title: 'Kursywa',       action: () => fmt('italic'),        style: 'italic' },
-          { label: 'U',  title: 'Podkreślenie',  action: () => fmt('underline'),     style: 'underline' },
-          { label: 'S',  title: 'Przekreślenie', action: () => fmt('strikeThrough'), style: 'line-through' },
-          { sep: true },
-          { label: 'H1', title: 'Nagłówek 1',    action: () => fmt('formatBlock', '<h2>') },
-          { label: 'H2', title: 'Nagłówek 2',    action: () => fmt('formatBlock', '<h3>') },
-          { label: '¶',  title: 'Akapit',         action: () => fmt('formatBlock', '<p>') },
-          { sep: true },
-          { label: '•',  title: 'Lista punktowana', action: () => fmt('insertUnorderedList') },
-          { label: '1.', title: 'Lista numerowana', action: () => fmt('insertOrderedList') },
-          { sep: true },
-          { label: '↺',  title: 'Cofnij',         action: () => fmt('undo') },
-          { label: '↻',  title: 'Ponów',           action: () => fmt('redo') },
-          { sep: true },
-          { label: '✕',  title: 'Wyczyść formatowanie', action: () => fmt('removeFormat'), className: 'text-rose-400 hover:text-rose-600' },
-        ];
-
-        const TEXT_COLORS = [
-          { color: '#1e293b', label: 'Czarny' },
-          { color: '#dc2626', label: 'Czerwony' },
-          { color: '#2563eb', label: 'Niebieski' },
-          { color: '#16a34a', label: 'Zielony' },
-          { color: '#9333ea', label: 'Fioletowy' },
-          { color: '#ea580c', label: 'Pomarańczowy' },
-        ];
+        const myTickets = tickets.filter(t => t.userId === user?.uid);
+        const newCount  = tickets.filter(t => t.status === 'new').length;
 
         return (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowNotes(false)} />
+            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowHelpdesk(false)} />
             <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
 
               {/* NAGŁÓWEK */}
-              <div className="bg-gradient-to-r from-violet-600 to-purple-700 px-7 pt-6 pb-0 shrink-0">
+              <div className="bg-gradient-to-r from-cyan-600 to-teal-700 px-7 pt-6 pb-0 shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <p className="text-[10px] font-black text-violet-200 uppercase tracking-[0.2em] mb-0.5">Panel Administracyjny</p>
-                    <h2 className="text-xl font-black text-white">Notatki Zarządu</h2>
+                    <p className="text-[10px] font-black text-cyan-200 uppercase tracking-[0.2em] mb-0.5">System Zgłoszeń</p>
+                    <h2 className="text-xl font-black text-white flex items-center gap-2">
+                      HelpDesk SSUEW
+                      {isAdmin && newCount > 0 && (
+                        <span className="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">{newCount} nowych</span>
+                      )}
+                    </h2>
                   </div>
-                  <button onClick={() => setShowNotes(false)}
+                  <button onClick={() => setShowHelpdesk(false)}
                     className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all">
                     <Icons.Close />
                   </button>
                 </div>
                 <div className="flex gap-0.5">
-                  {notesTabDefs.map(t => (
-                    <button key={t.id} onClick={() => setNotesTab(t.id)}
+                  {hdTabs.map(t => (
+                    <button key={t.id} onClick={() => setHelpdeskTab(t.id)}
                       className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all ${
-                        notesTab === t.id ? 'bg-white text-violet-700' : 'text-violet-200 hover:text-white hover:bg-white/10'}`}>
+                        helpdeskTab === t.id ? 'bg-white text-teal-700' : 'text-cyan-200 hover:text-white hover:bg-white/10'}`}>
                       {t.label}
-                      {t.id === 'todo' && todos.length > 0 && (
-                        <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${notesTab === 'todo' ? 'bg-violet-100 text-violet-600' : 'bg-white/20 text-white'}`}>
-                          {doneTodos}/{todos.length}
-                        </span>
-                      )}
-                      {t.id === 'pins' && pins.length > 0 && (
-                        <span className={`ml-2 px-1.5 py-0.5 rounded-full text-[10px] ${notesTab === 'pins' ? 'bg-violet-100 text-violet-600' : 'bg-white/20 text-white'}`}>
-                          {pins.length}
-                        </span>
-                      )}
                     </button>
                   ))}
                 </div>
@@ -844,175 +802,100 @@ export default function DashboardPage() {
               {/* TREŚĆ */}
               <div className="flex-1 overflow-y-auto bg-slate-50">
 
-                {/* ══ NOTATKI (rich editor) ══ */}
-                {notesTab === 'notes' && (
-                  notesLoading ? (
-                    <div className="p-6 space-y-3">
-                      <div className="h-10 bg-slate-200 animate-pulse rounded-xl" />
-                      <div className="h-64 bg-slate-100 animate-pulse rounded-2xl" />
-                    </div>
-                  ) : (
-                    <div className="flex flex-col h-full">
-                      {/* TOOLBAR */}
-                      <div className="flex items-center gap-0.5 flex-wrap px-4 py-2.5 bg-white border-b border-slate-200 shrink-0">
-                        {TOOLBAR.map((btn, i) =>
-                          btn.sep ? (
-                            <div key={i} className="w-px h-5 bg-slate-200 mx-1" />
-                          ) : (
-                            <button key={i} onMouseDown={e => { e.preventDefault(); btn.action(); }}
-                              title={btn.title}
-                              className={`min-w-[28px] h-7 px-1.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-violet-50 hover:text-violet-700 transition-colors ${btn.className || ''} ${btn.style ? btn.style : ''}`}>
-                              {btn.label}
-                            </button>
-                          )
-                        )}
-                        {/* Kolory tekstu */}
-                        <div className="w-px h-5 bg-slate-200 mx-1" />
-                        {TEXT_COLORS.map(tc => (
-                          <button key={tc.color}
-                            onMouseDown={e => { e.preventDefault(); fmt('foreColor', tc.color); }}
-                            title={tc.label}
-                            className="w-5 h-5 rounded-full border-2 border-white shadow-sm hover:scale-125 transition-transform"
-                            style={{ background: tc.color }} />
-                        ))}
-                      </div>
-
-                      {/* EDYTOR — wygląd kartki papieru */}
-                      <div className="flex-1 p-5">
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
-                          style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 27px, #e2e8f020 27px, #e2e8f020 28px)', backgroundPositionY: '8px' }}>
-                          <div
-                            ref={editorRef}
-                            contentEditable
-                            suppressContentEditableWarning
-                            onInput={() => {}}
-                            dangerouslySetInnerHTML={notesText ? { __html: notesText } : undefined}
-                            data-placeholder="Zacznij pisać… Zaznacz tekst i użyj paska formatowania powyżej."
-                            className="min-h-[280px] p-5 text-sm text-slate-800 leading-7 focus:outline-none [&_h2]:text-xl [&_h2]:font-black [&_h2]:text-slate-900 [&_h2]:mb-1 [&_h2]:mt-3 [&_h3]:text-base [&_h3]:font-bold [&_h3]:text-slate-700 [&_h3]:mb-0.5 [&_h3]:mt-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 empty:before:content-[attr(data-placeholder)] empty:before:text-slate-300"
-                          />
+                {/* ══ FORMULARZ NOWEGO ZGŁOSZENIA ══ */}
+                {helpdeskTab === 'submit' && (
+                  <div className="p-6 space-y-5">
+                    {submitSuccess && (
+                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 flex items-center gap-3">
+                        <span className="text-2xl">✅</span>
+                        <div>
+                          <p className="font-black text-emerald-800">Zgłoszenie wysłane!</p>
+                          <p className="text-xs text-emerald-600 mt-0.5">Admin zostanie powiadomiony. Możesz śledzić status w zakładce „Moje zgłoszenia".</p>
                         </div>
                       </div>
-
-                      {/* FOOTER */}
-                      <div className="px-5 pb-5 flex items-center justify-between shrink-0">
-                        <p className="text-[10px] text-slate-400 uppercase tracking-widest">Widoczne dla wszystkich adminów · Firestore</p>
-                        <button onMouseDown={e => e.preventDefault()} onClick={saveRich}
-                          className={`px-5 py-2.5 rounded-xl text-sm font-black shadow-lg transition-all active:scale-95 ${
-                            notesSaved ? 'bg-emerald-500 text-white shadow-emerald-200' : 'bg-violet-600 hover:bg-violet-700 text-white shadow-violet-200'}`}>
-                          {notesSaved ? '✓ Zapisano!' : 'Zapisz notatki'}
-                        </button>
-                      </div>
-                    </div>
-                  )
-                )}
-
-                {/* ══ TODO ══ */}
-                {notesTab === 'todo' && (
-                  <div className="p-6 space-y-4">
-                    <div className="flex gap-2">
-                      <input value={newTodo} onChange={e => setNewTodo(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && addTodo()}
-                        placeholder="Nowe zadanie… (Enter, aby dodać)"
-                        className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400 shadow-sm" />
-                      <button onClick={addTodo}
-                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-black shadow-lg shadow-violet-200 transition-all active:scale-95">
-                        + Dodaj
-                      </button>
-                    </div>
-                    {todos.length === 0 ? (
-                      <div className="text-center py-14 text-slate-300">
-                        <div className="text-5xl mb-3">☑️</div>
-                        <p className="text-sm font-bold">Lista zadań jest pusta</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {todos.filter(t => !t.done).map(t => (
-                          <div key={t.id} className="flex items-center gap-3 bg-white border border-slate-200 rounded-2xl px-5 py-3.5 group shadow-sm hover:shadow-md transition-shadow">
-                            <button onClick={() => toggleTodo(t.id)}
-                              className="w-5 h-5 rounded-md border-2 border-slate-300 hover:border-violet-500 flex items-center justify-center shrink-0 transition-colors" />
-                            <span className="flex-1 text-sm text-slate-700 font-medium">{t.text}</span>
-                            <button onClick={() => deleteTodo(t.id)}
-                              className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
-                              <Icons.Trash />
-                            </button>
-                          </div>
-                        ))}
-                        {todos.some(t => t.done) && <>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-3 px-1">Ukończone</p>
-                          {todos.filter(t => t.done).map(t => (
-                            <div key={t.id} className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 group opacity-50">
-                              <button onClick={() => toggleTodo(t.id)}
-                                className="w-5 h-5 rounded-md bg-emerald-500 border-2 border-emerald-500 flex items-center justify-center shrink-0 text-white text-[10px] font-black">✓</button>
-                              <span className="flex-1 text-sm text-slate-400 line-through">{t.text}</span>
-                              <button onClick={() => deleteTodo(t.id)}
-                                className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-500 transition-all shrink-0">
-                                <Icons.Trash />
-                              </button>
-                            </div>
-                          ))}
-                        </>}
-                      </div>
                     )}
+
+                    {/* Kategoria */}
+                    <div>
+                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Kategoria</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {CATEGORIES.map(c => (
+                          <button key={c.id} onClick={() => setHelpdeskForm(f => ({ ...f, category: c.id }))}
+                            className={`px-4 py-2.5 rounded-xl border text-sm font-semibold text-left transition-all ${
+                              helpdeskForm.category === c.id ? c.color + ' ring-2 ring-offset-1 ring-teal-400' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300'
+                            }`}>
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Tytuł */}
+                    <div>
+                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Tytuł zgłoszenia</label>
+                      <input
+                        value={helpdeskForm.title}
+                        onChange={e => setHelpdeskForm(f => ({ ...f, title: e.target.value }))}
+                        placeholder="Krótki opis problemu lub pytania…"
+                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                      />
+                    </div>
+
+                    {/* Opis */}
+                    <div>
+                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Szczegółowy opis</label>
+                      <textarea
+                        value={helpdeskForm.description}
+                        onChange={e => setHelpdeskForm(f => ({ ...f, description: e.target.value }))}
+                        placeholder="Opisz dokładnie co się stało, gdzie wystąpił błąd, jak go odtworzyć…"
+                        rows={5}
+                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
+                      />
+                    </div>
+
+                    <button onClick={submitTicket} disabled={submitting || !helpdeskForm.title.trim() || !helpdeskForm.description.trim()}
+                      className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-sm shadow-lg shadow-teal-200 transition-all active:scale-[0.98]">
+                      {submitting ? 'Wysyłanie…' : 'Wyślij zgłoszenie →'}
+                    </button>
                   </div>
                 )}
 
-                {/* ══ KARTECZKI (sticky notes) ══ */}
-                {notesTab === 'pins' && (
-                  <div className="p-6 space-y-5">
-                    {/* Dodaj nową */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 space-y-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nowa karteczka</p>
-                      <textarea value={newPin} onChange={e => setNewPin(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), addPin())}
-                        placeholder="Treść karteczki… (Enter aby dodać, Shift+Enter nowa linia)"
-                        rows={2}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm text-slate-800 resize-none focus:outline-none focus:ring-2 focus:ring-violet-400 transition-all" />
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">Kolor:</span>
-                          {Object.entries(STICKER_THEMES).map(([key, th]) => (
-                            <button key={key} onClick={() => setNewPinColor(key)} title={th.label}
-                              className={`w-6 h-6 rounded-full bg-gradient-to-br ${th.grad} border-2 transition-all ${newPinColor === key ? 'border-slate-600 scale-125 shadow-md' : 'border-white hover:scale-110 shadow-sm'}`} />
-                          ))}
-                        </div>
-                        <button onClick={addPin}
-                          className="px-5 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-lg shadow-violet-200 transition-all active:scale-95">
-                          + Dodaj karteczkę
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Siatka karteczek */}
-                    {pins.length === 0 ? (
-                      <div className="text-center py-14 text-slate-300">
-                        <div className="text-5xl mb-3">📌</div>
-                        <p className="text-sm font-bold">Brak karteczek</p>
-                        <p className="text-xs mt-1 text-slate-400">Dodaj swoją pierwszą notatkę powyżej</p>
+                {/* ══ MOJE ZGŁOSZENIA ══ */}
+                {helpdeskTab === 'my' && (
+                  <div className="p-6">
+                    {ticketsLoading ? (
+                      <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-200 animate-pulse rounded-2xl" />)}</div>
+                    ) : myTickets.length === 0 ? (
+                      <div className="text-center py-16 text-slate-300">
+                        <div className="text-5xl mb-3">📭</div>
+                        <p className="text-sm font-bold text-slate-400">Brak twoich zgłoszeń</p>
+                        <p className="text-xs mt-1">Przejdź do zakładki „Nowe zgłoszenie", aby coś zgłosić.</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {pins.map((pin, i) => {
-                          const th = STICKER_THEMES[pin.color] || STICKER_THEMES.yellow;
-                          const rot = ROTATIONS[i % ROTATIONS.length];
+                      <div className="space-y-3">
+                        {myTickets.map(t => {
+                          const cat = CATEGORIES.find(c => c.id === t.category);
+                          const st  = STATUS_MAP[t.status] || STATUS_MAP.new;
+                          const date = t.createdAt?.toDate?.()?.toLocaleDateString('pl-PL') || '—';
                           return (
-                            <div key={pin.id}
-                              className={`relative group ${rot} hover:rotate-0 hover:scale-105 transition-all duration-200 cursor-default`}>
-                              {/* Efekt zagięcia rogu */}
-                              <div className={`absolute bottom-0 right-0 w-8 h-8 bg-gradient-to-br ${th.fold} opacity-40 rounded-tl-xl`}
-                                style={{ clipPath: 'polygon(100% 0, 0 100%, 100% 100%)' }} />
-                              {/* Karteczka */}
-                              <div className={`bg-gradient-to-br ${th.grad} rounded-2xl shadow-xl ${th.shadow} p-5 min-h-[130px] flex flex-col`}>
-                                {/* Pinezka */}
-                                <div className="flex justify-center mb-3">
-                                  <div className={`w-4 h-4 rounded-full ${th.pin} shadow-md ring-2 ring-white`} />
+                            <div key={t.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${cat?.color || ''}`}>{cat?.label || t.category}</span>
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
+                                  </div>
+                                  <p className="font-bold text-slate-800 text-sm">{t.title}</p>
+                                  <p className="text-xs text-slate-500 mt-0.5">{date}</p>
                                 </div>
-                                <p className={`text-sm font-medium ${th.text} leading-relaxed flex-1 whitespace-pre-wrap`}>{pin.text}</p>
                               </div>
-                              {/* Usuń */}
-                              <button onClick={() => deletePin(pin.id)}
-                                className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all border border-slate-100 text-xs font-black">
-                                ×
-                              </button>
+                              <p className="text-xs text-slate-600 bg-slate-50 rounded-xl px-4 py-3 leading-relaxed">{t.description}</p>
+                              {t.adminResponse && (
+                                <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
+                                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Odpowiedź admina</p>
+                                  <p className="text-sm text-teal-900">{t.adminResponse}</p>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -1020,6 +903,84 @@ export default function DashboardPage() {
                     )}
                   </div>
                 )}
+
+                {/* ══ WSZYSTKIE ZGŁOSZENIA (ADMIN) ══ */}
+                {helpdeskTab === 'all' && (
+                  <div className="p-6">
+                    {ticketsLoading ? (
+                      <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-slate-200 animate-pulse rounded-2xl" />)}</div>
+                    ) : tickets.length === 0 ? (
+                      <div className="text-center py-16 text-slate-300">
+                        <div className="text-5xl mb-3">🎫</div>
+                        <p className="text-sm font-bold text-slate-400">Brak zgłoszeń</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {tickets.map(t => {
+                          const cat = CATEGORIES.find(c => c.id === t.category);
+                          const st  = STATUS_MAP[t.status] || STATUS_MAP.new;
+                          const date = t.createdAt?.toDate?.()?.toLocaleDateString('pl-PL') || '—';
+                          return (
+                            <div key={t.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
+                              {/* Nagłówek ticketu */}
+                              <div className="flex items-start justify-between gap-3 flex-wrap">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${cat?.color || ''}`}>{cat?.label || t.category}</span>
+                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
+                                  </div>
+                                  <p className="font-bold text-slate-800">{t.title}</p>
+                                  <p className="text-xs text-slate-400 mt-0.5">{t.userName} · {t.userEmail} · {date}</p>
+                                </div>
+                                {/* Status selector */}
+                                <select value={t.status} onChange={e => updateTicketStatus(t.id, e.target.value)}
+                                  className="text-xs font-bold bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-400 shrink-0">
+                                  <option value="new">Nowe</option>
+                                  <option value="in_progress">W trakcie</option>
+                                  <option value="closed">Zamknięte</option>
+                                </select>
+                              </div>
+
+                              {/* Treść */}
+                              <p className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3 leading-relaxed">{t.description}</p>
+
+                              {/* Istniejąca odpowiedź */}
+                              {t.adminResponse && (
+                                <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
+                                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Twoja odpowiedź</p>
+                                  <p className="text-sm text-teal-900">{t.adminResponse}</p>
+                                </div>
+                              )}
+
+                              {/* Pole odpowiedzi admina */}
+                              <div className="flex gap-2">
+                                <input
+                                  value={adminReply[t.id] || ''}
+                                  onChange={e => setAdminReply(r => ({ ...r, [t.id]: e.target.value }))}
+                                  onKeyDown={e => e.key === 'Enter' && sendAdminReply(t.id)}
+                                  placeholder={t.adminResponse ? 'Zaktualizuj odpowiedź…' : 'Napisz odpowiedź…'}
+                                  className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
+                                />
+                                <button onClick={() => sendAdminReply(t.id)}
+                                  disabled={!(adminReply[t.id] || '').trim()}
+                                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white rounded-xl text-sm font-black transition-all shrink-0">
+                                  Wyślij
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+
+              {/* FOOTER */}
+              <div className="px-7 py-3.5 border-t border-slate-100 shrink-0 flex items-center justify-between">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest">Zgłoszenia · Firestore · HelpDesk SSUEW</p>
+                <button onClick={loadTickets} className="text-xs font-black text-teal-600 hover:text-teal-800 transition-colors uppercase tracking-wider">↻ Odśwież</button>
               </div>
             </div>
           </div>
