@@ -9,3 +9,6 @@ export const CRED_API_URL = "https://script.google.com/macros/s/AKfycbzAvKdBA-8C
 
 // Tablica ogłoszeń (Dashboard)
 export const NOTICES_API_URL = "https://script.google.com/macros/s/AKfycbxiFv70EvHp709-j4Lrxm7mbnxgybCXuzkgUubNQedCuc4EuanK3lxUttQwpvgE1UGyng/exec";
+
+// Kalendarz (Rezerwacje sal i przestrzeni)
+export const CALENDAR_API_URL = "https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec";

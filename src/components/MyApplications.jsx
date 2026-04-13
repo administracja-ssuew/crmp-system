@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useGASFetch } from '../hooks/useGASFetch';
-import { CRW_API_URL } from '../config';
+import { CRW_API_URL, CALENDAR_API_URL } from '../config';
 
 // === HELPERS ===
 
@@ -77,49 +77,77 @@ export default function MyApplications({ userEmail }) {
 
   // GAS data — cache z useGASFetch (ten sam URL co EquipmentPage, więc cache trafienie)
   const { data: gasData } = useGASFetch(CRW_API_URL);
+  const { data: calendarData } = useGASFetch(CALENDAR_API_URL);
 
   const gasItems = useMemo(() => {
-    if (!gasData || !userEmail) return [];
     const result = [];
+    if (!userEmail) return result;
 
-    // 1. Rezerwacje sprzętu — email ukryty w polu Kontakt
-    const rezerwacje = gasData.rezerwacje || [];
-    rezerwacje.forEach(r => {
-      const match = EMAIL_REGEX.exec(r.Kontakt || '');
-      const rezEmail = match ? match[1].toLowerCase() : null;
-      if (rezEmail === userEmail.toLowerCase()) {
-        result.push({
-          key: `rez-${r.ID}`,
-          icon: '📦',
-          type: 'Rezerwacja sprzętu',
-          title: r.Organizacja_Cel || r.Cel || 'Rezerwacja sprzętu',
-          detail: r.Sprzet_Kody ? `Kody: ${r.Sprzet_Kody}` : null,
-          status: r.Status,
-          date: r.Data_Od ? r.Data_Od.slice(0, 10) : null,
-          ts: r.Data_Od || '',
-        });
-      }
-    });
-
-    // 2. Zgłoszenia braków apteczek — Osoba === email
-    const apteczki = gasData.apteczkiBraki || gasData.braki_apteczek || gasData.apteczki_braki || gasData.firstAidReports || [];
-    apteczki.forEach(r => {
-      if (!r.Osoba) return;
-      if (r.Osoba.toLowerCase() !== userEmail.toLowerCase()) return;
-      result.push({
-        key: `aid-${r.ID || r.Data_Zgloszenia}`,
-        icon: '🚑',
-        type: 'Zgłoszenie apteczki',
-        title: r.Apteczka_Nazwa || 'Zgłoszenie braków',
-        detail: r.Powod || null,
-        status: r.Status || 'Oczekuje',
-        date: r.Data_Zgloszenia ? String(r.Data_Zgloszenia).slice(0, 10) : null,
-        ts: r.Data_Zgloszenia || '',
+    if (gasData) {
+      // 1. Rezerwacje sprzętu — email ukryty w polu Kontakt
+      const rezerwacje = gasData.rezerwacje || [];
+      rezerwacje.forEach(r => {
+        const match = EMAIL_REGEX.exec(r.Kontakt || '');
+        const rezEmail = match ? match[1].toLowerCase() : null;
+        if (rezEmail === userEmail.toLowerCase()) {
+          result.push({
+            key: `rez-${r.ID}`,
+            icon: '📦',
+            type: 'Rezerwacja sprzętu',
+            title: r.Organizacja_Cel || r.Cel || 'Rezerwacja sprzętu',
+            detail: r.Sprzet_Kody ? `Kody: ${r.Sprzet_Kody}` : null,
+            status: r.Status,
+            date: r.Data_Od ? r.Data_Od.slice(0, 10) : null,
+            ts: r.Data_Od || '',
+          });
+        }
       });
-    });
+
+      // 2. Zgłoszenia braków apteczek — Osoba === email
+      const apteczki = gasData.apteczkiBraki || gasData.braki_apteczek || gasData.apteczki_braki || gasData.firstAidReports || [];
+      apteczki.forEach(r => {
+        if (!r.Osoba) return;
+        if (r.Osoba.toLowerCase() !== userEmail.toLowerCase()) return;
+        result.push({
+          key: `aid-${r.ID || r.Data_Zgloszenia}`,
+          icon: '🚑',
+          type: 'Zgłoszenie apteczki',
+          title: r.Apteczka_Nazwa || 'Zgłoszenie braków',
+          detail: r.Powod || null,
+          status: r.Status || 'Oczekuje',
+          date: r.Data_Zgloszenia ? String(r.Data_Zgloszenia).slice(0, 10) : null,
+          ts: r.Data_Zgloszenia || '',
+        });
+      });
+    }
+
+    if (calendarData) {
+      // 3. Rezerwacje sal i przestrzeni
+      const sale = calendarData.sale || [];
+      const pending = calendarData.pending || [];
+      
+      const processEvent = (ev, statusLabel) => {
+        const eventEmail = ev.email || ev.applicantName; 
+        if (eventEmail && eventEmail.toLowerCase() === userEmail.toLowerCase()) {
+          result.push({
+            key: `cal-${ev.id || Math.random()}`,
+            icon: '📅',
+            type: 'Rezerwacja sali',
+            title: `${ev.room} — ${ev.title}`,
+            detail: `${ev.start} - ${ev.end}`,
+            status: statusLabel,
+            date: ev.date ? String(ev.date).substring(0, 10) : null,
+            ts: ev.date || '',
+          });
+        }
+      };
+
+      sale.forEach(ev => processEvent(ev, 'approved'));
+      pending.forEach(ev => processEvent(ev, 'pending'));
+    }
 
     return result;
-  }, [gasData, userEmail]);
+  }, [gasData, calendarData, userEmail]);
 
   // Firestore items — ładowane dopiero gdy sekcja otwarta
   const fetchFirestore = async () => {
