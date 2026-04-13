@@ -35,13 +35,18 @@ import RodoPage from './pages/RodoPage';
 function PageTracker() {
   const location = useLocation();
   const { user } = useAuth();
+  const uid = user?.uid;
 
-  // Rejestruj unikalnego użytkownika raz przy zalogowaniu
+  // Rejestruj obecność użytkownika — maksymalnie raz dziennie na sesję
+  // Zależność: uid (string), nie cały obiekt user → odporna na odświeżanie tokenów Firebase
   useEffect(() => {
-    if (!user) return;
+    if (!uid) return;
     const today = new Date().toISOString().slice(0, 10);
+    const sessionKey = `cra_user_tracked_${uid}_${today}`;
+    if (sessionStorage.getItem(sessionKey)) return; // już zliczone dziś w tej sesji
+    sessionStorage.setItem(sessionKey, '1');
     setDoc(
-      doc(db, 'user_visits', user.uid),
+      doc(db, 'user_visits', uid),
       {
         displayName: user.displayName || '',
         email: user.email || '',
@@ -50,11 +55,12 @@ function PageTracker() {
       },
       { merge: true }
     ).catch(() => {});
-  }, [user]);
+  }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Zliczaj wejścia na poszczególne podstrony
+  // Zliczaj wejścia na podstrony — tylko zmiana ścieżki, nie zmiana obiektu user
+  // Zależność: uid zamiast user → token refresh nie odpala licznika strony
   useEffect(() => {
-    if (!user) return;
+    if (!uid) return;
     const path = location.pathname.replace(/\//g, '_').replace(/^_/, '') || 'home';
     const today = new Date().toISOString().slice(0, 10);
     setDoc(
@@ -62,7 +68,7 @@ function PageTracker() {
       { total: increment(1), [`days.${today}`]: increment(1) },
       { merge: true }
     ).catch(() => {});
-  }, [location.pathname, user]);
+  }, [location.pathname, uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }

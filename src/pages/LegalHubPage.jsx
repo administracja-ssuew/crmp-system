@@ -39,6 +39,51 @@ const LEGAL_WIKI = [
     lawyerAdvice: "Regulamin każdego wydarzenia o podwyższonym ryzyku finansowym (projekty biletowane, wynajem autokarów, wynajem sali) musi bezwzględnie zawierać dobrze sformułowaną klauzulę siły wyższej. Mechanizm ten chroni Samorząd przed zarzutami niegospodarności i pozwami cywilnymi w sytuacji np. nagłego, administracyjnego zamknięcia obiektów Uczelni przez Rektora."
   },
   {
+    id: 5,
+    term: "Umowa o Dzieło vs Umowa Zlecenie",
+    context: "Prelegenci, Fotografowie, DJ, Graficy, Konferansjerzy",
+    desc: "Dwa fundamentalnie różne typy umów cywilnoprawnych. Umowa zlecenia (art. 734 KC) zobowiązuje do starannego działania — wynagrodzenie należy się niezależnie od efektu końcowego. Umowa o dzieło (art. 627 KC) zobowiązuje do osiągnięcia konkretnego rezultatu — zamawiający może odmówić zapłaty lub żądać poprawek, jeśli dzieło ma wady. Umowy o dzieło są zwolnione ze składek ZUS, co czyni je popularną formą współpracy przy projektach eventowych.",
+    badExample: "Zawarto z fotografem 'Umowę zlecenie' na wykonanie sesji zdjęciowej z Gali SSUEW. Fotograf dostarczył 30 rozmazanych zdjęć niskiej jakości i żąda pełnego wynagrodzenia.",
+    goodExample: "Zawarto 'Umowę o dzieło' z fotografem, określając przedmiot dzieła: 'minimum 200 zdjęć w rozdzielczości co najmniej 3000px, obrobionych, dostarczonych w ciągu 7 dni'. Przy nienależytym wykonaniu zamawiającemu przysługuje rękojmia.",
+    lawyerAdvice: "Przy umowach z konferansjerami, DJ-ami czy graficznie wykonującymi projekt plakatu — zawsze stosuj umowę o dzieło z precyzyjnie określonym rezultatem. Przy wolontarystach pełniących dyżury na stoisku (czynność, nie efekt) — umowa zlecenia lub porozumienie wolontariackie. Błędna klasyfikacja może skutkować zakwestionowaniem przez ZUS i koniecznością odprowadzenia zaległych składek wraz z odsetkami."
+  },
+  {
+    id: 6,
+    term: "Majątkowe Prawa Autorskie i Licencja",
+    context: "TEDxUEW, Gala SSUEW, Fotografia, Filmy z wydarzeń, Materiały graficzne",
+    desc: "Autorskie prawa majątkowe (art. 17 ustawy o prawie autorskim i prawach pokrewnych) to wyłączne prawo twórcy do korzystania z utworu i rozporządzania nim. Prawa te mogą być przeniesione (na polach eksploatacji) lub objęte licencją. Licencja niewyłączna pozwala twórcy udzielać tego samego prawa wielu podmiotom jednocześnie. Bez odrębnej klauzuli umownej organizator eventu nie nabywa automatycznie żadnych praw do materiałów stworzonych przez zatrudnionego fotografa czy prelegenta.",
+    badExample: "W umowie z fotografem brak jakiejkolwiek wzmianki o prawach autorskich. Po Gali SSUEW fotograf wyraża sprzeciw wobec opublikowania zdjęć w mediach społecznościowych i żąda dodatkowego wynagrodzenia za 'licencję'.",
+    goodExample: "§ X umowy: 'Twórca niniejszym przenosi na Zamawiającego autorskie prawa majątkowe do dzieła na następujących polach eksploatacji: publiczne wyświetlanie, rozpowszechnianie w internecie (w tym mediach społecznościowych), zamieszczenie w materiałach promocyjnych i sprawozdaniach. Przeniesienie praw następuje w ramach wynagrodzenia określonego w § Y.'",
+    lawyerAdvice: "Każda umowa o dzieło dotycząca materiałów wizualnych (zdjęcia, filmy, projekty graficzne, prezentacje prelegentów) MUSI zawierać klauzulę przeniesienia majątkowych praw autorskich lub licencji na wskazanych polach eksploatacji. Osobną kwestią są prawa zależne — jeśli planujesz tłumaczyć lub modyfikować materiał prelegenta TEDxUEW, wymagane jest dodatkowe upoważnienie."
+  },
+  {
+    id: 7,
+    term: "Zgoda na Wizerunek (Art. 81 PAIPP)",
+    context: "Wszystkie projekty — fotografia, transmisje live, materiały promocyjne",
+    desc: "Art. 81 ustawy o prawie autorskim i prawach pokrewnych stanowi, że rozpowszechnianie wizerunku osoby fizycznej wymaga jej zezwolenia. Wyjątek stanowią osoby publiczne w związku z pełnioną funkcją lub wizerunek stanowiący jedynie element większej całości (np. tłum na koncercie). Naruszenie prawa do wizerunku może skutkować roszczeniami cywilnymi o zaprzestanie, usunięcie materiałów i zadośćuczynienie.",
+    badExample: "Na stronie SSUEW opublikowano zdjęcia z Adapciaka bez uzyskania zgód od uczestników. Jeden z uczestników wniósł żądanie usunięcia swojego wizerunku i zadośćuczynienia.",
+    goodExample: "[Checkbox w formularzu rejestracyjnym]: 'Wyrażam zgodę na nieodpłatne fotografowanie/filmowanie mojej osoby podczas Wydarzenia oraz na publikację tych materiałów w mediach społecznościowych i materiałach promocyjnych SSUEW. Zgoda jest dobrowolna i może być cofnięta.'",
+    lawyerAdvice: "Zgoda na wizerunek powinna być oddzielną klauzulą — nie wplatać jej w ogólne 'akceptuję regulamin'. Przy Adapciaku i wyjazdach komisji zbieraj zgody przy rejestracji (checkbox w formularzu). Dla uczestników niepełnoletnich (jeśli organizujesz projekty dla licealistów) wymagana jest zgoda rodzica/opiekuna prawnego. Cofnięcie zgody po publikacji zobowiązuje do usunięcia materiałów."
+  },
+  {
+    id: 8,
+    term: "Wolontariat i Porozumienie Wolontariackie",
+    context: "Animalia, Eventy charytatywne, Konferencje, Każdy projekt angażujący nieodpłatnie wolontariuszy",
+    desc: "Wolontariat reguluje ustawa z dnia 24 kwietnia 2003 r. o działalności pożytku publicznego i wolontariacie. Wolontariusz wykonuje świadczenia nieodpłatnie, dobrowolnie i na rzecz organizacji pożytku publicznego. Z wolontariuszem zawiązuje się pisemne porozumienie wolontariackie (przy współpracy dłuższej niż 30 dni — obowiązkowo na piśmie). Organizacja jest zobowiązana do ubezpieczenia wolontariusza od NNW i OC oraz zapewnienia mu warunków BHP.",
+    badExample: "SSUEW organizuje akcję zbiórkową. Kilkudziesięciu wolontariuszy pracuje bez żadnego porozumienia i bez ubezpieczenia NNW. Jeden z nich ulega wypadkowi przy przenoszeniu materiałów.",
+    goodExample: "Przed każdym projektem angażującym wolontariuszy podpisuje się porozumienie wolontariackie z klauzulą o ubezpieczeniu NNW, określające zakres zadań, czas trwania i zasady odpowiedzialności. Porozumienie archiwizuje się zgodnie z JRWA.",
+    lawyerAdvice: "Samorząd Studentów UEW działa w oparciu o struktury Uczelni, dlatego kwestia ubezpieczenia wolontariuszy wymaga każdorazowego uzgodnienia z Działem Administracji UEW. Nie zakładaj automatycznie, że wolontariusze są objęci jakimkolwiek ubezpieczeniem — zweryfikuj to przed projektem. Brak porozumienia wolontariackiego może być zakwalifikowany przez ZUS jako stosunek pracy lub zlecenia i skutkować obowiązkiem odprowadzenia składek."
+  },
+  {
+    id: 9,
+    term: "Odpowiedzialność Deliktowa vs. Kontraktowa",
+    context: "Wypadki na eventach, Szkody w mieniu, Roszczenia uczestników",
+    desc: "Dwa reżimy odpowiedzialności cywilnej w polskim prawie. Odpowiedzialność kontraktowa (art. 471 KC) powstaje z niewykonania lub nienależytego wykonania umowy — dotyczy stron, które zawarły kontrakt (np. uczestnik naruszył regulamin). Odpowiedzialność deliktowa (art. 415 KC) to odpowiedzialność za czyn niedozwolony — może jej dochodzić każda osoba poszkodowana, nawet bez umowy z organizatorem (np. przechodzień poszkodowany przez reklamową konstrukcję).",
+    badExample: "Regulamin eventu wyłącza 'wszelką odpowiedzialność organizatora'. Uczestnik wywraca się na mokrej podłodze i doznaje urazu. Klauzula wyłączenia odpowiedzialności jest bezskuteczna wobec deliktów.",
+    goodExample: "Regulamin precyzyjnie odróżnia zobowiązania kontraktowe (co organizator obiecał w ramach biletu) od sfery deliktowej, w której ograniczenia odpowiedzialności są niedopuszczalne. Zapewnienie bezpiecznych warunków i dostosowanie terenu do wymagań BHP jest traktowane jako priorytet, a nie opcja.",
+    lawyerAdvice: "Całkowite wyłączenie odpowiedzialności za szkody na osobie w regulaminie to klauzula abuzywna i jest bezskuteczna z mocy prawa — nawet jeśli uczestnik ją podpisze. Skuteczna ochrona Uczelni to nie bezprawne klauzule, lecz faktyczne zabezpieczenie terenu, ubezpieczenie OC organizatora oraz prowadzenie dokumentacji zdarzeń (rejestr wypadków). W przypadku poważnego wypadku priorytetem jest niezwłoczne powiadomienie Działu Bezpieczeństwa i Higieny Pracy UEW."
+  },
+  {
     id: 13,
     term: "Obowiązek Informacyjny RODO",
     context: "Formularze zapisów (Google Forms), Konkursy, Rekrutacje",
@@ -68,6 +113,90 @@ const EVENT_REGULATIONS = {
     { title: "Bal UEW / Półmetek", desc: "Regulaminy imprez masowych i zamkniętych. Polityka +18, weryfikacja statusu studenta.", tags: ["Event Biletowany", "Ageizm", "Impreza Masowa"] },
   ]
 };
+
+const RECTOR_ORDERS = [
+  {
+    id: 'pojazdy',
+    type: 'Zarządzenie Rektora',
+    number: '[Nr do uzupełnienia]',
+    title: 'Zasady korzystania z pojazdów służbowych Uniwersytetu Ekonomicznego we Wrocławiu',
+    relevance: 'Planowanie transportu na wyjazdy komisji, przewóz sprzętu SSUEW, logistyka eventów wymagających pojazdu',
+    keyPoints: [
+      'Pojazdy służbowe UEW mogą być użytkowane wyłącznie przez pracowników Uczelni posiadających pisemne upoważnienie wydane przez właściwą jednostkę.',
+      'Studenci i działacze Samorządu nie mogą samodzielnie dysponować pojazdami służbowymi — każdorazowo wymagany jest kierowca będący pracownikiem UEW lub zewnętrzna firma transportowa.',
+      'Wniosek o udostępnienie pojazdu należy składać z wyprzedzeniem (zazwyczaj minimum 3–5 dni roboczych) do Działu Administracji.',
+      'Koszty paliwa, ewentualne opłaty drogowe oraz odpowiedzialność za szkody w pojeździe obciążają wnioskującą jednostkę.',
+    ],
+    warning: 'Samowolne użycie pojazdu służbowego przez osobę nieupoważnioną może zostać zakwalifikowane jako przywłaszczenie mienia Uczelni (art. 284 KK).',
+    contactUnit: 'Dział Administracyjno-Gospodarczy UEW',
+    note: 'Skontaktuj się z Działem Administracyjno-Gospodarczym w celu uzyskania aktualnego numeru zarządzenia oraz formularza wniosku.',
+  },
+  {
+    id: 'kasacja',
+    type: 'Zarządzenie Rektora',
+    number: '[Nr do uzupełnienia]',
+    title: 'Powołanie i tryb działania Rektorskiej Komisji Likwidacyjno-Kasacyjnej (RKLiK)',
+    relevance: 'Wykreślanie wyposażenia z Księgi Inwentarzowej SSUEW — kasacja sprzętu zniszczonego, przestarzałego lub skradzionego',
+    keyPoints: [
+      'Komisja Likwidacyjno-Kasacyjna jest organem kolegialnym powoływanym przez Rektora, upoważnionym do wydania decyzji o kasacji (trwałym wykreśleniu) składnika majątkowego Uczelni.',
+      'Samorząd Studentów inicjuje procedurę kasacji poprzez złożenie wniosku do Kwestury UEW, wskazując numer inwentarzowy, opis stanu technicznego oraz uzasadnienie konieczności kasacji.',
+      'Komisja wizualnie ocenia stan sprzętu i wydaje Protokół Kasacyjny — jest to dokument źródłowy dla wykreślenia pozycji z Księgi Inwentarzowej (kolumna 2 i 15).',
+      'Po wydaniu protokołu przedmiot trafia do utylizacji zgodnej z przepisami (np. sprzęt elektroniczny — certyfikowany recykling WEEE) lub może zostać przekazany innej jednostce.',
+      'Bez protokołu RKLiK wykreślenie z Księgi Inwentarzowej jest nieważne z punktu widzenia prawa bilansowego.',
+    ],
+    warning: 'Fizyczne zniszczenie lub wyrzucenie sprzętu figurującego w Księdze Inwentarzowej bez protokołu kasacyjnego stanowi naruszenie dyscypliny finansów publicznych.',
+    contactUnit: 'Kwestura UEW — Sekcja ds. Majątku',
+    note: 'Procedurę kasacyjną należy inicjować przed fizycznym usunięciem przedmiotu. Komplet dokumentów: wniosek o kasację + protokół komisji + potwierdzenie utylizacji.',
+  },
+  {
+    id: 'zakupy',
+    type: 'Pismo Okólne Kwestora',
+    number: '[Nr do uzupełnienia]',
+    title: 'Zasady dokonywania zakupów ze środków Uczelni — tryb zamówień do progu bagatelności',
+    relevance: 'Zakup sprzętu, materiałów promocyjnych, usług cateringowych na projekty SSUEW finansowane z budżetu Uczelni',
+    keyPoints: [
+      'Zakupy do kwoty progu bagatelności (aktualnie 130 000 PLN netto) mogą być dokonywane bez stosowania ustawy Prawo zamówień publicznych, jednak wciąż obowiązuje zasada gospodarności.',
+      'Wymagane są co najmniej trzy oferty cenowe (rozeznanie rynku) dla zakupów przekraczających próg wewnętrzny Uczelni (zazwyczaj kilka tysięcy złotych — skonsultuj z Kwesturą).',
+      'Faktura musi być wystawiona na Uniwersytet Ekonomiczny we Wrocławiu z podaniem centrum kosztów lub projektu. Faktury wystawione na osobę prywatną lub SSUEW bez NIP Uczelni nie mogą być zaksięgowane.',
+      'Zakup nie może nastąpić przed uzyskaniem stosownej akceptacji przełożonego / Kwestury — faktury za wydatki dokonane bez uprzedniej zgody mogą nie zostać zatwierdzone do zapłaty.',
+    ],
+    warning: 'Naruszenie zasad zamówień publicznych, w tym celowe dzielenie zamówień w celu ominięcia progów, jest przestępstwem z art. 231 KK (nadużycie uprawnień).',
+    contactUnit: 'Kwestura UEW — Dział Finansowy',
+    note: 'Każdy projekt SSUEW z budżetem Uczelni powinien mieć przydzielony numer centrum kosztów. Ustal go z opiekunem Samorządu przed pierwszym zakupem.',
+  },
+  {
+    id: 'imprezy',
+    type: 'Zarządzenie Rektora',
+    number: '[Nr do uzupełnienia]',
+    title: 'Organizacja imprez i wydarzeń na terenie Uczelni — zasady udzielania zgody i odpowiedzialności',
+    relevance: 'Każde wydarzenie organizowane w obiektach UEW: sale, aule, korytarze, teren kampusu',
+    keyPoints: [
+      'Organizacja każdego wydarzenia na terenie UEW wymaga pisemnej zgody właściwego Prorektora lub Dziekana — wniosek powinien wpłynąć minimum 14 dni przed planowaną datą.',
+      'Wniosek powinien zawierać: tytuł i charakter wydarzenia, szacunkową liczbę uczestników, plan rozmieszczenia, informacje o nagłośnieniu i oświetleniu, deklarację sprzątania po evencie.',
+      'Organizator odpowiada za stan pomieszczeń po zakończeniu. Wszelkie uszkodzenia infrastruktury obciążają organizującą jednostkę.',
+      'Przy imprezach z alkoholem wymagane jest uzyskanie odrębnej zgody i każdorazowe stosowanie przepisów ustawy o wychowaniu w trzeźwości.',
+    ],
+    warning: 'Brak zgody na organizację imprezy może skutkować jej przerwaniem przez Ochronę UEW oraz odpowiedzialnością dyscyplinarną organizatorów.',
+    contactUnit: 'Biuro Prorektora ds. Studenckich / Administracja obiektu',
+    note: 'Każdy lokal/sala ma własny limit pojemności określony przez Straż Pożarną — jego przekroczenie jest przestępstwem z ustawy o ochronie przeciwpożarowej.',
+  },
+  {
+    id: 'staze',
+    type: 'Pismo Okólne Kanclerza',
+    number: '[Nr do uzupełnienia]',
+    title: 'Zasady udostępniania sal i przestrzeni Uczelni podmiotom zewnętrznym i organizacjom studenckim',
+    relevance: 'Rezerwacje sal na potrzeby SSUEW, spotkania komisji, próby, szkolenia',
+    keyPoints: [
+      'Organizacje studenckie działające przy UEW co do zasady korzystają z sal nieodpłatnie, z pierwszeństwem dla działalności dydaktycznej.',
+      'Rezerwacji dokonuje się przez wyznaczony system (skontaktuj się z Biurem Obsługi Studenta lub Administracją budynku).',
+      'Sala powinna być zwrócona w stanie niepogorszonym — meble ustawione standardowo, sprzęt nagłośnieniowy odłączony, śmieci wyniesione.',
+      'W przypadku uszkodzenia wyposażenia sali, organizacja studencka ponosi pełną odpowiedzialność materialną.',
+    ],
+    warning: 'Rezerwacja sali drogą nieformalną (np. tylko SMS do konserwatora) nie jest podstawą prawną do jej zajęcia — w przypadku konfliktu pierwszeństwo ma zajęcia dydaktyczne.',
+    contactUnit: 'Biuro Obsługi Studenta / Administracja właściwego budynku',
+    note: 'Przy rezerwacji sali na wydarzenie zewnętrzne (z udziałem osób spoza UEW) może być wymagana odrębna zgoda Kanclerza oraz opłata za najem.',
+  },
+];
 
 const TEMPLATES_DATA = {
   TRIP_TEMPLATE: {
@@ -159,8 +288,10 @@ const TEMPLATES_DATA = {
 };
 
 export default function LegalHubPage() {
-  const [activeTab, setActiveTab] = useState('WIKI'); 
+  const [activeTab, setActiveTab] = useState('WIKI');
   const [expandedTerm, setExpandedTerm] = useState(null);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   
   const [regCategory, setRegCategory] = useState('external'); 
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,11 +345,17 @@ export default function LegalHubPage() {
         >
           <Icons.Book /> Słownik Norm i Praktyk Prawnych
         </button>
-        <button 
+        <button
           onClick={() => { setActiveTab('REGULATIONS'); setSelectedTemplate(null); }}
           className={`pb-4 px-4 font-black text-[13px] uppercase tracking-widest border-b-4 transition-all flex items-center gap-2 ${activeTab === 'REGULATIONS' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
-          <Icons.Folder /> Baza Struktur Regulaminowych
+          <Icons.Folder /> Wzorce Dokumentacji Projektowej
+        </button>
+        <button
+          onClick={() => { setActiveTab('ORDERS'); setSelectedTemplate(null); }}
+          className={`pb-4 px-4 font-black text-[13px] uppercase tracking-widest border-b-4 transition-all flex items-center gap-2 ${activeTab === 'ORDERS' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Icons.Shield /> Zarządzenia i Pisma Okólne
         </button>
       </div>
 
@@ -336,13 +473,12 @@ export default function LegalHubPage() {
               />
             </div>
 
-            <div className="bg-blue-50 border border-blue-100 p-5 rounded-2xl flex gap-4 items-start mb-2">
-              <div className="text-blue-500 mt-1"><Icons.Alert /></div>
+            <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex gap-4 items-start mb-2">
+              <div className="text-amber-500 mt-0.5 shrink-0"><Icons.Alert /></div>
               <div>
-                <h4 className="font-bold text-blue-900 text-sm mb-1">Struktury dokumentacji eventowej</h4>
-                <p className="text-blue-800/80 text-xs leading-relaxed font-medium">
-                  Zanim przystąpisz do redagowania regulaminu, zapoznaj się z wymaganą dla niego strukturą. 
-                  Baza jest regularnie aktualizowana o nowe wzorce akceptowane przez Dział Radców Prawnych UEW.
+                <h4 className="font-bold text-amber-900 text-sm mb-1">Wzorce robocze — wymagają weryfikacji prawnej</h4>
+                <p className="text-amber-800/80 text-xs leading-relaxed font-medium">
+                  Poniższe dokumenty to <strong>wewnętrzne wzorce organizacyjne SSUEW</strong> — nie zostały dotychczas poddane formalnej weryfikacji przez Dział Radców Prawnych Uczelni. Przed użyciem w oficjalnym obiegu każdy regulamin należy skonsultować z właściwym radcą prawnym UEW lub IOD. Struktura i klauzule są oparte na ogólnych zasadach prawa cywilnego.
                 </p>
               </div>
             </div>
@@ -491,6 +627,82 @@ export default function LegalHubPage() {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* ZAKŁADKA 3: ZARZĄDZENIA I PISMA OKÓLNE               */}
+      {/* ==================================================== */}
+      {activeTab === 'ORDERS' && (
+        <div className="max-w-6xl mx-auto animate-fadeIn">
+
+          {/* Baner informacyjny */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex gap-4 items-start mb-8">
+            <div className="text-amber-500 mt-0.5 shrink-0"><Icons.Alert /></div>
+            <div>
+              <h4 className="font-bold text-amber-900 text-sm mb-1">Numery zarządzeń do weryfikacji</h4>
+              <p className="text-amber-800/80 text-xs leading-relaxed font-medium">
+                Poniższe pozycje opisują rzeczywiste procedury obowiązujące na UEW, jednak numery zarządzeń oznaczone jako <strong>[Nr do uzupełnienia]</strong> wymagają weryfikacji w Biurze Prawnym lub Sekretariacie Rektora. Aktualne treści zarządzeń dostępne są w Biuletynie Informacji Publicznej UEW. Skonsultuj z opiekunem Samorządu.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            {RECTOR_ORDERS.map(order => (
+              <div key={order.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+
+                {/* Nagłówek */}
+                <div className="p-6 border-b border-slate-100">
+                  <div className="flex flex-wrap items-start gap-3 mb-3">
+                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shrink-0 ${
+                      order.type.includes('Zarządzenie Rektora') ? 'bg-indigo-100 text-indigo-700' :
+                      order.type.includes('Kwestora') ? 'bg-emerald-100 text-emerald-700' :
+                      'bg-slate-100 text-slate-600'
+                    }`}>{order.type}</span>
+                    <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg">{order.number}</span>
+                  </div>
+                  <h3 className="text-lg font-black text-slate-900 leading-tight mb-2">{order.title}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dotyczy:</span>
+                    <span className="text-[11px] font-semibold text-indigo-600">{order.relevance}</span>
+                  </div>
+                </div>
+
+                {/* Kluczowe punkty */}
+                <div className="px-6 py-5">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Kluczowe zasady</p>
+                  <ul className="space-y-2">
+                    {order.keyPoints.map((point, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm text-slate-700 leading-relaxed">
+                        <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                        {point}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Ostrzeżenie */}
+                <div className="mx-6 mb-4 bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex gap-3 items-start">
+                  <span className="text-red-500 shrink-0 mt-0.5"><Icons.Alert /></span>
+                  <p className="text-xs font-semibold text-red-800 leading-relaxed">{order.warning}</p>
+                </div>
+
+                {/* Footer */}
+                <div className="px-6 pb-5 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Jednostka właściwa: </span>
+                    <span className="text-xs font-bold text-slate-600">{order.contactUnit}</span>
+                  </div>
+                  {order.note && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 max-w-md">
+                      <p className="text-[11px] text-slate-500 leading-relaxed italic">{order.note}</p>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
