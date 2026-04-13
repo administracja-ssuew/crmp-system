@@ -635,7 +635,7 @@ export default function KsiegaInwentarzPage() {
                 </div>
               </div>
 
-              {/* Pola netto / brutto */}
+              {/* Pola netto / kwota VAT */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Wartość netto (zł)</label>
@@ -648,30 +648,50 @@ export default function KsiegaInwentarzPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Wartość brutto (zł)</label>
-                  <input
-                    type="number" min="0" step="0.01"
-                    value={vat.brutto}
-                    onChange={e => handleVatBrutto(e.target.value)}
-                    placeholder="np. 1230.00"
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                  />
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Kwota VAT ({vat.stawka}%)</label>
+                  <div className="w-full border border-indigo-200 bg-indigo-50 rounded-xl px-4 py-2.5 text-sm font-mono text-indigo-800 font-black min-h-[42px] flex items-center">
+                    {vatKwota !== null
+                      ? <>{parseFloat(vatKwota).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-xs font-bold ml-1">zł</span></>
+                      : <span className="text-slate-400 font-normal text-xs">— wpisz netto lub brutto</span>
+                    }
+                  </div>
                 </div>
               </div>
 
-              {/* Wynik — kwota VAT */}
-              {vatKwota !== null && (
+              {/* Wynik — wartość brutto */}
+              {vat.brutto !== '' && (
                 <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-6 py-4 flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-0.5">Kwota VAT ({vat.stawka}%)</p>
-                    <p className="text-2xl font-black text-indigo-800 font-mono">
-                      {parseFloat(vatKwota).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-base font-bold">zł</span>
-                    </p>
+                    <label className="block text-xs font-black text-indigo-500 uppercase tracking-widest mb-1.5">Wartość brutto (zł)</label>
+                    <div className="flex items-baseline gap-2">
+                      <input
+                        type="number" min="0" step="0.01"
+                        value={vat.brutto}
+                        onChange={e => handleVatBrutto(e.target.value)}
+                        placeholder="np. 1230.00"
+                        className="text-2xl font-black text-indigo-800 font-mono bg-transparent border-none outline-none w-48 focus:ring-0 p-0"
+                      />
+                      <span className="text-base font-bold text-indigo-700">zł</span>
+                    </div>
                   </div>
                   <button onClick={() => setVat({ netto: '', brutto: '', stawka: vat.stawka })}
                     className="text-xs text-indigo-400 hover:text-indigo-700 font-semibold flex items-center gap-1 transition-colors">
                     <RotateCcw className="w-3.5 h-3.5" /> Wyczyść
                   </button>
+                </div>
+              )}
+              {vat.brutto === '' && (
+                <div className="border border-dashed border-indigo-200 rounded-xl px-6 py-4 flex items-center justify-between">
+                  <div>
+                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1.5">Wartość brutto (zł)</label>
+                    <input
+                      type="number" min="0" step="0.01"
+                      value={vat.brutto}
+                      onChange={e => handleVatBrutto(e.target.value)}
+                      placeholder="np. 1230.00"
+                      className="w-full border-none bg-transparent text-2xl font-black font-mono text-slate-400 placeholder:text-slate-300 focus:outline-none focus:ring-0 p-0"
+                    />
+                  </div>
                 </div>
               )}
 
