@@ -74,6 +74,7 @@ export default function MyApplications({ userEmail }) {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetched, setFetched] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   // GAS data — cache z useGASFetch (ten sam URL co EquipmentPage, więc cache trafienie)
   const { data: gasData } = useGASFetch(CRW_API_URL);
@@ -265,17 +266,28 @@ export default function MyApplications({ userEmail }) {
               <p className="text-sm text-slate-400 font-bold">Brak złożonych wniosków w systemie.</p>
             </div>
           ) : (
-            allItems.map(item => (
-              <Row
-                key={item.key}
-                icon={item.icon}
-                type={item.type}
-                title={item.title}
-                detail={item.detail}
-                status={item.status}
-                date={item.date}
-              />
-            ))
+            <div className="flex flex-col">
+              {(showAll ? allItems : allItems.slice(0, 5)).map(item => (
+                <Row
+                  key={item.key}
+                  icon={item.icon}
+                  type={item.type}
+                  title={item.title}
+                  detail={item.detail}
+                  status={item.status}
+                  date={item.date}
+                />
+              ))}
+              
+              {allItems.length > 5 && (
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  className="w-full py-3 mt-1 flex items-center justify-center text-[11px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-700 bg-slate-50/50 hover:bg-slate-100/70 rounded-xl transition-all"
+                >
+                  {showAll ? 'Zwiń listę ↑' : `Rozwiń wszystkie (${allItems.length}) ↓`}
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}
