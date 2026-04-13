@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { CRED_API_URL, NOTICES_API_URL } from '../config';
 import { useGASFetch } from '../hooks/useGASFetch';
 import MyApplications from '../components/MyApplications';
+import HelpdeskModal from '../components/HelpdeskModal';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 const Icons = {
@@ -94,85 +95,17 @@ export default function DashboardPage() {
 
   // === HELPDESK ===
   const [showHelpdesk, setShowHelpdesk] = useState(false);
-  const [helpdeskTab, setHelpdeskTab] = useState('submit'); // 'submit' | 'my' | 'all' (admin)
-  const [helpdeskForm, setHelpdeskForm] = useState({ category: 'bug', title: '', description: '' });
-  const [tickets, setTickets] = useState([]);
-  const [ticketsLoading, setTicketsLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [adminReply, setAdminReply] = useState({}); // { [ticketId]: replyText }
-  const [userActivity, setUserActivity] = useState([]); // dla zakładki Aktywność w statystykach
-
-  const loadTickets = useCallback(async () => {
-    if (!user?.uid) return;
-    setTicketsLoading(true);
-    try {
-      const q = isAdmin 
-        ? query(collection(db, 'helpdesk_tickets'), orderBy('createdAt', 'desc'))
-        : query(collection(db, 'helpdesk_tickets'), where('userId', '==', user.uid));
-        
-      const snap = await getDocs(q);
-      let fetched = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      
-      if (!isAdmin) {
-        fetched.sort((a,b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
-      }
-      
-      setTickets(fetched);
-    } catch { setTickets([]); }
-    setTicketsLoading(false);
-  }, [isAdmin, user?.uid]);
-
-  const submitTicket = async () => {
-    if (!helpdeskForm.title.trim() || !helpdeskForm.description.trim()) return;
-    setSubmitting(true);
-    try {
-      await addDoc(collection(db, 'helpdesk_tickets'), {
-        userId: user.uid,
-        userEmail: user.email,
-        userName: user.displayName || user.email,
-        category: helpdeskForm.category,
-        title: helpdeskForm.title.trim(),
-        description: helpdeskForm.description.trim(),
-        status: 'new',
-        createdAt: Timestamp.now(),
-        adminResponse: null,
-      });
-      setHelpdeskForm({ category: 'bug', title: '', description: '' });
-      setSubmitSuccess(true);
-      loadTickets();
-      setTimeout(() => setSubmitSuccess(false), 4000);
-    } catch { /* silent */ }
-    setSubmitting(false);
-  };
-
-  const updateTicketStatus = async (id, status) => {
-    try {
-      await updateDoc(doc(db, 'helpdesk_tickets', id), { status });
-      setTickets(ts => ts.map(t => t.id === id ? { ...t, status } : t));
-    } catch { /* silent */ }
-  };
-
-  const sendAdminReply = async (id) => {
-    const text = (adminReply[id] || '').trim();
-    if (!text) return;
-    try {
-      await updateDoc(doc(db, 'helpdesk_tickets', id), {
-        adminResponse: text,
-        respondedAt: Timestamp.now(),
-        status: 'in_progress',
-      });
-      setTickets(ts => ts.map(t => t.id === id ? { ...t, adminResponse: text, status: 'in_progress' } : t));
-      setAdminReply(r => ({ ...r, [id]: '' }));
-    } catch { /* silent */ }
-  };
+  const [newTicketsCount, setNewTicketsCount] = useState(0);
 
   useEffect(() => {
-    if (showHelpdesk) {
-      loadTickets();
-      setHelpdeskTab(isAdmin ? 'all' : 'submit');
+    if (isAdmin && !showHelpdesk) {
+       getDocs(query(collection(db, 'helpdesk_tickets'), where('status', '==', 'new')))
+         .then(snap => setNewTicketsCount(snap.docs.length))
+         .catch(() => {});
     }
-  }, [showHelpdesk, isAdmin, loadTickets]);
+  }, [isAdmin, showHelpdesk]);
+
+  const [userActivity, setUserActivity] = useState([]); // dla zakładki Aktywność w statystykach
 
   // Synchronizuj ogłoszenia z rawNotices (cache → natychmiastowe ładowanie przy kolejnych wizytach)
   // notices pozostaje jako mutable state dla lokalnych operacji add/delete
@@ -521,9 +454,9 @@ export default function DashboardPage() {
                 className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)] text-left">
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-600 to-teal-800 group-hover:scale-110 transition-transform duration-700 -z-10" />
                 <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10" />
-                {tickets.filter(t => t.status === 'new').length > 0 && (
+                {newTicketsCount > 0 && (
                   <div className="absolute top-4 right-4 z-20 bg-rose-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg animate-pulse">
-                    {tickets.filter(t => t.status === 'new').length} nowych
+                    {newTicketsCount} nowych
                   </div>
                 )}
                 <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
@@ -757,245 +690,9 @@ export default function DashboardPage() {
       {/* ==================================================== */}
       {/* MODAL: HELPDESK SSUEW */}
       {/* ==================================================== */}
-      {showHelpdesk && (() => {
-        const CATEGORIES = [
-          { id: 'bug',        label: '🐛 Błąd w systemie',         color: 'bg-rose-100 text-rose-700 border-rose-200'   },
-          { id: 'question',   label: '❓ Pytanie / pomoc',          color: 'bg-blue-100 text-blue-700 border-blue-200'   },
-          { id: 'suggestion', label: '💡 Pomysł / sugestia',        color: 'bg-amber-100 text-amber-700 border-amber-200'},
-          { id: 'technical',  label: '🔧 Problem techniczny',       color: 'bg-slate-100 text-slate-700 border-slate-200'},
-        ];
-        const STATUS_MAP = {
-          new:         { label: 'Nowe',        color: 'bg-rose-100 text-rose-700'     },
-          in_progress: { label: 'W trakcie',   color: 'bg-amber-100 text-amber-700'   },
-          closed:      { label: 'Zamknięte',   color: 'bg-emerald-100 text-emerald-700' },
-        };
-        const hdTabs = isAdmin
-          ? [{ id: 'all', label: '📋 Wszystkie zgłoszenia' }, { id: 'submit', label: '✏️ Nowe zgłoszenie' }]
-          : [{ id: 'submit', label: '✏️ Nowe zgłoszenie' }, { id: 'my', label: '📂 Moje zgłoszenia' }];
-
-        const myTickets = tickets.filter(t => t.userId === user?.uid);
-        const newCount  = tickets.filter(t => t.status === 'new').length;
-
-        return (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" onClick={() => setShowHelpdesk(false)} />
-            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-
-              {/* NAGŁÓWEK */}
-              <div className="bg-gradient-to-r from-cyan-600 to-teal-700 px-7 pt-6 pb-0 shrink-0">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-[10px] font-black text-cyan-200 uppercase tracking-[0.2em] mb-0.5">System Zgłoszeń</p>
-                    <h2 className="text-xl font-black text-white flex items-center gap-2">
-                      HelpDesk SSUEW
-                      {isAdmin && newCount > 0 && (
-                        <span className="bg-rose-500 text-white text-xs px-2 py-0.5 rounded-full font-bold animate-pulse">{newCount} nowych</span>
-                      )}
-                    </h2>
-                  </div>
-                  <button onClick={() => setShowHelpdesk(false)}
-                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-all">
-                    <Icons.Close />
-                  </button>
-                </div>
-                <div className="flex gap-0.5">
-                  {hdTabs.map(t => (
-                    <button key={t.id} onClick={() => setHelpdeskTab(t.id)}
-                      className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest rounded-t-xl transition-all ${
-                        helpdeskTab === t.id ? 'bg-white text-teal-700' : 'text-cyan-200 hover:text-white hover:bg-white/10'}`}>
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* TREŚĆ */}
-              <div className="flex-1 overflow-y-auto bg-slate-50">
-
-                {/* ══ FORMULARZ NOWEGO ZGŁOSZENIA ══ */}
-                {helpdeskTab === 'submit' && (
-                  <div className="p-6 space-y-5">
-                    {submitSuccess && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4 flex items-center gap-3">
-                        <span className="text-2xl">✅</span>
-                        <div>
-                          <p className="font-black text-emerald-800">Zgłoszenie wysłane!</p>
-                          <p className="text-xs text-emerald-600 mt-0.5">Admin zostanie powiadomiony. Możesz śledzić status w zakładce „Moje zgłoszenia".</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Kategoria */}
-                    <div>
-                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Kategoria</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {CATEGORIES.map(c => (
-                          <button key={c.id} onClick={() => setHelpdeskForm(f => ({ ...f, category: c.id }))}
-                            className={`px-4 py-2.5 rounded-xl border text-sm font-semibold text-left transition-all ${
-                              helpdeskForm.category === c.id ? c.color + ' ring-2 ring-offset-1 ring-teal-400' : 'bg-white border-slate-200 text-slate-600 hover:border-teal-300'
-                            }`}>
-                            {c.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Tytuł */}
-                    <div>
-                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Tytuł zgłoszenia</label>
-                      <input
-                        value={helpdeskForm.title}
-                        onChange={e => setHelpdeskForm(f => ({ ...f, title: e.target.value }))}
-                        placeholder="Krótki opis problemu lub pytania…"
-                        className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
-                      />
-                    </div>
-
-                    {/* Opis */}
-                    <div>
-                      <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Szczegółowy opis</label>
-                      <textarea
-                        value={helpdeskForm.description}
-                        onChange={e => setHelpdeskForm(f => ({ ...f, description: e.target.value }))}
-                        placeholder="Opisz dokładnie co się stało, gdzie wystąpił błąd, jak go odtworzyć…"
-                        rows={5}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400 resize-none"
-                      />
-                    </div>
-
-                    <button onClick={submitTicket} disabled={submitting || !helpdeskForm.title.trim() || !helpdeskForm.description.trim()}
-                      className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl font-black text-sm shadow-lg shadow-teal-200 transition-all active:scale-[0.98]">
-                      {submitting ? 'Wysyłanie…' : 'Wyślij zgłoszenie →'}
-                    </button>
-                  </div>
-                )}
-
-                {/* ══ MOJE ZGŁOSZENIA ══ */}
-                {helpdeskTab === 'my' && (
-                  <div className="p-6">
-                    {ticketsLoading ? (
-                      <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-20 bg-slate-200 animate-pulse rounded-2xl" />)}</div>
-                    ) : myTickets.length === 0 ? (
-                      <div className="text-center py-16 text-slate-300">
-                        <div className="text-5xl mb-3">📭</div>
-                        <p className="text-sm font-bold text-slate-400">Brak twoich zgłoszeń</p>
-                        <p className="text-xs mt-1">Przejdź do zakładki „Nowe zgłoszenie", aby coś zgłosić.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {myTickets.map(t => {
-                          const cat = CATEGORIES.find(c => c.id === t.category);
-                          const st  = STATUS_MAP[t.status] || STATUS_MAP.new;
-                          const date = t.createdAt?.toDate?.()?.toLocaleDateString('pl-PL') || '—';
-                          return (
-                            <div key={t.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${cat?.color || ''}`}>{cat?.label || t.category}</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
-                                  </div>
-                                  <p className="font-bold text-slate-800 text-sm">{t.title}</p>
-                                  <p className="text-xs text-slate-500 mt-0.5">{date}</p>
-                                </div>
-                              </div>
-                              <p className="text-xs text-slate-600 bg-slate-50 rounded-xl px-4 py-3 leading-relaxed">{t.description}</p>
-                              {t.adminResponse && (
-                                <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
-                                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Odpowiedź admina</p>
-                                  <p className="text-sm text-teal-900">{t.adminResponse}</p>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* ══ WSZYSTKIE ZGŁOSZENIA (ADMIN) ══ */}
-                {helpdeskTab === 'all' && (
-                  <div className="p-6">
-                    {ticketsLoading ? (
-                      <div className="space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-slate-200 animate-pulse rounded-2xl" />)}</div>
-                    ) : tickets.length === 0 ? (
-                      <div className="text-center py-16 text-slate-300">
-                        <div className="text-5xl mb-3">🎫</div>
-                        <p className="text-sm font-bold text-slate-400">Brak zgłoszeń</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {tickets.map(t => {
-                          const cat = CATEGORIES.find(c => c.id === t.category);
-                          const st  = STATUS_MAP[t.status] || STATUS_MAP.new;
-                          const date = t.createdAt?.toDate?.()?.toLocaleDateString('pl-PL') || '—';
-                          return (
-                            <div key={t.id} className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 shadow-sm">
-                              {/* Nagłówek ticketu */}
-                              <div className="flex items-start justify-between gap-3 flex-wrap">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${cat?.color || ''}`}>{cat?.label || t.category}</span>
-                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${st.color}`}>{st.label}</span>
-                                  </div>
-                                  <p className="font-bold text-slate-800">{t.title}</p>
-                                  <p className="text-xs text-slate-400 mt-0.5">{t.userName} · {t.userEmail} · {date}</p>
-                                </div>
-                                {/* Status selector */}
-                                <select value={t.status} onChange={e => updateTicketStatus(t.id, e.target.value)}
-                                  className="text-xs font-bold bg-slate-100 border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-400 shrink-0">
-                                  <option value="new">Nowe</option>
-                                  <option value="in_progress">W trakcie</option>
-                                  <option value="closed">Zamknięte</option>
-                                </select>
-                              </div>
-
-                              {/* Treść */}
-                              <p className="text-sm text-slate-600 bg-slate-50 rounded-xl px-4 py-3 leading-relaxed">{t.description}</p>
-
-                              {/* Istniejąca odpowiedź */}
-                              {t.adminResponse && (
-                                <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
-                                  <p className="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-1">Twoja odpowiedź</p>
-                                  <p className="text-sm text-teal-900">{t.adminResponse}</p>
-                                </div>
-                              )}
-
-                              {/* Pole odpowiedzi admina */}
-                              <div className="flex gap-2">
-                                <input
-                                  value={adminReply[t.id] || ''}
-                                  onChange={e => setAdminReply(r => ({ ...r, [t.id]: e.target.value }))}
-                                  onKeyDown={e => e.key === 'Enter' && sendAdminReply(t.id)}
-                                  placeholder={t.adminResponse ? 'Zaktualizuj odpowiedź…' : 'Napisz odpowiedź…'}
-                                  className="flex-1 border border-slate-200 rounded-xl px-4 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400"
-                                />
-                                <button onClick={() => sendAdminReply(t.id)}
-                                  disabled={!(adminReply[t.id] || '').trim()}
-                                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 disabled:opacity-40 text-white rounded-xl text-sm font-black transition-all shrink-0">
-                                  Wyślij
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-              </div>
-
-              {/* FOOTER */}
-              <div className="px-7 py-3.5 border-t border-slate-100 shrink-0 flex items-center justify-between">
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest">Zgłoszenia · Firestore · HelpDesk SSUEW</p>
-                <button onClick={loadTickets} className="text-xs font-black text-teal-600 hover:text-teal-800 transition-colors uppercase tracking-wider">↻ Odśwież</button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {showHelpdesk && (
+        <HelpdeskModal user={user} isAdmin={isAdmin} onClose={() => setShowHelpdesk(false)} />
+      )}
 
       {/* ==================================================== */}
       {/* MODAL DODAWANIA OGŁOSZENIA (TYLKO DLA ADMINA) */}
