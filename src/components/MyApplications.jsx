@@ -159,8 +159,7 @@ export default function MyApplications({ userEmail }) {
       // 3. Wnioski o dostęp do systemu
       const reqQ = query(
         collection(db, 'access_requests'),
-        where('email', '==', userEmail.toLowerCase()),
-        orderBy('createdAt', 'desc')
+        where('email', '==', userEmail.toLowerCase())
       );
       const reqSnap = await getDocs(reqQ);
       reqSnap.docs.forEach(d => {
