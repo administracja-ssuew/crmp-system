@@ -17,13 +17,14 @@ const NAV_ITEMS = [
   { id: 'relacja',         label: 'Relacja z ewidencją' },
   { id: 'checklista',      label: 'Checklista wpisu' },
   { id: 'kalkulator',      label: 'Kalkulator wartości' },
+  { id: 'kalkulator-vat',  label: 'Kalkulator VAT' },
   { id: 'faq',             label: 'FAQ' },
 ];
 
 const ALL_SECTION_IDS = [
   'czym-jest', 'zanim-zaczniesz', 'budowa',
   'lewa-strona', 'prawa-strona', 'inwentaryzacja', 'czego-nie', 'relacja',
-  'checklista', 'kalkulator', 'faq',
+  'checklista', 'kalkulator', 'kalkulator-vat', 'faq',
 ];
 
 // === DANE — LEWA STRONA (KOL. 1–7) ===
@@ -73,8 +74,8 @@ const LEWA_KOLUMNY = [
     nr: '6',
     tytul: 'Nazwa przedmiotu, opis i stan',
     opis: 'Pełna nazwa, model i stan techniczny. Format: [KOD JEDNOSTKI] Pełna nazwa modelu, stan: dobry / używany / zużyty',
-    wskazowka: 'Wpisanie kodu wewnętrznego jednostki w tej kolumnie jest kluczowe — to w tym miejscu papierowy dokument łączy się z ewidencją cyfrową. Przykład dla SSUEW: SSUEW-LOG-001 Projektor Epson EB-X05, stan: dobry',
-    przyklad: 'SSUEW-LOG-001 Projektor Epson EB-X05, stan: dobry',
+    wskazowka: 'Wpisanie kodu wewnętrznego jednostki w tej kolumnie jest kluczowe — to w tym miejscu papierowy dokument łączy się z ewidencją cyfrową. Przykład dla SSUEW: SSUEW-LOG-WIZ-001 Projektor Epson EB-X05, stan: dobry',
+    przyklad: 'SSUEW-LOG-WIZ-001 Projektor Epson EB-X05, stan: dobry',
   },
   {
     id: 'kol-7',
@@ -118,7 +119,7 @@ const PRAWA_KOLUMNY = [
     tytul: 'Uwagi',
     opis: 'Tutaj wpisujesz wszystko, czego nie zmieściłeś w poprzednich kolumnach: lokalizację przedmiotu, informację o nadanym kodzie wewnętrznym, źródło wyceny przy inwentaryzacji, datę i podpis przy korekcie.',
     wskazowka: 'Błędnych wpisów nie wolno wymazywać ani zaklejać korektorem. Należy je przekreślić jedną linią tak, żeby treść pozostała czytelna, a w kolumnie 15 wpisać datę korekty i czytelny podpis osoby korygującej.',
-    przyklad: 'Lokalizacja: Biuro SSUEW, D-105. Wycena rynkowa z dn. 10.04.2026.',
+    przyklad: 'Lokalizacja: Magazyn SSUEW (pom. 16b B/J), A-105. Wycena rynkowa z dn. 10.04.2026.',
   },
 ];
 
@@ -126,7 +127,7 @@ const PRAWA_KOLUMNY = [
 const CHECKLIST_ITEMS = [
   { id: 'w1',  text: 'Przygotuj dokument zakupu (faktura, rachunek, protokół spisu z natury)' },
   { id: 'w2',  text: 'Odczytaj numer seryjny (S/N) bezpośrednio ze sprzętu' },
-  { id: 'w3',  text: 'Nadaj sprzętowi kod wewnętrzny SSUEW (np. SSUEW-LOG-001)' },
+  { id: 'w3',  text: 'Nadaj sprzętowi kod wewnętrzny SSUEW (np. SSUEW-LOG-AUD-001)' },
   { id: 'w4',  text: 'Przygotuj hologram lub nalepkę z numerem inwentarzowym' },
   { id: 'w5',  text: 'Kol. 1 (Nr Przychód): wpisz kolejny wolny numer — sprawdź poprzednią linię' },
   { id: 'w6',  text: 'Kol. 3 (Data przychodu): wpisz datę z dokumentu, nie dzisiejszą datę' },
@@ -146,7 +147,7 @@ const FAQ_ITEMS = [
   { id: 'f1', q: 'Brak numeru seryjnego (S/N) — co wpisać?', a: 'Dla przedmiotów, które z natury nie mają S/N (meble, wieszaki, akcesoria) — kol. 5 zostawiasz pustą. Gwiazdka w nagłówku tej kolumny to sygnalizuje. Dla sprzętu elektronicznego brak S/N jest sytuacją wyjątkową — sprawdź spód urządzenia, opakowanie i dokumenty gwarancyjne.' },
   { id: 'f2', q: 'Błędny wpis — jak poprawić?', a: 'Przekreśl błędną wartość jedną linią (musi pozostać czytelna), wpisz obok prawidłową i złóż parafkę z datą. W kol. 15 odnotuj: „korekta [data], podpis". Nie używaj korektora — każde zamazanie podważa wiarygodność dokumentu i stanowi błąd formalny.' },
   { id: 'f3', q: 'Kiedy wypełniam kol. 2 (Nr kolejny Rozchód)?', a: 'Wyłącznie przy trwałym wykreśleniu przedmiotu z ewidencji: kasacja, kradzież, zniszczenie lub przekazanie na zewnątrz. Przy standardowym przyjęciu przedmiotu kol. 2 zostawiasz pustą.' },
-  { id: 'f4', q: 'Co wpisać w kol. 15 (Uwagi)?', a: 'Lokalizację przedmiotu (np. „Biuro SSUEW, D-105"), nadany kod wewnętrzny SSUEW, źródło wyceny jeśli brak faktury (np. „Wycena rynkowa z dn. 10.04.2026"), datę i parafkę przy każdej korekcie.' },
+  { id: 'f4', q: 'Co wpisać w kol. 15 (Uwagi)?', a: 'Lokalizację przedmiotu (np. Magazyn SSUEW (16b B/J), A-105"), nadany kod wewnętrzny SSUEW, źródło wyceny jeśli brak faktury (np. „Wycena rynkowa z dn. 10.04.2026"), datę i parafkę przy każdej korekcie.' },
   { id: 'f5', q: 'Sprzęt skradziony lub zniszczony — co z wpisem?', a: 'Nie usuwaj wpisu. Wypełnij kol. 2 (Nr Rozchód) i odnotuj w kol. 15 numer protokołu policyjnego lub kasacyjnego. Wpis możesz przekreślić jedną linią — musi pozostać czytelny.' },
   { id: 'f6', q: 'Jeden wpis na kilka sztuk czy osobne wiersze?', a: 'Technicznie możesz wpisać ilość np. 3 w kol. 8. W praktyce zalecamy jeden wpis = jedna sztuka — grupowe wpisy utrudniają późniejsze wykreślenie jednego egzemplarza i komplikują inwentaryzację.' },
 ];
@@ -157,6 +158,68 @@ const COMPARISON_ROWS = [
   { cecha: 'Co potwierdza',  ksiega: 'Że przedmiot należy do jednostki',          ewidencja: 'Gdzie jest i kto go ma' },
   { cecha: 'Co łączy oba',   ksiega: 'Kod wewnętrzny jednostki w kol. 6',        ewidencja: 'Ten sam kod w bazie danych' },
 ];
+
+// === SUB-COMPONENTS (module level — prevents focus loss on re-render) ===
+
+const SectionTitle = ({ icon: Icon, chapter, title, color = 'emerald' }) => {
+  const colors = {
+    emerald: { bg: 'bg-emerald-100', icon: 'text-emerald-600', label: 'text-emerald-500' },
+    blue:    { bg: 'bg-blue-100',    icon: 'text-blue-600',    label: 'text-blue-500'    },
+    teal:    { bg: 'bg-teal-100',    icon: 'text-teal-600',    label: 'text-teal-500'    },
+    amber:   { bg: 'bg-amber-100',   icon: 'text-amber-600',   label: 'text-amber-500'   },
+    indigo:  { bg: 'bg-indigo-100',  icon: 'text-indigo-600',  label: 'text-indigo-500'  },
+    purple:  { bg: 'bg-purple-100',  icon: 'text-purple-600',  label: 'text-purple-500'  },
+    red:     { bg: 'bg-red-100',     icon: 'text-red-600',     label: 'text-red-500'     },
+    slate:   { bg: 'bg-slate-100',   icon: 'text-slate-600',   label: 'text-slate-500'   },
+  };
+  const c = colors[color] || colors.emerald;
+  return (
+    <div className="flex items-center gap-3 mb-6">
+      {Icon && <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center shrink-0`}><Icon className={`w-5 h-5 ${c.icon}`} /></div>}
+      <div>
+        <p className={`text-[10px] font-black uppercase tracking-widest ${c.label} mb-0.5`}>{chapter}</p>
+        <h2 className="text-2xl font-black text-slate-800">{title}</h2>
+      </div>
+    </div>
+  );
+};
+
+const Card = ({ children, className = '' }) => (
+  <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>{children}</div>
+);
+
+const KolumnaAccordion = ({ id, nr, tytul, opis, wskazowka, przyklad, openAccordion, setOpenAccordion }) => {
+  const open = openAccordion === id;
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
+      <button onClick={() => setOpenAccordion(open ? null : id)}
+        className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors text-left gap-3">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg shrink-0 whitespace-nowrap">Kol. {nr}</span>
+          <span className="font-semibold text-slate-800 text-sm">{tytul}</span>
+        </div>
+        <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100 space-y-3">
+          <p className="text-sm text-slate-700 leading-relaxed pt-3">{opis}</p>
+          {wskazowka && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
+              <span className="text-amber-600 text-xs font-black uppercase tracking-wide shrink-0 mt-0.5">Wskazówka</span>
+              <p className="text-xs text-amber-800 leading-relaxed">{wskazowka}</p>
+            </div>
+          )}
+          {przyklad && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Przykład:</span>
+              <code className="text-xs bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono text-slate-700">{przyklad}</code>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // === MAIN COMPONENT ===
 export default function KsiegaInwentarzPage() {
@@ -185,6 +248,43 @@ export default function KsiegaInwentarzPage() {
 
   // Kalkulator wartości
   const [kalc, setKalc] = useState({ cena: '', ilosc: '1' });
+
+  // Kalkulator VAT
+  const [vat, setVat] = useState({ netto: '', brutto: '', stawka: '23' });
+  const vatRate = parseFloat(vat.stawka) / 100;
+  const handleVatNetto = (val) => {
+    const n = parseFloat(val);
+    setVat(v => ({
+      ...v,
+      netto: val,
+      brutto: isNaN(n) || val === '' ? '' : (n * (1 + vatRate)).toFixed(2),
+    }));
+  };
+  const handleVatBrutto = (val) => {
+    const b = parseFloat(val);
+    setVat(v => ({
+      ...v,
+      brutto: val,
+      netto: isNaN(b) || val === '' ? '' : (b / (1 + vatRate)).toFixed(2),
+    }));
+  };
+  const handleVatStawka = (stawka) => {
+    const rate = parseFloat(stawka) / 100;
+    setVat(v => {
+      if (v.netto !== '') {
+        const n = parseFloat(v.netto);
+        return { stawka, netto: v.netto, brutto: isNaN(n) ? '' : (n * (1 + rate)).toFixed(2) };
+      }
+      if (v.brutto !== '') {
+        const b = parseFloat(v.brutto);
+        return { stawka, brutto: v.brutto, netto: isNaN(b) ? '' : (b / (1 + rate)).toFixed(2) };
+      }
+      return { ...v, stawka };
+    });
+  };
+  const vatKwota = vat.netto !== '' && vat.brutto !== ''
+    ? (parseFloat(vat.brutto) - parseFloat(vat.netto)).toFixed(2)
+    : null;
   const kalcWartosc = (parseFloat(kalc.cena) || 0) * (parseInt(kalc.ilosc) || 0);
   const kalcWartoscStr = kalcWartosc > 0
     ? kalcWartosc.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -213,68 +313,6 @@ export default function KsiegaInwentarzPage() {
   }, []);
 
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  // === SUB-COMPONENTS ===
-
-  const SectionTitle = ({ icon: Icon, chapter, title, color = 'emerald' }) => {
-    const colors = {
-      emerald: { bg: 'bg-emerald-100', icon: 'text-emerald-600', label: 'text-emerald-500' },
-      blue:    { bg: 'bg-blue-100',    icon: 'text-blue-600',    label: 'text-blue-500'    },
-      teal:    { bg: 'bg-teal-100',    icon: 'text-teal-600',    label: 'text-teal-500'    },
-      amber:   { bg: 'bg-amber-100',   icon: 'text-amber-600',   label: 'text-amber-500'   },
-      indigo:  { bg: 'bg-indigo-100',  icon: 'text-indigo-600',  label: 'text-indigo-500'  },
-      purple:  { bg: 'bg-purple-100',  icon: 'text-purple-600',  label: 'text-purple-500'  },
-      red:     { bg: 'bg-red-100',     icon: 'text-red-600',     label: 'text-red-500'     },
-      slate:   { bg: 'bg-slate-100',   icon: 'text-slate-600',   label: 'text-slate-500'   },
-    };
-    const c = colors[color] || colors.emerald;
-    return (
-      <div className="flex items-center gap-3 mb-6">
-        {Icon && <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center shrink-0`}><Icon className={`w-5 h-5 ${c.icon}`} /></div>}
-        <div>
-          <p className={`text-[10px] font-black uppercase tracking-widest ${c.label} mb-0.5`}>{chapter}</p>
-          <h2 className="text-2xl font-black text-slate-800">{title}</h2>
-        </div>
-      </div>
-    );
-  };
-
-  const Card = ({ children, className = '' }) => (
-    <div className={`bg-white rounded-2xl border border-slate-200 shadow-sm p-6 ${className}`}>{children}</div>
-  );
-
-  const KolumnaAccordion = ({ id, nr, tytul, opis, wskazowka, przyklad }) => {
-    const open = openAccordion === id;
-    return (
-      <div className="border border-slate-200 rounded-xl overflow-hidden">
-        <button onClick={() => setOpenAccordion(open ? null : id)}
-          className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50 transition-colors text-left gap-3">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg shrink-0 whitespace-nowrap">Kol. {nr}</span>
-            <span className="font-semibold text-slate-800 text-sm">{tytul}</span>
-          </div>
-          <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
-        </button>
-        {open && (
-          <div className="px-4 pb-4 pt-0 bg-slate-50 border-t border-slate-100 space-y-3">
-            <p className="text-sm text-slate-700 leading-relaxed pt-3">{opis}</p>
-            {wskazowka && (
-              <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                <span className="text-amber-600 text-xs font-black uppercase tracking-wide shrink-0 mt-0.5">Wskazówka</span>
-                <p className="text-xs text-amber-800 leading-relaxed">{wskazowka}</p>
-              </div>
-            )}
-            {przyklad && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Przykład:</span>
-                <code className="text-xs bg-slate-100 border border-slate-200 px-2 py-0.5 rounded font-mono text-slate-700">{przyklad}</code>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
 
   // === RETURN JSX ===
   return (
@@ -321,7 +359,7 @@ export default function KsiegaInwentarzPage() {
             <SectionTitle icon={BookMarked} chapter="Sekcja 1" title="Czym jest Księga Inwentarzowa?" color="emerald" />
             <Card className="space-y-4 mb-4">
               <p className="text-slate-700">
-                Księga Inwentarzowa (<strong>format K-205/60</strong>) to papierowy rejestr wyposażenia będącego własnością jednostki — w tym przypadku SSUEW lub Twojej organizacji. Ewidencjonuje się w niej wszystkie składniki majątkowe, które nie kwalifikują się jako środki trwałe: sprzęt biurowy, AGD, wyposażenie sal, akcesoria.
+                Księga Inwentarzowa (<strong>format K-205/60</strong>) to papierowy rejestr wyposażenia będącego własnością jednostki — w tym przypadku SSUEW lub Twojej organizacji studenckiej. Ewidencjonuje się w niej wszystkie składniki majątkowe, które <strong>nie</strong> kwalifikują się jako środki trwałe: sprzęt biurowy, AGD, wyposażenie sal, akcesoria.
               </p>
               <p className="text-slate-700">
                 Księga ma charakter <strong>dokumentu źródłowego</strong> — jest nadrzędna wobec wszelkich arkuszy, baz danych i systemów cyfrowych. To ona jest dowodem prawnym na to, że dany przedmiot należy do majątku jednostki.
@@ -344,7 +382,7 @@ export default function KsiegaInwentarzPage() {
                   ['Fizyczny przedmiot', 'lub protokół jego przyjęcia'],
                   ['Dokument źródłowy', 'faktura VAT, protokół darowizny lub protokół spisu z natury — potwierdzający nabycie'],
                   ['Numer seryjny urządzenia (S/N)', 'odczytany bezpośrednio ze sprzętu'],
-                  ['Nadany kod wewnętrzny jednostki', 'np. SSUEW-LOG-001'],
+                  ['Nadany kod wewnętrzny jednostki', 'np. SSUEW-LOG-AUD-001'],
                   ['Hologram lub nalepka z numerem inwentarzowym', 'do naklejenia na sprzęt po wpisaniu do Księgi'],
                 ].map(([tytul, opis], i) => (
                   <div key={i} className="flex items-start gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -389,7 +427,7 @@ export default function KsiegaInwentarzPage() {
             <SectionTitle icon={FileText} chapter="Sekcja 4" title="Wypełnianie — lewa strona (kolumny 1–7)" color="teal" />
             <p className="text-slate-600 text-sm mb-4">Kliknij kolumnę, aby zobaczyć opis, wskazówkę i przykład.</p>
             <div className="space-y-2">
-              {LEWA_KOLUMNY.map(k => <KolumnaAccordion key={k.id} {...k} />)}
+              {LEWA_KOLUMNY.map(k => <KolumnaAccordion key={k.id} {...k} openAccordion={openAccordion} setOpenAccordion={setOpenAccordion} />)}
             </div>
           </section>
 
@@ -398,7 +436,7 @@ export default function KsiegaInwentarzPage() {
             <SectionTitle icon={FileText} chapter="Sekcja 5" title="Wypełnianie — prawa strona (kolumny 8–15)" color="purple" />
             <p className="text-slate-600 text-sm mb-4">Kliknij kolumnę, aby zobaczyć opis, wskazówkę i przykład.</p>
             <div className="space-y-2">
-              {PRAWA_KOLUMNY.map(k => <KolumnaAccordion key={k.id} {...k} />)}
+              {PRAWA_KOLUMNY.map(k => <KolumnaAccordion key={k.id} {...k} openAccordion={openAccordion} setOpenAccordion={setOpenAccordion} />)}
             </div>
           </section>
 
@@ -442,7 +480,7 @@ export default function KsiegaInwentarzPage() {
               </p>
               <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                 <p className="text-sm text-red-800 font-medium">
-                  Przykład: projektor użyczony przez Kwesturę UEW powinien być w ewidencji UEW — nie SSUEW. Możesz odnotować jego obecność w swoim lokalu jako informację w systemie CRA, ale nie wpisujesz go do Księgi.
+                  Przykład: projektor widniejący w Księdze Inwentarzowej środków trwałych (niskocennych rodzajów majątku lub wysokocennych) powinna być w ewidencji UEW — nie SSUEW. Możesz odnotować jego obecność w swoim lokalu jako informację w systemie CRA, ale nie wpisujesz go do fizycznej Księgi.
                 </p>
               </div>
             </Card>
@@ -569,6 +607,77 @@ export default function KsiegaInwentarzPage() {
                   </button>
                 )}
               </div>
+            </Card>
+          </section>
+
+          {/* ═══ KALKULATOR VAT ═══ */}
+          <section id="kalkulator-vat" className="scroll-mt-20 mb-16">
+            <SectionTitle icon={Calculator} chapter="Narzędzie 3" title="Kalkulator VAT" color="indigo" />
+            <Card className="space-y-5">
+              <p className="text-slate-600 text-sm">
+                Przelicznik netto ↔ brutto — przydatny przy wycenie sprzętu i weryfikacji faktur. Wpisz dowolną wartość, a druga zostanie obliczona automatycznie.
+              </p>
+
+              {/* Stawka VAT */}
+              <div>
+                <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Stawka VAT</label>
+                <div className="flex gap-2 flex-wrap">
+                  {['0', '5', '8', '23'].map(s => (
+                    <button key={s} onClick={() => handleVatStawka(s)}
+                      className={`px-4 py-2 rounded-xl text-sm font-black border transition-all ${
+                        vat.stawka === s
+                          ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-indigo-300 hover:text-indigo-600'
+                      }`}>
+                      {s}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pola netto / brutto */}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Wartość netto (zł)</label>
+                  <input
+                    type="number" min="0" step="0.01"
+                    value={vat.netto}
+                    onChange={e => handleVatNetto(e.target.value)}
+                    placeholder="np. 1000.00"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1.5">Wartość brutto (zł)</label>
+                  <input
+                    type="number" min="0" step="0.01"
+                    value={vat.brutto}
+                    onChange={e => handleVatBrutto(e.target.value)}
+                    placeholder="np. 1230.00"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                  />
+                </div>
+              </div>
+
+              {/* Wynik — kwota VAT */}
+              {vatKwota !== null && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-6 py-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black text-indigo-500 uppercase tracking-widest mb-0.5">Kwota VAT ({vat.stawka}%)</p>
+                    <p className="text-2xl font-black text-indigo-800 font-mono">
+                      {parseFloat(vatKwota).toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-base font-bold">zł</span>
+                    </p>
+                  </div>
+                  <button onClick={() => setVat({ netto: '', brutto: '', stawka: vat.stawka })}
+                    className="text-xs text-indigo-400 hover:text-indigo-700 font-semibold flex items-center gap-1 transition-colors">
+                    <RotateCcw className="w-3.5 h-3.5" /> Wyczyść
+                  </button>
+                </div>
+              )}
+
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Kalkulator nie jest bezpośrednio związany z Księgą Inwentarzową — ta prowadzona jest w wartościach <strong>netto</strong> (cena zakupu z faktury bez VAT dla płatników VAT, lub brutto dla jednostek zwolnionych). W razie wątpliwości skonsultuj z Kwesturą, jaką wartość wpisywać w kol. 7.
+              </p>
             </Card>
           </section>
 
