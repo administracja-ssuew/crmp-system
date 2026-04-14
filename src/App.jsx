@@ -57,12 +57,15 @@ function PageTracker() {
     ).catch(() => {});
   }, [uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Zliczaj wejścia na podstrony — tylko zmiana ścieżki, nie zmiana obiektu user
-  // Zależność: uid zamiast user → token refresh nie odpala licznika strony
+  // Zliczaj wejścia na podstrony — raz dziennie na użytkownika na stronę (opcja B)
+  // Klucz: uid + ścieżka + data → odświeżenie i powrót na tę samą stronę nie dubluje licznika
   useEffect(() => {
     if (!uid) return;
     const path = location.pathname.replace(/\//g, '_').replace(/^_/, '') || 'home';
     const today = new Date().toISOString().slice(0, 10);
+    const sessionKey = `cra_page_tracked_${uid}_${path}_${today}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
     setDoc(
       doc(db, 'page_stats', path),
       { total: increment(1), [`days.${today}`]: increment(1) },
