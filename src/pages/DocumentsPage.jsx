@@ -410,58 +410,48 @@ export default function DocumentsPage() {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) throw new Error('Brak klucza API Gemini (VITE_GEMINI_API_KEY). Skontaktuj się z administratorem systemu.');
 
-    const body = { contents: [{ parts: [{ text: prompt }] }] };
+    const body = { contents: [{ role: 'user', parts: [{ text: prompt }] }] };
     if (systemPrompt) {
-      body.system_instruction = { parts: [{ text: systemPrompt }] };
+      body.systemInstruction = { parts: [{ text: systemPrompt }] };
     }
 
-    // Modele w kolejności preferowanej — wszystkie są prawidłowymi nazwami w Gemini API
-    const fallbackModels = ['gemini-2.5-flash', 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest'];
-    let lastError = null;
-
-    for (const model of fallbackModels) {
-      try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          }
-        );
-
-        if (!res.ok) {
-          const errText = await res.text();
-          console.warn(`[LEX AI] Model ${model} zwrócił ${res.status}:`, errText);
-          if (res.status === 400 && errText.toLowerCase().includes('api key')) {
-            throw new Error('Nieprawidłowy klucz API Gemini. Skontaktuj się z administratorem systemu.');
-          }
-          lastError = new Error(`Gemini ${model} niedostępny (${res.status})`);
-          continue;
-        }
-
-        const data = await res.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-        // Wykryj blokadę content safety lub pustą odpowiedź
-        if (!text) {
-          const finishReason = data.candidates?.[0]?.finishReason;
-          if (finishReason === 'SAFETY') {
-            throw new Error('Gemini odrzucił zapytanie ze względów bezpieczeństwa. Spróbuj uprościć opis podania.');
-          }
-          throw new Error('Gemini zwrócił pustą odpowiedź. Spróbuj ponownie.');
-        }
-
-        return text;
-      } catch (err) {
-        // Błędy krytyczne (API key, safety) — nie próbuj kolejnych modeli
-        if (err.message.includes('klucz API') || err.message.includes('bezpieczeństwa') || err.message.includes('pustą odpowiedź')) {
-          throw err;
-        }
-        lastError = err;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
       }
+    );
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('[LEX AI] Gemini błąd:', res.status, errText);
+      if (res.status === 400 && errText.toLowerCase().includes('api key')) {
+        throw new Error('Nieprawidłowy klucz API Gemini. Skontaktuj się z administratorem systemu.');
+      }
+      throw new Error(`Gemini niedostępny (${res.status}). Spróbuj ponownie za chwilę.`);
     }
-    throw lastError || new Error('Wszystkie modele Gemini są chwilowo niedostępne. Spróbuj ponownie za kilka minut.');
+
+    const data = await res.json();
+
+    if (data.error) {
+      throw new Error(`Błąd API Gemini: ${data.error.message}`);
+    }
+
+    // Gemini 2.5 thinking models zwracają parts z {thought: true} przed właściwą odpowiedzią
+    const parts = data.candidates?.[0]?.content?.parts || [];
+    const text = parts.find(p => !p.thought)?.text || parts[0]?.text;
+
+    if (!text) {
+      const finishReason = data.candidates?.[0]?.finishReason;
+      if (finishReason === 'SAFETY') {
+        throw new Error('Gemini odrzucił zapytanie ze względów bezpieczeństwa. Spróbuj uprościć opis podania.');
+      }
+      throw new Error('Gemini zwrócił pustą odpowiedź. Spróbuj ponownie.');
+    }
+
+    return text;
   };
 
   const handleSuggestJustification = async () => {
