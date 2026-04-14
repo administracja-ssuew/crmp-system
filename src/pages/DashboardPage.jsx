@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { CRED_API_URL, NOTICES_API_URL } from '../config';
+import { NOTICES_API_URL } from '../config';
 import { useGASFetch } from '../hooks/useGASFetch';
 import MyApplications from '../components/MyApplications';
+import CREDSearchWidget from '../components/CREDSearchWidget';
 import HelpdeskModal from '../components/HelpdeskModal';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
@@ -53,11 +54,6 @@ export default function DashboardPage() {
   const [noticeError, setNoticeError] = useState('');
   const [noticeForm, setNoticeForm] = useState({ target: 'ALL', type: 'info', text: '' });
 
-  // === STANY WYSZUKIWARKI CRED ===
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResult, setSearchResult] = useState(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState('');
 
   // === ADMIN: STATYSTYKI ===
   const [showStats, setShowStats] = useState(false);
@@ -162,21 +158,6 @@ export default function DashboardPage() {
       });
     } catch (err) {
       console.error("Błąd podczas globalnego usuwania:", err);
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setIsSearching(true); setSearchError(''); setSearchResult(null);
-    try {
-      const response = await fetch(`${CRED_API_URL}?znak=${encodeURIComponent(searchQuery)}`);
-      const data = await response.json();
-      if (data.error) setSearchError(data.error);
-      else setSearchResult(data);
-    } catch (error) {
-      setSearchError("Błąd połączenia z bazą CRED. Spróbuj ponownie później.");
-    } finally {
-      setIsSearching(false);
     }
   };
 
@@ -335,67 +316,7 @@ export default function DashboardPage() {
         </div>
 
         {/* === WYSZUKIWARKA CRED === */}
-        <div className="w-full max-w-3xl bg-white/80 backdrop-blur-md rounded-[2rem] p-6 shadow-xl shadow-blue-900/5 border border-white mb-10 animate-slideUp">
-
-          <div className="mb-4 pl-2">
-            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Sprawdź status swojej sprawy w systemie CRED</h3>
-          </div>
-
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-2xl shrink-0">🔎</div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Wpisz znak sprawy CRED..."
-              className="w-full p-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all uppercase"
-            />
-            <button
-              onClick={handleSearch}
-              disabled={isSearching}
-              className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-black uppercase tracking-wider text-xs shadow-lg shadow-blue-200 transition-all active:scale-95 disabled:opacity-70 disabled:active:scale-100 whitespace-nowrap"
-            >
-              {isSearching ? 'Szukanie...' : 'Szukaj Pisma'}
-            </button>
-          </div>
-
-          <div className="mt-4 pl-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              * Planowany dzień zakończenia sprawy wlicza w siebie czas niezbędny na uzyskanie podpisów Władz Uczelni.
-            </p>
-          </div>
-
-          {searchError && (
-            <div className="mt-4 p-4 bg-red-50 text-red-600 text-sm font-bold rounded-2xl border border-red-100 animate-fadeIn text-center">
-              ❌ {searchError}
-            </div>
-          )}
-
-          {searchResult && (
-            <div className="mt-4 p-5 bg-emerald-50 rounded-2xl border border-emerald-100 animate-fadeIn">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3 border-b border-emerald-200/50 pb-3">
-                <div>
-                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider block mb-1">Znaleziono dokument</span>
-                  <h3 className="font-black text-slate-800 text-lg md:text-xl break-all">{searchResult.znak}</h3>
-                </div>
-                <span className="shrink-0 px-4 py-2 bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm uppercase">
-                  {searchResult.status}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-4 pt-1">
-                <div>
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase">Data wpłynięcia</span>
-                  <span className="font-bold text-slate-700 text-sm">{formatDate(searchResult.data_zlozenia)}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] font-bold text-slate-400 uppercase">Planowane zakończenie</span>
-                  <span className="font-bold text-slate-700 text-sm">{formatDate(searchResult.planowane_zakonczenie)}</span>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        <CREDSearchWidget />
 
         {/* === MOJE WNIOSKI === */}
         <MyApplications userEmail={user?.email} />
