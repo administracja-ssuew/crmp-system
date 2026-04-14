@@ -170,7 +170,7 @@ export default function CREDSearchWidget() {
     if (!q) { inputRef.current?.focus(); return; }
 
     if (!isValidZnak(q)) {
-      setFormatError('Nieprawidłowy format znaku sprawy. Przykład: P.G.01/04/2026/SSUEW');
+      setFormatError('Nieprawidłowy format znaku sprawy. Przykład: P.P.01/04/2026/SSUEW');
       return;
     }
 

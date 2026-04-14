@@ -1075,7 +1075,7 @@ export default function RodoPage() {
                 ))}
               </div>
             </Card>
-            <InfoBox color="amber">{nb('Dla danych szczególnych kategorii (zdrowie, poglądy, religia — art. 9 RODO) wymagana jest odrębna przesłanka z art. 9 ust. 2. Przed każdym nowym procesem zidentyfikuj właściwą przesłankę i wpisz ją do RCP.')}</InfoBox>
+            <InfoBox color="amber">{nb('Dla danych szczególnych kategorii (zdrowie, poglądy, religia — art. 9 RODO) wymagana jest odrębna przesłanka z art. 9 ust. 2. Przed każdym nowym procesem należy zidentyfikować właściwą przesłankę i wpisać ją do RCP.')}</InfoBox>
           </section>
 
           <section id="prawa" className="scroll-mt-20 mb-14">
