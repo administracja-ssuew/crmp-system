@@ -266,7 +266,7 @@ export default function CREDSearchWidget() {
               value={query}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
-              placeholder="NP. P.G.01/04/2026/NZS"
+              placeholder="NP. P.P.01/04/2026/SSUEW"
               spellCheck={false}
               autoCapitalize="characters"
               className={`w-full px-4 py-3.5 bg-slate-50 border rounded-2xl text-sm font-mono font-bold text-slate-800
