@@ -33,6 +33,7 @@ export default function EquipmentPage() {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Wszystko');
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
   
   const [selectedItem, setSelectedItem] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
@@ -47,7 +48,6 @@ export default function EquipmentPage() {
   const [isFirstAidModalOpen, setIsFirstAidModalOpen] = useState(false);
   const [usedItems, setUsedItems] = useState({}); // {[itemName]: 'BRAK' | 'CZESC'}
   const [firstAidDesc, setFirstAidDesc] = useState('');
-  const [firstAidHistory, setFirstAidHistory] = useState([]);
   const [allFirstAidReports, setAllFirstAidReports] = useState([]);
 
   // Pomocnik: sprawdza czy id pasuje dokładnie (nie substring) w liście kodów oddzielonych przecinkami/średnikami
@@ -90,10 +90,11 @@ export default function EquipmentPage() {
         condition: item.UWAGI || 'Brak zastrzeżeń',
         locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
         description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
-        value: 'Zgodnie z ewidencją księgową',
-        warranty: 'Sprawdź protokół zakupu',
-        image: item.ZDJĘCIE || icon,
-        isRealImage: !!item.ZDJĘCIE,
+        value: item['WARTOŚĆ'] || item.WARTOSC || item['Wartość'] || item.WARTOSC_NETTO || null,
+        warranty: item.GWARANCJA || item['Gwarancja'] || item['GWARANCJA_DO'] || null,
+        image: item['ZDJĘCIE'] || item.ZDJECIE || icon,
+        imageIcon: icon,
+        isRealImage: !!(item['ZDJĘCIE'] || item.ZDJECIE),
         link: item.LINK || null
       };
     });
@@ -112,19 +113,34 @@ export default function EquipmentPage() {
     const allReports = rawReports.map(normalizeReport);
     const activeReports = allReports.filter(r => !String(r.Status || '').startsWith('Zrealizowane'));
     setAllFirstAidReports(activeReports);
-    const myReports = allReports.filter(r =>
-      r.Osoba && user?.email && r.Osoba.toLowerCase() === user.email.toLowerCase()
-    );
-    setFirstAidHistory(myReports);
-  }, [rawGASData, user?.email]);
+  }, [rawGASData]);
 
   const debouncedSearch = useDebounce(searchTerm, 300);
   const allCategories = useMemo(() => ['Wszystko', ...new Set(equipmentData.map(item => item.category))], [equipmentData]);
   const filteredEquipment = useMemo(() => equipmentData.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(debouncedSearch.toLowerCase()) || item.id.toLowerCase().includes(debouncedSearch.toLowerCase());
     const matchesCategory = selectedCategory === 'Wszystko' || item.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  }), [equipmentData, debouncedSearch, selectedCategory]);
+    if (!matchesSearch || !matchesCategory) return false;
+    if (showOnlyAvailable) {
+      if (item.status === 'maintenance') return false;
+      const isPhysOut = allWydania.some(w => {
+        const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
+        return wStatus === 'WYDANE' && codeMatches(String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || ''), item.id);
+      });
+      if (isPhysOut) return false;
+      const today = new Date().setHours(0,0,0,0);
+      const isRentedToday = allReservations.some(res => {
+        if (codeMatches(res.Sprzet_Kody, item.id) && res.Status === 'Zatwierdzone') {
+          const start = new Date(res.Data_Od).setHours(0,0,0,0);
+          const end   = new Date(res.Data_Do).setHours(0,0,0,0);
+          return today >= start && today <= end;
+        }
+        return false;
+      });
+      if (isRentedToday) return false;
+    }
+    return true;
+  }), [equipmentData, debouncedSearch, selectedCategory, showOnlyAvailable, allWydania, allReservations]);
 
   const toggleCart = (item) => {
     if (cart.find(c => c.id === item.id)) setCart(cart.filter(c => c.id !== item.id));
@@ -273,16 +289,68 @@ export default function EquipmentPage() {
     }
   };
 
-  const isDateReserved = (itemId, dateObj) => {
-    const checkDate = new Date(dateObj).setHours(0,0,0,0); // BUG-EQ-02: avoid mutating the caller's Date object
-    return allReservations.some(res => {
+  // Zwraca: 'wydane' | 'reserved' | null
+  // 'wydane'   — sprzęt fizycznie wydany przez Panel CRW (ma status WYDANE w tabeli wydań)
+  // 'reserved' — pokryty zatwierdzoną rezerwacją w tym dniu
+  const isDateOccupied = (itemId, dateObj) => {
+    const checkDate = new Date(dateObj).setHours(0, 0, 0, 0);
+
+    // Fizyczne wydania — jeśli sprzęt jest WYDANE, szukamy dat od/do z rekordu
+    const isPhysicallyOut = allWydania.some(w => {
+      const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
+      const codes = String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '');
+      if (wStatus !== 'WYDANE' || !codeMatches(codes, itemId)) return false;
+      const rawFrom = w.Data_Od || w.dateFrom || w['Data Od'] || w['DataOd'] || null;
+      const rawTo   = w.Data_Do || w.dateTo   || w['Data Do'] || w['DataDo'] || null;
+      if (rawFrom && rawTo) {
+        const start = new Date(rawFrom).setHours(0, 0, 0, 0);
+        const end   = new Date(rawTo).setHours(0, 0, 0, 0);
+        return checkDate >= start && checkDate <= end;
+      }
+      // Jeśli brak dat w rekordzie — zaznacz dzisiejszy dzień jako wydany
+      return checkDate === new Date().setHours(0, 0, 0, 0);
+    });
+    if (isPhysicallyOut) return 'wydane';
+
+    // Rezerwacje zatwierdzone
+    const isReserved = allReservations.some(res => {
       if (codeMatches(res.Sprzet_Kody, itemId) && res.Status === 'Zatwierdzone') {
-        const start = new Date(res.Data_Od).setHours(0,0,0,0);
-        const end = new Date(res.Data_Do).setHours(0,0,0,0);
+        const start = new Date(res.Data_Od).setHours(0, 0, 0, 0);
+        const end   = new Date(res.Data_Do).setHours(0, 0, 0, 0);
         return checkDate >= start && checkDate <= end;
       }
       return false;
     });
+    return isReserved ? 'reserved' : null;
+  };
+
+  // Pomocnik: zwraca datę i numer porozumienia aktualnego wypożyczenia
+  const getRentedUntil = (itemId) => {
+    const wydanie = allWydania.find(w => {
+      const wStatus = String(w.STATUS || w.Status || w.status || '').trim().toUpperCase();
+      const codes = String(w['SPRZĘT'] || w['Sprzęt (Kody QR)'] || '');
+      return wStatus === 'WYDANE' && codeMatches(codes, itemId);
+    });
+    if (wydanie) {
+      const rawTo = wydanie.Data_Do || wydanie.dateTo || wydanie['Data Do'] || wydanie['DataDo'] || null;
+      const nr    = wydanie.Nr_Porozumienia || wydanie['Nr Porozumienia'] || wydanie['NrPorozumienia'] || null;
+      const dateTo = rawTo ? new Date(rawTo).toLocaleDateString('pl-PL') : null;
+      return { until: dateTo, nr, type: 'wydane' };
+    }
+    const today = new Date().setHours(0, 0, 0, 0);
+    const res = allReservations.find(r => {
+      if (codeMatches(r.Sprzet_Kody, itemId) && r.Status === 'Zatwierdzone') {
+        const start = new Date(r.Data_Od).setHours(0, 0, 0, 0);
+        const end   = new Date(r.Data_Do).setHours(0, 0, 0, 0);
+        return today >= start && today <= end;
+      }
+      return false;
+    });
+    if (res) {
+      const dateTo = res.Data_Do ? new Date(res.Data_Do).toLocaleDateString('pl-PL') : null;
+      return { until: dateTo, nr: res.ID || null, type: 'rezerwacja' };
+    }
+    return null;
   };
 
   if (isLoading) return (
@@ -315,9 +383,19 @@ export default function EquipmentPage() {
           <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Centralny Rejestr Wypożyczeń (CRW)</p>
         </div>
 
-        <div className="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 mb-6 max-w-xl mx-auto flex items-center">
+        <div className="bg-white p-2 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 mb-4 max-w-xl mx-auto flex items-center">
           <span className="pl-4 pr-2 text-xl opacity-50">🔍</span>
           <input type="text" placeholder="Szukaj po nazwie lub sygnaturze..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-transparent border-none focus:ring-0 text-sm font-bold text-slate-700 py-3 px-2 outline-none"/>
+        </div>
+
+        <div className="flex justify-center mb-4">
+          <button
+            onClick={() => setShowOnlyAvailable(v => !v)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all shadow-sm ${showOnlyAvailable ? 'bg-emerald-600 text-white border-emerald-600 shadow-emerald-200' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+          >
+            <span className={`w-2 h-2 rounded-full ${showOnlyAvailable ? 'bg-white' : 'bg-emerald-500'}`}></span>
+            Tylko dostępne
+          </button>
         </div>
 
         <div className="flex flex-wrap justify-center gap-2 mb-10 max-w-3xl mx-auto">
@@ -335,7 +413,12 @@ export default function EquipmentPage() {
               <div key={item.id} className={`bg-white rounded-3xl p-6 shadow-lg border transition-all duration-300 group flex flex-col h-full ${isInCart(item.id) ? 'border-indigo-500 shadow-indigo-200 ring-4 ring-indigo-50' : 'border-slate-100 shadow-slate-200/40 hover:shadow-xl hover:-translate-y-1'}`}>
                 <div className="flex justify-between items-start mb-4">
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform overflow-hidden ${item.isFirstAid ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
-                     {item.isRealImage ? <img src={item.image} alt={item.name} className="w-full h-full object-cover" /> : item.image}
+                    {item.isRealImage ? (
+                      <>
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                        <span style={{display:'none'}} className="w-full h-full items-center justify-center text-3xl">{item.imageIcon}</span>
+                      </>
+                    ) : item.imageIcon}
                   </div>
                   {getStatusBadge(currentStatus)}
                 </div>
@@ -347,12 +430,12 @@ export default function EquipmentPage() {
                 <div className="mt-auto pt-6 flex gap-2">
                   <button onClick={() => {setSelectedItem(item); setActiveTab('info');}} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors">Paszport</button>
                   {item.isFirstAid ? (
-                    <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-rose-600 hover:bg-rose-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
-                      {isInCart(item.id) ? '✓ Wybrano' : '🏥 Wypożycz'}
+                    <button onClick={() => toggleCart(item)} disabled={currentStatus !== 'available'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-rose-100 text-rose-700 border border-rose-200' : 'bg-rose-600 hover:bg-rose-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
+                      {isInCart(item.id) ? '✓ Wybrano' : currentStatus === 'rented' ? 'Wypożyczony' : '🏥 Wypożycz'}
                     </button>
                   ) : (
-                    <button onClick={() => toggleCart(item)} disabled={currentStatus === 'maintenance'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
-                      {isInCart(item.id) ? '✓ Wybrano' : '+ Rezerwuj'}
+                    <button onClick={() => toggleCart(item)} disabled={currentStatus !== 'available'} className={`flex-[2] py-3 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md transition-all ${isInCart(item.id) ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' : 'bg-indigo-600 hover:bg-indigo-700 text-white disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none'}`}>
+                      {isInCart(item.id) ? '✓ Wybrano' : currentStatus === 'rented' ? 'Wypożyczony' : '+ Rezerwuj'}
                     </button>
                   )}
                 </div>
@@ -483,7 +566,12 @@ export default function EquipmentPage() {
             <div className={`md:w-2/5 p-8 flex flex-col items-center justify-center text-center relative overflow-hidden ${selectedItem.isFirstAid ? 'bg-rose-900' : 'bg-slate-900'}`}>
                <div className={`absolute inset-0 blur-[100px] rounded-full ${selectedItem.isFirstAid ? 'bg-rose-500/20' : 'bg-indigo-500/20'}`}></div>
                <div className={`w-32 h-32 bg-white rounded-3xl flex items-center justify-center text-5xl border-4 shadow-2xl shrink-0 overflow-hidden mb-6 z-10 ${selectedItem.isFirstAid ? 'border-rose-700' : 'border-slate-700'}`}>
-                 {selectedItem.isRealImage ? <img src={selectedItem.image} className="w-full h-full object-cover" /> : selectedItem.image}
+                {selectedItem.isRealImage ? (
+                  <>
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                    <span style={{display:'none'}} className="w-full h-full items-center justify-center text-5xl">{selectedItem.imageIcon}</span>
+                  </>
+                ) : selectedItem.imageIcon}
               </div>
               <div className="z-10 w-full">
                 <span className={`text-[10px] font-black uppercase tracking-widest block mb-2 ${selectedItem.isFirstAid ? 'text-rose-400' : 'text-indigo-400'}`}>{selectedItem.category}</span>
@@ -493,6 +581,17 @@ export default function EquipmentPage() {
                    <p className="font-mono text-sm font-black text-white break-all">{selectedItem.id}</p>
                 </div>
                 <div className="mt-6 flex justify-center">{getStatusBadge(getDynamicStatus(selectedItem))}</div>
+                {getDynamicStatus(selectedItem) === 'rented' && (() => {
+                  const info = getRentedUntil(selectedItem.id);
+                  if (!info) return null;
+                  return (
+                    <div className={`mt-3 p-2.5 rounded-xl border text-center w-full ${selectedItem.isFirstAid ? 'bg-rose-800/60 border-rose-700' : 'bg-slate-800/60 border-slate-700'}`}>
+                      {info.until && <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Zwrot do</p>}
+                      {info.until && <p className="text-xs font-black text-white">{info.until}</p>}
+                      {info.nr && <p className="text-[9px] text-slate-500 font-mono mt-0.5 truncate">{info.nr}</p>}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
@@ -508,11 +607,27 @@ export default function EquipmentPage() {
               
               <div className="flex-1 overflow-y-auto pr-2 min-h-0">
                 {activeTab === 'info' && (
-                  <div className="space-y-6 animate-fadeIn">
+                  <div className="space-y-4 animate-fadeIn">
                     <div>
                       <span className="block text-[10px] font-bold text-slate-400 uppercase mb-2 ml-1">Akcesoria w zestawie / Interakcje</span>
                       <p className="text-sm font-medium text-slate-700 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm leading-relaxed">{selectedItem.description}</p>
                     </div>
+                    {(selectedItem.value || selectedItem.warranty) && (
+                      <div className="grid grid-cols-2 gap-3">
+                        {selectedItem.value && (
+                          <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Wartość ewidencyjna</span>
+                            <span className="font-black text-slate-800 text-sm">{selectedItem.value}</span>
+                          </div>
+                        )}
+                        {selectedItem.warranty && (
+                          <div className="bg-white border border-slate-200 p-4 rounded-2xl shadow-sm">
+                            <span className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Gwarancja</span>
+                            <span className="font-black text-slate-800 text-sm">{selectedItem.warranty}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     {selectedItem.link && (
                       <a href={selectedItem.link} target="_blank" rel="noreferrer" className="block text-center bg-indigo-50 border border-indigo-100 text-indigo-600 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-100 transition-colors">
                         🔗 Zobacz specyfikację
@@ -520,7 +635,7 @@ export default function EquipmentPage() {
                     )}
                     {selectedItem.isFirstAid && (
                       <button onClick={() => {
-                        setUsedItems([]);
+                        setUsedItems({});
                         setFirstAidDesc('');
                         setIsFirstAidModalOpen(true);
                       }} className="block w-full text-center bg-rose-600 hover:bg-rose-700 text-white py-4 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all mt-4">
@@ -552,22 +667,27 @@ export default function EquipmentPage() {
 
                 {activeTab === 'kalendarz' && (
                   <div className="animate-fadeIn">
-                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Grafik rezerwacji (28 dni w przód)</span>
-                    <div className="grid grid-cols-7 gap-1.5 mb-6">
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Grafik zajętości (28 dni w przód)</span>
+                    <div className="grid grid-cols-7 gap-1.5 mb-4">
                       {Array.from({length: 28}).map((_, i) => {
                         const d = new Date(); d.setDate(d.getDate() + i);
-                        const isBooked = isDateReserved(selectedItem.id, d); 
+                        const occupied = isDateOccupied(selectedItem.id, d);
                         return (
-                          <div key={i} className={`flex flex-col items-center justify-center p-2.5 rounded-lg border ${isBooked ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-inner' : 'bg-white border-slate-200 text-slate-500 shadow-sm'}`}>
+                          <div key={i} className={`flex flex-col items-center justify-center p-2.5 rounded-lg border ${
+                            occupied === 'wydane'   ? 'bg-blue-50 border-blue-300 text-blue-700 shadow-inner' :
+                            occupied === 'reserved' ? 'bg-rose-50 border-rose-200 text-rose-700 shadow-inner' :
+                                                     'bg-white border-slate-200 text-slate-500 shadow-sm'
+                          }`}>
                             <span className="text-[8px] font-black uppercase opacity-60 mb-0.5">{d.toLocaleDateString('pl-PL', {weekday: 'short'})}</span>
                             <span className="text-sm font-black leading-none">{d.getDate()}</span>
                           </div>
                         )
                       })}
                     </div>
-                    <div className="flex justify-center gap-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-rose-400"></div> Zajęte</span>
-                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-white border border-slate-300"></div> Wolne</span>
+                    <div className="flex flex-wrap justify-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-blue-400"></div> Wydany fizycznie</span>
+                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-rose-400"></div> Rezerwacja</span>
+                      <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-white border border-slate-300"></div> Wolny</span>
                     </div>
                   </div>
                 )}

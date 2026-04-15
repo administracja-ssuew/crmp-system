@@ -931,9 +931,17 @@ Opis: ${selectedDoc.desc || selectedDoc.tresc || selectedDoc.opis || 'Brak opisu
                     <p className="text-slate-400 text-sm font-medium">Gemini generuje podanie...</p>
                   </div>
                 ) : (
-                  <div className="text-sm text-slate-800 leading-relaxed font-mono whitespace-pre-wrap">
-                    {aiOutput}
-                    {isDrafting && <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>}
+                  <div>
+                    <div className="mb-4 flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                      <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠️</span>
+                      <p className="text-xs font-medium text-amber-800 leading-snug">
+                        Treść wygenerowana przez AI. Przed przeklejeniem do oficjalnego pisma do Władz Uczelni — <strong>zweryfikuj dane, daty i uzasadnienie</strong>. AI może popełniać błędy.
+                      </p>
+                    </div>
+                    <div className="text-sm text-slate-800 leading-relaxed font-mono whitespace-pre-wrap">
+                      {aiOutput}
+                      {isDrafting && <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse"></span>}
+                    </div>
                   </div>
                 )}
               </div>

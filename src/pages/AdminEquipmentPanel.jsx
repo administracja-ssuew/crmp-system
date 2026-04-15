@@ -50,6 +50,8 @@ export default function AdminEquipmentPanel() {
   const [reportsError, setReportsError] = useState(null);
   const [resolvedReports, setResolvedReports] = useState([]);
   const [showResolvedHistory, setShowResolvedHistory] = useState(false);
+  const [isTogglingService, setIsTogglingService] = useState(false);
+  const [serwisSearch, setSerwisSearch] = useState('');
 
   const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
@@ -305,8 +307,17 @@ export default function AdminEquipmentPanel() {
     if(!sigBorrowerData || !sigAdminData) { alert("Protokół musi zostać podpisany przez obie strony!"); return; }
     setIsVerifying(true);
     const equipmentList = selectedItems.map(item => item.id).join(', ');
+    const sprzetTabelaHTML = selectedItems.map((item, idx) =>
+      `<tr>
+        <td style="border: 1px solid black; padding: 5px; text-align: center;">${idx + 1}</td>
+        <td style="border: 1px solid black; padding: 5px; font-weight: bold;">${item.name}</td>
+        <td style="border: 1px solid black; padding: 5px; font-family: monospace;">${item.id}</td>
+        <td style="border: 1px solid black; padding: 5px;">${item.condition || ''}</td>
+        <td style="border: 1px solid black; padding: 5px;"></td>
+      </tr>`
+    ).join('');
     const payload = {
-      action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, albumId: borrower.albumId, organizacja: borrower.organization, sprzet: equipmentList, dateFrom: `${borrower.dateFrom.replace('T', ' ')}`, dateTo: `${borrower.dateTo.replace('T', ' ')}`, location: borrower.location || "Brak", address: borrower.address || "Brak", phone: borrower.phone || "Brak", email: borrower.email, adminName: `${borrower.adminName} (${borrower.adminRole})`, sigBorrower: sigBorrowerData, sigAdmin: sigAdminData
+      action: "zapiszWydanie", nrPorozumienia: docNumber, osoba: borrower.name, albumId: borrower.albumId, organizacja: borrower.organization, sprzet: equipmentList, sprzetTabelaHTML, dateFrom: `${borrower.dateFrom.replace('T', ' ')}`, dateTo: `${borrower.dateTo.replace('T', ' ')}`, location: borrower.location || "Brak", address: borrower.address || "Brak", phone: borrower.phone || "Brak", email: borrower.email, adminName: `${borrower.adminName} (${borrower.adminRole})`, sigBorrower: sigBorrowerData, sigAdmin: sigAdminData
     };
     try {
       const response = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
@@ -322,13 +333,72 @@ export default function AdminEquipmentPanel() {
     if(!sigBorrowerData || !sigAdminData) { alert("Podpisz protokół zwrotu!"); return; }
     setIsVerifying(true);
     const targetId = getAgreementNumber(selectedReturn);
+    const sprzet = String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)'] || '');
+    const osoba = String(selectedReturn['Kto_wypozyczyl'] || selectedReturn['KTO_WYPOZYCZYL'] || selectedReturn['Osoba'] || '');
+    const organizacja = String(selectedReturn['Organizacja'] || selectedReturn['ORGANIZACJA'] || '');
+    const sprzetTabelaHTML = sprzet.split(',').map((id, idx) =>
+      `<tr>
+        <td style="border: 1px solid black; padding: 5px; text-align: center;">${idx + 1}</td>
+        <td style="border: 1px solid black; padding: 5px; font-family: monospace;">${id.trim()}</td>
+      </tr>`
+    ).join('');
+    const payload = {
+      action: "zapiszZwrot",
+      nrPorozumienia: targetId,
+      sprzet,
+      sprzetTabelaHTML,
+      osoba,
+      organizacja,
+      adminName: borrower.adminName,
+      dataZwrotu: new Date().toLocaleString('pl-PL'),
+      sigAdmin: sigAdminData,
+      sigBorrower: sigBorrowerData,
+    };
     try {
-      await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: "zapiszZwrot", nrPorozumienia: targetId }) });
-      alert(`Sprzęt z porozumienia ${targetId} został poprawnie zwrócony na stan!`);
-    } catch (err) { alert("Zakończono proces zwrotu."); } finally { 
+      const response = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      const resData = await response.json().catch(() => ({}));
+      alert(`Sprzęt z porozumienia ${targetId} został poprawnie zwrócony na stan!${resData.link ? `\nPDF: ${resData.link}` : ''}`);
+    } catch (err) { alert("Zakończono proces zwrotu."); } finally {
       setSelectedReturn(null); setReturnStep(1); clearSignatures(); setBorrower({...borrower, adminName: ''});
-      setTimeout(() => fetchAllData(), 500); setIsVerifying(false); 
+      setTimeout(() => fetchAllData(), 500); setIsVerifying(false);
     }
+  };
+
+  // Zwraca liczbę dni opóźnienia zwrotu (0 = nie przeterminowany lub brak daty)
+  const getDaysPastDue = (wyd) => {
+    const rawTo = wyd['Data_Do'] || wyd['dateTo'] || wyd['DataDo'] || wyd['Termin_Zwrotu'] || null;
+    if (!rawTo) return 0;
+    try {
+      const dueDate = new Date(rawTo); dueDate.setHours(23, 59, 59, 0);
+      const now = new Date();
+      if (isNaN(dueDate.getTime()) || dueDate >= now) return 0;
+      return Math.floor((now - dueDate) / (1000 * 60 * 60 * 24));
+    } catch { return 0; }
+  };
+
+  const formatReturnDate = (wyd) => {
+    const rawTo = wyd['Data_Do'] || wyd['dateTo'] || wyd['DataDo'] || wyd['Termin_Zwrotu'] || null;
+    if (!rawTo) return null;
+    try {
+      const d = new Date(rawTo);
+      if (isNaN(d.getTime())) return null;
+      return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch { return null; }
+  };
+
+  const toggleSerwis = async (item) => {
+    setIsTogglingService(true);
+    const inService = item.status === 'maintenance';
+    const newUwagi = inService ? '' : 'USZKODZONY - w serwisie';
+    try {
+      await fetch(API_URL, {
+        method: 'POST', redirect: 'follow',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "setSerwisStatus", kodQR: item.id, uwagi: newUwagi })
+      });
+      setTimeout(() => fetchEquipmentOnly(), 500);
+    } catch { alert('Błąd połączenia. Status nie został zmieniony.'); }
+    finally { setIsTogglingService(false); }
   };
 
   const today = new Date().toLocaleDateString('pl-PL');
@@ -358,9 +428,31 @@ export default function AdminEquipmentPanel() {
 
       <div className="w-full max-w-5xl flex flex-wrap bg-slate-800 rounded-xl p-1.5 mb-4 border border-slate-700 shadow-xl print:hidden animate-slideUp gap-1">
         <button onClick={() => {setAdminMode('wydawanie'); setStep(1);}} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'wydawanie' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📦 Wydawanie</button>
-        <button onClick={() => setAdminMode('rezerwacje')} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>📩 Wnioski</button>
-        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>🔄 Zwroty</button>
+        <button onClick={() => setAdminMode('rezerwacje')} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'rezerwacje' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
+          📩 Wnioski
+          {allReservations.filter(r => r.Status === 'Oczekuje').length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center leading-none">
+              {allReservations.filter(r => r.Status === 'Oczekuje').length}
+            </span>
+          )}
+        </button>
+        <button onClick={() => {setAdminMode('zwroty'); setSelectedReturn(null); setReturnStep(1);}} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'zwroty' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
+          🔄 Zwroty
+          {activeWydania.filter(w => getDaysPastDue(w) > 0).length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center leading-none">
+              {activeWydania.filter(w => getDaysPastDue(w) > 0).length}
+            </span>
+          )}
+        </button>
         <button onClick={() => setAdminMode('windykacja')} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'windykacja' ? 'bg-red-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>⚖️ Windykacja</button>
+        <button onClick={() => setAdminMode('serwis')} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'serwis' ? 'bg-amber-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
+          🔧 Serwis
+          {equipmentData.filter(i => i.status === 'maintenance').length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] font-black min-w-[16px] h-4 px-1 rounded-full flex items-center justify-center leading-none">
+              {equipmentData.filter(i => i.status === 'maintenance').length}
+            </span>
+          )}
+        </button>
         <button onClick={() => setAdminMode('apteczki')} className={`relative flex-1 min-w-[80px] py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${adminMode === 'apteczki' ? 'bg-rose-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}>
           🚑 Apteczki
           {firstAidReports.length > 0 && (
@@ -513,6 +605,7 @@ export default function AdminEquipmentPanel() {
                       <div><label className="text-[10px] font-bold text-slate-500 ml-1">Od kiedy</label><input type="datetime-local" value={borrower.dateFrom} onChange={e => setBorrower({...borrower, dateFrom: e.target.value})} className="bg-white border border-slate-300 p-2.5 rounded-lg text-sm font-bold w-full mt-1" /></div>
                       <div><label className="text-[10px] font-bold text-slate-500 ml-1">Do kiedy</label><input type="datetime-local" value={borrower.dateTo} onChange={e => setBorrower({...borrower, dateTo: e.target.value})} className="bg-white border border-slate-300 p-2.5 rounded-lg text-sm font-bold w-full mt-1" /></div>
                     </div>
+                    <input type="text" placeholder="Miejsce użytkowania sprzętu (np. Aula CKU, Budynek Z)" value={borrower.location} onChange={e => setBorrower({...borrower, location: e.target.value})} className="bg-white border border-slate-200 p-2.5 rounded-lg text-sm font-bold w-full md:col-span-2" />
                   </div>
                 </div>
 
@@ -756,18 +849,31 @@ export default function AdminEquipmentPanel() {
               <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-4">Wybierz aktywny protokół z bazy</p>
 
               <div className="space-y-2">
-                {activeWydania.map((wyd, idx) => (
-                  <div key={idx} onClick={() => {setSelectedReturn(wyd); setReturnStep(1);}} className="bg-slate-700 hover:bg-slate-600 border border-slate-600 p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group shadow">
+                {activeWydania.map((wyd, idx) => {
+                  const daysPast = getDaysPastDue(wyd);
+                  const returnDate = formatReturnDate(wyd);
+                  return (
+                  <div key={idx} onClick={() => {setSelectedReturn(wyd); setReturnStep(1);}} className={`hover:bg-slate-600 border p-4 rounded-xl cursor-pointer transition-all flex justify-between items-center group shadow ${daysPast > 0 ? 'bg-orange-950/40 border-orange-600/60 hover:border-orange-500' : 'bg-slate-700 border-slate-600'}`}>
                     <div>
-                      <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">NR: {getAgreementNumber(wyd)}</span>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] text-emerald-400 font-black uppercase tracking-widest">NR: {getAgreementNumber(wyd)}</span>
+                        {daysPast > 0 && (
+                          <span className="text-[9px] font-black bg-orange-600 text-white px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">
+                            OPÓŹNIENIE {daysPast} {daysPast === 1 ? 'dzień' : 'dni'}
+                          </span>
+                        )}
+                      </div>
                       <h3 className="text-sm font-bold text-white leading-tight mt-0.5">{wyd['Organizator'] || wyd['Organizacja']}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']} | Pobrane: {getRealDate(wyd)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Osoba: {wyd['Kto_wypozyczyl'] || wyd['Wypożyczający']} | Wydano: {getRealDate(wyd)}
+                        {returnDate && <span className={`ml-1 ${daysPast > 0 ? 'text-orange-400 font-bold' : ''}`}> | Zwrot do: {returnDate}</span>}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase shadow group-hover:bg-emerald-500 transition-colors">Odbierz Sprzęt</button>
+                      <button className={`px-4 py-2 text-white rounded-lg text-[10px] font-black uppercase shadow transition-colors ${daysPast > 0 ? 'bg-orange-600 group-hover:bg-orange-500' : 'bg-emerald-600 group-hover:bg-emerald-500'}`}>Odbierz Sprzęt</button>
                     </div>
                   </div>
-                ))}
+                );})}
                 {activeWydania.length === 0 && (
                   <div className="text-center py-12"><span className="text-4xl mb-3 opacity-20">✅</span><p className="text-slate-400 font-black text-base uppercase tracking-widest mt-3">Magazyn pełny</p></div>
                 )}
@@ -988,6 +1094,88 @@ export default function AdminEquipmentPanel() {
           )}
         </div>
       )}
+      {/* ========================================================= */}
+      {/* TRYB 6: SERWIS / MAGAZYN */}
+      {/* ========================================================= */}
+      {adminMode === 'serwis' && (
+        <div className="w-full max-w-5xl animate-fadeIn">
+          <div className="flex items-center justify-between gap-3 mb-4 border-b border-slate-700 pb-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔧</span>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">Statusy Sprzętu</h2>
+                <p className="text-amber-400 font-bold uppercase tracking-widest text-[10px]">Zarządzanie Serwisem i Magazynem</p>
+              </div>
+            </div>
+            <input
+              type="text"
+              placeholder="Szukaj po nazwie lub kodzie..."
+              value={serwisSearch}
+              onChange={e => setSerwisSearch(e.target.value)}
+              className="bg-slate-800 border border-slate-600 text-white placeholder:text-slate-500 p-2 px-3 rounded-xl text-xs font-bold w-56 focus:outline-none focus:border-amber-500"
+            />
+          </div>
+
+          {/* Podsumowanie */}
+          <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="bg-emerald-900/30 border border-emerald-700/40 rounded-xl p-3 text-center">
+              <p className="text-2xl font-black text-emerald-400">{equipmentData.filter(i => i.status === 'available' && !issuedItemIds.has(i.id)).length}</p>
+              <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Dostępnych</p>
+            </div>
+            <div className="bg-blue-900/30 border border-blue-700/40 rounded-xl p-3 text-center">
+              <p className="text-2xl font-black text-blue-400">{issuedItemIds.size}</p>
+              <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mt-1">Wydanych</p>
+            </div>
+            <div className="bg-amber-900/30 border border-amber-700/40 rounded-xl p-3 text-center">
+              <p className="text-2xl font-black text-amber-400">{equipmentData.filter(i => i.status === 'maintenance').length}</p>
+              <p className="text-[9px] font-black text-amber-500 uppercase tracking-widest mt-1">W Serwisie</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {equipmentData
+              .filter(i => !i.isFirstAid)
+              .filter(i =>
+                !serwisSearch ||
+                i.name.toLowerCase().includes(serwisSearch.toLowerCase()) ||
+                i.id.toLowerCase().includes(serwisSearch.toLowerCase())
+              )
+              .map(item => {
+                const isOut = issuedItemIds.has(item.id);
+                const inService = item.status === 'maintenance';
+                return (
+                  <div key={item.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${inService ? 'bg-amber-950/30 border-amber-700/40' : isOut ? 'bg-blue-950/30 border-blue-700/40' : 'bg-slate-800 border-slate-700'}`}>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-2 h-2 rounded-full shrink-0 ${inService ? 'bg-amber-500' : isOut ? 'bg-blue-400' : 'bg-emerald-400'}`}></div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-black text-white truncate">{item.name}</p>
+                        <p className="text-[9px] font-mono text-slate-500">{item.id}</p>
+                        {inService && <p className="text-[9px] text-amber-400 font-bold mt-0.5 italic">{item.condition}</p>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${inService ? 'bg-amber-800/60 text-amber-300' : isOut ? 'bg-blue-800/60 text-blue-300' : 'bg-emerald-800/60 text-emerald-300'}`}>
+                        {inService ? 'Serwis' : isOut ? 'Wydany' : 'OK'}
+                      </span>
+                      <button
+                        onClick={() => toggleSerwis(item)}
+                        disabled={isTogglingService || isOut}
+                        title={isOut ? 'Nie można zmienić — sprzęt jest aktualnie wydany' : inService ? 'Przywróć do magazynu' : 'Oznacz jako uszkodzony / wyślij do serwisu'}
+                        className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed ${inService ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-amber-700 hover:bg-amber-600 text-white'}`}
+                      >
+                        {isTogglingService ? '...' : inService ? 'Przywróć' : 'Do serwisu'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            {equipmentData.filter(i => !i.isFirstAid).length === 0 && (
+              <div className="py-12 text-center"><span className="text-4xl opacity-20">📦</span><p className="text-slate-400 font-black uppercase tracking-widest mt-3">Brak sprzętu w bazie</p></div>
+            )}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
