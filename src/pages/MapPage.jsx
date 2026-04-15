@@ -428,7 +428,7 @@ export default function MapPage() {
           >
             <img
               ref={imgRef}
-              src="/mapa.jpg"
+              src="/mapa.png"
               alt="Mapa kampusu"
               className="w-full h-full object-contain"
               onLoad={() => {
