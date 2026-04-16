@@ -216,10 +216,10 @@ export default function MapPage() {
 
     setIsSubmitting(true);
     const payload = {
-      action: 'addPoster',
-      locationId: selected.id,
+      action: 'addPosterMulti',
+      locationIds: [selected.id],
       locationType: selected.type,
-      credId: newPoster.credId, // <--- DODANE DO WYSYŁKI
+      credId: newPoster.credId,
       posterName: newPoster.name,
       organization: newPoster.organization,
       email: newPoster.email,
