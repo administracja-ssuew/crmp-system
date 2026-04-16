@@ -142,7 +142,7 @@ export default function MapPage() {
 
   const fetchData = (silent = false) => {
     if (!silent) setLoading(true);
-    fetch(DATA_URL)
+    fetch(`${DATA_URL}?t=${Date.now()}`)
       .then(res => res.json())
       .then(json => {
         const locs = json.locations || [];
