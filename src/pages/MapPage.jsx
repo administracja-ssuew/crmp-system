@@ -237,12 +237,15 @@ export default function MapPage() {
       if (result.success) {
         alert(`Plakat oficjalnie powieszony! \nUruchomiono cykl przypomnień.`);
         setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '' });
+        fetchData(true);
+      } else {
+        console.error('GAS error:', result);
+        alert(`Błąd zapisu: ${result.error || JSON.stringify(result)}`);
       }
     } catch (err) {
       console.error(err);
-      alert("Błąd dodawania plakatu. Sprawdź połączenie i spróbuj ponownie.");
+      alert("Błąd połączenia. Sprawdź konsolę i spróbuj ponownie.");
     } finally {
-      fetchData(true);
       setIsSubmitting(false);
     }
   };
