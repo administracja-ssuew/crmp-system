@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { MapPin, Flag, Search, Map, List, X } from 'lucide-react';
+import { MapPin, Flag, Search, Map, List } from 'lucide-react';
 
 // === TWÓJ NOWY LINK DO SKRYPTU ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbyO_eJLtdAs63yScKpVuIzbkCQoQKqQTcWgBN_nlfjg__nAkzXXVYuuisKm_MHmoQ5rNw/exec";
@@ -111,8 +111,8 @@ export default function MapPage() {
   };
 
   // === REJESTR: lazy-fetch getAllPosters z GAS (per D-12, D-14, D-15) ===
-  const fetchAllPosters = async () => {
-    if (allPosters.length > 0) return; // already loaded — skip re-fetch
+  const fetchAllPosters = async (force = false) => {
+    if (!force && allPosters.length > 0) return; // already loaded — skip re-fetch
     setPostersLoading(true);
     try {
       const res = await fetch(`${DATA_URL}?action=getAllPosters`);
@@ -126,8 +126,8 @@ export default function MapPage() {
     }
   };
 
-  const fetchData = () => {
-    setLoading(true);
+  const fetchData = (silent = false) => {
+    if (!silent) setLoading(true);
     fetch(DATA_URL)
       .then(res => res.json())
       .then(json => {
@@ -225,10 +225,10 @@ export default function MapPage() {
         setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '' });
       }
     } catch (err) {
-      console.log(err);
-      alert("Plakat dodany, system odświeża bazę.");
+      console.error(err);
+      alert("Błąd dodawania plakatu. Sprawdź połączenie i spróbuj ponownie.");
     } finally {
-      fetchData();
+      fetchData(true);
       setIsSubmitting(false);
     }
   };
@@ -252,10 +252,10 @@ export default function MapPage() {
       });
       alert("Miejsce oficjalnie zwolnione!");
     } catch (err) {
-      console.log(err);
-      alert("Zwolniono miejsce, odświeżam widok.");
+      console.error(err);
+      alert("Błąd połączenia — operacja mogła nie zostać zapisana. Odśwież stronę i sprawdź stan.");
     } finally {
-      fetchData();
+      fetchData(true);
       setIsSubmitting(false);
     }
   };
@@ -295,7 +295,7 @@ export default function MapPage() {
         }),
       });
       setIsEditing(false);
-      fetchData();
+      fetchData(true);
     } catch (err) {
       console.error(err);
       alert('Błąd zapisu danych lokalizacji. Spróbuj ponownie.');
@@ -307,9 +307,12 @@ export default function MapPage() {
   // === REJESTR: zapisz wpis (nowy lub edytowany) do GAS ===
   const handleSavePoster = async (e) => {
     e.preventDefault();
+    if (posterModal === 'add' && !posterForm.locationId) {
+      alert("Wybierz lokalizację z listy.");
+      return;
+    }
     setPosterSubmitting(true);
     try {
-      const action = posterModal === 'add' ? 'addPoster' : 'updatePoster';
       const payload = posterModal === 'add'
         ? {
             action: 'addPoster',
@@ -343,8 +346,8 @@ export default function MapPage() {
       setPosterModal(null);
       setPosterForm(emptyPosterForm);
       // Wymuś ponowne pobranie Rejestru przy następnym otwarciu
-      setAllPosters([]);
-      fetchData();
+      fetchAllPosters(true);
+      fetchData(true);
     } catch (err) {
       console.error(err);
       alert('Błąd zapisu. Sprawdź połączenie i spróbuj ponownie.');
@@ -369,23 +372,26 @@ export default function MapPage() {
     <div className="flex flex-col h-screen overflow-hidden animate-fadeIn">
 
       <header className="shrink-0 bg-white border-b border-slate-200 pl-56 pr-4 py-2 flex flex-wrap gap-3 items-center">
-        {/* Search input */}
-        <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 md:w-72">
-          <Search className="w-4 h-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Szukaj tablicy..."
-            className="bg-transparent border-none outline-none text-slate-700 font-bold w-full placeholder:font-normal text-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        {/* Type filter */}
-        <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
-          <button onClick={() => setFilterType('all')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-600'}`}>WSZYSTKIE</button>
-          <button onClick={() => setFilterType('plakat')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'plakat' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'hover:bg-blue-50 text-slate-600'}`}>PLAKATY</button>
-          <button onClick={() => setFilterType('baner')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'baner' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'hover:bg-orange-50 text-slate-600'}`}>BANERY</button>
-        </div>
+        {/* Search input + type filter — tylko na mapie */}
+        {view === 'map' && (
+          <>
+            <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-3 py-2 md:w-72">
+              <Search className="w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Szukaj tablicy..."
+                className="bg-transparent border-none outline-none text-slate-700 font-bold w-full placeholder:font-normal text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
+              <button onClick={() => setFilterType('all')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'all' ? 'bg-slate-800 text-white' : 'hover:bg-slate-100 text-slate-600'}`}>WSZYSTKIE</button>
+              <button onClick={() => setFilterType('plakat')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'plakat' ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : 'hover:bg-blue-50 text-slate-600'}`}>PLAKATY</button>
+              <button onClick={() => setFilterType('baner')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${filterType === 'baner' ? 'bg-orange-500 text-white shadow-md shadow-orange-200' : 'hover:bg-orange-50 text-slate-600'}`}>BANERY</button>
+            </div>
+          </>
+        )}
         {/* View toggle + coord picker — admin only */}
         {isAdmin && (
           <div className="ml-auto flex gap-2 items-center">
@@ -716,7 +722,8 @@ export default function MapPage() {
                     {Array.from({ length: selected.capacity || 1 }).map((_, i) => {
                       const activePosters = selected.activePosters || [];
                       const posterInSlot = activePosters[i];
-                      const isOccupied = !!posterInSlot || (i >= (selected.free ?? selected.capacity));
+                      const occupiedCount = (selected.capacity || 0) - (selected.free ?? (selected.capacity || 0));
+                      const isOccupied = !!posterInSlot || (activePosters.length === 0 && i < occupiedCount);
 
                       return (
                         <div key={i} className={`aspect-square border-2 rounded-xl flex flex-col items-center justify-center text-center transition-all duration-300
