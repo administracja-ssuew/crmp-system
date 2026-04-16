@@ -61,7 +61,7 @@ export default function MapPage() {
   const [coordPreview, setCoordPreview] = useState(null);
 
   // === MODAL REJESTR: edycja i dodawanie wpisów ===
-  const emptyPosterForm = { credId: '', type: 'plakat', nazwa: '', org: '', email: '', locationId: '', dataZgody: '', dataZdjecia: '', status: 'AKTYWNE', uwagi: '' };
+  const emptyPosterForm = { credId: '', type: 'plakat', nazwa: '', org: '', email: '', locationId: '', locationIds: [], dataZgody: '', dataZdjecia: '', status: 'AKTYWNE', uwagi: '' };
   const [posterModal, setPosterModal] = useState(null); // null = zamknięty, 'add' | 'edit'
   const [posterForm, setPosterForm] = useState(emptyPosterForm);
   const [posterSubmitting, setPosterSubmitting] = useState(false);
@@ -321,16 +321,16 @@ export default function MapPage() {
   // === REJESTR: zapisz wpis (nowy lub edytowany) do GAS ===
   const handleSavePoster = async (e) => {
     e.preventDefault();
-    if (posterModal === 'add' && !posterForm.locationId) {
-      alert("Wybierz lokalizację z listy.");
+    if (posterModal === 'add' && posterForm.locationIds.length === 0) {
+      alert("Wybierz co najmniej jedną lokalizację.");
       return;
     }
     setPosterSubmitting(true);
     try {
       const payload = posterModal === 'add'
         ? {
-            action: 'addPoster',
-            locationId: posterForm.locationId,
+            action: 'addPosterMulti',
+            locationIds: posterForm.locationIds,
             locationType: posterForm.type,
             credId: posterForm.credId,
             posterName: posterForm.nazwa,
@@ -496,12 +496,12 @@ export default function MapPage() {
                 style={calcHotspotStyle(loc)}
               >
                 {/* Pin */}
-                <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white shadow-md border-2 border-white
+                <div className={`w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-white shadow border-[1.5px] border-white
                   ${loc.type === 'baner' ? 'bg-orange-500' : 'bg-blue-600'}
                   ${loc.free === 0 ? 'ring-2 ring-red-500/60' : ''}`}>
                   {loc.type === 'baner'
-                    ? <Flag className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                    : <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    ? <Flag className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                    : <MapPin className="w-2.5 h-2.5 md:w-3 md:h-3" />
                   }
                 </div>
                 {/* Tooltip (per D-04) */}
@@ -705,7 +705,7 @@ export default function MapPage() {
 
             <div className="p-8 pb-32 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-1">
-                <h2 className="text-3xl font-black text-slate-800 leading-tight">{noWidows(selected.name)}</h2>
+                <h2 className="text-xl font-black text-slate-800 leading-tight">{noWidows(selected.name)}</h2>
               </div>
               <p className="text-sm font-mono text-slate-500 mb-6 bg-slate-100 inline-block px-3 py-1.5 rounded-lg border border-slate-200 shadow-inner">
                 Kod Lokalizacji: <span className="text-slate-800 font-bold">{selected.id}</span>
@@ -1069,18 +1069,42 @@ export default function MapPage() {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">ID Lokalizacji</label>
-                  <select
-                    value={posterForm.locationId}
-                    onChange={e => setPosterForm({...posterForm, locationId: e.target.value})}
-                    className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
-                  >
-                    <option value="">— wybierz —</option>
-                    {locations.map(l => <option key={l.id} value={l.id}>{l.id} – {l.name}</option>)}
-                  </select>
+                <div className={posterModal === 'add' ? 'col-span-2' : ''}>
+                  <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">
+                    {posterModal === 'add' ? `Lokalizacje * (${posterForm.locationIds.length} wybrane)` : 'ID Lokalizacji'}
+                  </label>
+                  {posterModal === 'add' ? (
+                    <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 bg-slate-50">
+                      {locations.map(l => {
+                        const checked = posterForm.locationIds.includes(l.id);
+                        return (
+                          <label key={l.id} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-bold transition-colors ${checked ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-white hover:bg-slate-100 border border-slate-200 text-slate-700'}`}>
+                            <input type="checkbox" checked={checked} onChange={() => {
+                              const ids = checked
+                                ? posterForm.locationIds.filter(id => id !== l.id)
+                                : [...posterForm.locationIds, l.id];
+                              setPosterForm({...posterForm, locationIds: ids});
+                            }} className="hidden" />
+                            <span className={`w-3.5 h-3.5 rounded border-2 flex items-center justify-center shrink-0 ${checked ? 'bg-blue-600 border-blue-600' : 'border-slate-400'}`}>
+                              {checked && <span className="text-white text-[8px] leading-none font-black">✓</span>}
+                            </span>
+                            <span className="truncate">{l.id}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <select
+                      value={posterForm.locationId}
+                      onChange={e => setPosterForm({...posterForm, locationId: e.target.value})}
+                      className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
+                    >
+                      <option value="">— wybierz —</option>
+                      {locations.map(l => <option key={l.id} value={l.id}>{l.id} – {l.name}</option>)}
+                    </select>
+                  )}
                 </div>
-                <div>
+                {posterModal === 'edit' && <div>
                   <label className="block text-[10px] font-black text-slate-600 uppercase mb-1">Status</label>
                   <select
                     value={posterForm.status}
@@ -1090,7 +1114,7 @@ export default function MapPage() {
                     <option value="AKTYWNE">AKTYWNE</option>
                     <option value="ZDJĘTE">ZDJĘTE</option>
                   </select>
-                </div>
+                </div>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
