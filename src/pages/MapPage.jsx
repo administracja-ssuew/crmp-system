@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { MapPin, Flag, Search, Map, List } from 'lucide-react';
 
-// === TWÓJ NOWY LINK DO SKRYPTU ===
-const DATA_URL = "https://script.google.com/macros/s/AKfycbyO_eJLtdAs63yScKpVuIzbkCQoQKqQTcWgBN_nlfjg__nAkzXXVYuuisKm_MHmoQ5rNw/exec";
+// Proxy przez Vercel API route — omija CORS Google Apps Script
+const DATA_URL = "/api/gas-proxy";
 
 // Konwertuje link Google Drive (viewer) na bezpośredni URL obrazka
 const toDriveImg = (url) => {
@@ -129,7 +129,7 @@ export default function MapPage() {
     if (!force && allPosters.length > 0) return; // already loaded — skip re-fetch
     setPostersLoading(true);
     try {
-      const res = await fetch(`${DATA_URL}?action=getAllPosters`);
+      const res = await fetch(`${DATA_URL}?action=getAllPosters`, { redirect: 'follow' });
       const data = await res.json();
       setAllPosters(data.posters || []);
     } catch (err) {
