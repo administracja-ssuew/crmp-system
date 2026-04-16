@@ -13,6 +13,12 @@ const toDriveImg = (url) => {
   return url;
 };
 
+// Zapobiega wdowom typograficznym — wkleja niełamliwą spację po jednoliterowych spójnikach/przyimkach
+const noWidows = (text) => {
+  if (!text) return text;
+  return text.replace(/\s([a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ])\s/g, '\u00A0$1\u00A0');
+};
+
 export default function MapPage() {
   const { user, userRole } = useAuth();
   const isAdmin = userRole === 'logitech' || userRole === 'admin';
@@ -490,12 +496,12 @@ export default function MapPage() {
                 style={calcHotspotStyle(loc)}
               >
                 {/* Pin */}
-                <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-white shadow-lg border-2 border-white
+                <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-white shadow-md border-2 border-white
                   ${loc.type === 'baner' ? 'bg-orange-500' : 'bg-blue-600'}
-                  ${loc.free === 0 ? 'ring-4 ring-red-500/50' : ''}`}>
+                  ${loc.free === 0 ? 'ring-2 ring-red-500/60' : ''}`}>
                   {loc.type === 'baner'
-                    ? <Flag className="w-4 h-4" />
-                    : <MapPin className="w-4 h-4" />
+                    ? <Flag className="w-3 h-3 md:w-3.5 md:h-3.5" />
+                    : <MapPin className="w-3 h-3 md:w-3.5 md:h-3.5" />
                   }
                 </div>
                 {/* Tooltip (per D-04) */}
@@ -629,7 +635,7 @@ export default function MapPage() {
                           className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                         >
                           <td className="px-4 py-3 text-xs font-black text-slate-800 whitespace-nowrap">{poster.credId || '—'}</td>
-                          <td className="px-4 py-3 text-xs font-bold text-slate-700">{poster.nazwa || '—'}</td>
+                          <td className="px-4 py-3 text-xs font-bold text-slate-700">{noWidows(poster.nazwa) || '—'}</td>
                           <td className="px-4 py-3 text-xs font-bold text-slate-600 whitespace-nowrap">{poster.org || '—'}</td>
                           <td className="px-4 py-3 text-xs font-bold text-slate-500 whitespace-nowrap">{poster.locationId || '—'}</td>
                           <td className="px-4 py-3 text-xs font-bold text-slate-500 whitespace-nowrap">{poster.dataZgody || '—'}</td>
@@ -699,7 +705,7 @@ export default function MapPage() {
 
             <div className="p-8 pb-32 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-1">
-                <h2 className="text-3xl font-black text-slate-800 leading-tight">{selected.name}</h2>
+                <h2 className="text-3xl font-black text-slate-800 leading-tight">{noWidows(selected.name)}</h2>
               </div>
               <p className="text-sm font-mono text-slate-500 mb-6 bg-slate-100 inline-block px-3 py-1.5 rounded-lg border border-slate-200 shadow-inner">
                 Kod Lokalizacji: <span className="text-slate-800 font-bold">{selected.id}</span>
@@ -772,7 +778,7 @@ export default function MapPage() {
                           <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
                             <div>
                               <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
-                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{poster.nazwa} ({poster.org})</p>
+                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{noWidows(poster.nazwa)} ({poster.org})</p>
                               <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate ?? '—'}</p>
                             </div>
                             <button
@@ -847,7 +853,7 @@ export default function MapPage() {
                           <div key={idx} className="bg-slate-50 border border-slate-200 p-3 rounded-xl flex justify-between items-center">
                             <div>
                               <p className="font-bold text-slate-800 text-xs">{entry.credId}</p>
-                              <p className="text-[10px] text-slate-500 font-bold mt-0.5">{entry.nazwa} — {entry.org}</p>
+                              <p className="text-[10px] text-slate-500 font-bold mt-0.5">{noWidows(entry.nazwa)} — {entry.org}</p>
                               <p className="text-[10px] text-slate-400 font-bold mt-0.5">Zdjęto: {entry.endDate}</p>
                             </div>
                             <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${entry.status === 'AKTYWNE' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
@@ -944,7 +950,7 @@ export default function MapPage() {
                       </form>
                     ) : (
                       <div className="space-y-2 text-sm text-slate-600">
-                        <p><span className="font-bold text-slate-800">Nazwa:</span> {selected.name}</p>
+                        <p><span className="font-bold text-slate-800">Nazwa:</span> {noWidows(selected.name)}</p>
                         <p><span className="font-bold text-slate-800">Pojemność:</span> {selected.capacity} miejsc</p>
                         <p><span className="font-bold text-slate-800">Zdjęcie:</span> {selected.image ? 'Ustawione' : 'Brak'}</p>
                       </div>
