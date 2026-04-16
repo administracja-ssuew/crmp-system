@@ -5,6 +5,14 @@ import { MapPin, Flag, Search, Map, List } from 'lucide-react';
 // === TWÓJ NOWY LINK DO SKRYPTU ===
 const DATA_URL = "https://script.google.com/macros/s/AKfycbyO_eJLtdAs63yScKpVuIzbkCQoQKqQTcWgBN_nlfjg__nAkzXXVYuuisKm_MHmoQ5rNw/exec";
 
+// Konwertuje link Google Drive (viewer) na bezpośredni URL obrazka
+const toDriveImg = (url) => {
+  if (!url) return url;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  return url;
+};
+
 export default function MapPage() {
   const { user, userRole } = useAuth();
   const isAdmin = userRole === 'logitech' || userRole === 'admin';
@@ -673,7 +681,7 @@ export default function MapPage() {
           <div className="flex flex-col min-h-full">
             <div className="h-64 bg-slate-200 relative group shrink-0">
               {selected.image ? (
-                <img src={selected.image} className="w-full h-full object-cover" alt="Podgląd Miejsca" />
+                <img src={toDriveImg(selected.image)} className="w-full h-full object-cover" alt="Podgląd Miejsca" />
               ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-800">
                   <span className="text-5xl mb-2">📸</span>

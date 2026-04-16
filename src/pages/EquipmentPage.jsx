@@ -7,6 +7,14 @@ import { SkeletonGrid } from '../components/SkeletonLoader';
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
+// Konwertuje link Google Drive (viewer) na bezpośredni URL obrazka
+const toDriveImg = (url) => {
+  if (!url) return url;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  return url;
+};
+
 const DIN_13169_ITEMS = [
   "Przylepiec na szpuli (5m x 2,5cm) - 2 szt.",
   "Zestaw plastrów (różne rozmiary) - 28 szt.",
@@ -92,7 +100,7 @@ export default function EquipmentPage() {
         description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
         value: item['WARTOŚĆ'] || item.WARTOSC || item['Wartość'] || item.WARTOSC_NETTO || null,
         warranty: item.GWARANCJA || item['Gwarancja'] || item['GWARANCJA_DO'] || null,
-        image: item['ZDJĘCIE'] || item.ZDJECIE || icon,
+        image: toDriveImg(item['ZDJĘCIE'] || item.ZDJECIE) || icon,
         imageIcon: icon,
         isRealImage: !!(item['ZDJĘCIE'] || item.ZDJECIE),
         link: item.LINK || null
