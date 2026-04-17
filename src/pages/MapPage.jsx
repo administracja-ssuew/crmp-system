@@ -40,7 +40,8 @@ export default function MapPage() {
     name: '',
     organization: '',
     email: '',
-    endDate: ''
+    endDate: '',
+    locationIds: []
   });
 
   const [view, setView] = useState('map');
@@ -145,11 +146,13 @@ export default function MapPage() {
     fetch(`${DATA_URL}?t=${Date.now()}`)
       .then(res => res.json())
       .then(json => {
+        console.log('[fetchData] response:', json);
         const locs = json.locations || [];
         setLocations(locs);
 
         if (selected) {
           const updatedSelected = locs.find(l => l.id === selected.id);
+          console.log('[fetchData] selected.id:', selected.id, '→ updatedSelected:', updatedSelected);
           if (updatedSelected) setSelected(updatedSelected);
         }
         setLoading(false);
@@ -193,6 +196,13 @@ export default function MapPage() {
     }
   }, [adminTab, selected]);
 
+  // Pre-select current pin's location when opening a pin panel
+  useEffect(() => {
+    if (selected) {
+      setNewPoster(prev => ({ ...prev, locationIds: [selected.id] }));
+    }
+  }, [selected?.id]);
+
   // Lazy-fetch all posters when admin first switches to Rejestr view (per D-12)
   useEffect(() => {
     if (view === 'rejestr' && isAdmin) {
@@ -209,15 +219,15 @@ export default function MapPage() {
       alert("Proszę uzupełnić wszystkie pola formularza (w tym Znak Zgody).");
       return;
     }
-    if (selected.free <= 0) {
-      alert("Brak fizycznych miejsc na tej tablicy / w tej lokalizacji!");
+    if (!newPoster.locationIds || newPoster.locationIds.length === 0) {
+      alert("Wybierz co najmniej jedną lokalizację.");
       return;
     }
 
     setIsSubmitting(true);
     const payload = {
       action: 'addPosterMulti',
-      locationIds: [selected.id],
+      locationIds: newPoster.locationIds,
       locationType: selected.type,
       credId: newPoster.credId,
       posterName: newPoster.name,
@@ -235,8 +245,9 @@ export default function MapPage() {
       });
       const result = await response.json();
       if (result.success) {
-        alert(`Plakat oficjalnie powieszony! \nUruchomiono cykl przypomnień.`);
-        setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '' });
+        const count = newPoster.locationIds.length;
+        alert(`Plakat oficjalnie powieszony w ${count} ${count === 1 ? 'lokalizacji' : 'lokalizacjach'}!\nUruchomiono cykl przypomnień.`);
+        setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '', locationIds: [selected.id] });
         fetchData(true);
       } else {
         console.error('GAS error:', result);
@@ -801,10 +812,9 @@ export default function MapPage() {
                     </div>
                   </section>
 
-                  {/* === SEKCJA 2: Formularz dodawania (per D-09) — only shown when free slots exist === */}
-                  {selected.free > 0 && (
-                    <section className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
-                      <h3 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-4">Ewidencjonuj Nowy Plakat</h3>
+                  {/* === SEKCJA 2: Formularz dodawania (per D-09) — wielolokalizacyjny === */}
+                  <section className="bg-blue-50 border border-blue-100 p-6 rounded-2xl">
+                    <h3 className="font-black text-blue-900 text-xs uppercase tracking-widest mb-4">Ewidencjonuj Nowy Plakat</h3>
                       <form onSubmit={handleAddPoster} className="space-y-4">
                         <div>
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Znak Zgody (CRED)</label>
@@ -826,12 +836,38 @@ export default function MapPage() {
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Termin Zdjęcia Plakatu</label>
                           <input type="date" required value={newPoster.endDate} onChange={e => setNewPoster({...newPoster, endDate: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none text-red-600" />
                         </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-blue-700 uppercase mb-2">Lokalizacje ({newPoster.locationIds.length} wybranych)</label>
+                          <div className="bg-white border border-blue-200 rounded-xl p-3 space-y-1 max-h-40 overflow-y-auto">
+                            {locations.map(loc => (
+                              <label key={loc.id} className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 rounded-lg px-2 py-1">
+                                <input
+                                  type="checkbox"
+                                  checked={newPoster.locationIds.includes(loc.id)}
+                                  onChange={e => {
+                                    const ids = newPoster.locationIds;
+                                    setNewPoster({
+                                      ...newPoster,
+                                      locationIds: e.target.checked
+                                        ? [...ids, loc.id]
+                                        : ids.filter(id => id !== loc.id)
+                                    });
+                                  }}
+                                  className="accent-blue-600 w-4 h-4 flex-shrink-0"
+                                />
+                                <span className="text-xs font-bold text-slate-700 leading-tight">{loc.name}</span>
+                                {loc.free <= 0 && (
+                                  <span className="text-[9px] font-black text-red-500 uppercase ml-auto">pełne</span>
+                                )}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
                         <button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-4 rounded-xl text-xs font-black uppercase tracking-widest shadow-xl transition-all mt-2">
-                          {isSubmitting ? 'Zapisywanie w Bazie...' : 'Zatwierdź Powieszenie'}
+                          {isSubmitting ? 'Zapisywanie w Bazie...' : `Zatwierdź Powieszenie${newPoster.locationIds.length > 1 ? ` (${newPoster.locationIds.length} lok.)` : ''}`}
                         </button>
                       </form>
-                    </section>
-                  )}
+                  </section>
 
                   {/* === SEKCJA 3: Historia (per D-09) — lazy-loaded === */}
                   <section>
