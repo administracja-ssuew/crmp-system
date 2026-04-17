@@ -34,15 +34,10 @@ export default function MapPage() {
 
   const [adminTab, setAdminTab] = useState('info');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addPosterModal, setAddPosterModal] = useState(false);
 
-  const [newPoster, setNewPoster] = useState({
-    credId: '', // <--- DODANE: Znak z CRED
-    name: '',
-    organization: '',
-    email: '',
-    endDate: '',
-    locationIds: []
-  });
+  const emptyNewPoster = { credId: '', name: '', organization: '', email: '', endDate: '', locationIds: [] };
+  const [newPoster, setNewPoster] = useState(emptyNewPoster);
 
   const [view, setView] = useState('map');
   const [hoveredId, setHoveredId] = useState(null);
@@ -225,10 +220,12 @@ export default function MapPage() {
     }
 
     setIsSubmitting(true);
+    // locationType — bierzemy z pierwszej wybranej lokalizacji (lub selected jeśli dostępne)
+    const firstLoc = locations.find(l => l.id === newPoster.locationIds[0]);
     const payload = {
       action: 'addPosterMulti',
       locationIds: newPoster.locationIds,
-      locationType: selected.type,
+      locationType: (selected && newPoster.locationIds.includes(selected.id)) ? selected.type : (firstLoc?.type || 'plakat'),
       credId: newPoster.credId,
       posterName: newPoster.name,
       organization: newPoster.organization,
@@ -239,7 +236,7 @@ export default function MapPage() {
     try {
       const response = await fetch(DATA_URL, {
         method: 'POST',
-        redirect: 'follow', // OMIJA PROBLEMY Z EXTENSIONAMI CHROME
+        redirect: 'follow',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
@@ -247,7 +244,8 @@ export default function MapPage() {
       if (result.success) {
         const count = newPoster.locationIds.length;
         alert(`Plakat oficjalnie powieszony w ${count} ${count === 1 ? 'lokalizacji' : 'lokalizacjach'}!\nUruchomiono cykl przypomnień.`);
-        setNewPoster({ credId: '', name: '', organization: '', email: '', endDate: '', locationIds: [selected.id] });
+        setNewPoster({ ...emptyNewPoster, locationIds: selected ? [selected.id] : [] });
+        setAddPosterModal(false);
         fetchData(true);
       } else {
         console.error('GAS error:', result);
@@ -425,13 +423,21 @@ export default function MapPage() {
           <div className="ml-auto flex gap-2 items-center">
             {/* Tryb współrzędnych — do znajdowania pozycji nowych pinezek */}
             {view === 'map' && (
-              <button
-                onClick={() => { setCoordMode(m => !m); setCoordPreview(null); }}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${coordMode ? 'bg-amber-500 text-white border-amber-500 shadow-lg' : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'}`}
-                title="Kliknij w mapę żeby sprawdzić współrzędne pineski"
-              >
-                📍 Współrzędne
-              </button>
+              <>
+                <button
+                  onClick={() => { setNewPoster({ ...emptyNewPoster }); setAddPosterModal(true); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border bg-blue-600 text-white border-blue-600 hover:bg-blue-700 shadow-sm"
+                >
+                  + Dodaj plakat
+                </button>
+                <button
+                  onClick={() => { setCoordMode(m => !m); setCoordPreview(null); }}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all border ${coordMode ? 'bg-amber-500 text-white border-amber-500 shadow-lg' : 'bg-white text-amber-600 border-amber-200 hover:bg-amber-50'}`}
+                  title="Kliknij w mapę żeby sprawdzić współrzędne pineski"
+                >
+                  📍 Współrzędne
+                </button>
+              </>
             )}
             <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
               <button
@@ -1200,6 +1206,75 @@ export default function MapPage() {
                   type="button" onClick={() => setPosterModal(null)}
                   className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
                 >
+                  Anuluj
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* === MODAL: Szybkie dodawanie plakatu z mapy (bez wyboru pinezki) === */}
+      {addPosterModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200">
+              <h2 className="font-black text-slate-800 text-base uppercase tracking-widest">Ewidencjonuj Nowy Plakat</h2>
+              <button onClick={() => setAddPosterModal(false)} className="text-slate-400 hover:text-slate-700 text-xl font-bold">✕</button>
+            </div>
+            <form onSubmit={handleAddPoster} className="p-6 space-y-4 overflow-y-auto">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Znak Zgody (CRED)</label>
+                <input type="text" required value={newPoster.credId} onChange={e => setNewPoster({...newPoster, credId: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="np. P.PKT.01/01/2026/SSUEW" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nazwa Wydarzenia / Plakatu</label>
+                <input type="text" required value={newPoster.name} onChange={e => setNewPoster({...newPoster, name: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="np. Wampiriada Wiosna" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Organizacja / Koło Naukowe</label>
+                <input type="text" required value={newPoster.organization} onChange={e => setNewPoster({...newPoster, organization: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="np. NZS UEW" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Adres e-mail z formularza</label>
+                <input type="email" required value={newPoster.email} onChange={e => setNewPoster({...newPoster, email: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="kontakt@nzs.ue.wroc.pl" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Termin Zdjęcia Plakatu</label>
+                <input type="date" required value={newPoster.endDate} onChange={e => setNewPoster({...newPoster, endDate: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none text-red-600" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-2">
+                  Lokalizacje <span className="text-blue-600">({newPoster.locationIds.length} wybranych)</span>
+                </label>
+                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-44 overflow-y-auto">
+                  {locations.map(loc => (
+                    <label key={loc.id} className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-blue-50 border-b border-slate-100 last:border-b-0">
+                      <input
+                        type="checkbox"
+                        checked={newPoster.locationIds.includes(loc.id)}
+                        onChange={e => {
+                          const ids = newPoster.locationIds;
+                          setNewPoster({
+                            ...newPoster,
+                            locationIds: e.target.checked ? [...ids, loc.id] : ids.filter(id => id !== loc.id)
+                          });
+                        }}
+                        className="accent-blue-600 w-4 h-4 flex-shrink-0"
+                      />
+                      <span className="text-sm font-bold text-slate-700 flex-1">{loc.name}</span>
+                      <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg ${loc.free > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                        {loc.free > 0 ? `${loc.free} wolne` : 'pełne'}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={isSubmitting} className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                  {isSubmitting ? 'Zapisywanie...' : `Zatwierdź Powieszenie${newPoster.locationIds.length > 1 ? ` (${newPoster.locationIds.length} lok.)` : ''}`}
+                </button>
+                <button type="button" onClick={() => setAddPosterModal(false)} className="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
                   Anuluj
                 </button>
               </div>
