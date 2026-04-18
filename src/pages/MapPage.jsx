@@ -146,7 +146,14 @@ export default function MapPage() {
 
         if (selected) {
           const updatedSelected = locs.find(l => l.id === selected.id);
-          if (updatedSelected) setSelected(updatedSelected);
+          if (updatedSelected) {
+            // Nie cofaj optymistycznej aktualizacji — aktualizuj tylko gdy GAS ma co najmniej tyle samo aktywnych
+            setSelected(prev => {
+              const gasCount = (updatedSelected.activePosters || []).length;
+              const localCount = (prev.activePosters || []).length;
+              return gasCount >= localCount ? updatedSelected : prev;
+            });
+          }
         }
         setLoading(false);
       })
@@ -1164,14 +1171,9 @@ export default function MapPage() {
                       })}
                     </div>
                   ) : (
-                    <select
-                      value={posterForm.locationId}
-                      onChange={e => setPosterForm({...posterForm, locationId: e.target.value})}
-                      className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none"
-                    >
-                      <option value="">— wybierz —</option>
-                      {locations.map(l => <option key={l.id} value={l.id}>{l.id} – {l.name}</option>)}
-                    </select>
+                    <div className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm font-bold text-slate-700 min-h-[46px]">
+                      {posterForm.locationId || '—'}
+                    </div>
                   )}
                 </div>
                 {posterModal === 'edit' && <div>
