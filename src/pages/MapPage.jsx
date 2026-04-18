@@ -823,39 +823,47 @@ export default function MapPage() {
               {adminTab === 'zarzadzaj' && isAdmin && (
                 <div className="animate-fadeIn space-y-8">
 
-                  {/* === SEKCJA 1: Aktywne plakaty (per D-09) === */}
-                  {/* NOTE dla GAS: activePosters[].endDate jest nieobecne w doGet().
-                      Fix GAS: dodaj endDate: Utilities.formatDate(new Date(row[1]), 'Europe/Warsaw', 'dd.MM.yyyy')
-                      do push() w bloku budowania activePosters w funkcji doGet().
-                      Frontend stosuje fallback: {poster.endDate ?? '—'} */}
+                  {/* === SEKCJA 1: Aktywne plakaty — źródło: locationHistory (filtr AKTYWNE) === */}
                   <section>
-                    <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">
-                      Zawieszone Plakaty ({(selected.capacity || 0) - (selected.free ?? (selected.capacity || 0))}/{selected.capacity || 0})
-                    </h3>
-                    <div className="space-y-3">
-                      {(selected.activePosters || []).length > 0 ? (
-                        selected.activePosters.map((poster, idx) => (
-                          <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                            <div>
-                              <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
-                              <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{noWidows(poster.nazwa)} ({poster.org})</p>
-                              <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate ?? '—'}</p>
+                    {(() => {
+                      const activePosters = locationHistory.filter(e => e.status === 'AKTYWNE');
+                      return (
+                        <>
+                          <h3 className="font-black text-slate-800 text-xs uppercase tracking-widest mb-4 border-b border-slate-200 pb-2">
+                            Zawieszone Plakaty ({activePosters.length}/{selected.capacity || 0})
+                          </h3>
+                          {historyLoading ? (
+                            <div className="flex items-center gap-2 py-4">
+                              <div className="w-4 h-4 border-2 border-blue-600 rounded-full border-t-transparent animate-spin" />
+                              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ładowanie...</span>
                             </div>
-                            <button
-                              onClick={() => handleRemovePoster(poster.credId)}
-                              disabled={isSubmitting}
-                              className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
-                            >
-                              Zdejmij
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm font-bold text-slate-400 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                          Brak wiszących plakatów w bazie.
-                        </p>
-                      )}
-                    </div>
+                          ) : (
+                            <div className="space-y-3">
+                              {activePosters.length > 0 ? activePosters.map((poster, idx) => (
+                                <div key={idx} className="bg-slate-50 border border-slate-200 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                                  <div>
+                                    <p className="font-bold text-slate-800 text-sm">{poster.credId}</p>
+                                    <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-0.5">{noWidows(poster.nazwa)} ({poster.org})</p>
+                                    <p className="text-[10px] text-red-500 font-bold mt-1">Zdjąć do: {poster.endDate ?? '—'}</p>
+                                  </div>
+                                  <button
+                                    onClick={() => handleRemovePoster(poster.credId)}
+                                    disabled={isSubmitting}
+                                    className="bg-white border border-red-200 text-red-600 hover:bg-red-600 hover:text-white p-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm disabled:opacity-50"
+                                  >
+                                    Zdejmij
+                                  </button>
+                                </div>
+                              )) : (
+                                <p className="text-sm font-bold text-slate-400 text-center py-6 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                                  Brak wiszących plakatów w bazie.
+                                </p>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
                   </section>
 
                   {/* === SEKCJA 2: Formularz dodawania (per D-09) — wielolokalizacyjny === */}
