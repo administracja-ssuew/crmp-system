@@ -141,13 +141,11 @@ export default function MapPage() {
     fetch(`${DATA_URL}?t=${Date.now()}`)
       .then(res => res.json())
       .then(json => {
-        console.log('[fetchData] response:', json);
         const locs = json.locations || [];
         setLocations(locs);
 
         if (selected) {
           const updatedSelected = locs.find(l => l.id === selected.id);
-          console.log('[fetchData] selected.id:', selected.id, '→ updatedSelected:', updatedSelected);
           if (updatedSelected) setSelected(updatedSelected);
         }
         setLoading(false);
@@ -246,7 +244,7 @@ export default function MapPage() {
         alert(`Plakat oficjalnie powieszony w ${count} ${count === 1 ? 'lokalizacji' : 'lokalizacjach'}!\nUruchomiono cykl przypomnień.`);
         setNewPoster({ ...emptyNewPoster, locationIds: selected ? [selected.id] : [] });
         setAddPosterModal(false);
-        fetchData(true);
+        setTimeout(() => fetchData(true), 2500);
       } else {
         console.error('GAS error:', result);
         alert(`Błąd zapisu: ${result.error || JSON.stringify(result)}`);
@@ -281,7 +279,7 @@ export default function MapPage() {
       console.error(err);
       alert("Błąd połączenia — operacja mogła nie zostać zapisana. Odśwież stronę i sprawdź stan.");
     } finally {
-      fetchData(true);
+      setTimeout(() => fetchData(true), 2500);
       setIsSubmitting(false);
     }
   };
@@ -1119,21 +1117,24 @@ export default function MapPage() {
                     {posterModal === 'add' ? `Lokalizacje * (${posterForm.locationIds.length} wybrane)` : 'ID Lokalizacji'}
                   </label>
                   {posterModal === 'add' ? (
-                    <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 bg-slate-50">
+                    <div className="border border-slate-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto">
                       {locations.map(l => {
                         const checked = posterForm.locationIds.includes(l.id);
                         return (
-                          <label key={l.id} className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer text-xs font-bold transition-colors ${checked ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-white hover:bg-slate-100 border border-slate-200 text-slate-700'}`}>
+                          <label key={l.id} className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer border-b border-slate-100 last:border-b-0 transition-colors ${checked ? 'bg-blue-50' : 'hover:bg-slate-50'}`}>
                             <input type="checkbox" checked={checked} onChange={() => {
                               const ids = checked
                                 ? posterForm.locationIds.filter(id => id !== l.id)
                                 : [...posterForm.locationIds, l.id];
                               setPosterForm({...posterForm, locationIds: ids});
-                            }} className="hidden" />
-                            <span className={`w-3.5 h-3.5 rounded border-2 flex items-center justify-center shrink-0 ${checked ? 'bg-blue-600 border-blue-600' : 'border-slate-400'}`}>
-                              {checked && <span className="text-white text-[8px] leading-none font-black">✓</span>}
+                            }} className="accent-blue-600 w-4 h-4 flex-shrink-0" />
+                            <span className="flex-1 min-w-0">
+                              <span className="block text-xs font-bold text-slate-800 truncate">{l.name}</span>
+                              <span className="block text-[10px] font-mono text-slate-400">{l.id}</span>
                             </span>
-                            <span className="truncate">{l.id}</span>
+                            <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-lg flex-shrink-0 ${l.free > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                              {l.free > 0 ? `${l.free} wolne` : 'pełne'}
+                            </span>
                           </label>
                         );
                       })}
