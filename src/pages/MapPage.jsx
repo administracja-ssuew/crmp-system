@@ -242,9 +242,20 @@ export default function MapPage() {
       if (result.success) {
         const count = newPoster.locationIds.length;
         alert(`Plakat oficjalnie powieszony w ${count} ${count === 1 ? 'lokalizacji' : 'lokalizacjach'}!\nUruchomiono cykl przypomnień.`);
+
+        // Optymistyczna aktualizacja — natychmiast zmień stan UI bez czekania na GAS
+        const newEntry = { credId: newPoster.credId, nazwa: newPoster.name, org: newPoster.organization, endDate: newPoster.endDate };
+        setLocations(prev => prev.map(loc => {
+          if (!newPoster.locationIds.includes(loc.id)) return loc;
+          return { ...loc, free: Math.max(0, (loc.free ?? 0) - 1), activePosters: [...(loc.activePosters || []), newEntry] };
+        }));
+        if (selected && newPoster.locationIds.includes(selected.id)) {
+          setSelected(prev => ({ ...prev, free: Math.max(0, (prev.free ?? 0) - 1), activePosters: [...(prev.activePosters || []), newEntry] }));
+        }
+
         setNewPoster({ ...emptyNewPoster, locationIds: selected ? [selected.id] : [] });
         setAddPosterModal(false);
-        setTimeout(() => fetchData(true), 2500);
+        setTimeout(() => fetchData(true), 3000);
       } else {
         console.error('GAS error:', result);
         alert(`Błąd zapisu: ${result.error || JSON.stringify(result)}`);
@@ -274,12 +285,25 @@ export default function MapPage() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload)
       });
+      // Optymistyczna aktualizacja — natychmiast odejmij plakat z pinezki
+      setLocations(prev => prev.map(loc => ({
+        ...loc,
+        free: (loc.activePosters || []).some(p => p.credId === posterCredId) ? (loc.free ?? 0) + 1 : loc.free,
+        activePosters: (loc.activePosters || []).filter(p => p.credId !== posterCredId),
+      })));
+      if (selected) {
+        setSelected(prev => ({
+          ...prev,
+          free: (prev.activePosters || []).some(p => p.credId === posterCredId) ? (prev.free ?? 0) + 1 : prev.free,
+          activePosters: (prev.activePosters || []).filter(p => p.credId !== posterCredId),
+        }));
+      }
       alert("Miejsce oficjalnie zwolnione!");
     } catch (err) {
       console.error(err);
       alert("Błąd połączenia — operacja mogła nie zostać zapisana. Odśwież stronę i sprawdź stan.");
     } finally {
-      setTimeout(() => fetchData(true), 2500);
+      setTimeout(() => fetchData(true), 3000);
       setIsSubmitting(false);
     }
   };
