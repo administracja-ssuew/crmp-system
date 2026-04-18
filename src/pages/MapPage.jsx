@@ -260,9 +260,12 @@ export default function MapPage() {
           setSelected(prev => ({ ...prev, free: Math.max(0, (prev.free ?? 0) - 1), activePosters: [...(prev.activePosters || []), newEntry] }));
         }
 
+        // Natychmiastowa aktualizacja historii (optimistic)
+        setLocationHistory(prev => [{ credId: newPoster.credId, nazwa: newPoster.name, org: newPoster.organization, endDate: newPoster.endDate, status: 'AKTYWNE' }, ...prev]);
+
         setNewPoster({ ...emptyNewPoster, locationIds: selected ? [selected.id] : [] });
         setAddPosterModal(false);
-        setTimeout(() => fetchData(true), 3000);
+        setTimeout(() => { fetchData(true); if (selected) fetchHistory(selected.id); }, 3500);
       } else {
         console.error('GAS error:', result);
         alert(`Błąd zapisu: ${result.error || JSON.stringify(result)}`);
@@ -305,12 +308,14 @@ export default function MapPage() {
           activePosters: (prev.activePosters || []).filter(p => p.credId !== posterCredId),
         }));
       }
+      // Aktualizacja historii — zmień status usuniętego plakatu na ZDJETE
+      setLocationHistory(prev => prev.map(e => e.credId === posterCredId ? { ...e, status: 'ZDJETE' } : e));
       alert("Miejsce oficjalnie zwolnione!");
     } catch (err) {
       console.error(err);
       alert("Błąd połączenia — operacja mogła nie zostać zapisana. Odśwież stronę i sprawdź stan.");
     } finally {
-      setTimeout(() => fetchData(true), 3000);
+      setTimeout(() => { fetchData(true); if (selected) fetchHistory(selected.id); }, 3500);
       setIsSubmitting(false);
     }
   };
