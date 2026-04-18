@@ -185,6 +185,8 @@ export default function MapPage() {
   }, [searchTerm, filterType, locations]);
 
   // Lazy-fetch history + seed edit form when Zarządzaj tab is opened (per D-09, D-10)
+  // WAŻNE: dependency to selected?.id (nie selected) — żeby optimistic update na activePosters
+  // nie resetował historii przez ponowne fetchHistory
   useEffect(() => {
     if (adminTab === 'zarzadzaj' && selected) {
       fetchHistory(selected.id);
@@ -194,7 +196,7 @@ export default function MapPage() {
         imageUrl: selected.image || '',
       });
     }
-  }, [adminTab, selected]);
+  }, [adminTab, selected?.id]);
 
   // Pre-select current pin's location when opening a pin panel
   useEffect(() => {
