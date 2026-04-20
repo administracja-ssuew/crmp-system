@@ -36,7 +36,7 @@ export default function MapPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [addPosterModal, setAddPosterModal] = useState(false);
 
-  const emptyNewPoster = { credId: '', name: '', organization: '', email: '', endDate: '', locationIds: [] };
+  const emptyNewPoster = { credId: '', name: '', organization: '', email: '', endDate: '', locationIds: [], type: 'plakat' };
   const [newPoster, setNewPoster] = useState(emptyNewPoster);
 
   const [view, setView] = useState('map');
@@ -232,7 +232,7 @@ export default function MapPage() {
     const payload = {
       action: 'addPosterMulti',
       locationIds: newPoster.locationIds,
-      locationType: (selected && newPoster.locationIds.includes(selected.id)) ? selected.type : (firstLoc?.type || 'plakat'),
+      locationType: newPoster.type || 'plakat',
       credId: newPoster.credId,
       posterName: newPoster.name,
       organization: newPoster.organization,
@@ -887,6 +887,13 @@ export default function MapPage() {
                           <input type="email" required value={newPoster.email} onChange={e => setNewPoster({...newPoster, email: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="kontakt@nzs.ue.wroc.pl" />
                         </div>
                         <div>
+                          <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Typ Materiału</label>
+                          <select value={newPoster.type} onChange={e => setNewPoster({...newPoster, type: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none">
+                            <option value="plakat">Plakat</option>
+                            <option value="baner">Baner</option>
+                          </select>
+                        </div>
+                        <div>
                           <label className="block text-[10px] font-bold text-blue-700 uppercase mb-1">Termin Zdjęcia Plakatu</label>
                           <input type="date" required value={newPoster.endDate} onChange={e => setNewPoster({...newPoster, endDate: e.target.value})} className="w-full bg-white border border-blue-200 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none text-red-600" />
                         </div>
@@ -1284,6 +1291,13 @@ export default function MapPage() {
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Adres e-mail z formularza</label>
                 <input type="email" required value={newPoster.email} onChange={e => setNewPoster({...newPoster, email: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none" placeholder="kontakt@nzs.ue.wroc.pl" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Typ Materiału</label>
+                <select value={newPoster.type} onChange={e => setNewPoster({...newPoster, type: e.target.value})} className="w-full bg-white border border-slate-300 p-3 rounded-xl text-sm font-bold focus:ring-2 focus:ring-blue-300 outline-none">
+                  <option value="plakat">Plakat</option>
+                  <option value="baner">Baner</option>
+                </select>
               </div>
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">Termin Zdjęcia Plakatu</label>
