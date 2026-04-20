@@ -6,6 +6,15 @@ const ACCENT = '#1477b5';
 const TEXT_DARK = '#1a1a2e';
 const BG_LIGHT = '#f8fafc';
 
+// Wszystkie ID sekcji pochodne z danych — nie hardkodowane
+const ALL_SECTION_IDS = sidebarSections.flatMap(s => s.sub ? [s.id, ...s.sub.map(sub => sub.id)] : [s.id]);
+
+// Renderuje **bold** markdown w tekście — używane w wielu miejscach
+const renderText = (text) =>
+  text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i} style={{ color: TEXT_DARK }}>{part}</strong> : part
+  );
+
 // ─── Scroll progress bar ─────────────────────────────────────
 function ScrollProgress() {
   const [progress, setProgress] = useState(0);
@@ -28,19 +37,41 @@ function ScrollProgress() {
   );
 }
 
+// ─── Back to top button ───────────────────────────────────────
+function BackToTop() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setVisible(document.documentElement.scrollTop > 400);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className={`fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      style={{ background: TEXT_DARK, color: '#fff' }}
+      aria-label="Wróć na górę"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+      </svg>
+    </button>
+  );
+}
+
 // ─── Status Badge ─────────────────────────────────────────────
 function StatusBadge({ status }) {
   if (!status) return null;
   const map = {
-    'Obowiązujący': { bg: '#dcfce7', color: '#166534', label: 'Obowiązujący' },
-    'W przygotowaniu': { bg: '#fef3c7', color: '#92400e', label: 'W przygotowaniu' },
-    'Do uzupełnienia': { bg: '#f1f5f9', color: '#475569', label: 'Do uzupełnienia' },
+    'Obowiązujący':    { bg: '#dcfce7', color: '#166534' },
+    'W przygotowaniu': { bg: '#fef3c7', color: '#92400e' },
+    'Do uzupełnienia': { bg: '#f1f5f9', color: '#475569' },
   };
   const s = map[status] || map['Do uzupełnienia'];
   return (
     <span className="inline-block text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
       style={{ background: s.bg, color: s.color }}>
-      {s.label}
+      {status}
     </span>
   );
 }
@@ -63,7 +94,6 @@ function PlaceholderField({ label }) {
 // ─── Document Card ────────────────────────────────────────────
 function DocumentCard({ doc, kolor }) {
   const [open, setOpen] = useState(false);
-  const isPlaceholder = (val) => !val || val === null;
 
   return (
     <div
@@ -109,7 +139,7 @@ function DocumentCard({ doc, kolor }) {
               ['Szablon', doc.szablon],
               ['Powiązane dokumenty', doc.powiazane],
             ].map(([label, val]) => (
-              isPlaceholder(val)
+              !val
                 ? <PlaceholderField key={label} label={label} />
                 : (
                   <div key={label} className="flex gap-2 text-xs">
@@ -133,18 +163,21 @@ function DocumentSection({ dzial, search, statusFilter }) {
       || doc.nazwa.toLowerCase().includes(q)
       || doc.kod.toLowerCase().includes(q)
       || (doc.cel || '').toLowerCase().includes(q);
-    const matchStatus = statusFilter === 'all'
-      || doc.status === statusFilter
-      || (statusFilter === 'Do uzupełnienia' && !doc.autoryzacja);
+    const matchStatus = statusFilter === 'all' || doc.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const isFiltering = search || statusFilter !== 'all';
+  const countLabel = isFiltering && filtered.length !== dzial.dokumenty.length
+    ? `${filtered.length} / ${dzial.dokumenty.length} dokumentów`
+    : `${dzial.dokumenty.length} dokumentów`;
 
   return (
     <section id={dzial.id} className="scroll-mt-28">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-1 h-8 rounded-full" style={{ background: dzial.kolor }} />
         <h3 className="text-xl font-black" style={{ color: TEXT_DARK }}>{dzial.tytul}</h3>
-        <span className="text-xs font-bold text-slate-400 ml-1">{filtered.length} dokumentów</span>
+        <span className="text-xs font-bold text-slate-400 ml-1">{countLabel}</span>
       </div>
 
       {dzial.nota && (
@@ -177,17 +210,9 @@ function DocumentSection({ dzial, search, statusFilter }) {
 // ─── Paragraph Accordion ─────────────────────────────────────
 function KsiegaParagraph({ par }) {
   const [open, setOpen] = useState(false);
-  const renderText = (text) => {
-    return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
-      i % 2 === 1
-        ? <strong key={i} style={{ color: TEXT_DARK }}>{part}</strong>
-        : part
-    );
-  };
 
   return (
     <div className="relative border-b border-slate-100 last:border-0">
-      {/* Big number background */}
       <div
         className="absolute right-4 top-2 font-black text-7xl select-none pointer-events-none leading-none"
         style={{ color: '#1a1a2e', opacity: 0.03 }}
@@ -231,19 +256,16 @@ function KsiegaParagraph({ par }) {
 function StrategyTimeline({ fazy }) {
   return (
     <div className="relative">
-      {/* Vertical line */}
       <div className="absolute left-6 top-8 bottom-8 w-0.5" style={{ background: '#e2e8f0' }} />
       <div className="space-y-8">
         {fazy.map((faza, idx) => (
           <div key={idx} className="relative flex gap-6">
-            {/* Node */}
             <div
               className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-lg font-black text-white text-sm"
               style={{ background: faza.kolor }}
             >
               {faza.nr}
             </div>
-            {/* Content */}
             <div className="flex-1 bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-md transition-shadow">
               <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                 <div>
@@ -271,64 +293,75 @@ function StrategyTimeline({ fazy }) {
   );
 }
 
-// ─── Sidebar ──────────────────────────────────────────────────
+// ─── Sidebar nav content (reused in both mobile and desktop) ──
+function SidebarNav({ activeSection, onNav, onClose }) {
+  return (
+    <nav className="space-y-0.5">
+      {sidebarSections.map(section => (
+        <div key={section.id}>
+          <button
+            onClick={() => { onNav(section.id); onClose?.(); }}
+            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeSection === section.id ? 'text-white' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+            }`}
+            style={activeSection === section.id ? { background: ACCENT } : {}}
+          >
+            {section.label}
+          </button>
+          {section.sub && (
+            <div className="ml-3 mt-0.5 space-y-0.5">
+              {section.sub.map(sub => (
+                <button
+                  key={sub.id}
+                  onClick={() => { onNav(sub.id); onClose?.(); }}
+                  className={`w-full text-left px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
+                    activeSection === sub.id ? 'text-white' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
+                  }`}
+                  style={activeSection === sub.id ? { background: ACCENT } : {}}
+                >
+                  <span className="w-1 h-1 rounded-full bg-current" />
+                  {sub.label.replace(/Dział [A-C] — /, '')}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+// ─── Sidebar — obsługuje desktop (sticky w flex) i mobile (fixed) ──
 function KsiegaSidebar({ activeSection, onNav, mobileOpen, onClose }) {
   return (
     <>
-      {/* Mobile overlay */}
+      {/* Mobile backdrop */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/40 z-30 lg:hidden" onClick={onClose} />
       )}
+
+      {/* Desktop — uczestniczy w layoutzie flex jako kolumna */}
+      <div className="hidden lg:block w-64 shrink-0">
+        <div className="sticky top-20 bg-white rounded-2xl shadow-lg border border-slate-100 p-4">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Spis Treści</h3>
+          <SidebarNav activeSection={activeSection} onNav={onNav} />
+        </div>
+      </div>
+
+      {/* Mobile — fixed overlay, wysuwane z lewej */}
       <aside className={`
-        fixed lg:sticky top-0 lg:top-20 z-40 lg:z-auto
-        w-72 lg:w-auto lg:min-w-[240px] h-screen lg:h-auto max-h-screen overflow-y-auto
-        bg-white lg:bg-transparent
-        shadow-2xl lg:shadow-none
+        fixed top-0 left-0 z-40 lg:hidden
+        w-72 h-screen overflow-y-auto
+        bg-white shadow-2xl
         transform transition-transform duration-300 ease-in-out
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="lg:sticky lg:top-20 bg-white rounded-2xl shadow-lg border border-slate-100 p-4">
-          <div className="flex justify-between items-center mb-4 lg:hidden">
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Nawigacja</h3>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-xl">✕</button>
           </div>
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 hidden lg:block">Spis Treści</h3>
-          <nav className="space-y-0.5">
-            {sidebarSections.map(section => (
-              <div key={section.id}>
-                <button
-                  onClick={() => { onNav(section.id); onClose(); }}
-                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                    activeSection === section.id
-                      ? 'text-white'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                  }`}
-                  style={activeSection === section.id ? { background: ACCENT } : {}}
-                >
-                  {section.label}
-                </button>
-                {section.sub && (
-                  <div className="ml-3 mt-0.5 space-y-0.5">
-                    {section.sub.map(sub => (
-                      <button
-                        key={sub.id}
-                        onClick={() => { onNav(sub.id); onClose(); }}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 ${
-                          activeSection === sub.id
-                            ? 'text-white'
-                            : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600'
-                        }`}
-                        style={activeSection === sub.id ? { background: ACCENT } : {}}
-                      >
-                        <span className="w-1 h-1 rounded-full bg-current" />
-                        {sub.label.replace(/Dział [A-C] — /, '')}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+          <SidebarNav activeSection={activeSection} onNav={onNav} onClose={onClose} />
         </div>
       </aside>
     </>
@@ -337,20 +370,19 @@ function KsiegaSidebar({ activeSection, onNav, mobileOpen, onClose }) {
 
 // ─── Hero / Preambuła ─────────────────────────────────────────
 function KsiegaHero() {
-  const renderText = (text) => {
-    return text.split(/\*\*(.*?)\*\*/g).map((part, i) =>
-      i % 2 === 1 ? <strong key={i}>{part}</strong> : part
-    );
-  };
-  const quotes = preambula.filter(Boolean).filter((_, i) => i >= 3 && i <= 5);
-  const rest = preambula.filter(Boolean).filter((_, i) => i < 3 || i > 5);
+  // null w danych preambuły jest separatorem: przed null = intro, po null = cytaty + zakończenie
+  const nullIdx = preambula.indexOf(null);
+  const intro = preambula.slice(0, nullIdx);
+  const afterNull = preambula.slice(nullIdx + 1).filter(Boolean);
+  // ostatni element to zakończenie; środkowe to cytaty
+  const quotes = afterNull.slice(0, -1);
+  const closing = afterNull[afterNull.length - 1];
 
   return (
     <section id="preambuła" className="scroll-mt-28 mb-16">
       {/* Hero header */}
       <div className="relative overflow-hidden rounded-3xl mb-8 p-10 md:p-14"
         style={{ background: TEXT_DARK }}>
-        {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
           <span className="font-black text-white tracking-[0.3em] uppercase"
             style={{ fontSize: '10vw', opacity: 0.03, whiteSpace: 'nowrap' }}>
@@ -360,7 +392,7 @@ function KsiegaHero() {
 
         <div className="relative z-10">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Preambuła</p>
-          <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3" style={{ fontFamily: 'Georgia, serif' }}>
+          <h2 className="text-3xl md:text-4xl font-black text-white leading-tight mb-3" style={{ fontFamily: "'Playfair Display', Georgia, serif" }}>
             Księga Identyfikacji Wizualnej Dokumentów
           </h2>
           <p className="text-slate-300 font-bold text-sm tracking-widest uppercase">
@@ -377,7 +409,7 @@ function KsiegaHero() {
 
       {/* Intro paragraphs */}
       <div className="space-y-5 mb-8">
-        {rest.slice(0, 2).map((p, i) => (
+        {intro.filter(Boolean).map((p, i) => (
           <p key={i} className="text-base text-slate-700 leading-relaxed">{renderText(p)}</p>
         ))}
       </div>
@@ -392,10 +424,10 @@ function KsiegaHero() {
         ))}
       </div>
 
-      {/* Final paragraph */}
-      {rest.slice(2).map((p, i) => (
-        <p key={i} className="text-base text-slate-700 leading-relaxed italic">{renderText(p)}</p>
-      ))}
+      {/* Closing paragraph */}
+      {closing && (
+        <p className="text-base text-slate-700 leading-relaxed italic">{renderText(closing)}</p>
+      )}
     </section>
   );
 }
@@ -406,7 +438,7 @@ function CzescSection({ czesc }) {
     <section id={czesc.id} className="scroll-mt-28 mb-14">
       <div className="flex items-baseline gap-3 mb-6">
         <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Część {czesc.numer}</span>
-        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: 'Georgia, serif' }}>
+        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: "'Playfair Display', Georgia, serif" }}>
           {czesc.tytul}
         </h2>
       </div>
@@ -425,7 +457,7 @@ function KatalogSection({ search, statusFilter, setSearch, setStatusFilter }) {
     <section id="katalog" className="scroll-mt-28 mb-14">
       <div className="flex items-baseline gap-3 mb-6">
         <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Część III</span>
-        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: 'Georgia, serif' }}>
+        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: "'Playfair Display', Georgia, serif" }}>
           Katalog Dokumentów
         </h2>
       </div>
@@ -478,7 +510,7 @@ function StrategieSection() {
     <section id="czesc5" className="scroll-mt-28 mb-14">
       <div className="flex items-baseline gap-3 mb-6">
         <span className="text-xs font-black uppercase tracking-[0.4em] text-slate-400">Część V</span>
-        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: 'Georgia, serif' }}>
+        <h2 className="text-2xl font-black" style={{ color: TEXT_DARK, fontFamily: "'Playfair Display', Georgia, serif" }}>
           Strategie
         </h2>
       </div>
@@ -492,7 +524,6 @@ function StrategieSection() {
         </div>
         <p className="text-sm text-slate-600 leading-relaxed mb-6">{par18.cel}</p>
 
-        {/* Zasady */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-10">
           {par18.zasady.map((z, i) => (
             <div key={i} className="p-4 rounded-xl border border-slate-100 bg-white">
@@ -550,17 +581,14 @@ export default function KsiegaDokumentowPage() {
   const [catalogStatusFilter, setCatalogStatusFilter] = useState('all');
   const observerRef = useRef(null);
 
-  // Intersection Observer for active section highlighting
+  // Intersection Observer — IDs pochodne z danych, nie hardkodowane
   useEffect(() => {
-    const ids = ['preambuła', 'czesc1', 'czesc2', 'katalog', 'dzialA', 'dzialB', 'dzialC', 'czesc4', 'czesc5', 'czesc6'];
-    const elements = ids.map(id => document.getElementById(id)).filter(Boolean);
+    const elements = ALL_SECTION_IDS.map(id => document.getElementById(id)).filter(Boolean);
 
     observerRef.current = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            setActiveSection(entry.target.id);
-          }
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
         });
       },
       { rootMargin: '-20% 0px -70% 0px' }
@@ -571,19 +599,16 @@ export default function KsiegaDokumentowPage() {
   }, []);
 
   const handleNav = useCallback((id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActiveSection(id);
   }, []);
 
   return (
     <div className="min-h-screen pt-16 pb-20" style={{ background: BG_LIGHT, color: TEXT_DARK }}>
       <ScrollProgress />
+      <BackToTop />
 
-      {/* Inject font */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
-        .ks-serif { font-family: 'Playfair Display', Georgia, serif; }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeInUp 0.25s ease forwards; }
       `}</style>
@@ -600,48 +625,52 @@ export default function KsiegaDokumentowPage() {
           </svg>
           Spis treści
         </button>
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">KIWID SSUEW</span>
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">KIWID SSUEW</span>
+          <button
+            onClick={() => window.print()}
+            className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-colors"
+          >
+            Drukuj
+          </button>
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back link */}
-        <div className="pt-6 lg:pt-8 mb-8">
+        {/* Back link + print button */}
+        <div className="pt-6 lg:pt-8 mb-8 flex items-center justify-between">
           <Link to="/dokumenty"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
             ← Wróć do Modułu Lex SSUEW
           </Link>
+          <button
+            onClick={() => window.print()}
+            className="hidden lg:flex items-center gap-2 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 hover:bg-white transition-all shadow-sm"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Drukuj / PDF
+          </button>
         </div>
 
         <div className="flex gap-8 lg:gap-12">
-          {/* Sidebar */}
-          <div className="hidden lg:block w-64 shrink-0">
-            <KsiegaSidebar
-              activeSection={activeSection}
-              onNav={handleNav}
-              mobileOpen={mobileMenuOpen}
-              onClose={() => setMobileMenuOpen(false)}
-            />
-          </div>
-          {/* Mobile sidebar */}
-          <div className="lg:hidden">
-            <KsiegaSidebar
-              activeSection={activeSection}
-              onNav={handleNav}
-              mobileOpen={mobileMenuOpen}
-              onClose={() => setMobileMenuOpen(false)}
-            />
-          </div>
+          {/* Sidebar — jedyna instancja, wewnętrznie obsługuje desktop i mobile */}
+          <KsiegaSidebar
+            activeSection={activeSection}
+            onNav={handleNav}
+            mobileOpen={mobileMenuOpen}
+            onClose={() => setMobileMenuOpen(false)}
+          />
 
           {/* Main content */}
           <main className="flex-1 min-w-0 mt-8 lg:mt-0">
             <KsiegaHero />
 
-            {/* Część I–II */}
             {czesci.filter(c => ['czesc1', 'czesc2'].includes(c.id)).map(czesc => (
               <CzescSection key={czesc.id} czesc={czesc} />
             ))}
 
-            {/* Katalog */}
             <KatalogSection
               search={catalogSearch}
               statusFilter={catalogStatusFilter}
@@ -649,20 +678,16 @@ export default function KsiegaDokumentowPage() {
               setStatusFilter={setCatalogStatusFilter}
             />
 
-            {/* Część IV */}
             {czesci.filter(c => c.id === 'czesc4').map(czesc => (
               <CzescSection key={czesc.id} czesc={czesc} />
             ))}
 
-            {/* Strategie */}
             <StrategieSection />
 
-            {/* Część VI */}
             {czesci.filter(c => c.id === 'czesc6').map(czesc => (
               <CzescSection key={czesc.id} czesc={czesc} />
             ))}
 
-            {/* Footer */}
             <div className="mt-16 pt-8 border-t border-slate-200 text-center">
               <p className="text-xs font-black uppercase tracking-[0.4em] text-slate-300">
                 *** Koniec Dokumentu ***
