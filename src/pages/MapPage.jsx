@@ -125,7 +125,7 @@ export default function MapPage() {
     if (!force && allPosters.length > 0) return; // already loaded — skip re-fetch
     setPostersLoading(true);
     try {
-      const res = await fetch(`${DATA_URL}?action=getAllPosters`, { redirect: 'follow' });
+      const res = await fetch(`${DATA_URL}?action=getAllPosters&t=${Date.now()}`, { redirect: 'follow' });
       const data = await res.json();
       setAllPosters(data.posters || []);
     } catch (err) {
