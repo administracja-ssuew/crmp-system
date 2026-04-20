@@ -3,10 +3,10 @@
 // ============================================================
 
 export const ksiegaMeta = {
-  wersja: '1.0 (projekt)',
-  data: '20.08.2025 r.',
+  wersja: '1.0',
+  data: '20.04.2026 r.',
   wlasciciel: 'Członek Zarządu ds. Administracji SSUEW',
-  status: 'Do wdrożenia / konsultacje międzyzarządowe',
+  status: 'Wdrożony',
   zakres: 'Wszystkie dokumenty wewnętrzne oraz zewnętrzne SSUEW',
 };
 
