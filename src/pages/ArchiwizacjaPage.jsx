@@ -4,6 +4,7 @@ import {
   FileText, AlertTriangle, CheckCircle, Folder, Tag,
   Users, Clock, BookOpen, Copy, Check, Filter, ExternalLink,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 function nb(text) {
   return text.replace(/ (i|w|z|o|a|u|do|we|ze|że|bo|na|po|od|ku|by) /g, ' $1\u00A0');
@@ -308,7 +309,333 @@ const CL_ODDANIE = [
   { id: 'po10', text: 'Teczka jest gotowa do wpisania na spis zdawczo-odbiorczy' },
 ];
 
+// ─────────────────────────────────────────────────────────────
+// PLAN ARCHIWIZACJI — stałe, dane i komponenty
+// ─────────────────────────────────────────────────────────────
+
+const ARCHIWUM_URL = '/api/archiwum-proxy';
+
+const STATUS = {
+  ZALEGŁE:        { label: 'Zaległe',        bg: 'bg-red-100',     text: 'text-red-700',    dot: '#ef4444', order: 1 },
+  W_TOKU:         { label: 'W toku',         bg: 'bg-blue-100',    text: 'text-blue-700',   dot: '#3b82f6', order: 2 },
+  PLANOWANE:      { label: 'Planowane',      bg: 'bg-slate-100',   text: 'text-slate-600',  dot: '#94a3b8', order: 3 },
+  ZARCHIWIZOWANE: { label: 'Zarchiwizowane', bg: 'bg-emerald-100', text: 'text-emerald-700',dot: '#10b981', order: 4 },
+};
+
+const KAT = {
+  A:   { bg: 'bg-red-100',    text: 'text-red-700',    border: '#ef4444' },
+  B5:  { bg: 'bg-teal-100',   text: 'text-teal-700',   border: '#0d9488' },
+  B10: { bg: 'bg-teal-100',   text: 'text-teal-700',   border: '#0d9488' },
+  B50: { bg: 'bg-orange-100', text: 'text-orange-700', border: '#f97316' },
+  BE:  { bg: 'bg-amber-100',  text: 'text-amber-700',  border: '#f59e0b' },
+  Bc:  { bg: 'bg-slate-100',  text: 'text-slate-500',  border: '#94a3b8' },
+};
+
+const SAMPLE_DATA = {
+  meta: { rok: '2025/2026', wlasciciel: 'Członek Zarządu ds. Administracji SSUEW', zatwierdzone: '20.04.2026' },
+  wpisy: [
+    { id: '1', lp: 1, kategoria: 'A',   symbol: 'RUSS.570',  opis: 'Uchwały Rady Uczelnianej Samorządu Studentów',      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'W_TOKU',         uwagi: '' },
+    { id: '2', lp: 2, kategoria: 'A',   symbol: 'RUSS.0052', opis: 'Protokoły posiedzeń RUSS i Zarządu',                odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'ZALEGŁE',        uwagi: 'Brakuje protokołów z Q1 2026' },
+    { id: '3', lp: 3, kategoria: 'A',   symbol: 'RUSS.110',  opis: 'Protokoły Spotkania Komisji Samorządu (SKS)',        odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'W_TOKU',         uwagi: '' },
+    { id: '4', lp: 4, kategoria: 'B5',  symbol: 'RUSS.0641', opis: 'Dokumentacja projektów i wydarzeń kulturalnych',    odpowiedzialny: 'Komisja ds. Eventów',           termin: '30.06.2026', status: 'ZARCHIWIZOWANE', uwagi: 'Kadencja 2024/2025 zakończona' },
+    { id: '5', lp: 5, kategoria: 'A',   symbol: 'RUSS.0631', opis: 'Kronika i dokumentacja fotograficzna SSUEW',        odpowiedzialny: 'CZ. Zarządu ds. Promocji',      termin: '30.09.2026', status: 'PLANOWANE',      uwagi: '' },
+    { id: '6', lp: 6, kategoria: 'B5',  symbol: 'RUSS.560',  opis: 'Regulaminy wewnętrzne i zarządzenia Przewodniczącego', odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'ZARCHIWIZOWANE', uwagi: '' },
+    { id: '7', lp: 7, kategoria: 'BE',  symbol: 'RUSS.0640', opis: 'Dokumentacja komisji wyborczej kadencja 2025/2026', odpowiedzialny: 'Komisja Wyborcza',              termin: '31.10.2026', status: 'PLANOWANE',      uwagi: 'Po zakończeniu kadencji' },
+    { id: '8', lp: 8, kategoria: 'B10', symbol: 'RUSS.441',  opis: 'Dokumenty finansowe Działu B (tryb własny)',        odpowiedzialny: 'CZ. Zarządu ds. Finansów',      termin: '31.08.2026', status: 'PLANOWANE',      uwagi: 'Poza CRED — rejestry B.16 i B.23' },
+  ],
+};
+
+function StatusBadgePlan({ status }) {
+  const s = STATUS[status] || STATUS.PLANOWANE;
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${s.bg} ${s.text}`}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.dot }} />
+      {s.label}
+    </span>
+  );
+}
+
+function KatBadge({ kat }) {
+  const k = KAT[kat] || KAT.Bc;
+  return (
+    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${k.bg} ${k.text}`}>
+      kat. {kat}
+    </span>
+  );
+}
+
+function EditModal({ wpis, onClose, onSave, saving }) {
+  const [form, setForm] = useState({
+    status: wpis.status,
+    termin: wpis.termin?.split('.').reverse().join('-') || '',
+    odpowiedzialny: wpis.odpowiedzialny,
+    uwagi: wpis.uwagi,
+  });
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{wpis.symbol}</p>
+            <h3 className="font-black text-slate-800 text-base leading-snug">{wpis.opis}</h3>
+          </div>
+          <button onClick={onClose} className="text-slate-300 hover:text-slate-600 text-xl font-bold ml-4 mt-0.5">✕</button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Status</label>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(STATUS).map(([key, s]) => (
+                <button key={key} onClick={() => setForm(f => ({ ...f, status: key }))}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.status === key ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.dot }} />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Termin</label>
+              <input type="date" value={form.termin} onChange={e => setForm(f => ({ ...f, termin: e.target.value }))}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Odpowiedzialny</label>
+              <input type="text" value={form.odpowiedzialny} onChange={e => setForm(f => ({ ...f, odpowiedzialny: e.target.value }))}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Uwagi</label>
+            <textarea rows={2} value={form.uwagi} onChange={e => setForm(f => ({ ...f, uwagi: e.target.value }))}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300 resize-none" />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={() => onSave({ ...wpis, ...form, termin: form.termin ? form.termin.split('-').reverse().join('.') : wpis.termin })}
+              disabled={saving}
+              className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+              {saving ? 'Zapisuję...' : 'Zapisz zmiany'}
+            </button>
+            <button onClick={onClose} className="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Anuluj</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlanArchiwizacji({ isAdmin }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [editWpis, setEditWpis] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const fetchPlan = async () => {
+    try {
+      const res = await fetch(`${ARCHIWUM_URL}?action=getPlan&t=${Date.now()}`);
+      const json = await res.json();
+      setData(json.wpisy ? json : SAMPLE_DATA);
+    } catch {
+      setData(SAMPLE_DATA);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { window.scrollTo(0, 0); fetchPlan(); }, []);
+
+  const handleSave = async (updated) => {
+    setSaving(true);
+    try {
+      await fetch(ARCHIWUM_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'updateWpis', wpis: updated }),
+      });
+      setData(prev => ({ ...prev, wpisy: prev.wpisy.map(w => w.id === updated.id ? updated : w) }));
+      setEditWpis(null);
+    } catch {
+      alert('Błąd zapisu. Sprawdź połączenie.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+        <p className="text-xs font-black uppercase tracking-widest text-slate-400">Ładowanie planu...</p>
+      </div>
+    </div>
+  );
+
+  const { meta, wpisy } = data;
+  const counts = {
+    total: wpisy.length,
+    ZARCHIWIZOWANE: wpisy.filter(w => w.status === 'ZARCHIWIZOWANE').length,
+    W_TOKU: wpisy.filter(w => w.status === 'W_TOKU').length,
+    ZALEGŁE: wpisy.filter(w => w.status === 'ZALEGŁE').length,
+    PLANOWANE: wpisy.filter(w => w.status === 'PLANOWANE').length,
+  };
+  const pct = counts.total > 0 ? Math.round((counts.ZARCHIWIZOWANE / counts.total) * 100) : 0;
+
+  const filtered = (filterStatus === 'all' ? wpisy : wpisy.filter(w => w.status === filterStatus))
+    .slice().sort((a, b) => (STATUS[a.status]?.order ?? 9) - (STATUS[b.status]?.order ?? 9));
+
+  return (
+    <div className="min-h-screen" style={{ background: '#f8fafc' }}>
+      {/* ── HERO ── */}
+      <div className="relative overflow-hidden" style={{ background: '#1a1a2e' }}>
+        {/* Watermark */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+          <span className="font-black text-white" style={{ fontSize: 'clamp(60px, 15vw, 180px)', opacity: 0.04, letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>
+            ARCHIWUM
+          </span>
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto px-6 pt-12 pb-10">
+          <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 mb-3">
+            Samorząd Studentów UEW
+          </p>
+          <h1 className="font-black text-white leading-none mb-2" style={{ fontSize: 'clamp(48px, 10vw, 96px)', fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.02em' }}>
+            Plan Archiwizacji
+          </h1>
+          <div className="flex flex-wrap items-baseline gap-3 mb-8">
+            <span className="font-black text-slate-400 text-2xl">{meta.rok}</span>
+            <span className="text-slate-600 text-xs font-bold">·</span>
+            <span className="text-slate-400 text-xs font-bold">{meta.wlasciciel}</span>
+            {meta.zatwierdzone && <>
+              <span className="text-slate-600 text-xs font-bold">·</span>
+              <span className="text-slate-500 text-xs font-bold">Zatwierdzone {meta.zatwierdzone}</span>
+            </>}
+          </div>
+
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            {[
+              { label: 'Pozycji ogółem', value: counts.total, color: '#ffffff' },
+              { label: 'Zarchiwizowane', value: counts.ZARCHIWIZOWANE, color: '#10b981' },
+              { label: 'W toku', value: counts.W_TOKU, color: '#3b82f6' },
+              { label: 'Zaległe', value: counts.ZALEGŁE, color: '#ef4444' },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="rounded-2xl px-5 py-4" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <div className="font-black text-3xl mb-1" style={{ color }}>{value}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Progress bar */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Postęp archiwizacji</span>
+              <span className="font-black text-white text-sm">{pct}%</span>
+            </div>
+            <div className="h-2 rounded-full w-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+              <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #10b981, #3b82f6)' }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── BODY ── */}
+      <div className="max-w-6xl mx-auto px-6 py-10">
+
+        {/* Filter bar */}
+        <div className="flex flex-wrap gap-2 mb-8 items-center justify-between">
+          <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+            <button onClick={() => setFilterStatus('all')}
+              className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filterStatus === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
+              Wszystkie ({counts.total})
+            </button>
+            {Object.entries(STATUS).map(([key, s]) => (
+              <button key={key} onClick={() => setFilterStatus(key)}
+                className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filterStatus === key ? `${s.bg} ${s.text}` : 'text-slate-400 hover:text-slate-700'}`}>
+                {s.label} ({counts[key]})
+              </button>
+            ))}
+          </div>
+          {isAdmin && (
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Tryb admina — możesz edytować wpisy
+            </div>
+          )}
+        </div>
+
+        {/* Entries */}
+        <div className="space-y-3">
+          {filtered.map(wpis => {
+            const kat = KAT[wpis.kategoria] || KAT.Bc;
+            return (
+              <div key={wpis.id}
+                className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
+                style={{ borderLeft: `4px solid ${kat.border}` }}>
+                <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                  {/* Left: symbol + opis */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className="font-mono text-xs font-black text-slate-700">{wpis.symbol}</span>
+                      <KatBadge kat={wpis.kategoria} />
+                    </div>
+                    <p className="font-bold text-slate-800 text-sm leading-snug mb-1">{wpis.opis}</p>
+                    <div className="flex flex-wrap gap-3 text-[11px] text-slate-400 font-bold">
+                      <span>👤 {wpis.odpowiedzialny}</span>
+                      <span>📅 Termin: {wpis.termin}</span>
+                      {wpis.uwagi && <span className="text-amber-600">💬 {wpis.uwagi}</span>}
+                    </div>
+                  </div>
+                  {/* Right: status + edit */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <StatusBadgePlan status={wpis.status} />
+                    {isAdmin && (
+                      <button onClick={() => setEditWpis(wpis)}
+                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg transition-all">
+                        Edytuj
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer note */}
+        <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Plan Archiwizacji SSUEW · {meta.rok}
+          </p>
+          <p className="text-[10px] text-slate-400 font-bold">
+            Właściciel: {meta.wlasciciel}
+          </p>
+        </div>
+      </div>
+
+      {editWpis && (
+        <EditModal
+          wpis={editWpis}
+          onClose={() => setEditWpis(null)}
+          onSave={handleSave}
+          saving={saving}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// GŁÓWNY KOMPONENT
+// ─────────────────────────────────────────────────────────────
+
 export default function ArchiwizacjaPage() {
+  const { userRole } = useAuth();
+  const isAdmin = userRole === 'logitech' || userRole === 'admin';
+  const [view, setView] = useState('plan');
+
   const [activeSection, setActiveSection] = useState('wstep');
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
@@ -482,6 +809,26 @@ export default function ArchiwizacjaPage() {
   // ---- render ----
   return (
     <div className="min-h-screen bg-slate-50">
+
+      {/* VIEW TOGGLE */}
+      <div className="sticky top-[49px] z-40 bg-white border-b border-slate-200 px-4 py-0 flex items-center shadow-sm">
+        <div className="flex gap-0">
+          <button
+            onClick={() => setView('plan')}
+            className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${view === 'plan' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-700'}`}>
+            Plan Archiwizacji
+          </button>
+          <button
+            onClick={() => setView('przewodnik')}
+            className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${view === 'przewodnik' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-700'}`}>
+            Przewodnik
+          </button>
+        </div>
+      </div>
+
+      {view === 'plan' && <PlanArchiwizacji isAdmin={isAdmin} />}
+
+      {view === 'przewodnik' && <>
 
       {/* PROGRESS BAR */}
       <div className="fixed top-0 left-0 right-0 z-50 h-0.5 bg-slate-100">
@@ -1020,6 +1367,7 @@ export default function ArchiwizacjaPage() {
           <ArrowUp className="w-5 h-5" />
         </button>
       )}
+      </>}
     </div>
   );
 }
