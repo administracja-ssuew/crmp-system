@@ -47,6 +47,9 @@ export default async function handler(req, res) {
 
     const text = await gasRes.text();
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+
     try {
       return res.status(200).json(JSON.parse(text));
     } catch {

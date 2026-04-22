@@ -125,7 +125,7 @@ export default function MapPage() {
     if (!force && allPosters.length > 0) return; // already loaded — skip re-fetch
     setPostersLoading(true);
     try {
-      const res = await fetch(`${DATA_URL}?action=getAllPosters&t=${Date.now()}`, { redirect: 'follow' });
+      const res = await fetch(`${DATA_URL}?action=getAllPosters&t=${Date.now()}`, { redirect: 'follow', cache: 'no-store' });
       const data = await res.json();
       setAllPosters(data.posters || []);
     } catch (err) {
@@ -409,11 +409,22 @@ export default function MapPage() {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify(payload),
       });
+
+      // Optimistic update — UI reaguje natychmiast bez czekania na GAS
+      if (posterModal === 'edit') {
+        setAllPosters(prev => prev.map(p =>
+          p.credId === posterForm.credId
+            ? { ...p, status: posterForm.status, type: posterForm.type, nazwa: posterForm.nazwa,
+                org: posterForm.org, email: posterForm.email, dataZgody: posterForm.dataZgody,
+                dataZdjecia: posterForm.dataZdjecia, uwagi: posterForm.uwagi }
+            : p
+        ));
+      }
+
       setPosterModal(null);
       setPosterForm(emptyPosterForm);
-      // Wymuś ponowne pobranie Rejestru przy następnym otwarciu
-      fetchAllPosters(true);
-      fetchData(true);
+      // GAS potrzebuje chwili na zapis zanim read zwróci świeże dane
+      setTimeout(() => { fetchAllPosters(true); fetchData(true); }, 1800);
     } catch (err) {
       console.error(err);
       alert('Błąd zapisu. Sprawdź połączenie i spróbuj ponownie.');
