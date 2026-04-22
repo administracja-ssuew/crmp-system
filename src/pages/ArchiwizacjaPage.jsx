@@ -521,25 +521,125 @@ function EditModal({ wpis, onClose, onSave, saving }) {
   );
 }
 
+function AddTeczkaModal({ onClose, onAdd }) {
+  const [form, setForm] = useState({
+    symbol: '', tytul: '', kategoria: 'A', odpowiedzialny: '', termin: '', status: 'PLANOWANE', uwagi: '',
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleAdd = () => {
+    if (!form.symbol.trim() || !form.tytul.trim()) return;
+    const id = 't' + Date.now();
+    onAdd({
+      ...form,
+      id,
+      lp: 999,
+      termin: form.termin ? form.termin.split('-').reverse().join('.') : '',
+      materialy: [],
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onClick={e => e.stopPropagation()}>
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Nowa teczka</p>
+            <h3 className="font-black text-slate-800 text-base">Dodaj pozycję do planu</h3>
+          </div>
+          <button onClick={onClose} className="text-slate-300 hover:text-slate-600 text-xl font-bold">✕</button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Symbol JRWA</label>
+              <input type="text" value={form.symbol} onChange={e => set('symbol', e.target.value)} placeholder="np. RUSS.0631"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Kategoria</label>
+              <select value={form.kategoria} onChange={e => set('kategoria', e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300 bg-white">
+                {Object.keys(KAT).map(k => <option key={k} value={k}>Kat. {k}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Tytuł teczki</label>
+            <input type="text" value={form.tytul} onChange={e => set('tytul', e.target.value)} placeholder="np. RUSS.0631 – Imprezy uczelniane – Wigilia SSUEW – 2025/2026"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Odpowiedzialny</label>
+              <input type="text" value={form.odpowiedzialny} onChange={e => set('odpowiedzialny', e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Termin</label>
+              <input type="date" value={form.termin} onChange={e => set('termin', e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Status</label>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.entries(STATUS).map(([key, s]) => (
+                <button key={key} onClick={() => set('status', key)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.status === key ? 'border-slate-800 bg-slate-800 text-white' : 'border-slate-200 text-slate-600 hover:border-slate-300'}`}>
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.dot }} />{s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Uwagi</label>
+            <textarea rows={2} value={form.uwagi} onChange={e => set('uwagi', e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold outline-none focus:ring-2 focus:ring-slate-300 resize-none" />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button onClick={handleAdd} disabled={!form.symbol.trim() || !form.tytul.trim()}
+              className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+              Dodaj teczkę
+            </button>
+            <button onClick={onClose} className="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 bg-slate-100 hover:bg-slate-200 transition">Anuluj</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PlanArchiwizacji({ isAdmin }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const [editTeczka, setEditTeczka] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [expanded, setExpanded] = useState(new Set());
   const [localMat, setLocalMat] = useState(() => {
-    try { const s = sessionStorage.getItem('plan_arch_mat_v1'); return s ? JSON.parse(s) : {}; }
+    try { const s = localStorage.getItem('plan_arch_mat_v1'); return s ? JSON.parse(s) : {}; }
     catch { return {}; }
   });
+
+  const persistData = (d) => {
+    try { localStorage.setItem('plan_arch_data_v1', JSON.stringify(d)); } catch {}
+  };
+
+  const loadLocal = () => {
+    try { const s = localStorage.getItem('plan_arch_data_v1'); return s ? JSON.parse(s) : null; } catch { return null; }
+  };
 
   const fetchPlan = async () => {
     try {
       const res = await fetch(`${ARCHIWUM_URL}?action=getPlan&t=${Date.now()}`);
       const json = await res.json();
-      setData(json.teczki ? json : SAMPLE_DATA);
+      if (json.teczki) { setData(json); }
+      else { const loc = loadLocal(); setData(loc ?? SAMPLE_DATA); }
     } catch {
-      setData(SAMPLE_DATA);
+      const loc = loadLocal();
+      setData(loc ?? SAMPLE_DATA);
     } finally {
       setLoading(false);
     }
@@ -549,7 +649,7 @@ function PlanArchiwizacji({ isAdmin }) {
 
   const saveLocalMat = (next) => {
     setLocalMat(next);
-    sessionStorage.setItem('plan_arch_mat_v1', JSON.stringify(next));
+    localStorage.setItem('plan_arch_mat_v1', JSON.stringify(next));
   };
 
   const toggleZebrane = (matId) => {
@@ -578,13 +678,30 @@ function PlanArchiwizacji({ isAdmin }) {
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: 'updateTeczka', teczka: updated }),
       });
-      setData(prev => ({ ...prev, teczki: prev.teczki.map(t => t.id === updated.id ? updated : t) }));
-      setEditTeczka(null);
-    } catch {
-      alert('Błąd zapisu. Sprawdź połączenie.');
-    } finally {
-      setSaving(false);
-    }
+    } catch { /* GAS niedostępny — zapisujemy lokalnie */ }
+    setData(prev => {
+      const next = { ...prev, teczki: prev.teczki.map(t => t.id === updated.id ? updated : t) };
+      persistData(next);
+      return next;
+    });
+    setEditTeczka(null);
+    setSaving(false);
+  };
+
+  const handleAdd = (newTeczka) => {
+    setData(prev => {
+      const next = { ...prev, teczki: [...prev.teczki, newTeczka] };
+      persistData(next);
+      return next;
+    });
+    setAddOpen(false);
+  };
+
+  const expandAll = () => setExpanded(new Set(data?.teczki.map(t => t.id) || []));
+  const collapseAll = () => setExpanded(new Set());
+  const resetProgress = () => {
+    saveLocalMat({});
+    localStorage.removeItem('plan_arch_mat_v1');
   };
 
   if (loading) return (
@@ -683,8 +800,8 @@ function PlanArchiwizacji({ isAdmin }) {
       {/* ── BODY ── */}
       <div className="max-w-6xl mx-auto px-6 py-10">
 
-        {/* Filter bar */}
-        <div className="flex flex-wrap gap-2 mb-8 items-center justify-between">
+        {/* Filter + actions bar */}
+        <div className="flex flex-wrap gap-3 mb-8 items-center justify-between">
           <div className="flex flex-wrap gap-1 bg-white rounded-xl p-1 shadow-sm border border-slate-100">
             <button onClick={() => setFilterStatus('all')}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filterStatus === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
@@ -697,12 +814,26 @@ function PlanArchiwizacji({ isAdmin }) {
               </button>
             ))}
           </div>
-          {isAdmin && (
-            <div className="text-[10px] font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-              Tryb admina — możesz edytować teczki
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={expandAll}
+              className="px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white border border-slate-200 hover:border-slate-400 transition-all">
+              Rozwiń wszystkie
+            </button>
+            <button onClick={collapseAll}
+              className="px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white border border-slate-200 hover:border-slate-400 transition-all">
+              Zwiń wszystkie
+            </button>
+            <button onClick={() => { if (window.confirm('Zresetować cały postęp materiałów (odznaczone checkboxy i paginacje)?')) resetProgress(); }}
+              className="px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-red-500 bg-white border border-red-200 hover:border-red-400 transition-all">
+              Resetuj postęp
+            </button>
+            {isAdmin && (
+              <button onClick={() => setAddOpen(true)}
+                className="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-white bg-slate-900 hover:bg-slate-700 transition-all flex items-center gap-1.5">
+                <span className="text-base leading-none">+</span> Dodaj teczkę
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Teczki cards */}
@@ -838,6 +969,9 @@ function PlanArchiwizacji({ isAdmin }) {
           saving={saving}
         />
       )}
+      {addOpen && (
+        <AddTeczkaModal onClose={() => setAddOpen(false)} onAdd={handleAdd} />
+      )}
     </div>
   );
 }
@@ -849,7 +983,7 @@ function PlanArchiwizacji({ isAdmin }) {
 export default function ArchiwizacjaPage() {
   const { userRole } = useAuth();
   const isAdmin = userRole === 'logitech' || userRole === 'admin';
-  const [view, setView] = useState('plan');
+  const [view, setView] = useState('przewodnik');
 
   const [activeSection, setActiveSection] = useState('wstep');
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -1025,19 +1159,46 @@ export default function ArchiwizacjaPage() {
   return (
     <div className="min-h-screen bg-slate-50">
 
-      {/* VIEW TOGGLE */}
-      <div className="sticky top-[49px] z-40 bg-white border-b border-slate-200 px-4 py-0 flex items-center shadow-sm">
-        <div className="flex gap-0">
-          <button
-            onClick={() => setView('plan')}
-            className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${view === 'plan' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-700'}`}>
-            Plan Archiwizacji
-          </button>
-          <button
-            onClick={() => setView('przewodnik')}
-            className={`px-5 py-3 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${view === 'przewodnik' ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-700'}`}>
-            Przewodnik
-          </button>
+      {/* VIEW HERO SWITCHER */}
+      <div className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            {
+              id: 'przewodnik',
+              icon: BookOpen,
+              label: 'Przewodnik',
+              sub: 'Zasady, klasyfikacja JRWA i dobre praktyki archiwizacji',
+              accent: 'amber',
+            },
+            {
+              id: 'plan',
+              icon: Archive,
+              label: 'Plan Archiwizacji',
+              sub: `Teczki i materiały kadencji ${view === 'plan' ? SAMPLE_DATA.meta.rok : '2025/2026'}`,
+              accent: 'slate',
+            },
+          ].map(({ id, icon: Icon, label, sub, accent }) => {
+            const active = view === id;
+            return (
+              <button
+                key={id}
+                onClick={() => { setView(id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className={`flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition-all duration-200 ${
+                  active
+                    ? 'border-slate-900 bg-slate-900 text-white shadow-lg scale-[1.01]'
+                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                }`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${active ? 'bg-white/10' : accent === 'amber' ? 'bg-amber-100' : 'bg-slate-100'}`}>
+                  <Icon className={`w-5 h-5 ${active ? 'text-white' : accent === 'amber' ? 'text-amber-600' : 'text-slate-600'}`} />
+                </div>
+                <div className="min-w-0">
+                  <div className={`text-xs font-black uppercase tracking-widest mb-0.5 ${active ? 'text-white' : 'text-slate-800'}`}>{label}</div>
+                  <div className={`text-[11px] font-medium leading-snug truncate ${active ? 'text-slate-300' : 'text-slate-400'}`}>{sub}</div>
+                </div>
+                {active && <div className="ml-auto shrink-0 w-2 h-2 rounded-full bg-white/50" />}
+              </button>
+            );
+          })}
         </div>
       </div>
 
