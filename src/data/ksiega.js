@@ -74,7 +74,7 @@ export const czesci = [
           'Podstawowym formatem wszystkich dokumentów jest **A4 (210 × 297 mm)**, orientacja pionowa. Inne formaty dopuszczalne wyłącznie za zgodą Właściciela Księgi.',
           'Obowiązujące marginesy: górny **20 mm**, dolny **18 mm**, lewy **22 mm**, prawy **18 mm**.',
           'Dokumenty stosują układ jednokolumnowy. Dla regulaminów i uchwał dopuszczalny margines boczny **35 mm** po lewej, przeznaczony na noty redakcyjne.',
-          'Interlinia wynosi **1,15**. Odstęp po akapicie: **6 pt**. Odstęp przed nagłówkiem: **12 pt**, po nagłówku: **6 pt**.',
+          'Interlinia wynosi **1,15**. Odstęp po akapicie: **6 pkt**. Odstęp przed nagłówkiem: **12 pkt**, po nagłówku: **6 pkt**.',
           'Dzielenie wyrazów jest wyłączone. Tekst akapitów wyrównany obustronnie (justowanie).',
           'Numeracja stron w stopce, wyrównana do środka, format: *Strona X z Y*.',
         ],
@@ -83,7 +83,7 @@ export const czesci = [
         id: 'par5', numer: '§5', tytul: 'Typografia',
         tresc: [
           'Podstawowym krojem pisma we wszystkich dokumentach Samorządu jest **Times New Roman**.',
-          'Hierarchia: H1 (tytuł): 18 pt, pogrubienie. H2 (rozdział/paragraf): 14 pt, pogrubienie. H3 (podsekcja): 12 pt, pogrubienie. Treść podstawowa: 11 pt. Stopka/metryczka: 10 pt.',
+          'Hierarchia: H1 (tytuł): 18 pkt, pogrubienie; H2 (rozdział/paragraf): 14 pkt, pogrubienie; H3 (podsekcja): 12 pkt, pogrubienie; treść podstawowa: 11 pkt; stopka/metryczka: 10 pkt.',
           'Kolor czcionki jest **czarny** (#000000). Stosowanie innych kolorów w treści jest niedopuszczalne.',
           'Zakazane jest podkreślanie jako forma wyróżnienia. Dopuszczalne wyłącznie pogrubienie lub kursywa — konsekwentnie w całym dokumencie.',
         ],
@@ -109,7 +109,7 @@ export const czesci = [
         id: 'par8', numer: '§8', tytul: 'Blok tytułowy',
         tresc: [
           'Każdy dokument otwiera **blok tytułowy** zawierający: pełną nazwę Samorządu (jeśli nie w nagłówku), nazwę dokumentu (H1), numer i datę, oznaczenie organu wydającego.',
-          'Numer dokumentu nadawany jest zgodnie z systemem znakowania spraw CRED. Format znaku sprawy określa odrębny regulamin CRED.',
+          'Numer dokumentu nadawany jest zgodnie z systemem znakowania spraw CRED. Format znaku sprawy określają zasady obsługi systemu CRED, publikowane i aktualizowane przez Właściciela Księgi.',
           'Data dokumentu podawana w formacie: **DD.MM.RRRR r.** Niedopuszczalne jest stosowanie innych formatów daty.',
         ],
       },
@@ -144,6 +144,7 @@ export const czesci = [
         tresc: [
           'Obowiązujący format nazwy pliku: **`[KOD_DZIAŁU]-[TYP]-[ROK]-[NR]_[SKRÓCONA_NAZWA]`**',
           'Np.: `ADM-UCH-2025-001_Regulamin_Komisji_Administracji.docx` lub `FIN-POD-2025-014_Wniosek_o_zwrot_kosztow.pdf`',
+          'Pełny spis kodów działów (ADM, FIN, itd.) oraz kodów typów dokumentów (UCH, REG, ZAR, PRO, POD, itd.) zawiera **Katalog Dokumentów — Część III** niniejszej Księgi.',
           'Niedopuszczalne: spacje, polskie znaki diakrytyczne, znaki specjalne w nazwach plików.',
           'Wersje robocze: sufiks **`_DRAFT`**. Pliki archiwalne: sufiks **`_ARCH`**.',
         ],
@@ -162,7 +163,7 @@ export const czesci = [
           '**Etap 2 — Sporządzenie.** Autor sporządza dokument na podstawie szablonu pobranego z repozytorium. Niedopuszczalne jest tworzenie dokumentów poza szablonem bez zgody Właściciela Księgi.',
           '**Etap 3 — Weryfikacja wewnętrzna.** Autor weryfikuje zgodność z Księgą: nazewnictwo organów, kompletność metryczki, klauzula, blok podpisu.',
           '**Etap 4 — Autoryzacja.** Dokument przekazywany do podpisu zgodnie z trybem określonym w karcie dokumentu.',
-          '**Etap 5 — Rejestracja.** Dokument przekazywany do CRED celem nadania znaku sprawy. Rejestracja następuje przed publikacją.',
+          '**Etap 5 — Rejestracja.** Dokument przekazywany do CRED celem nadania znaku sprawy. Rejestracja następuje przed publikacją. **Dokumenty Działu B (Finanse) są całkowicie wyłączone z systemu CRED** — ich rejestracja odbywa się wyłącznie w dedykowanych rejestrach finansowych: Rejestrze Dokumentów Finansowych (B.16) oraz Centralnym Rejestrze Faktur (B.23), prowadzonych autonomicznie przez Członka Zarządu ds. Finansów SSUEW.',
           '**Etap 6 — Publikacja lub dystrybucja.** Dokument udostępniany adresatom zgodnie z zakresem i klauzulą.',
           '**Etap 7 — Archiwizacja.** Po zakończeniu obiegu dokument archiwizowany zgodnie z kategorią w karcie dokumentu.',
         ],
@@ -170,8 +171,8 @@ export const czesci = [
       {
         id: 'par14', numer: '§14', tytul: 'Procedura weryfikacji zgodności z Księgą',
         tresc: [
-          'Weryfikacja obejmuje: poprawność bloku tytułowego, zgodność typografii z §5, poprawność nagłówka i stopki, kompletność metryczki, obecność klauzuli, prawidłowość bloku podpisu, zgodność nazwy pliku (§12), zgodność z kartą dokumentu w Katalogu.',
-          'Dokument niespełniający wymagań **nie może zostać zarejestrowany w CRED ani skierowany do adresata**. Osoba rejestrująca zwraca go autorowi z pisemnym wskazaniem niezgodności.',
+          'Weryfikacja obejmuje: poprawność bloku tytułowego, zgodność typografii z §5, poprawność nagłówka i stopki, kompletność metryczki, obecność klauzuli, prawidłowość bloku podpisu, zgodność nazwy pliku (§12), zgodność z kartą dokumentu w Katalogu. **Procedura ta dotyczy wyłącznie dokumentów Działu A i C — dokumenty Działu B (Finanse) podlegają odrębnej weryfikacji wewnątrzfinansowej.**',
+          'Dokument Działu A lub C niespełniający wymagań **nie może zostać zarejestrowany w CRED ani skierowany do adresata**. Osoba rejestrująca zwraca go autorowi z pisemnym wskazaniem niezgodności.',
           'Autor zobowiązany do usunięcia niezgodności i ponownego przedłożenia w terminie **3 dni roboczych** od daty zwrotu.',
           'W przypadku sporu co do zgodności rozstrzyga **Właściciel Księgi**. Jego decyzja jest ostateczna w pierwszej instancji.',
         ],
@@ -179,9 +180,10 @@ export const czesci = [
       {
         id: 'par15', numer: '§15', tytul: 'Procedura obiegu dokumentów',
         tresc: [
-          'Dokumenty zewnętrzne wpływające rejestrowane są w CRED niezwłocznie po otrzymaniu — nie później niż następnego dnia roboczego.',
-          'Dokumenty wychodzące rejestrowane są w CRED **przed** ich wysłaniem. Niedopuszczalne jest kierowanie dokumentu do adresata zewnętrznego bez uprzedniej rejestracji.',
+          'Dokumenty zewnętrzne wpływające rejestrowane są w CRED niezwłocznie po otrzymaniu — nie później niż następnego dnia roboczego. Dotyczy wyłącznie dokumentów Działu A i C.',
+          'Dokumenty wychodzące Działu A i C rejestrowane są w CRED **przed** ich wysłaniem. Niedopuszczalne jest kierowanie dokumentu do adresata zewnętrznego bez uprzedniej rejestracji.',
           'Korespondencja dotycząca jednej sprawy prowadzona w ramach tego samego wątku w CRED. Niedopuszczalne otwieranie nowego wątku dla już zarejestrowanej sprawy.',
+          '**Dokumenty Działu B (Finanse) są wyłączone z systemu CRED.** Ich obieg, rejestracja i archiwizacja odbywa się wyłącznie w ramach wewnętrznych rejestrów finansowych (B.16, B.23), zgodnie z procedurami ustalonymi przez Członka Zarządu ds. Finansów SSUEW.',
         ],
       },
       {
@@ -542,7 +544,7 @@ export const katalog = {
     id: 'dzialB',
     tytul: 'Dział B — Finanse',
     kolor: '#059669',
-    nota: 'Karty dokumentów Działu B wymagają uzupełnienia przez Członka Zarządu ds. Finansów SSUEW. Pola oznaczone „Do uzupełnienia" zawierają dane instytucjonalne znane wyłącznie właścicielowi merytorycznemu działu.',
+    nota: 'Dokumenty Działu B są całkowicie wyłączone z systemu CRED. Ich rejestracja, obieg i archiwizacja odbywa się wyłącznie w ramach wewnętrznych rejestrów finansowych (B.16 — Rejestr Dokumentów Finansowych, B.23 — Centralny Rejestr Faktur), prowadzonych autonomicznie przez Członka Zarządu ds. Finansów SSUEW. Karty dokumentów wymagają uzupełnienia przez właściciela merytorycznego działu.',
     dokumenty: [
       { id: 'B1', nr: 'B.1', nazwa: 'Budżet główny Samorządu', kod: 'FIN-BUD', cel: 'Podstawowy dokument planistyczno-finansowy Samorządu określający planowane przychody i wydatki na dany rok akademicki.', autoryzacja: null, obieg: null, archiwizacja: null, szablon: null, status: 'Obowiązujący', powiazane: 'Prowizoria budżetowe (B.5), Sprawozdania finansowe (B.17).' },
       { id: 'B2', nr: 'B.2', nazwa: 'Lista akronimów finansowych', kod: 'FIN-AKR', cel: 'Dokument pomocniczy zawierający słownik skrótów i akronimów stosowanych w dokumentacji finansowej Samorządu.', autoryzacja: null, obieg: null, archiwizacja: null, szablon: null, status: 'Obowiązujący', powiazane: 'Budżet główny (B.1).' },
@@ -571,13 +573,6 @@ export const katalog = {
       { id: 'B25', nr: 'B.25', nazwa: 'Podanie o zwrot kosztów', kod: 'FIN-POD-ZWR', cel: 'Dokument składany przez członka Samorządu ubiegającego się o refundację poniesionych kosztów związanych z działalnością Samorządu.', autoryzacja: null, obieg: null, archiwizacja: null, szablon: null, status: 'Obowiązujący', powiazane: 'Wniosek o zgodę na wydatek (B.3), Opis faktury (B.4).' },
       { id: 'B26', nr: 'B.26', nazwa: 'Podanie o wystawienie faktury', kod: 'FIN-POD-FAK', cel: 'Dokument kierowany do Samorządu z prośbą o wystawienie faktury za zrealizowane świadczenie lub usługę.', autoryzacja: null, obieg: null, archiwizacja: null, szablon: null, status: 'Obowiązujący', powiazane: 'Centralny Rejestr Faktur (B.23).' },
     ],
-  },
-  dzialC: {
-    id: 'dzialC',
-    tytul: 'Dział C — Fundacja',
-    kolor: '#7c3aed',
-    nota: 'Dział C — Fundacja zostaje zarezerwowany w strukturze Katalogu. Karty dokumentów wymagają uzupełnienia przez osobę odpowiedzialną za współpracę z Fundacją po stronie SSUEW.',
-    dokumenty: [],
   },
 };
 
@@ -628,7 +623,6 @@ export const strategie = {
         kolor: '#d97706',
         dzialania: [
           'Opracowanie uproszczonego przewodnika dla organizacji studenckich i kół naukowych',
-          'Uzupełnienie i zatwierdzenie kart Działu C — Fundacja',
           'Wdrożenie modułu zarządzania dokumentami w CRA z pełną integracją z CRED',
           'Przeprowadzenie pierwszego kompleksowego audytu dokumentacyjnego Samorządu',
           'Ustanowienie nagrody wewnętrznej dla komisji o najwyższym wskaźniku zgodności',
@@ -677,7 +671,6 @@ export const sidebarSections = [
   { id: 'katalog', label: 'Część III — Katalog Dokumentów', typ: 'katalog', sub: [
     { id: 'dzialA', label: 'Dział A — Administracja' },
     { id: 'dzialB', label: 'Dział B — Finanse' },
-    { id: 'dzialC', label: 'Dział C — Fundacja' },
   ]},
   { id: 'czesc4', label: 'Część IV — Procedury', typ: 'czesc' },
   { id: 'czesc5', label: 'Część V — Strategie', typ: 'strategie' },

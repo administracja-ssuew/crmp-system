@@ -333,15 +333,110 @@ const KAT = {
 
 const SAMPLE_DATA = {
   meta: { rok: '2025/2026', wlasciciel: 'Członek Zarządu ds. Administracji SSUEW', zatwierdzone: '20.04.2026' },
-  wpisy: [
-    { id: '1', lp: 1, kategoria: 'A',   symbol: 'RUSS.570',  opis: 'Uchwały Rady Uczelnianej Samorządu Studentów',      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'W_TOKU',         uwagi: '' },
-    { id: '2', lp: 2, kategoria: 'A',   symbol: 'RUSS.0052', opis: 'Protokoły posiedzeń RUSS i Zarządu',                odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'ZALEGŁE',        uwagi: 'Brakuje protokołów z Q1 2026' },
-    { id: '3', lp: 3, kategoria: 'A',   symbol: 'RUSS.110',  opis: 'Protokoły Spotkania Komisji Samorządu (SKS)',        odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'W_TOKU',         uwagi: '' },
-    { id: '4', lp: 4, kategoria: 'B5',  symbol: 'RUSS.0641', opis: 'Dokumentacja projektów i wydarzeń kulturalnych',    odpowiedzialny: 'Komisja ds. Eventów',           termin: '30.06.2026', status: 'ZARCHIWIZOWANE', uwagi: 'Kadencja 2024/2025 zakończona' },
-    { id: '5', lp: 5, kategoria: 'A',   symbol: 'RUSS.0631', opis: 'Kronika i dokumentacja fotograficzna SSUEW',        odpowiedzialny: 'CZ. Zarządu ds. Promocji',      termin: '30.09.2026', status: 'PLANOWANE',      uwagi: '' },
-    { id: '6', lp: 6, kategoria: 'B5',  symbol: 'RUSS.560',  opis: 'Regulaminy wewnętrzne i zarządzenia Przewodniczącego', odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026', status: 'ZARCHIWIZOWANE', uwagi: '' },
-    { id: '7', lp: 7, kategoria: 'BE',  symbol: 'RUSS.0640', opis: 'Dokumentacja komisji wyborczej kadencja 2025/2026', odpowiedzialny: 'Komisja Wyborcza',              termin: '31.10.2026', status: 'PLANOWANE',      uwagi: 'Po zakończeniu kadencji' },
-    { id: '8', lp: 8, kategoria: 'B10', symbol: 'RUSS.441',  opis: 'Dokumenty finansowe Działu B (tryb własny)',        odpowiedzialny: 'CZ. Zarządu ds. Finansów',      termin: '31.08.2026', status: 'PLANOWANE',      uwagi: 'Poza CRED — rejestry B.16 i B.23' },
+  teczki: [
+    {
+      id: 't1', lp: 1, kategoria: 'A', symbol: 'RUSS.570',
+      tytul: 'RUSS.570 – Samorząd studentów – rdzeń ustrojowy – 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026',
+      status: 'W_TOKU', uwagi: '',
+      materialy: [
+        { id: 'm1_1', opis: 'Statut SSUEW (obowiązująca wersja)', wymagania: 'Aktualna wersja zatwierdzona uchwałą RUSS. Kserokopia lub wydruk.', paginacja: '', zebrane: false },
+        { id: 'm1_2', opis: 'Regulaminy organów i komisji', wymagania: 'Wszystkie obowiązujące w kadencji regulaminy wraz z uchwałami wprowadzającymi.', paginacja: '', zebrane: false },
+        { id: 'm1_3', opis: 'Struktura organizacyjna i składy osobowe', wymagania: 'Lista członków Zarządu, komisji, koordynatorów projektów na dzień otwarcia i zamknięcia kadencji.', paginacja: '', zebrane: true },
+        { id: 'm1_4', opis: 'Program działania kadencji', wymagania: 'Oficjalny program uchwalony przez RUSS lub zatwierdzony przez Zarząd.', paginacja: '', zebrane: true },
+        { id: 'm1_5', opis: 'Sprawozdania roczne / kadencyjne Zarządu', wymagania: 'Kompletne sprawozdania z działalności. Każde jako oddzielny dokument z podpisem.', paginacja: '', zebrane: false },
+        { id: 'm1_6', opis: 'Uchwały RUSS (zbiorczo)', wymagania: 'Oryginały lub uwierzytelnione kopie wszystkich uchwał podjętych w kadencji. Posortowane chronologicznie.', paginacja: '', zebrane: false },
+        { id: 'm1_7', opis: 'Protokoły posiedzeń RUSS', wymagania: 'Oryginały z podpisem protokolanta i adnotacją weryfikacyjną. Chronologicznie. Bez pustych stron.', paginacja: '', zebrane: false },
+        { id: 'm1_8', opis: 'Dokumentacja komisji samorządowych', wymagania: 'Protokoły SKS, raporty komisji, listy obecności z posiedzeń. Z wyłączeniem dokumentacji wyborczej (→ RUSS.0052).', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't2', lp: 2, kategoria: 'A', symbol: 'RUSS.0052',
+      tytul: 'RUSS.0052 – Wybory do organów wybieralnych – kadencja 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026',
+      status: 'ZALEGŁE', uwagi: 'Brakuje protokołu komisji wyborczej z wyborów uzupełniających',
+      materialy: [
+        { id: 'm2_1', opis: 'Ogłoszenia wyborcze', wymagania: 'Wszystkie oficjalne ogłoszenia wraz z datami publikacji. Wydruk lub kopia elektroniczna.', paginacja: '', zebrane: true },
+        { id: 'm2_2', opis: 'Listy kandydatów z podpisami', wymagania: 'Formularze zgłoszeniowe i zatwierdzone listy kandydatów do wszystkich organów.', paginacja: '', zebrane: true },
+        { id: 'm2_3', opis: 'Protokoły komisji wyborczej', wymagania: 'Protokół z każdego głosowania z podpisami członków komisji. Oryginały.', paginacja: '', zebrane: false },
+        { id: 'm2_4', opis: 'Oficjalne wyniki wyborów', wymagania: 'Dokument z wynikami głosowania zatwierdzony przez komisję wyborczą.', paginacja: '', zebrane: true },
+        { id: 'm2_5', opis: 'Uchwały i rozstrzygnięcia dotyczące wyborów', wymagania: 'Uchwały RUSS zatwierdzające wyniki, odwołania, rozstrzygnięcia sporne (jeśli wystąpiły).', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't3', lp: 3, kategoria: 'A', symbol: 'RUSS.0122',
+      tytul: 'RUSS.0122 – Przejmowanie stanowisk i obowiązków – 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '31.10.2026',
+      status: 'PLANOWANE', uwagi: 'Sporządzić przy końcu kadencji',
+      materialy: [
+        { id: 'm3_1', opis: 'Protokół zdawczo-odbiorczy Przewodniczącego SSUEW', wymagania: 'Podpisany przez ustępującego i nowego Przewodniczącego. Zawiera wykaz spraw, kluczy, dostępów, pieczęci.', paginacja: '', zebrane: false },
+        { id: 'm3_2', opis: 'Protokoły przekazania obowiązków członków Zarządu', wymagania: 'Oddzielny protokół dla każdego Członka Zarządu. Zakres spraw, stanu realizacji i otwartych wątków.', paginacja: '', zebrane: false },
+        { id: 'm3_3', opis: 'Protokoły przekazania funkcji koordynatorów projektów', wymagania: 'Dotyczy projektów ciągłych przechodzących między kadencjami.', paginacja: '', zebrane: false },
+        { id: 'm3_4', opis: 'Wykaz dostępów i haseł przekazanych następcy', wymagania: 'Lista systemów (CRA, CRED, skrzynki, media), z adnotacją o przekazaniu. Bez wpisywania haseł w dokumencie.', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't4', lp: 4, kategoria: 'A', symbol: 'RUSS.062',
+      tytul: 'RUSS.062 – Kronika kadencji 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Promocji', termin: '30.09.2026',
+      status: 'W_TOKU', uwagi: '',
+      materialy: [
+        { id: 'm4_1', opis: 'Kronika narracyjna kadencji', wymagania: 'Opis przebiegu kadencji — kluczowe wydarzenia, projekty, zmiany. Dokument ciągły z datowaniem.', paginacja: '', zebrane: false },
+        { id: 'm4_2', opis: 'Album fotograficzny / dokumentacja wizualna', wymagania: 'Wydruk lub opis nośnika cyfrowego (płyta, link do archiwum) ze wskazaniem lokalizacji plików.', paginacja: '', zebrane: false },
+        { id: 'm4_3', opis: 'Spis najważniejszych dokumentów kadencji', wymagania: 'Indeks z numerami CRED kluczowych dokumentów — uchwał, regulaminów, sprawozdań.', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't5', lp: 5, kategoria: 'B5', symbol: 'RUSS.0615',
+      tytul: 'RUSS.0615 – Materiały promocyjne i reklamowe – 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Promocji', termin: '30.09.2026',
+      status: 'PLANOWANE', uwagi: '',
+      materialy: [
+        { id: 'm5_1', opis: 'Finalne plakaty (1 egzemplarz każdego rodzaju)', wymagania: 'Wydruk lub kserokopia reprezentatywnego plakatu z każdej kampanii. Opisany datą i wydarzeniem.', paginacja: '', zebrane: false },
+        { id: 'm5_2', opis: 'Finalne ulotki i grafiki drukowane', wymagania: 'Egzemplarz lub kserokopia każdego wydanego materiału drukowanego.', paginacja: '', zebrane: false },
+        { id: 'm5_3', opis: 'Spis gadżetów promocyjnych', wymagania: 'Zestawienie rodzajów gadżetów z podaniem nakładu i roku wydania. Sam opis — nie fizyczne przedmioty.', paginacja: '', zebrane: false },
+        { id: 'm5_4', opis: 'Wykaz kampanii promocyjnych', wymagania: 'Lista kampanii z datami i krótkim opisem. Opcjonalnie z linkami do archiwów social media.', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't6', lp: 6, kategoria: 'BE', symbol: 'RUSS.0640',
+      tytul: 'RUSS.0640 – Patronaty i komitety honorowe – 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '31.10.2026',
+      status: 'PLANOWANE', uwagi: 'Sporządzić po zakończeniu kadencji',
+      materialy: [
+        { id: 'm6_1', opis: 'Wnioski o objęcie patronatem', wymagania: 'Oryginały lub kopie wniosków złożonych przez organizatorów. Z datą wpłynięcia.', paginacja: '', zebrane: false },
+        { id: 'm6_2', opis: 'Decyzje o udzieleniu lub odmowie patronatu', wymagania: 'Odpowiedzi Zarządu na każdy wniosek — podpisane przez Przewodniczącego.', paginacja: '', zebrane: false },
+        { id: 'm6_3', opis: 'Dokumenty potwierdzające realizację patronatu', wymagania: 'Materiały promocyjne z logotypem SSUEW, podziękowania, sprawozdania organizatora.', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't7', lp: 7, kategoria: 'A', symbol: 'RUSS.0631',
+      tytul: 'RUSS.0631 – Imprezy uczelniane – [nazwa imprezy] – 2025/2026',
+      odpowiedzialny: 'Komisja ds. Eventów', termin: '30.09.2026',
+      status: 'W_TOKU', uwagi: 'Każda impreza to osobna teczka — tutaj wzorzec',
+      materialy: [
+        { id: 'm7_1', opis: 'Scenariusz i program imprezy (wersja finalna)', wymagania: 'Dokument zatwierdzony przez koordynatora. Nie wersja robocza.', paginacja: '', zebrane: false },
+        { id: 'm7_2', opis: 'Materiały promocyjne imprezy (1 egz. każdego)', wymagania: 'Wydruk lub kserokopia plakatu, ulotki. Opisane datą publikacji.', paginacja: '', zebrane: false },
+        { id: 'm7_3', opis: 'Dokumentacja fotograficzna — opis nośnika', wymagania: 'Nie drukować całości. Opisać lokalizację archiwum (link do dysku, nazwa folderu, data).', paginacja: '', zebrane: false },
+        { id: 'm7_4', opis: 'Skład zespołu organizacyjnego', wymagania: 'Lista z imionami, nazwiskami i przydzielonymi rolami.', paginacja: '', zebrane: false },
+        { id: 'm7_5', opis: 'Raport końcowy lub ewaluacja', wymagania: 'Dokument podsumowujący frekwencję, koszty, wnioski. Podpisany przez koordynatora.', paginacja: '', zebrane: false },
+        { id: 'm7_6', opis: 'Dokumentacja finansowa (nr wniosku CRED / nr w B.16)', wymagania: 'Nie fizyczne faktury — tylko wykaz z numerami referencyjnymi do rejestrów finansowych.', paginacja: '', zebrane: false },
+      ],
+    },
+    {
+      id: 't8', lp: 8, kategoria: 'A', symbol: 'RUSS.581',
+      tytul: 'RUSS.581 – Szkolenia i kursy – [nazwa szkolenia] – 2025/2026',
+      odpowiedzialny: 'CZ. Zarządu ds. Administracji', termin: '30.09.2026',
+      status: 'PLANOWANE', uwagi: 'Każde szkolenie to osobna teczka — tutaj wzorzec',
+      materialy: [
+        { id: 'm8_1', opis: 'Program i agenda szkolenia', wymagania: 'Dokument z datą, tematem, blokami tematycznymi, czasem trwania.', paginacja: '', zebrane: false },
+        { id: 'm8_2', opis: 'Dane prowadzącego / umowa', wymagania: 'Imię, nazwisko, kwalifikacje, instytucja. Numer umowy z rejestru B.16 jeśli zawarto umowę.', paginacja: '', zebrane: false },
+        { id: 'm8_3', opis: 'Lista uczestników z podpisami', wymagania: 'Imię i nazwisko, kierunek/rok studiów, podpis. Oryginał z podpisami.', paginacja: '', zebrane: false },
+        { id: 'm8_4', opis: 'Ankiety ewaluacyjne (zbiorcze)', wymagania: 'Zestawienie wyników ankiet. Nie załączać indywidualnych formularzy — tylko podsumowanie.', paginacja: '', zebrane: false },
+        { id: 'm8_5', opis: 'Sprawozdanie końcowe', wymagania: 'Dokument koordynatora z oceną realizacji, liczbą uczestników, wnioskami.', paginacja: '', zebrane: false },
+        { id: 'm8_6', opis: 'Wykaz wydanych certyfikatów', wymagania: 'Lista: imię i nazwisko uczestnika, numer certyfikatu, data wydania.', paginacja: '', zebrane: false },
+      ],
+    },
   ],
 };
 
@@ -378,7 +473,7 @@ function EditModal({ wpis, onClose, onSave, saving }) {
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
           <div>
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">{wpis.symbol}</p>
-            <h3 className="font-black text-slate-800 text-base leading-snug">{wpis.opis}</h3>
+            <h3 className="font-black text-slate-800 text-base leading-snug">{wpis.tytul || wpis.opis}</h3>
           </div>
           <button onClick={onClose} className="text-slate-300 hover:text-slate-600 text-xl font-bold ml-4 mt-0.5">✕</button>
         </div>
@@ -430,14 +525,19 @@ function PlanArchiwizacji({ isAdmin }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
-  const [editWpis, setEditWpis] = useState(null);
+  const [editTeczka, setEditTeczka] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [expanded, setExpanded] = useState(new Set());
+  const [localMat, setLocalMat] = useState(() => {
+    try { const s = sessionStorage.getItem('plan_arch_mat_v1'); return s ? JSON.parse(s) : {}; }
+    catch { return {}; }
+  });
 
   const fetchPlan = async () => {
     try {
       const res = await fetch(`${ARCHIWUM_URL}?action=getPlan&t=${Date.now()}`);
       const json = await res.json();
-      setData(json.wpisy ? json : SAMPLE_DATA);
+      setData(json.teczki ? json : SAMPLE_DATA);
     } catch {
       setData(SAMPLE_DATA);
     } finally {
@@ -447,16 +547,39 @@ function PlanArchiwizacji({ isAdmin }) {
 
   useEffect(() => { window.scrollTo(0, 0); fetchPlan(); }, []);
 
+  const saveLocalMat = (next) => {
+    setLocalMat(next);
+    sessionStorage.setItem('plan_arch_mat_v1', JSON.stringify(next));
+  };
+
+  const toggleZebrane = (matId) => {
+    const cur = localMat[matId] || {};
+    saveLocalMat({ ...localMat, [matId]: { ...cur, zebrane: !cur.zebrane } });
+  };
+
+  const setPaginacja = (matId, val) => {
+    const cur = localMat[matId] || {};
+    saveLocalMat({ ...localMat, [matId]: { ...cur, paginacja: val } });
+  };
+
+  const toggleExpanded = (id) => {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const handleSave = async (updated) => {
     setSaving(true);
     try {
       await fetch(ARCHIWUM_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'updateWpis', wpis: updated }),
+        body: JSON.stringify({ action: 'updateTeczka', teczka: updated }),
       });
-      setData(prev => ({ ...prev, wpisy: prev.wpisy.map(w => w.id === updated.id ? updated : w) }));
-      setEditWpis(null);
+      setData(prev => ({ ...prev, teczki: prev.teczki.map(t => t.id === updated.id ? updated : t) }));
+      setEditTeczka(null);
     } catch {
       alert('Błąd zapisu. Sprawdź połączenie.');
     } finally {
@@ -473,24 +596,28 @@ function PlanArchiwizacji({ isAdmin }) {
     </div>
   );
 
-  const { meta, wpisy } = data;
-  const counts = {
-    total: wpisy.length,
-    ZARCHIWIZOWANE: wpisy.filter(w => w.status === 'ZARCHIWIZOWANE').length,
-    W_TOKU: wpisy.filter(w => w.status === 'W_TOKU').length,
-    ZALEGŁE: wpisy.filter(w => w.status === 'ZALEGŁE').length,
-    PLANOWANE: wpisy.filter(w => w.status === 'PLANOWANE').length,
-  };
-  const pct = counts.total > 0 ? Math.round((counts.ZARCHIWIZOWANE / counts.total) * 100) : 0;
+  const { meta, teczki } = data;
 
-  const filtered = (filterStatus === 'all' ? wpisy : wpisy.filter(w => w.status === filterStatus))
+  const counts = {
+    total: teczki.length,
+    ZARCHIWIZOWANE: teczki.filter(t => t.status === 'ZARCHIWIZOWANE').length,
+    W_TOKU: teczki.filter(t => t.status === 'W_TOKU').length,
+    ZALEGŁE: teczki.filter(t => t.status === 'ZALEGŁE').length,
+    PLANOWANE: teczki.filter(t => t.status === 'PLANOWANE').length,
+  };
+
+  const allMats = teczki.flatMap(t => t.materialy || []);
+  const zebraneGlobal = allMats.filter(m => localMat[m.id]?.zebrane ?? m.zebrane).length;
+  const matPctGlobal = allMats.length > 0 ? Math.round((zebraneGlobal / allMats.length) * 100) : 0;
+  const archPct = counts.total > 0 ? Math.round((counts.ZARCHIWIZOWANE / counts.total) * 100) : 0;
+
+  const filtered = (filterStatus === 'all' ? teczki : teczki.filter(t => t.status === filterStatus))
     .slice().sort((a, b) => (STATUS[a.status]?.order ?? 9) - (STATUS[b.status]?.order ?? 9));
 
   return (
     <div className="min-h-screen" style={{ background: '#f8fafc' }}>
       {/* ── HERO ── */}
       <div className="relative overflow-hidden" style={{ background: '#1a1a2e' }}>
-        {/* Watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
           <span className="font-black text-white" style={{ fontSize: 'clamp(60px, 15vw, 180px)', opacity: 0.04, letterSpacing: '0.15em', whiteSpace: 'nowrap' }}>
             ARCHIWUM
@@ -517,7 +644,7 @@ function PlanArchiwizacji({ isAdmin }) {
           {/* Stats grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {[
-              { label: 'Pozycji ogółem', value: counts.total, color: '#ffffff' },
+              { label: 'Teczek ogółem', value: counts.total, color: '#ffffff' },
               { label: 'Zarchiwizowane', value: counts.ZARCHIWIZOWANE, color: '#10b981' },
               { label: 'W toku', value: counts.W_TOKU, color: '#3b82f6' },
               { label: 'Zaległe', value: counts.ZALEGŁE, color: '#ef4444' },
@@ -529,14 +656,25 @@ function PlanArchiwizacji({ isAdmin }) {
             ))}
           </div>
 
-          {/* Progress bar */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Postęp archiwizacji</span>
-              <span className="font-black text-white text-sm">{pct}%</span>
+          {/* Progress bars */}
+          <div className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Teczki zarchiwizowane</span>
+                <span className="font-black text-white text-sm">{counts.ZARCHIWIZOWANE}/{counts.total} · {archPct}%</span>
+              </div>
+              <div className="h-2 rounded-full w-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${archPct}%`, background: 'linear-gradient(90deg, #10b981, #3b82f6)' }} />
+              </div>
             </div>
-            <div className="h-2 rounded-full w-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
-              <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #10b981, #3b82f6)' }} />
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Materiały zebrane</span>
+                <span className="font-black text-slate-300 text-sm">{zebraneGlobal}/{allMats.length} · {matPctGlobal}%</span>
+              </div>
+              <div className="h-1.5 rounded-full w-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-1.5 rounded-full transition-all duration-700" style={{ width: `${matPctGlobal}%`, background: 'linear-gradient(90deg, #f59e0b, #ef4444)' }} />
+              </div>
             </div>
           </div>
         </div>
@@ -547,7 +685,7 @@ function PlanArchiwizacji({ isAdmin }) {
 
         {/* Filter bar */}
         <div className="flex flex-wrap gap-2 mb-8 items-center justify-between">
-          <div className="flex gap-1 bg-white rounded-xl p-1 shadow-sm border border-slate-100">
+          <div className="flex flex-wrap gap-1 bg-white rounded-xl p-1 shadow-sm border border-slate-100">
             <button onClick={() => setFilterStatus('all')}
               className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${filterStatus === 'all' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-800'}`}>
               Wszystkie ({counts.total})
@@ -560,45 +698,122 @@ function PlanArchiwizacji({ isAdmin }) {
             ))}
           </div>
           {isAdmin && (
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Tryb admina — możesz edytować wpisy
+            <div className="text-[10px] font-bold text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+              Tryb admina — możesz edytować teczki
             </div>
           )}
         </div>
 
-        {/* Entries */}
-        <div className="space-y-3">
-          {filtered.map(wpis => {
-            const kat = KAT[wpis.kategoria] || KAT.Bc;
+        {/* Teczki cards */}
+        <div className="space-y-4">
+          {filtered.map(teczka => {
+            const kat = KAT[teczka.kategoria] || KAT.Bc;
+            const isOpen = expanded.has(teczka.id);
+            const mats = teczka.materialy || [];
+            const zebraneLocal = mats.filter(m => localMat[m.id]?.zebrane ?? m.zebrane).length;
+            const matTotal = mats.length;
+            const matPctLocal = matTotal > 0 ? Math.round((zebraneLocal / matTotal) * 100) : 0;
+
             return (
-              <div key={wpis.id}
+              <div key={teczka.id}
                 className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200"
                 style={{ borderLeft: `4px solid ${kat.border}` }}>
-                <div className="px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4">
-                  {/* Left: symbol + opis */}
+
+                {/* Card header */}
+                <button
+                  onClick={() => toggleExpanded(teczka.id)}
+                  className="w-full px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 text-left">
                   <div className="flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span className="font-mono text-xs font-black text-slate-700">{wpis.symbol}</span>
-                      <KatBadge kat={wpis.kategoria} />
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="font-mono text-xs font-black text-slate-700">{teczka.symbol}</span>
+                      <KatBadge kat={teczka.kategoria} />
+                      <StatusBadgePlan status={teczka.status} />
                     </div>
-                    <p className="font-bold text-slate-800 text-sm leading-snug mb-1">{wpis.opis}</p>
+                    <p className="font-black text-slate-800 text-sm leading-snug mb-2">{teczka.tytul}</p>
                     <div className="flex flex-wrap gap-3 text-[11px] text-slate-400 font-bold">
-                      <span>👤 {wpis.odpowiedzialny}</span>
-                      <span>📅 Termin: {wpis.termin}</span>
-                      {wpis.uwagi && <span className="text-amber-600">💬 {wpis.uwagi}</span>}
+                      <span>👤 {teczka.odpowiedzialny}</span>
+                      <span>📅 {teczka.termin}</span>
+                      {teczka.uwagi && <span className="text-amber-600">💬 {teczka.uwagi}</span>}
                     </div>
                   </div>
-                  {/* Right: status + edit */}
-                  <div className="flex items-center gap-3 shrink-0">
-                    <StatusBadgePlan status={wpis.status} />
-                    {isAdmin && (
-                      <button onClick={() => setEditWpis(wpis)}
-                        className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-300 px-3 py-1.5 rounded-lg transition-all">
-                        Edytuj
-                      </button>
-                    )}
+
+                  {/* Material progress + chevron */}
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-right">
+                      <div className="font-black text-slate-800 text-lg leading-none">{zebraneLocal}<span className="text-slate-300 font-bold text-sm">/{matTotal}</span></div>
+                      <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 mt-0.5">materiałów</div>
+                      <div className="mt-1.5 w-20 h-1.5 rounded-full bg-slate-100">
+                        <div className="h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${matPctLocal}%`, background: matPctLocal === 100 ? '#10b981' : '#f59e0b' }} />
+                      </div>
+                    </div>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-300 shrink-0 ${isOpen ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                      <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`} />
+                    </div>
                   </div>
-                </div>
+                </button>
+
+                {/* Expanded materials */}
+                {isOpen && (
+                  <div className="border-t border-slate-100">
+                    <div className="px-6 py-3 bg-slate-50 flex items-center justify-between">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        Lista materiałów — {zebraneLocal}/{matTotal} zebranych ({matPctLocal}%)
+                      </p>
+                      {isAdmin && (
+                        <button
+                          onClick={e => { e.stopPropagation(); setEditTeczka(teczka); }}
+                          className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 border border-slate-200 hover:border-slate-400 px-3 py-1.5 rounded-lg transition-all bg-white">
+                          Edytuj teczkę
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="px-6 py-4 space-y-3">
+                      {mats.map((mat, idx) => {
+                        const isZebrane = localMat[mat.id]?.zebrane ?? mat.zebrane;
+                        const pagVal = localMat[mat.id]?.paginacja ?? mat.paginacja;
+                        return (
+                          <div key={mat.id}
+                            className={`rounded-xl border p-4 transition-all duration-200 ${isZebrane ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 hover:border-amber-200'}`}>
+                            <div className="flex items-start gap-3">
+                              <button onClick={() => toggleZebrane(mat.id)} className="mt-0.5 shrink-0 focus:outline-none">
+                                {isZebrane
+                                  ? <CheckSquare className="w-5 h-5 text-green-600" />
+                                  : <Square className="w-5 h-5 text-slate-400" />}
+                              </button>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-3 mb-1.5">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 mb-0.5">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">#{idx + 1}</span>
+                                      {isZebrane && <span className="text-[9px] font-black uppercase tracking-widest text-green-600">✓ Zebrane</span>}
+                                    </div>
+                                    <p className={`text-sm font-black text-slate-800 leading-snug ${isZebrane ? 'line-through opacity-50' : ''}`}>
+                                      {mat.opis}
+                                    </p>
+                                  </div>
+                                  <div className="shrink-0 text-right">
+                                    <label className="block text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Paginacja</label>
+                                    <input
+                                      type="text"
+                                      value={pagVal}
+                                      onChange={e => setPaginacja(mat.id, e.target.value)}
+                                      placeholder="np. 1–12"
+                                      onClick={e => e.stopPropagation()}
+                                      className="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-300 focus:border-amber-400 text-center bg-white" />
+                                  </div>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed">{mat.wymagania}</p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -615,10 +830,10 @@ function PlanArchiwizacji({ isAdmin }) {
         </div>
       </div>
 
-      {editWpis && (
+      {editTeczka && (
         <EditModal
-          wpis={editWpis}
-          onClose={() => setEditWpis(null)}
+          wpis={editTeczka}
+          onClose={() => setEditTeczka(null)}
           onSave={handleSave}
           saving={saving}
         />
