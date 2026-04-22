@@ -1077,32 +1077,98 @@ export default function MapPage() {
 
       {isInfoModalOpen && selected && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden animate-slide-up border border-slate-200">
-            <div className="bg-slate-50 p-6 border-b border-slate-100 flex justify-between items-center">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden animate-slide-up border border-slate-200 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-slate-900 px-7 pt-7 pb-6 flex justify-between items-start shrink-0">
               <div>
-                <h3 className="text-xl font-black text-slate-800">Procedura</h3>
-                <p className="text-sm text-slate-500 font-bold">Miejscówka: <span className="font-black text-blue-600">{selected.id}</span></p>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-1">CRA System · SSUEW</p>
+                <h3 className="text-2xl font-black text-white leading-tight">Procedura plakatowania</h3>
+                <p className="text-sm text-slate-400 font-bold mt-1">
+                  Tablica <span className="text-blue-400 font-black">{selected.id}</span>
+                  <span className="mx-2 text-slate-600">·</span>
+                  {selected.free > 0
+                    ? <span className="text-emerald-400">{selected.free} {selected.free === 1 ? 'wolne miejsce' : 'wolne miejsca'}</span>
+                    : <span className="text-red-400">Brak wolnych miejsc</span>
+                  }
+                </p>
               </div>
-              <button onClick={() => setIsInfoModalOpen(false)} className="w-8 h-8 rounded-full bg-slate-200 hover:bg-slate-300 flex items-center justify-center text-slate-600 transition font-black">✕</button>
+              <button onClick={() => setIsInfoModalOpen(false)} className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition font-black shrink-0 ml-4">✕</button>
             </div>
-            <div className="p-8 space-y-6">
+
+            {/* Body — scrollable */}
+            <div className="overflow-y-auto flex-1 p-7 space-y-5">
+
+              {/* Integracja CRA ↔ CRED */}
+              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-black flex items-center justify-center shrink-0">1</span>
+                  <h4 className="font-black text-blue-900 text-sm">Złóż podanie przez CRED — to jest Twoja rezerwacja</h4>
+                </div>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  Pozytywnie rozpatrzone podanie o plakatowanie złożone w systemie CRED jest <strong>równoznaczne z rezerwacją miejsca na Kampusie</strong>. Numer znaku z pisma (np. <code className="bg-blue-100 px-1.5 py-0.5 rounded font-mono text-xs">P.PKT.01/01/2026/SSUEW</code>) jest jednocześnie identyfikatorem Twojego slotu w tym systemie — nie musisz rezerwować miejsca osobno.
+                </p>
+              </div>
+
+              {/* Krok 2: przyjdź do biura */}
               <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center font-black">1</div>
+                <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg leading-tight">Spisz Kod ID Tablicy</h4>
-                  <p className="text-sm font-medium text-slate-600 mt-1">Twój docelowy kod to: <code className="bg-slate-100 px-2 py-1 rounded font-bold border border-slate-300 text-slate-800">{selected.id}</code></p>
+                  <h4 className="font-black text-slate-800 text-sm mb-1">Przyjdź do biura SSUEW z plakatem i znakiem CRED</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    Przynieś gotowy plakat do biura Samorządu. Administrator wpisze znak CRED do CRA — system automatycznie zarejestruje lokalizację, zajmie slot i uruchomi cykl przypomnień mailowych.
+                  </p>
                 </div>
               </div>
+
+              {/* Zasady — 2 plakaty na budynek */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">!</span>
+                  <h4 className="font-black text-amber-900 text-sm">Zasady plakatowania na Kampusie UEW</h4>
+                </div>
+                <ul className="space-y-2 text-sm text-amber-900">
+                  <li className="flex gap-2">
+                    <span className="shrink-0 font-black">·</span>
+                    <span>Każda organizacja studencka może mieć <strong>maksymalnie 2 aktywne plakaty na jeden budynek</strong> jednocześnie. Zasada dotyczy wszystkich — Samorząd Studentów SSUEW stosuje ją wobec siebie analogicznie.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="shrink-0 font-black">·</span>
+                    <span>Zasada została uzgodniona z Członkami Zarządów ds. Administracji organizacji studenckich działających na UEW i ma charakter stały.</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="shrink-0 font-black">·</span>
+                    <span>Plakat musi być zgodny ze złożonym podaniem — materiał, format i treść nie mogą odbiegać od zgłoszonego.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Terminowe zdjęcia */}
               <div className="flex gap-4 items-start">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex-shrink-0 flex items-center justify-center font-black">2</div>
+                <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">3</span>
                 <div>
-                  <h4 className="font-bold text-slate-800 text-lg leading-tight">Wizyta w Biurze Zarządu</h4>
-                  <p className="text-sm font-medium text-slate-600 mt-1">Przynieś plakat do biura SSUEW i podaj znak CRED z pisma. Administrator wpisze go do cyfrowej ewidencji i wyzwoli przypomnienia mailowe.</p>
+                  <h4 className="font-black text-slate-800 text-sm mb-1">Zdejmij plakat w terminie i odpowiedz na przypomnienie</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    System automatycznie wysyła przypomnienia mailowe: <strong>2 dni przed terminem</strong> i <strong>w dniu zdjęcia</strong>. Na każde przypomnienie należy odpowiedzieć — jest to potwierdzenie realizacji. Niezdjęcie plakatu w terminie skutkuje eskalacją do Kanclerza UEW i może prowadzić do <strong>zakazu plakatowania</strong> dla organizacji na okres 1 miesiąca.
+                  </p>
                 </div>
               </div>
+
+              {/* Banery — dodatkowe wymagania */}
+              {selected.type === 'baner' && (
+                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-orange-700 mb-2">Dotyczy banerów</p>
+                  <p className="text-sm text-orange-900 leading-relaxed">
+                    Po demontażu baneru wymagane jest <strong>przesłanie zdjęcia pustego miejsca</strong> w odpowiedzi na mailowe wezwanie. Dopiero po otrzymaniu dowodu zdjęciowego status zgody zostaje zamknięty w rejestrze.
+                  </p>
+                </div>
+              )}
+
             </div>
-            <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end">
-              <button onClick={() => setIsInfoModalOpen(false)} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition shadow-lg">Zrozumiałem</button>
+
+            {/* Footer */}
+            <div className="px-7 py-5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pytania: administracja@samorzad.ue.wroc.pl</p>
+              <button onClick={() => setIsInfoModalOpen(false)} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-800 transition shadow-lg">Rozumiem</button>
             </div>
           </div>
         </div>
