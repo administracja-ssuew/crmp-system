@@ -1113,9 +1113,9 @@ export default function MapPage() {
               <div className="flex gap-4 items-start">
                 <span className="w-6 h-6 rounded-full bg-slate-800 text-white text-xs font-black flex items-center justify-center shrink-0 mt-0.5">2</span>
                 <div>
-                  <h4 className="font-black text-slate-800 text-sm mb-1">Przyjdź do biura SSUEW z plakatem i znakiem CRED</h4>
+                  <h4 className="font-black text-slate-800 text-sm mb-1">Przyjdź do biura DNZ z plakatem (pok. 31 A)</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    Przynieś gotowy plakat do biura Samorządu. Administrator wpisze znak CRED do CRA — system automatycznie zarejestruje lokalizację, zajmie slot i uruchomi cykl przypomnień mailowych.
+                    Przynieś gotowy plakat do biura Działu Zarządzania Nieruchomościami UEW. Tam plakty zostną podbitę pieczątką, co umożliwia identyfikację plakatu i dopiero po tym procesie można swobodnie wieszać plakat w miejscach wymienionych w podaniu. 
                   </p>
                 </div>
               </div>
@@ -1129,7 +1129,7 @@ export default function MapPage() {
                 <ul className="space-y-2 text-sm text-amber-900">
                   <li className="flex gap-2">
                     <span className="shrink-0 font-black">·</span>
-                    <span>Każda organizacja studencka może mieć <strong>maksymalnie 2 aktywne plakaty na jeden budynek</strong> jednocześnie. Zasada dotyczy wszystkich — Samorząd Studentów SSUEW stosuje ją wobec siebie analogicznie.</span>
+                    <span>Każda organizacja studencka może mieć <strong>maksymalnie 2 aktywne plakaty na jeden budynek</strong> jednocześnie. Zasada dotyczy wszystkich — Samorząd Studentów UEW stosuje ją wobec siebie analogicznie.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="shrink-0 font-black">·</span>
@@ -1137,7 +1137,7 @@ export default function MapPage() {
                   </li>
                   <li className="flex gap-2">
                     <span className="shrink-0 font-black">·</span>
-                    <span>Plakat musi być zgodny ze złożonym podaniem — materiał, format i treść nie mogą odbiegać od zgłoszonego.</span>
+                    <span>Plakat musi być zgodny ze złożonym podaniem — materiał, ilość i treść dwujęzyczna nie mogą odbiegać od zgłoszonego.</span>
                   </li>
                 </ul>
               </div>
@@ -1148,7 +1148,7 @@ export default function MapPage() {
                 <div>
                   <h4 className="font-black text-slate-800 text-sm mb-1">Zdejmij plakat w terminie i odpowiedz na przypomnienie</h4>
                   <p className="text-sm text-slate-600 leading-relaxed">
-                    System automatycznie wysyła przypomnienia mailowe: <strong>2 dni przed terminem</strong> i <strong>w dniu zdjęcia</strong>. Na każde przypomnienie należy odpowiedzieć — jest to potwierdzenie realizacji. Niezdjęcie plakatu w terminie skutkuje eskalacją do Kanclerza UEW i może prowadzić do <strong>zakazu plakatowania</strong> dla organizacji na okres 1 miesiąca.
+                    System automatycznie wysyła przypomnienia mailowe: <strong>2 dni przed terminem</strong> i <strong>w dniu zdjęcia</strong>. Na każde przypomnienie należy odpowiedzieć — jest to potwierdzenie realizacji. Niezdjęcie plakatu w terminie skutkuje eskalacją do Zastępcy Kanclerza UEW i może prowadzić do <strong>zakazu plakatowania</strong> dla organizacji na okres 1 miesiąca.
                   </p>
                 </div>
               </div>
