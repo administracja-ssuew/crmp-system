@@ -165,25 +165,41 @@ const KLAUZULE = [
     id: 'ogolna',
     tytul: 'Klauzula ogólna — formularz / rejestracja',
     tresc: `Zgodnie z art. 13 RODO informuję, że:
-1. Administratorem Pani/Pana danych jest Samorząd Studentów UEW, ul. Komandorska 118/120, 53-345 Wrocław.
-2. Dane przetwarzane są w celu [CEL] na podstawie art. 6 ust. 1 lit. [LITERA] RODO.
-3. Dane będą przechowywane przez [OKRES].
-4. Odbiorcami danych mogą być dostawcy usług IT na podstawie umów powierzenia.
-5. Przysługuje Pani/Panu prawo: dostępu, sprostowania, usunięcia, ograniczenia, przenoszenia, sprzeciwu i cofnięcia zgody.
-6. Przysługuje Pani/Panu prawo skargi do Prezesa UODO (ul. Stawki 2, 00-193 Warszawa).
-7. Podanie danych jest [dobrowolne / obowiązkowe — uzupełnić].`,
+1. Administratorem Pani/Pana danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą przy ul. Komandorskiej 118/120, 53-345 Wrocław. Obsługę organizacyjną zamówień prowadzi Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.
+2. Kontakt z Inspektorem Ochrony Danych UEW możliwy jest pod adresem: iod@ue.wroc.pl
+3. Dane przetwarzane są w celu [CEL] na podstawie art. 6 ust. 1 lit. [LITERA] RODO.
+4. Zakres przetwarzanych danych obejmuje w szczególności: [KATEGORIE DANYCH].
+5. Podstawą prawną przetwarzania danych jest:
+- np. art. 6 ust. 1 lit. c RODO — wypełnienie obowiązków prawnych związanych z rozliczeniami, jeżeli dotyczy.
+6. Odbiorcami danych mogą być dostawcy usług IT na podstawie umów powierzenia.
+7. Dane będą przechowywane przez [OKRES].
+8. Przysługuje Pani/Panu prawo: dostępu, sprostowania, usunięcia, ograniczenia, przenoszenia, sprzeciwu i cofnięcia zgody.
+9. Prysługuje Pani/Panu prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych (ul. Stawki 2, 00-193 Warszawa).
+10. Podanie danych jest dobrowolne, ale niezbędne do [CEL]. Brak podania danych wymaganych w formularzu uniemożliwi [CEL].
+11. Dane nie będą wykorzystywane do zautomatyzowanego podejmowania decyzji, w tym profilowania.`,
   },
   {
-    id: 'wizerunek',
-    tytul: 'Klauzula wizerunkowa — zgoda na zdjęcia / wideo',
-    tresc: `Zgodnie z art. 13 RODO informuję, że:
-1. Administratorem Pani/Pana danych jest Samorząd Studentów UEW, ul. Komandorska 118/120, 53-345 Wrocław.
-2. Podstawą przetwarzania wizerunku jest art. 6 ust. 1 lit. a RODO — dobrowolna zgoda.
-3. Celem jest dokumentacja działalności i promocja SSUEW w materiałach: [strona www / media społecznościowe / materiały drukowane].
-4. Dane przetwarzane są do momentu wycofania zgody.
-5. Przysługuje Pani/Panu prawo cofnięcia zgody w dowolnym momencie. Kontakt: rodo@samorzad.ue.wroc.pl
-6. Przysługuje Pani/Panu prawo skargi do Prezesa UODO.
-7. Podanie danych jest dobrowolne. Odmowa nie skutkuje żadnymi negatywnymi konsekwencjami.`,
+  id: 'wizerunek',
+  tytul: 'Zgoda na wykorzystanie i rozpowszechnianie wizerunku',
+  tresc: `Zgodnie z art. 13 RODO oraz art. 81 ustawy o prawie autorskim i prawach pokrewnych informujemy, że:
+
+  1. Administratorem Pani/Pana danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą przy ul. Komandorskiej 118/120, 53-345 Wrocław. Obsługę organizacyjną wydarzenia / działania prowadzi Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.
+  2. Kontakt z Inspektorem Ochrony Danych UEW możliwy jest pod adresem: iod@ue.wroc.pl.
+  3. Pani/Pana wizerunek może być utrwalany w formie zdjęć, nagrań wideo lub innych materiałów audiowizualnych podczas wydarzeń, projektów, spotkań lub działań organizowanych albo współorganizowanych przez Samorząd Studentów UEW.
+  4. Celem przetwarzania danych oraz wykorzystania wizerunku jest dokumentowanie działalności Samorządu Studentów UEW, informowanie o jego inicjatywach oraz promocja działalności studenckiej i akademickiej.
+  5. Materiały zawierające wizerunek mogą być publikowane i rozpowszechniane w szczególności:
+    a) na stronie internetowej Samorządu Studentów UEW lub Uniwersytetu Ekonomicznego we Wrocławiu,
+    b) w mediach społecznościowych Samorządu Studentów UEW lub UEW,
+    c) w materiałach promocyjnych, informacyjnych, sprawozdawczych i archiwalnych,
+    d) w prezentacjach, relacjach, fotorelacjach, filmach promocyjnych oraz materiałach drukowanych i elektronicznych.
+  6. Podstawą prawną przetwarzania wizerunku jest art. 6 ust. 1 lit. a RODO, tj. dobrowolna zgoda osoby, której dane dotyczą. Zgoda obejmuje również zgodę na nieodpłatne utrwalanie, wykorzystywanie i rozpowszechnianie wizerunku na podstawie art. 81 ustawy o prawie autorskim i prawach pokrewnych.
+  7. Zgoda jest dobrowolna i może zostać wycofana w dowolnym momencie, bez wpływu na zgodność z prawem przetwarzania oraz rozpowszechniania wizerunku dokonanego przed jej wycofaniem.
+  8. Wycofanie zgody można zgłosić kontaktując się pod adresem: rodo@samorzad.ue.wroc.pl lub iod@ue.wroc.pl.
+  9. Dane będą przetwarzane do momentu wycofania zgody, zakończenia celu promocyjnego, informacyjnego lub archiwalnego albo do czasu ustania potrzeby ich dalszego przechowywania, w zależności od charakteru materiału.
+  10. Odbiorcami danych mogą być osoby upoważnione do obsługi działań Samorządu Studentów UEW, jednostki organizacyjne UEW, dostawcy usług IT, administratorzy platform społecznościowych oraz odbiorcy treści publikowanych w kanałach komunikacji wskazanych powyżej.
+  11. Przysługuje Pani/Panu prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia danych oraz cofnięcia zgody w dowolnym momencie.
+  12. Przysługuje Pani/Panu prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych.
+  13. Podanie zgody jest dobrowolne. Brak zgody nie powoduje negatywnych konsekwencji i nie może stanowić podstawy do odmowy udziału w wydarzeniu lub działaniu, chyba że wykonanie zdjęcia lub nagrania jest niezbędne ze względu na charakter konkretnej aktywności, o czym uczestnik zostanie odrębnie poinformowany.`,
   },
 ];
 
