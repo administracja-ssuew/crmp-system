@@ -96,7 +96,7 @@ export default function EquipmentPage() {
         isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka',
         status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
         condition: item.UWAGI || 'Brak zastrzeżeń',
-        locationPath: item.LOKALIZACJA || 'Magazyn SSUEW',
+        locationPath: item.LOKALIZACJA || 'Magazyn Sprzętowy SSUEW (16b)',
         description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
         value: item['WARTOŚĆ'] || item.WARTOSC || item['Wartość'] || item.WARTOSC_NETTO || null,
         warranty: item.GWARANCJA || item['Gwarancja'] || item['GWARANCJA_DO'] || null,
