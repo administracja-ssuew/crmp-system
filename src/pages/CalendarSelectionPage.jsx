@@ -34,7 +34,6 @@ export default function CalendarSelectionPage() {
 
         </div>
         
-        <Link to="/" className="inline-block mt-12 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-slate-600">← Wróć do panelu</Link>
       </div>
     </div>
   );

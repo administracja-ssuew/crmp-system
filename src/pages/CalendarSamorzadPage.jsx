@@ -43,6 +43,8 @@ export default function CalendarSamorzadPage({ userEmail }) {
   const [isPendingModalOpen, setIsPendingModalOpen] = useState(false);
   const [calendarData, setCalendarData] = useState({ sale: [], przedluzenia: [], pending: [] });
   
+  const [selectedEvent, setSelectedEvent] = useState(null);
+
   const [processingId, setProcessingId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -375,7 +377,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
                                 const textClass = isPending ? 'text-amber-700' : 'text-white';
 
                                 return (
-                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${colorClass} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10 overflow-hidden`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} title={`${ev.title} (${ev.start} - ${ev.end})`}>
+                                  <div key={idx} className={`absolute top-1 bottom-1 rounded-lg ${colorClass} shadow-sm flex items-center justify-center hover:scale-[1.02] z-10 overflow-hidden cursor-pointer`} style={{ left: `${(startH/24)*100}%`, width: `${((endH-startH)/24)*100}%` }} onClick={(e) => { e.stopPropagation(); setSelectedEvent(ev); }}>
                                     {isPending && <div className="absolute inset-0 opacity-20 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,#f59e0b_5px,#f59e0b_10px)] pointer-events-none"></div>}
                                     
                                     {/* NOWOŚĆ: WYRAŹNY NAPIS "W TRAKCIE WERYFIKACJI" */}
@@ -400,6 +402,53 @@ export default function CalendarSamorzadPage({ userEmail }) {
           })
         )}
       </div>
+
+      {selectedEvent && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" onClick={() => setSelectedEvent(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fadeIn" onClick={e => e.stopPropagation()}>
+            <div className={`px-6 pt-6 pb-5 ${selectedEvent.status === 'OCZEKUJE' ? 'bg-amber-50' : 'bg-slate-900'}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  {selectedEvent.status === 'OCZEKUJE' && (
+                    <span className="inline-block text-[9px] font-black uppercase tracking-widest text-amber-700 bg-amber-200 px-2 py-0.5 rounded mb-2">W trakcie weryfikacji</span>
+                  )}
+                  <h3 className={`text-lg font-black leading-snug ${selectedEvent.status === 'OCZEKUJE' ? 'text-amber-900' : 'text-white'}`}>{selectedEvent.title}</h3>
+                  {selectedEvent.org && <p className={`text-sm font-bold mt-0.5 ${selectedEvent.status === 'OCZEKUJE' ? 'text-amber-700' : 'text-slate-400'}`}>{selectedEvent.org}</p>}
+                </div>
+                <button onClick={() => setSelectedEvent(null)} className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black shrink-0 ml-3 ${selectedEvent.status === 'OCZEKUJE' ? 'bg-amber-200 text-amber-800' : 'bg-white/10 text-white hover:bg-white/20'}`}>✕</button>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Data</p>
+                  <p className="text-sm font-black text-slate-800">{selectedEvent.date?.toString().substring(0, 10)}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Godziny</p>
+                  <p className="text-sm font-black text-slate-800">{selectedEvent.start} – {selectedEvent.end}</p>
+                </div>
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Sala</p>
+                  <p className="text-sm font-black text-slate-800">{selectedEvent.room}</p>
+                </div>
+                {selectedEvent.applicantName && (
+                  <div className="bg-slate-50 rounded-xl p-3">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Zgłaszający</p>
+                    <p className="text-sm font-black text-slate-800 truncate">{selectedEvent.applicantName}</p>
+                  </div>
+                )}
+              </div>
+              {selectedEvent.email && (
+                <div className="bg-slate-50 rounded-xl p-3">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Kontakt</p>
+                  <p className="text-sm font-bold text-indigo-600">{selectedEvent.email}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
