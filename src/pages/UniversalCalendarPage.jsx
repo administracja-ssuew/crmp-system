@@ -328,10 +328,9 @@ export default function UniversalCalendarPage() {
                     </div>
                     <div className="min-w-0">
                       {selectedEvent.applicantName && <p className="text-sm font-black text-slate-800 truncate">{selectedEvent.applicantName}</p>}
-                      {selectedEvent.email
-                        ? <a href={`mailto:${selectedEvent.email}`} className="text-sm font-bold text-indigo-600 hover:underline truncate block">{selectedEvent.email}</a>
-                        : <p className="text-sm text-slate-400 italic">Brak adresu e-mail</p>
-                      }
+                      {selectedEvent.email && (
+                        <a href={`mailto:${selectedEvent.email}`} className="text-sm font-bold text-indigo-600 hover:underline truncate block">{selectedEvent.email}</a>
+                      )}
                     </div>
                   </div>
                 ) : (

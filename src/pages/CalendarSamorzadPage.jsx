@@ -170,7 +170,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor })
+        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor, applicantName: req.applicantName || "", email: req.email || "" })
       });
       alert('Zatwierdzono! Wniosek wpisany do oficjalnego kalendarza.');
       setExpandedReq(null); 
@@ -452,10 +452,9 @@ export default function CalendarSamorzadPage({ userEmail }) {
                     </div>
                     <div className="min-w-0">
                       {selectedEvent.applicantName && <p className="text-sm font-black text-slate-800 truncate">{selectedEvent.applicantName}</p>}
-                      {selectedEvent.email
-                        ? <a href={`mailto:${selectedEvent.email}`} className="text-sm font-bold text-indigo-600 hover:underline truncate block">{selectedEvent.email}</a>
-                        : <p className="text-sm text-slate-400 italic">Brak adresu e-mail</p>
-                      }
+                      {selectedEvent.email && (
+                        <a href={`mailto:${selectedEvent.email}`} className="text-sm font-bold text-indigo-600 hover:underline truncate block">{selectedEvent.email}</a>
+                      )}
                     </div>
                   </div>
                 ) : (
