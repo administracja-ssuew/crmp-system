@@ -56,6 +56,8 @@ export default function AccessListPage() {
   const windowOpen = isWindowOpen()
   const [activeTab, setActiveTab] = useState('form')
 
+  useEffect(() => { window.scrollTo(0, 0); }, [])
+
   const [form, setForm] = useState(EMPTY_FORM)
   const [error, setError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)

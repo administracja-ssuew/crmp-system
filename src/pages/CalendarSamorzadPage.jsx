@@ -119,6 +119,21 @@ export default function CalendarSamorzadPage({ userEmail }) {
     if (!bookingForm.title || !bookingForm.date) return setBookingError('Wypełnij wymagane pola.');
     if (bookingForm.start >= bookingForm.end) return setBookingError('Koniec musi być po starcie.');
 
+    {
+      const sel = new Date(bookingForm.date + 'T12:00:00');
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const firstOfSelected = new Date(sel.getFullYear(), sel.getMonth(), 1);
+      const firstOfCurrent  = new Date(today.getFullYear(), today.getMonth(), 1);
+      if (firstOfSelected > firstOfCurrent) {
+        const windowOpen = new Date(firstOfSelected); windowOpen.setDate(windowOpen.getDate() - 7);
+        if (today < windowOpen) {
+          const monthName = sel.toLocaleDateString('pl-PL', { month: 'long' });
+          const windowStr = windowOpen.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+          return setBookingError(`Rezerwacje na ${monthName} można składać dopiero od ${windowStr}.`);
+        }
+      }
+    }
+
     const campusRules = CAMPUS_ROOMS[bookingForm.room];
     if (campusRules) {
       const selectedDate = new Date(bookingForm.date + 'T12:00:00');

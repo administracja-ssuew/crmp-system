@@ -75,7 +75,7 @@ export default function EquipmentPage() {
       if (item.TYP === 'AUD') icon = '🔊';
       if (item.TYP === 'WIZ') icon = '📷';
       if (item.TYP === 'ADM') icon = '🚧';
-      if (item.RODZAJ === 'Apteczka') icon = '🚑';
+      if (item.RODZAJ === 'APT') icon = '🚑';
 
       // Stabilne ID: brak QR-kodu logujemy do konsoli zamiast generować losowy
       const stableId = item.KOD_QR || (() => {
@@ -85,7 +85,7 @@ export default function EquipmentPage() {
 
       // Czyste formatowanie kategorii — bez wiszącego " / " gdy brakuje pola
       const categoryParts = [item.RODZAJ, item.TYP].filter(Boolean);
-      const category = String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka'
+      const category = String(item.RODZAJ || '').trim().toUpperCase() === 'APT'
         ? 'Apteczki'
         : categoryParts.join(' / ') || 'Inne';
 
@@ -93,7 +93,7 @@ export default function EquipmentPage() {
         id: stableId,
         name: item.NAZWA_SPRZĘTU || 'Nieznany sprzęt',
         category,
-        isFirstAid: String(item.RODZAJ || '').trim().toLowerCase() === 'apteczka',
+        isFirstAid: String(item.RODZAJ || '').trim().toUpperCase() === 'APT',
         status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
         condition: item.UWAGI || 'Brak zastrzeżeń',
         locationPath: item.LOKALIZACJA || 'Magazyn Sprzętowy SSUEW (16b)',
@@ -411,6 +411,23 @@ export default function EquipmentPage() {
             <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${selectedCategory === cat ? (cat === 'Apteczki' ? 'bg-rose-600 text-white shadow-rose-200' : 'bg-indigo-600 text-white shadow-indigo-200') : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'}`}>
               {cat}
             </button>
+          ))}
+        </div>
+
+        {/* Legenda kategorii */}
+        <div className="max-w-3xl mx-auto mb-8 grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {[
+            { cat: 'LOG / ADM', desc: 'Sprzęt administracyjny i logistyczny (najazdówki, drabiny, leżaki, akcesoria)', color: 'bg-slate-100 text-slate-600 border-slate-200' },
+            { cat: 'LOG / AUD', desc: 'Sprzęt audio: kolumny, mikrofony, miksery, statywy', color: 'bg-violet-50 text-violet-700 border-violet-200' },
+            { cat: 'LOG / KAB', desc: 'Kable i przedłużacze', color: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+            { cat: 'LOG / OŚW', desc: 'Sprzęt oświetleniowy: reflektory, ledbary, sterowniki', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+            { cat: 'LOG / WIZ', desc: 'Sprzęt wizualny: projektory, ekrany, aparaty, statywy foto', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+            { cat: 'APTECZKI',  desc: 'Apteczki pierwszej pomocy i wyposażenie BHP', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+          ].map(({ cat, desc, color }) => (
+            <div key={cat} className={`rounded-xl border px-3 py-2.5 ${color}`}>
+              <p className="text-[10px] font-black uppercase tracking-widest mb-0.5">{cat}</p>
+              <p className="text-[10px] leading-snug opacity-80">{desc}</p>
+            </div>
           ))}
         </div>
 
