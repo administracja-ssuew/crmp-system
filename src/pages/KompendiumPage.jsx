@@ -63,19 +63,20 @@ const AFTER_ITEMS = [
 ];
 
 // ===================== SZABLONY DOKUMENTÓW =====================
+// ===================== SZABLONY DOKUMENTÓW =====================
 const TEMPLATE_ITEMS = [
-  { id: 't1',  name: 'Protokół SKS',                      driveUrl: 'https://docs.google.com/document/d/1jQCDYvkrSUBu1Vr6m6QghX0wdduFVcEZ/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
-  { id: 't2',  name: 'Protokół RUSS',                     driveUrl: 'https://docs.google.com/document/d/1AH6Nu16V05Rr6V6SZq93003iwxcy9hU0/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
-  { id: 't3',  name: 'Protokół Absolutoryjny',            driveUrl: 'https://docs.google.com/document/d/1h8oJKbXDsppRHjfV9R5uy7klHMFFcK5GBrCaptZihdo/edit?usp=sharing' },
-  { id: 't4',  name: 'Protokół Komisyjny',                driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't5',  name: 'Protokół Projektowy',               driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't6',  name: 'Protokół Roboczy',                  driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't7',  name: 'Protokół KPUE',                     driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't8',  name: 'Lista obecności (SKS)',              driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't9',  name: 'Lista obecności (RUSS)',             driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't10', name: 'Wzór uchwały',                      driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't11', name: 'Wzór wniosku formalnego',           driveUrl: 'TODO: wstaw_link_google_drive' },
-  { id: 't12', name: 'Wzór karty do głosowania',          driveUrl: 'TODO: wstaw_link_google_drive' },
+  { id: 't1',  name: 'Protokół SKS',               note: null,                                  driveUrl: 'https://docs.google.com/document/d/1jQCDYvkrSUBu1Vr6m6QghX0wdduFVcEZ/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't2',  name: 'Protokół RUSS',              note: null,                                  driveUrl: 'https://docs.google.com/document/d/1AH6Nu16V05Rr6V6SZq93003iwxcy9hU0/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't3',  name: 'Protokół Absolutoryjny',     note: null,                                  driveUrl: 'https://docs.google.com/document/d/1h8oJKbXDsppRHjfV9R5uy7klHMFFcK5GBrCaptZihdo/edit?usp=sharing' },
+  { id: 't4',  name: 'Protokół Komisyjny',         note: null,                                  driveUrl: 'https://docs.google.com/document/d/1ZeuzliiYiYc9bJwz9xOmYXltYekXmvRH/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't5',  name: 'Protokół Projektowy',        note: 'na przykładzie projektu KPUE 26',     driveUrl: 'https://docs.google.com/document/d/1XMD3A0Dj2CxUOWVQT0pdpd870wc0K7P2SqXZGR58RI8/edit?usp=sharing' },
+  { id: 't6',  name: 'Protokół Roboczy',           note: null,                                  driveUrl: 'https://docs.google.com/document/d/16uwP0yyl7kHh52C4R0nUd-siFSSmFo9R/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't7',  name: 'Know-how: Protokół KPUE',   note: 'autor: Aleksandra Kopecka',            driveUrl: 'https://drive.google.com/file/d/13ijojUo7Y6Z0eCaC4ew3BnabW9AAak1O/view?usp=sharing' },
+  { id: 't8',  name: 'Lista obecności (SKS)',      note: null,                                  driveUrl: 'https://docs.google.com/document/d/13vPHq1H5gxl_uc-UtdJ4CAi5JRlnsdd4/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't9',  name: 'Lista obecności (RUSS)',     note: null,                                  driveUrl: 'https://docs.google.com/document/d/15O90lMDl3OF1pc3zkYk_wcMcydy_0STg/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't10', name: 'Wzór uchwały',               note: null,                                  driveUrl: 'https://docs.google.com/document/d/1-HunGZqtML675TcU5PReLEuPgIMiOenb/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't11', name: 'Wzór inicjatywy uchwałodawczej', note: null,                              driveUrl: 'https://docs.google.com/document/d/1ecabRy4-mev-M4oY2VkmKzAa84NPKlvR/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
+  { id: 't12', name: 'Wzór karty do głosowania',   note: null,                                  driveUrl: 'https://docs.google.com/document/d/1HbRYcThMefRGbv2qjz-WiIC-Pfur_Wlr/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true' },
 ];
 
 // ===================== ORGANY (Akordeony 1C) =====================
@@ -429,22 +430,42 @@ export default function KompendiumPage() {
     </div>
   );
 
-  const TemplateCard = ({ name, url }) => (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex flex-col items-start gap-3 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-violet-300 transition-all"
-    >
-      <div className="w-10 h-10 bg-violet-100 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-violet-200 transition-colors">
-        <FileText className="w-5 h-5 text-violet-600" />
-      </div>
-      <p className="text-sm font-bold text-slate-800 leading-snug flex-1">{name}</p>
-      <span className="mt-auto inline-flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 text-white text-xs font-black rounded-xl group-hover:bg-violet-700 transition-colors">
-        Otwórz
-      </span>
-    </a>
-  );
+  const TemplateCard = ({ name, note, url }) => {
+    const available = !!url;
+    const Tag = available ? 'a' : 'div';
+    const tagProps = available
+      ? { href: url, target: '_blank', rel: 'noopener noreferrer' }
+      : {};
+    return (
+      <Tag
+        {...tagProps}
+        className={`group flex flex-col h-full bg-white border rounded-2xl p-5 shadow-sm transition-all ${
+          available
+            ? 'border-slate-200 hover:shadow-md hover:border-violet-300 cursor-pointer'
+            : 'border-slate-100 opacity-60 cursor-default'
+        }`}
+      >
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mb-3 transition-colors ${available ? 'bg-violet-100 group-hover:bg-violet-200' : 'bg-slate-100'}`}>
+          <FileText className={`w-5 h-5 ${available ? 'text-violet-600' : 'text-slate-400'}`} />
+        </div>
+        <p className="text-sm font-bold text-slate-800 leading-snug mb-1">{name}</p>
+        {note && (
+          <p className="text-[10px] font-medium text-slate-400 leading-snug mb-2">{note}</p>
+        )}
+        <div className="mt-auto pt-3">
+          {available ? (
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 text-white text-xs font-black rounded-xl group-hover:bg-violet-700 transition-colors">
+              Otwórz
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-slate-100 text-slate-400 text-xs font-black rounded-xl">
+              Wkrótce
+            </span>
+          )}
+        </div>
+      </Tag>
+    );
+  };
 
   // ===================== RENDER =====================
   return (
@@ -1178,10 +1199,9 @@ export default function KompendiumPage() {
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-6">
               <p className="text-sm text-slate-600">Gotowe wzory protokołów, listy obecności i szablony dokumentów — otwierane bezpośrednio w Google Drive.</p>
             </div>
-            {/* TODO: Zastąp wartości driveUrl w tablicy TEMPLATE_ITEMS rzeczywistymi linkami Google Drive */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
               {TEMPLATE_ITEMS.map((t) => (
-                <TemplateCard key={t.id} name={t.name} url={t.driveUrl} />
+                <TemplateCard key={t.id} name={t.name} note={t.note} url={t.driveUrl} />
               ))}
             </div>
           </section>
