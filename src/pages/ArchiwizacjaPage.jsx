@@ -746,7 +746,7 @@ function PlanArchiwizacji({ isAdmin }) {
             Samorząd Studentów UEW
           </p>
           <h1 className="font-black text-white leading-none mb-2" style={{ fontSize: 'clamp(48px, 10vw, 96px)', fontFamily: "'Playfair Display', Georgia, serif", letterSpacing: '-0.02em' }}>
-            Plan Archiwizacji
+            Centralny Plan Archiwizacji
           </h1>
           <div className="flex flex-wrap items-baseline gap-3 mb-8">
             <span className="font-black text-slate-400 text-2xl">{meta.rok}</span>
@@ -953,7 +953,7 @@ function PlanArchiwizacji({ isAdmin }) {
         {/* Footer note */}
         <div className="mt-12 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            Plan Archiwizacji SSUEW · {meta.rok}
+            Centralny Plan Archiwizacji SSUEW · {meta.rok}
           </p>
           <p className="text-[10px] text-slate-400 font-bold">
             Właściciel: {meta.wlasciciel}
@@ -1173,7 +1173,7 @@ export default function ArchiwizacjaPage() {
             {
               id: 'plan',
               icon: Archive,
-              label: 'Plan Archiwizacji',
+              label: 'Centraly Plan Archiwizacji',
               sub: `Teczki i materiały kadencji ${view === 'plan' ? SAMPLE_DATA.meta.rok : '2026/2027'}`,
               accent: 'slate',
             },
