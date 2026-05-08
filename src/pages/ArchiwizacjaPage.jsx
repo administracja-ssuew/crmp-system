@@ -332,7 +332,7 @@ const KAT = {
 };
 
 const SAMPLE_DATA = {
-  meta: { rok: '2025/2026', wlasciciel: 'Członek Zarządu ds. Administracji SSUEW', zatwierdzone: '20.04.2026' },
+  meta: { rok: '2026/2027', wlasciciel: 'Członek Zarządu ds. Administracji SSUEW', zatwierdzone: '20.04.2027' },
   teczki: [
     {
       id: 't1', lp: 1, kategoria: 'A', symbol: 'RUSS.570',
@@ -1174,7 +1174,7 @@ export default function ArchiwizacjaPage() {
               id: 'plan',
               icon: Archive,
               label: 'Plan Archiwizacji',
-              sub: `Teczki i materiały kadencji ${view === 'plan' ? SAMPLE_DATA.meta.rok : '2025/2026'}`,
+              sub: `Teczki i materiały kadencji ${view === 'plan' ? SAMPLE_DATA.meta.rok : '2026/2027'}`,
               accent: 'slate',
             },
           ].map(({ id, icon: Icon, label, sub, accent }) => {
