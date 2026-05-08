@@ -440,6 +440,13 @@ const SAMPLE_DATA = {
   ],
 };
 
+function fmtDate(val) {
+  if (!val) return '';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return String(val);
+  return d.toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Warsaw' });
+}
+
 function StatusBadgePlan({ status }) {
   const s = STATUS[status] || STATUS.PLANOWANE;
   return (
@@ -754,7 +761,7 @@ function PlanArchiwizacji({ isAdmin }) {
             <span className="text-slate-400 text-xs font-bold">{meta.wlasciciel}</span>
             {meta.zatwierdzone && <>
               <span className="text-slate-600 text-xs font-bold">·</span>
-              <span className="text-slate-500 text-xs font-bold">Zatwierdzone {meta.zatwierdzone}</span>
+              <span className="text-slate-500 text-xs font-bold">Zatwierdzone {fmtDate(meta.zatwierdzone)}</span>
             </>}
           </div>
 
