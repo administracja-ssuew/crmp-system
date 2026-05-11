@@ -45,7 +45,7 @@ export const czesci = [
           'Pełna nazwa Samorządu brzmi: **Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu**.',
           'Skrócona nazwa **SSUEW** jest dopuszczalna wyłącznie w treści dokumentów, po uprzednim użyciu pełnej nazwy.',
           'Oficjalna nazwa w języku angielskim: **Student Government of Wroclaw University of Economics and Business** — stosowana wyłącznie w dokumentach dwujęzycznych lub korespondencji zagranicznej.',
-          'Ogólny adres kontaktowy: **administracja@samorzad.ue.wroc.pl**. Adres korespondencyjny: **ul. Komandorska 118/120, 53-345 Wrocław**.',
+          'Ogólny adres kontaktowy: **kontakt@samorzad.ue.wroc.pl**. Adres korespondencyjny: **ul. Komandorska 118/120, 53-345 Wrocław**.',
           'W kwestiach dotyczących znaku graficznego dokumentem nadrzędnym jest **Księga Znaku SSUEW**. Niniejsza Księga określa wyłącznie zasady użycia znaku na dokumentach.',
         ],
       },
