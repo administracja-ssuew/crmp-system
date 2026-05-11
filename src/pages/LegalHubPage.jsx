@@ -43,16 +43,16 @@ const LEGAL_WIKI = [
     term: "Umowa o Dzieło vs Umowa Zlecenie",
     context: "TEDxUEW, Gala Samorządu, Bal UEW — Prelegenci, Fotografowie, DJ, Graficy, Konferansjerzy",
     desc: "Dwa fundamentalnie różne typy umów cywilnoprawnych. Umowa zlecenia (art. 734 KC) zobowiązuje do starannego działania — wynagrodzenie należy się niezależnie od efektu końcowego. Umowa o dzieło (art. 627 KC) zobowiązuje do osiągnięcia konkretnego rezultatu — zamawiający może odmówić zapłaty lub żądać poprawek, jeśli dzieło ma wady.",
-    badExample: "Zawarto z fotografem 'Umowę zlecenie' na wykonanie sesji zdjęciowej z Gali SSUEW. Fotograf dostarczył 30 rozmazanych zdjęć niskiej jakości i żąda pełnego wynagrodzenia.",
+    badExample: "Zawarto z fotografem 'Umowę zlecenie' na wykonanie sesji zdjęciowej z Balu UEW. Fotograf dostarczył 30 rozmazanych zdjęć niskiej jakości i żąda pełnego wynagrodzenia.",
     goodExample: "Zawarto 'Umowę o dzieło' z fotografem, określając przedmiot dzieła: 'minimum 200 zdjęć w rozdzielczości co najmniej 3000px, obrobionych, dostarczonych w ciągu 7 dni od zakończenia wydarzenia'. Przy nienależytym wykonaniu zamawiającemu przysługuje rękojmia.",
-    lawyerAdvice: "Przy umowach z konferansjerami, DJ-ami czy grafikami wykonującymi projekt plakatu — zawsze stosuj umowę o dzieło z precyzyjnie określonym rezultatem. Przy wolontariuszach pełniących dyżury na stoisku (czynność, nie efekt) — umowa zlecenia lub porozumienie wolontariackie. Błędna klasyfikacja może skutkować zakwestionowaniem przez ZUS i koniecznością odprowadzenia zaległych składek wraz z odsetkami."
+    lawyerAdvice: "Przy umowach z konferansjerami, DJ-ami czy grafikami — zawsze stosuj umowę o dzieło z precyzyjnie określonym rezultatem. Przy wolontariuszach pełniących dyżury na stoisku (czynność, nie efekt) — umowa zlecenia lub porozumienie wolontariackie. Błędna klasyfikacja może skutkować zakwestionowaniem przez ZUS i koniecznością odprowadzenia zaległych składek wraz z odsetkami."
   },
   {
     id: 6,
     term: "Majątkowe Prawa Autorskie i Licencja",
     context: "TEDxUEW, Gala SSUEW, Fotografia, Filmy z wydarzeń, Materiały graficzne",
-    desc: "Autorskie prawa majątkowe (art. 17 ustawy o prawie autorskim i prawach pokrewnych) to wyłączne prawo twórcy do korzystania z utworu i rozporządzania nim. Prawa te mogą być przeniesione (na polach eksploatacji) lub objęte licencją. Bez odrębnej klauzuli umownej organizator eventu nie nabywa automatycznie żadnych praw do materiałów stworzonych przez zatrudnionego fotografa czy prelegenta.",
-    badExample: "W umowie z fotografem brak jakiejkolwiek wzmianki o prawach autorskich. Po Gali SSUEW fotograf wyraża sprzeciw wobec opublikowania zdjęć w mediach społecznościowych i żąda dodatkowego wynagrodzenia za 'licencję'.",
+    desc: "Autorskie prawa majątkowe (art. 17 ustawy o prawie autorskim i prawach pokrewnych) to wyłączne prawo twórcy do korzystania z utworu i rozporządzania nim. Prawa te mogą być przeniesione (na polach eksploatacji) lub objęte licencją. Bez odrębnej klauzuli umownej organizator wydarzenia nie nabywa automatycznie żadnych praw do materiałów stworzonych przez zatrudnionego fotografa czy prelegenta.",
+    badExample: "W umowie z fotografem brak jakiejkolwiek wzmianki o prawach autorskich. Po Balu UEW fotograf wyraża sprzeciw wobec opublikowania zdjęć w mediach społecznościowych i żąda dodatkowego wynagrodzenia za 'licencję'.",
     goodExample: "§ X umowy: 'Twórca niniejszym przenosi na Zamawiającego autorskie prawa majątkowe do dzieła na następujących polach eksploatacji: publiczne wyświetlanie, rozpowszechnianie w internecie (w tym mediach społecznościowych), zamieszczenie w materiałach promocyjnych i sprawozdaniach. Przeniesienie praw następuje w ramach wynagrodzenia określonego w § Y.'",
     lawyerAdvice: "Każda umowa o dzieło dotycząca materiałów wizualnych (zdjęcia, filmy, projekty graficzne, prezentacje prelegentów TEDxUEW) MUSI zawierać klauzulę przeniesienia majątkowych praw autorskich lub licencji na wskazanych polach eksploatacji. Uwaga dodatkowa wynikająca z ZR 71/2025: wszelkie materiały z wydarzeń objętych Patronatem Rektora UEW muszą być przekazane do Biura Komunikacji i Promocji wraz z zgodą na ich nieodpłatne wykorzystanie na wszystkich polach eksploatacji z art. 50 PAIPP."
   },
@@ -63,7 +63,7 @@ const LEGAL_WIKI = [
     desc: "Art. 81 ustawy o prawie autorskim i prawach pokrewnych stanowi, że rozpowszechnianie wizerunku osoby fizycznej wymaga jej zezwolenia. Wyjątek stanowią osoby publiczne w związku z pełnioną funkcją lub wizerunek stanowiący jedynie element większej całości (np. tłum na koncercie). Naruszenie prawa do wizerunku może skutkować roszczeniami cywilnymi o zaprzestanie, usunięcie materiałów i zadośćuczynienie.",
     badExample: "Na stronie SSUEW opublikowano zdjęcia z Adapciaka bez uzyskania zgód od uczestników. Jeden z uczestników wniósł żądanie usunięcia swojego wizerunku i zadośćuczynienia.",
     goodExample: "[Checkbox w formularzu rejestracyjnym]: 'Wyrażam zgodę na nieodpłatne fotografowanie/filmowanie mojej osoby podczas Wydarzenia oraz na publikację tych materiałów w mediach społecznościowych i materiałach promocyjnych SSUEW. Zgoda jest dobrowolna i może być cofnięta.'",
-    lawyerAdvice: "Zgoda na wizerunek powinna być oddzielną klauzulą — nie wplatać jej w ogólne 'akceptuję regulamin'. Przy Adapciaku i wyjazdach komisji zbieraj zgody przy rejestracji (checkbox w formularzu). Dla uczestników niepełnoletnich (jeśli organizujesz projekty dla licealistów, np. TWE) wymagana jest zgoda rodzica/opiekuna prawnego. Cofnięcie zgody po publikacji zobowiązuje do usunięcia materiałów."
+    lawyerAdvice: "Zgoda na wizerunek powinna być oddzielną klauzulą — nie wplatać jej w ogólne 'akceptuję regulamin'. Przy Adapciaku i Wyjazdach Komisji zbieraj zgody przy rejestracji (checkbox w formularzu). Dla uczestników niepełnoletnich (np. UEWellcome) wymagana jest zgoda rodzica/opiekuna prawnego. Cofnięcie zgody po publikacji zobowiązuje do usunięcia materiałów."
   },
   {
     id: 8,
@@ -72,14 +72,14 @@ const LEGAL_WIKI = [
     desc: "Wolontariat reguluje ustawa z dnia 24 kwietnia 2003 r. o działalności pożytku publicznego i wolontariacie. Wolontariusz wykonuje świadczenia nieodpłatnie, dobrowolnie i na rzecz organizacji pożytku publicznego. Z wolontariuszem zawiązuje się pisemne porozumienie wolontariackie (przy współpracy dłuższej niż 30 dni — obowiązkowo na piśmie). Organizacja jest zobowiązana do ubezpieczenia wolontariusza od NNW oraz zapewnienia warunków BHP.",
     badExample: "SSUEW organizuje akcję zbiórkową Animalia. Kilkudziesięciu wolontariuszy pracuje bez żadnego porozumienia i bez ubezpieczenia NNW. Jeden z nich ulega wypadkowi przy przenoszeniu materiałów.",
     goodExample: "Przed każdym projektem angażującym wolontariuszy podpisuje się porozumienie wolontariackie z klauzulą o ubezpieczeniu NNW, określające zakres zadań, czas trwania i zasady odpowiedzialności. Porozumienie archiwizuje się zgodnie z JRWA.",
-    lawyerAdvice: "Samorząd Studentów UEW działa w oparciu o struktury Uczelni, dlatego kwestia ubezpieczenia wolontariuszy wymaga każdorazowego uzgodnienia z Działem Administracji UEW. Nie zakładaj automatycznie, że wolontariusze są objęci jakimkolwiek ubezpieczeniem — zweryfikuj to przed projektem. Brak porozumienia wolontariackiego może być zakwalifikowany przez ZUS jako stosunek pracy lub zlecenia i skutkować obowiązkiem odprowadzenia składek."
+    lawyerAdvice: "Samorząd Studentów UEW działa w oparciu o struktury Uczelni, dlatego kwestia ubezpieczenia wolontariuszy wymaga każdorazowego uzgodnienia z Pełnomocnikiem Rektora ds. Ubezpieczeń. Nie zakładaj automatycznie, że wolontariusze są objęci jakimkolwiek ubezpieczeniem — zweryfikuj to przed projektem. Brak porozumienia wolontariackiego może być zakwalifikowany przez ZUS jako stosunek pracy lub zlecenia i skutkować obowiązkiem odprowadzenia składek."
   },
   {
     id: 9,
     term: "Odpowiedzialność Deliktowa vs. Kontraktowa",
     context: "Wypadki na eventach, Szkody w mieniu UEW, Roszczenia uczestników",
     desc: "Dwa reżimy odpowiedzialności cywilnej w polskim prawie. Odpowiedzialność kontraktowa (art. 471 KC) powstaje z niewykonania lub nienależytego wykonania umowy. Odpowiedzialność deliktowa (art. 415 KC) to odpowiedzialność za czyn niedozwolony — może jej dochodzić każda osoba poszkodowana, nawet bez umowy z organizatorem.",
-    badExample: "Regulamin eventu wyłącza 'wszelką odpowiedzialność organizatora'. Uczestnik wywraca się na mokrej podłodze i doznaje urazu. Klauzula wyłączenia odpowiedzialności jest bezskuteczna wobec deliktów.",
+    badExample: "Regulamin wydarzenia wyłącza 'wszelką odpowiedzialność organizatora'. Uczestnik wywraca się na mokrej podłodze i doznaje urazu. Klauzula wyłączenia odpowiedzialności jest bezskuteczna wobec deliktów.",
     goodExample: "Regulamin precyzyjnie odróżnia zobowiązania kontraktowe od sfery deliktowej. Zapewnienie bezpiecznych warunków i dostosowanie terenu do wymagań BHP jest traktowane jako priorytet, a nie opcja.",
     lawyerAdvice: "Całkowite wyłączenie odpowiedzialności za szkody na osobie w regulaminie to klauzula abuzywna — bezskuteczna z mocy prawa. Skuteczna ochrona Uczelni to faktyczne zabezpieczenie terenu, ubezpieczenie OC organizatora oraz prowadzenie dokumentacji zdarzeń. W przypadku poważnego wypadku priorytetem jest niezwłoczne powiadomienie Działu Bezpieczeństwa i Higieny Pracy UEW."
   },
@@ -227,160 +227,344 @@ const RECTOR_ORDERS = [
     contactUnit: 'Sekretariat Prorektora ds. Studenckich i Kształcenia (zapotrzebowania SSUEW) / Dział Logistyki UEW',
     note: 'Zarządzenie Kanclerza nr 5/2025 z dnia 15 grudnia 2025 r., w mocy od 01.01.2026 r. Uchyla ZKA nr 9/2024. Sygnatura: R-CLO-DOP.021.3.5.2025.',
   },
-  {
+{
     id: 'kasacja',
     type: 'Zarządzenie Rektora',
-    number: '[Nr do uzupełnienia]',
-    verified: false,
-    title: 'Powołanie i tryb działania Rektorskiej Komisji Likwidacyjno-Kasacyjnej (RKLiK)',
-    relevance: 'Wykreślanie wyposażenia z Księgi Inwentarzowej SSUEW — kasacja sprzętu zniszczonego, przestarzałego lub skradzionego',
+    number: 'ZR nr 24/2026 (od 26.02.2026)',
+    verified: true,
+    title: 'Powołanie Rektorskiej Komisji Likwidacyjno-Kasacyjnej składników rzeczowych majątku ruchomego i wartości niematerialnych i prawnych w UEW',
+    relevance: 'Kasacja sprzętu SSUEW — wykreślenie zużytego, zniszczonego lub zbędnego mienia z Księgi Inwentarzowej Uczelni',
     keyPoints: [
-      'Komisja Likwidacyjno-Kasacyjna jest organem kolegialnym powoływanym przez Rektora, upoważnionym do wydania decyzji o kasacji (trwałym wykreśleniu) składnika majątkowego Uczelni.',
-      'Samorząd Studentów inicjuje procedurę kasacji poprzez złożenie wniosku do Kwestury UEW, wskazując numer inwentarzowy, opis stanu technicznego oraz uzasadnienie konieczności kasacji.',
-      'Komisja wizualnie ocenia stan sprzętu i wydaje Protokół Kasacyjny — jest to dokument źródłowy dla wykreślenia pozycji z Księgi Inwentarzowej.',
-      'Po wydaniu protokołu przedmiot trafia do utylizacji zgodnej z przepisami (np. sprzęt elektroniczny — certyfikowany recykling WEEE) lub może zostać przekazany innej jednostce. Bez protokołu RKLiK wykreślenie z Księgi Inwentarzowej jest nieważne.',
+      'Regulamin Komisji (załącznik do ZR 24/2026) wprost obejmuje mienie powierzone Samorządowi Studenckiemu (§ 1 ust. 2). SSUEW inicjuje procedurę, wysyłając zgłoszenie na adres klk1@ue.wroc.pl — wzór zgłoszenia: Załącznik nr 1 do Regulaminu. Zgłoszenie musi zawierać: nr pola spisowego, pełną nazwę jednostki, imię i nazwisko osoby odpowiedzialnej materialnie, listę numerów inwentarzowych oraz powód likwidacji każdego składnika.',
+      'KLK (skład: Maciej Olejasz — przewodniczący, Krzysztof Malec — z-ca, Martyna Kunik, Jarosław Guz, Jan Trudzik) weryfikuje zasadność i sporządza Wniosek (Załącznik nr 2). Wniosek podpisuje osoba odpowiedzialna materialnie po stronie SSUEW, a następnie akceptuje go Kwestor i Kanclerz UEW.',
+      'Po akceptacji wniosku KLK fizycznie odbiera mienie i sporządza Protokół Kasacyjny (Załącznik nr 3) — w trzech egzemplarzach: dla Działu Księgowości Majątkowej, dla osoby odpowiedzialnej materialnie i do dokumentacji KLK. Protokół jest podstawą wyksięgowania składnika z ewidencji.',
+      'Jeśli sprzęt jest zbędny dla SSUEW, ale niezniszczony i nadający się do użycia — KLK może go przekazać innej jednostce UEW na podstawie dokumentu ZMU (Zmiana Miejsca Użytkowania), zamiast kasować. Warto to sprawdzić przed złożeniem zgłoszenia likwidacyjnego.',
+      'Likwidacja fizyczna odbywa się w składzie co najmniej trzyosobowym KLK, zgodnie z ustawą o odpadach z 14.12.2012 r. — sprzęt elektroniczny obligatoryjnie przez certyfikowany recykling (dyrektywa WEEE).',
     ],
-    warning: 'Fizyczne zniszczenie lub wyrzucenie sprzętu figurującego w Księdze Inwentarzowej bez protokołu kasacyjnego stanowi naruszenie dyscypliny finansów publicznych.',
-    contactUnit: 'Kwestura UEW — Sekcja ds. Majątku',
-    note: 'Numer zarządzenia do weryfikacji w BIP UEW lub Sekretariacie Rektora. Procedurę kasacyjną należy inicjować przed fizycznym usunięciem przedmiotu.',
+    warning: 'Fizyczne zniszczenie lub wyrzucenie sprzętu figurującego w Księdze Inwentarzowej UEW bez protokołu KLK stanowi naruszenie dyscypliny finansów publicznych i może skutkować odpowiedzialnością osoby materialnie odpowiedzialnej za mienie. Procedurę kasacyjną należy bezwzględnie inicjować przed jakimkolwiek usunięciem przedmiotu.',
+    contactUnit: 'KLK — zgłoszenia na klk1@ue.wroc.pl / Dział Księgowości Majątkowej UEW (nadzór: Kanclerz)',
+    note: 'Sygnatura: R-CLO-DOP.021.1.24.2026. Zarządzenie uchyla ZR 102/2021 i ZR 213/2022. Wzory druków: Załącznik nr 1 (zgłoszenie), Załącznik nr 2 (wniosek do akceptacji), Załącznik nr 3 (protokół kasacyjny).',
   },
   {
-    id: 'zakupy',
-    type: 'Pismo Okólne Kwestora',
-    number: '[Nr do uzupełnienia]',
-    verified: false,
-    title: 'Zasady dokonywania zakupów ze środków Uczelni — tryb zamówień do progu bagatelności',
-    relevance: 'Zakup sprzętu, materiałów promocyjnych, usług cateringowych na projekty SSUEW finansowane z budżetu Uczelni',
-    keyPoints: [
-      'Zakupy do kwoty progu bagatelności (aktualnie 130 000 PLN netto) mogą być dokonywane bez stosowania ustawy Prawo zamówień publicznych, jednak wciąż obowiązuje zasada gospodarności.',
-      'Wymagane są co najmniej trzy oferty cenowe (rozeznanie rynku) dla zakupów przekraczających próg wewnętrzny Uczelni — skonsultuj aktualny próg z Kwesturą.',
-      'Faktura musi być wystawiona na Uniwersytet Ekonomiczny we Wrocławiu z podaniem centrum kosztów lub projektu. Faktury wystawione na osobę prywatną lub SSUEW bez NIP Uczelni nie mogą być zaksięgowane.',
-      'Zakup nie może nastąpić przed uzyskaniem stosownej akceptacji — faktury za wydatki dokonane bez uprzedniej zgody mogą nie zostać zatwierdzone do zapłaty.',
-    ],
-    warning: 'Naruszenie zasad zamówień publicznych, w tym celowe dzielenie zamówień w celu ominięcia progów, jest przestępstwem z art. 231 KK (nadużycie uprawnień).',
-    contactUnit: 'Kwestura UEW — Dział Finansowy',
-    note: 'Numer pisma okólnego do weryfikacji. Każdy projekt SSUEW z budżetem Uczelni powinien mieć przydzielony numer centrum kosztów — ustal go z opiekunem Samorządu przed pierwszym zakupem.',
-  },
-  {
-    id: 'imprezy',
+    id: 'teren',
     type: 'Zarządzenie Rektora',
-    number: '[Nr do uzupełnienia]',
-    verified: false,
-    title: 'Organizacja imprez i wydarzeń na terenie Uczelni — zasady udzielania zgody i odpowiedzialności',
-    relevance: 'Każde wydarzenie organizowane w obiektach UEW: sale, aule, korytarze, teren kampusu — dotyczy m.in. Gali SSUEW, Wigilii, GradUEtion, eventów komisji',
+    number: 'ZR nr 10/2026 (od 16.02.2026)',
+    verified: true,
+    title: 'Regulamin terenu Uniwersytetu Ekonomicznego we Wrocławiu',
+    relevance: 'Organizacja każdego wydarzenia na kampusie UEW — eventy plenerowe, nagłośnienie, drony, działalność reklamowa, catering, sprzęt i bezpieczeństwo uczestników',
     keyPoints: [
-      'Organizacja każdego wydarzenia na terenie UEW wymaga pisemnej zgody właściwego Prorektora lub Dziekana — wniosek powinien wpłynąć minimum 14 dni przed planowaną datą.',
-      'Wniosek powinien zawierać: tytuł i charakter wydarzenia, szacunkową liczbę uczestników, plan rozmieszczenia, informacje o nagłośnieniu i oświetleniu, deklarację sprzątania po evencie.',
-      'Organizator odpowiada za stan pomieszczeń po zakończeniu. Wszelkie uszkodzenia infrastruktury obciążają organizującą jednostkę.',
-      'Przy imprezach z alkoholem wymagana jest odrębna zgoda i każdorazowe stosowanie przepisów ustawy o wychowaniu w trzeźwości.',
+      'Teren UEW jest obszarem autonomicznym w rozumieniu ustawy PSW. Zgody Kanclerza lub jego zastępcy wymaga każdorazowo: (1) użycie sprzętu nagłaśniającego na terenie Uczelni, (2) użycie dronów i modeli statków powietrznych, (3) prowadzenie działalności handlowej, usługowej, reklamowej, gastronomicznej lub akwizycyjnej przez podmioty trzecie.',
+      'Na terenie UEW obowiązuje bezwzględny zakaz: spożywania alkoholu i zażywania środków odurzających, używania materiałów pirotechnicznych i substancji chemicznych, wyprowadzania psów, niszczenia mienia i roślinności, parkowania na drogach pożarowych oraz wjazdu pojazdów na piesze ciągi komunikacyjne (wyjątek: zgoda Kanclerza). Prędkość pojazdów ograniczona do 20 km/h.',
+      'Teren Uczelni objęty jest całodobowym monitoringiem wizyjnym. Klauzula informacyjna RODO dla monitoringu dostępna jest na portierniach obiektów Uczelni — nie w dokumentach SSUEW.',
+      'Uczelnia nie ponosi odpowiedzialności za szkody na terenie, chyba że co innego wynika z przepisów powszechnie obowiązujących (§ 2 ust. 7 Regulaminu). Korzystający odpowiada za szkody, które wyrządzi. Osoby niepełnoletnie niebędące studentami przebywają na terenie UEW wyłącznie pod nadzorem przedstawiciela ustawowego lub opiekuna.',
+      'Służba ochrony uprawniona jest do: legitymowania osób w celu ustalenia tożsamości, wzywania do opuszczenia terenu Uczelni oraz — w przypadku bezpośredniego zagrożenia życia lub zdrowia — ujęcia osób i przekazania służbom państwowym. W nagłych sytuacjach: 112 oraz służba ochrony: 608 364 205 / 608 364 224. Portiernia Główna (całodobowa): 71 36 80 110.',
     ],
-    warning: 'Brak zgody na organizację imprezy może skutkować jej przerwaniem przez Ochronę UEW oraz odpowiedzialnością dyscyplinarną organizatorów. Każdy lokal/sala ma własny limit pojemności określony przez Straż Pożarną — jego przekroczenie jest naruszeniem przepisów ochrony przeciwpożarowej.',
-    contactUnit: 'Biuro Prorektora ds. Studenckich / Administracja właściwego obiektu',
-    note: 'Numer zarządzenia do weryfikacji w BIP UEW. Przy rezerwacji sali na wydarzenie zewnętrzne (z udziałem osób spoza UEW) może być wymagana odrębna zgoda Kanclerza.',
-  },
-  {
-    id: 'sale',
-    type: 'Pismo Okólne Kanclerza',
-    number: '[Nr do uzupełnienia]',
-    verified: false,
-    title: 'Zasady udostępniania sal i przestrzeni Uczelni podmiotom zewnętrznym i organizacjom studenckim',
-    relevance: 'Rezerwacje sal na potrzeby SSUEW — spotkania komisji, próby, szkolenia, warsztaty projektowe',
-    keyPoints: [
-      'Organizacje studenckie działające przy UEW korzystają z sal co do zasady nieodpłatnie, z pierwszeństwem dla działalności dydaktycznej.',
-      'Rezerwacji dokonuje się przez wyznaczony system — skontaktuj się z Biurem Obsługi Studenta lub Administracją właściwego budynku.',
-      'Sala powinna być zwrócona w stanie niepogorszonym — meble ustawione standardowo, sprzęt nagłośnieniowy odłączony, śmieci wyniesione.',
-      'W przypadku uszkodzenia wyposażenia sali organizacja studencka ponosi pełną odpowiedzialność materialną.',
-    ],
-    warning: 'Rezerwacja sali drogą nieformalną (np. tylko SMS do konserwatora) nie jest podstawą prawną do jej zajęcia — w przypadku konfliktu pierwszeństwo ma działalność dydaktyczna.',
-    contactUnit: 'Biuro Obsługi Studenta / Administracja właściwego budynku',
-    note: 'Numer pisma okólnego do weryfikacji. Przy rezerwacji sali na wydarzenie zewnętrzne (z udziałem osób spoza UEW) może być wymagana odrębna zgoda Kanclerza oraz opłata za najem.',
+    warning: 'Organizacja eventu na terenie UEW z użyciem nagłośnienia lub dronów bez pisemnej zgody Kanclerza stanowi naruszenie Regulaminu terenu i może skutkować przerwaniem wydarzenia przez służbę ochrony. Podmioty zewnętrzne (np. cateringowe, reklamowe) działające na kampusie bez umowy z Uczelnią lub zgody Kanclerza naruszają §2 ust. 3 Regulaminu.',
+    contactUnit: 'Kanclerz UEW / Zastępca Kanclerza ds. Technicznych / Służba ochrony: 608 364 205',
+    note: 'Sygnatura: R-CLO-DOP.021.1.10.2026. Zarządzenie w mocy od 16.02.2026 r., podpisane przez Rektora prof. dr hab. Czesława Zająca. Pełna treść Regulaminu dostępna na wszystkich portierniach obiektów UEW.',
   },
 ];
 
 const TEMPLATES_DATA = {
   TRIP_TEMPLATE: {
-    title: "WZÓR: REGULAMIN WYJAZDU SZKOLENIOWO-INTEGRACYJNEGO",
-    intro: "Niniejszy dokument jest wzorcem regulaminowym dla wyjazdów komisji SSUEW (LWK, WWK, JWK). Został skonstruowany zgodnie z zasadami profesjonalnej techniki prawodawczej — regulamin jest w istocie umową cywilnoprawną (umową adhezyjną) zawieraną pomiędzy Organizatorem a Uczestnikiem. Przed każdą edycją uzupełnij pola oznaczone nawiasami kwadratowymi. Pod każdym paragrafem znajdziesz komentarz wyjaśniający znaczenie konkretnych sformułowań.",
+    title: "REGULAMIN WYJAZDU SZKOLENIOWO-INTEGRACYJNEGO",
+    subtitle: "„[NAZWA WYJAZDU]”",
+    intro: "Niniejszy dokument jest wzorcem regulaminowym dla wyjazdów szkoleniowo-integracyjnych komisji SSUEW (LWK, WWK, JWK). Przed każdą edycją uzupełnij pola oznaczone nawiasami kwadratowymi — są to miejsca wymagające wpisania konkretnych danych dla danej edycji. Pod każdym paragrafem dostępny jest komentarz wyjaśniający znaczenie poszczególnych zapisów i ich podstawy prawne.",
     sections: [
       {
         id: "sec-1",
-        title: "§ 1. Przepisy ogólne i słowniczek pojęć",
+        title: "§ 1. Postanowienia ogólne",
         content: [
-          "Niniejszy Regulamin stanowi wzorzec umowny w rozumieniu art. 384 ustawy z dnia 23 kwietnia 1964 r. – Kodeks cywilny i określa wiążące warunki udziału, prawa i obowiązki stron oraz zasady odpowiedzialności odszkodowawczej w ramach Wydarzenia.",
-          "Ilekroć w tekście niniejszego Regulaminu stosuje się poniższe pojęcia pisane wielką literą, należy przez nie rozumieć:",
-          "a) Regulamin – niniejszy akt normatywny o charakterze wewnętrznym;",
-          "b) Wydarzenie – zorganizowany wyjazd szkoleniowo-integracyjny pod nazwą „[Letni / Wiosenny / Jesienny] Wyjazd Komisji [Rok]”, realizowany w terminie od [Data] do [Data] na terenie obiektu [Nazwa Ośrodka, adres];",
-          "c) Organizator – Uniwersytet Ekonomiczny we Wrocławiu, w imieniu i na rzecz którego działania operacyjne podejmuje Samorząd Studentów UEW;",
-          "d) Uczestnik – osobę fizyczną, która kumulatywnie spełniła przesłanki określone w § 2 niniejszego Regulaminu i wobec której Organizator potwierdził wpis na listę uczestników."
+          "1. Niniejszy Regulamin określa zasady udziału w wyjeździe szkoleniowo-integracyjnym pod nazwą „[nazwa wydarzenia]”, organizowanym w terminie od [data] do [data] w [nazwa i adres obiektu], zwanym dalej „Wydarzeniem”.",
+          "2. Wydarzenie jest realizowane w ramach działalności Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu, zwanego dalej „SSUEW”, prowadzonej na rzecz społeczności studenckiej Uniwersytetu Ekonomicznego we Wrocławiu.",
+          "3. Organizatorem Wydarzenia jest Uniwersytet Ekonomiczny we Wrocławiu, zwany dalej „Uczelnią” albo „Organizatorem”, przy czym czynności organizacyjne związane z przygotowaniem i przeprowadzeniem Wydarzenia wykonuje SSUEW, w zakresie wynikającym z regulacji wewnętrznych Uczelni i Samorządu Studentów.",
+          "4. Udział w Wydarzeniu jest dobrowolny i wymaga uprzedniego zaakceptowania niniejszego Regulaminu.",
+          "5. Regulamin jest udostępniany kandydatom na uczestników przed dokonaniem zgłoszenia udziału w Wydarzeniu.",
+          "6. Ilekroć w Regulaminie jest mowa o:",
+          "1) Regulaminie – należy przez to rozumieć niniejszy regulamin Wydarzenia;",
+          "2) Wydarzeniu – należy przez to rozumieć wyjazd szkoleniowo-integracyjny, o którym mowa w ust. 1;",
+          "3) Organizatorze – należy przez to rozumieć Uniwersytet Ekonomiczny we Wrocławiu;",
+          "4) SSUEW – należy przez to rozumieć Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu;",
+          "5) Uczestniku – należy przez to rozumieć osobę zakwalifikowaną do udziału w Wydarzeniu, która spełniła warunki określone w Regulaminie;",
+          "6) Terenie Wydarzenia – należy przez to rozumieć obiekt, miejsce zakwaterowania, miejsca realizacji programu oraz inne przestrzenie wykorzystywane w związku z Wydarzeniem;",
+          "7) Kadrze Organizacyjnej – należy przez to rozumieć osoby wskazane przez SSUEW do bieżącej koordynacji Wydarzenia."
         ],
-        commentary: "Wskazanie art. 384 Kodeksu cywilnego informuje, że ten dokument to 'wzorzec umowy' narzucony przez jedną ze stron. Definicje legalne tworzą zamknięty katalog pojęć. Słowo 'kumulatywnie' oznacza, że trzeba spełnić WSZYSTKIE warunki naraz. Organizatorem jest zawsze UEW — SSUEW nie posiada osobowości prawnej i nie może być stroną umowy we własnym imieniu."
+        commentary: [
+          "Ten paragraf wynika przede wszystkim z konstrukcji wzorca umownego z art. 384 Kodeksu cywilnego. Regulamin wydarzenia działa jak wzorzec umowy: wiąże uczestnika wtedy, gdy został mu doręczony albo udostępniony przed zawarciem umowy udziału w wydarzeniu. Dlatego w treści paragrafu wskazano, że Regulamin musi być udostępniony kandydatom przed dokonaniem zgłoszenia i akceptacją warunków udziału.",
+          "Wskazanie Uniwersytetu Ekonomicznego we Wrocławiu jako Organizatora wynika z tego, że to Uczelnia posiada osobowość prawną i może być stroną stosunków cywilnoprawnych. Samorząd Studencki działa natomiast w ramach uczelni na podstawie ustawy Prawo o szkolnictwie wyższym i nauce. Art. 110 PSWiN stanowi, że studenci tworzą samorząd studencki, który działa przez swoje organy i jest reprezentantem ogółu studentów uczelni, ale nie oznacza to automatycznie odrębnej osobowości prawnej samorządu.",
+          "Definicje pojęć w ust. 6 mają znaczenie porządkujące. Ograniczają ryzyko sporu interpretacyjnego, np. czy „Organizator” oznacza Uczelnię, SSUEW, konkretną komisję czy koordynatora projektu."
+        ]
       },
       {
         id: "sec-2",
-        title: "§ 2. Kryteria kwalifikacyjne i tryb naboru",
+        title: "§ 2. Warunki udziału i kwalifikacja uczestników",
         content: [
-          "1. Prawo skutecznego ubiegania się o status Uczestnika przysługuje wyłącznie osobie fizycznej, która w dacie złożenia oświadczenia woli o udziale w Wydarzeniu spełnia łącznie następujące przesłanki:",
-          "a) posiada pełną zdolność do czynności prawnych oraz ukończyła 18. rok życia;",
-          "b) posiada aktywny status studenta Uniwersytetu Ekonomicznego we Wrocławiu;",
-          "c) jest zrzeszona w strukturach Komisji Samorządu Studentów.",
-          "2. Organizator zastrzega sobie prawo weryfikacji przesłanek, o których mowa w ust. 1.",
-          "3. Dopuszcza się partycypację w Wydarzeniu osób posiadających status Alumna Samorządu Studentów UEW. W stosunku do podmiotów określonych w zdaniu poprzedzającym przesłanka wskazana w ust. 1 lit. b nie znajduje zastosowania.",
-          "4. Zawarcie umowy o udział w Wydarzeniu następuje z chwilą kumulatywnego: prawidłowego wypełnienia formularza rejestracyjnego oraz uiszczenia świadczenia pieniężnego, o którym mowa w § 3 ust. 1."
+          "1. Uczestnikiem Wydarzenia może być osoba, która łącznie:",
+          "a) ukończyła 18 lat najpóźniej w dniu rozpoczęcia Wydarzenia;",
+          "b) posiada pełną zdolność do czynności prawnych;",
+          "c) posiada aktywny status studenta Uniwersytetu Ekonomicznego we Wrocławiu;",
+          "d) jest członkiem albo osobą współpracującą z komisją, jednostką lub projektem SSUEW, którego dotyczy Wydarzenie;",
+          "e) prawidłowo wypełniła formularz zgłoszeniowy;",
+          "f) zaakceptowała Regulamin;",
+          "g) uiściła opłatę udziałową, o ile została przewidziana.",
+          "2. Organizator może dopuścić do udziału w Wydarzeniu osoby nieposiadające aktywnego statusu studenta UEW, w szczególności alumnów SSUEW, jeżeli jest to uzasadnione charakterem Wydarzenia, programem szkoleniowym albo potrzebami organizacyjnymi.",
+          "3. Dopuszczenie osób, o których mowa w ust. 2, wymaga każdorazowo wyraźnej decyzji Organizatora albo osoby odpowiedzialnej za organizację Wydarzenia z ramienia SSUEW.",
+          "4. Samo wypełnienie formularza zgłoszeniowego nie gwarantuje udziału w Wydarzeniu.",
+          "5. Organizator może odmówić zakwalifikowania osoby do udziału w Wydarzeniu, jeżeli:",
+          "a) liczba miejsc została wyczerpana;",
+          "b) osoba nie spełnia warunków udziału;",
+          "c) formularz zgłoszeniowy zawiera braki lub nieprawdziwe dane;",
+          "d) udział danej osoby mógłby istotnie utrudnić bezpieczną lub prawidłową realizację Wydarzenia;",
+          "e) wobec danej osoby występują uzasadnione zastrzeżenia wynikające z wcześniejszego rażącego naruszenia regulaminów wydarzeń SSUEW lub Uczelni.",
+          "6. Zawarcie umowy udziału w Wydarzeniu następuje z chwilą potwierdzenia przez Organizatora zakwalifikowania osoby do udziału w Wydarzeniu oraz spełnienia przez nią warunków wskazanych w ust. 1."
         ],
-        commentary: "Zamiast 'musisz mieć 18 lat i być studentem' używamy pojęcia 'zdolności do czynności prawnych' i 'skutecznego złożenia oświadczenia woli'. Określenie momentu 'zawarcia umowy' (ust. 4) jest kluczowe — od tego momentu obie strony są związane regulaminem. Klauzula o Alumna (ust. 3) pozwala zaprosić byłych działaczy bez potrzeby tworzenia odrębnego dokumentu."
+        commentary: [
+          "Ten paragraf opiera się na zasadzie swobody kształtowania stosunku cywilnoprawnego, wynikającej z Kodeksu cywilnego, w szczególności z konstrukcji umowy i wzorca umownego. Organizator może określić warunki udziału w wydarzeniu, o ile nie są sprzeczne z ustawą, zasadami współżycia społecznego ani naturą danego stosunku prawnego.",
+          "Wymóg ukończenia 18 lat i posiadania pełnej zdolności do czynności prawnych ma znaczenie cywilnoprawne. Uczestnik akceptuje Regulamin, może ponosić odpowiedzialność za szkody, składa oświadczenia i zobowiązuje się do określonego zachowania. W przypadku osób niepełnoletnich konieczne byłyby dodatkowe zgody przedstawicieli ustawowych, co istotnie komplikuje organizację wyjazdu.",
+          "Warunek posiadania statusu studenta UEW wynika z charakteru wydarzenia jako działania Samorządu Studentów. Art. 110 PSWiN wiąże samorząd studencki ze wspólnotą studentów danej uczelni, dlatego podstawową grupą adresatów powinny być osoby należące do tej wspólnoty.",
+          "Zapis o alumnach ma charakter wyjątku organizacyjnego. Nie tworzy generalnego prawa byłych działaczy do udziału w wydarzeniu, tylko pozwala Organizatorowi dopuścić ich wtedy, gdy jest to uzasadnione programem, szkoleniem, mentoringiem albo potrzebami organizacyjnymi."
+        ]
       },
       {
         id: "sec-3",
-        title: "§ 3. Świadczenia pieniężne i warunki odstąpienia od umowy",
+        title: "§ 3. Opłata udziałowa i zasady rezygnacji",
         content: [
-          "1. Z tytułu udziału w Wydarzeniu Uczestnik zobowiązuje się do uiszczenia na rzecz Organizatora świadczenia pieniężnego w zryczałtowanej kwocie [Kwota] PLN tytułem zadatku, w rozumieniu art. 394 Kodeksu cywilnego. Świadczenie uważa się za spełnione z chwilą uznania rachunku bankowego Organizatora o numerze: [Numer konta].",
-          "2. Świadczenie, o którym mowa w ust. 1, wyczerpuje roszczenia Organizatora z tytułu kosztów zakwaterowania, wyżywienia oraz programu merytorycznego. Organizator nie zapewnia ochrony ubezpieczeniowej z tytułu odpowiedzialności cywilnej (OC) ani następstw nieszczęśliwych wypadków (NNW).",
-          "3. W przypadku opuszczenia Terenu Wydarzenia przed upływem terminu jego zakończenia z przyczyn nieleżących po stronie Organizatora, Uczestnikowi nie przysługuje roszczenie o zwrot uiszczonego świadczenia w całości ani w części.",
-          "4. Uczestnikowi przysługuje prawo odstąpienia od umowy bez podawania przyczyny, pod warunkiem złożenia stosownego oświadczenia w formie dokumentowej (wiadomość e-mail) nie później niż na [Liczba np. 14] dni przed datą rozpoczęcia Wydarzenia. Niezachowanie wskazanego terminu skutkuje bezwarunkowym przepadkiem uiszczonego zadatku na rzecz Organizatora z tytułu poniesionych kosztów organizacyjnych."
+          "1. Udział w Wydarzeniu wiąże się z obowiązkiem uiszczenia opłaty udziałowej w wysokości [kwota] zł, chyba że Organizator postanowi inaczej.",
+          "2. Opłatę należy uiścić na rachunek bankowy wskazany przez Organizatora, w terminie określonym w informacji organizacyjnej.",
+          "3. Za dzień zapłaty uznaje się dzień uznania rachunku bankowego Organizatora.",
+          "4. Opłata udziałowa przeznaczona jest na pokrycie kosztów organizacji Wydarzenia, w szczególności kosztów zakwaterowania, wyżywienia, transportu, materiałów organizacyjnych, programu szkoleniowego lub innych kosztów bezpośrednio związanych z realizacją Wydarzenia.",
+          "5. Uczestnik może zrezygnować z udziału w Wydarzeniu poprzez złożenie oświadczenia w formie dokumentowej, w szczególności za pośrednictwem wiadomości e-mail wysłanej na adres: [adres e-mail].",
+          "6. W przypadku rezygnacji:",
+          "1) nie później niż [np. 14] dni przed rozpoczęciem Wydarzenia – Uczestnikowi przysługuje zwrot opłaty udziałowej, z wyłączeniem kosztów już poniesionych przez Organizatora, których nie można odzyskać;",
+          "2) po terminie wskazanym w pkt 1 – zwrot opłaty udziałowej może zostać ograniczony do części, która nie została jeszcze wydatkowana albo którą Organizator może odzyskać;",
+          "3) w przypadku niestawienia się Uczestnika na Wydarzeniu bez wcześniejszej rezygnacji – opłata udziałowa nie podlega zwrotowi, chyba że Organizator postanowi inaczej w szczególnie uzasadnionym przypadku.",
+          "7. Organizator może dopuścić wskazanie osoby zastępującej Uczestnika, który rezygnuje z udziału, jeżeli:",
+          "a) osoba zastępująca spełnia warunki udziału;",
+          "b) zmiana nie powoduje dodatkowych kosztów lub utrudnień organizacyjnych;",
+          "c) zmiana nastąpiła w terminie umożliwiającym prawidłową aktualizację dokumentacji Wydarzenia.",
+          "8. W przypadku odwołania Wydarzenia przez Organizatora Uczestnikowi przysługuje zwrot uiszczonej opłaty udziałowej, z zastrzeżeniem sytuacji, w których przepisy prawa albo warunki rozliczenia kosztów stanowią inaczej.",
+          "9. Organizator nie ponosi odpowiedzialności za indywidualne koszty poniesione przez Uczestnika niezależnie od Organizatora, w szczególności koszty prywatnego dojazdu, zakupów własnych lub prywatnych rezerwacji, chyba że obowiązek ich zwrotu wynika z bezwzględnie obowiązujących przepisów prawa."
         ],
-        commentary: "Słowo 'zadatek' (nie 'zaliczka'!) jest tu absolutnie kluczowe. Zadatek chroni budżet projektu: jeśli uczestnik rezygnuje z własnej winy, wpłacone środki przepadają na rzecz Organizatora. Gdyby napisać 'zaliczka', istniałby bezwarunkowy obowiązek zwrotu. Zapis o dacie 'uznania rachunku bankowego' eliminuje spory o to, czy przelew 'w ostatniej chwili' dotarł w terminie."
+        commentary: [
+          "Ten paragraf wynika z cywilnoprawnego charakteru udziału w wydarzeniu. Uczestnik otrzymuje określone świadczenia organizacyjne, np. nocleg, wyżywienie, transport lub program szkoleniowy, a w zamian może być zobowiązany do wniesienia opłaty udziałowej.",
+          "Celowo zastosowano pojęcie opłaty udziałowej, a nie „zadatku”. Zadatek z art. 394 Kodeksu cywilnego ma określone skutki prawne, w szczególności możliwość zatrzymania zadatku w razie niewykonania umowy przez jedną ze stron. Przy wydarzeniach studenckich bezpieczniejsze jest jednak powiązanie zasad zwrotu z realnie poniesionymi i nieodzyskiwalnymi kosztami Organizatora, ponieważ jest to bardziej proporcjonalne i łatwiejsze do obrony.",
+          "Zapis o dacie uznania rachunku bankowego Organizatora ogranicza spory dowodowe. W praktyce nie liczy się samo zlecenie przelewu przez uczestnika, lecz moment, w którym środki rzeczywiście znajdą się na rachunku wskazanym przez Organizatora.",
+          "Mechanizm rezygnacji jest skonstruowany tak, aby z jednej strony chronić uczestnika, a z drugiej zabezpieczać budżet wydarzenia. Organizator nie powinien automatycznie zatrzymywać całej opłaty, jeżeli nie poniósł jeszcze kosztów albo może je odzyskać. Jednocześnie uczestnik nie powinien oczekiwać pełnego zwrotu, jeżeli jego późna rezygnacja powoduje realne koszty po stronie Organizatora."
+        ]
       },
       {
         id: "sec-4",
-        title: "§ 4. Reżim porządkowy i sankcje regulaminowe",
+        title: "§ 4. Zakres świadczeń Organizatora",
         content: [
-          "1. W czasie trwania Wydarzenia wprowadza się bezwzględny zakaz:",
-          "a) posiadania, zażywania oraz dystrybucji jakichkolwiek środków odurzających i substancji psychotropowych w rozumieniu ustawy o przeciwdziałaniu narkomanii;",
-          "b) podejmowania działań noszących znamiona agresji fizycznej, słownej oraz naruszających dobra osobiste osób trzecich;",
-          "c) wnoszenia i posiadania broni, amunicji oraz materiałów niebezpiecznych.",
-          "2. Naruszenie któregokolwiek z zakazów określonych w ust. 1 stanowi rażące naruszenie postanowień Regulaminu. W takiej sytuacji Organizatorowi przysługuje prawo do rozwiązania umowy ze skutkiem natychmiastowym, co jest równoznaczne z obligatoryjnym wydaleniem Uczestnika z Wydarzenia na jego wyłączny koszt i ryzyko."
+          "1. W ramach Wydarzenia Organizator zapewnia Uczestnikom świadczenia wskazane w informacji organizacyjnej, w szczególności:",
+          "a) zakwaterowanie;",
+          "b) wyżywienie w zakresie określonym w programie;",
+          "c) udział w części szkoleniowej, integracyjnej lub programowej;",
+          "d) transport, jeżeli został wyraźnie przewidziany przez Organizatora;",
+          "e) opiekę organizacyjną Kadry Organizacyjnej.",
+          "2. Szczegółowy zakres świadczeń może zostać doprecyzowany w wiadomości organizacyjnej, formularzu zgłoszeniowym, harmonogramie albo innym dokumencie przekazanym Uczestnikom przed rozpoczęciem Wydarzenia.",
+          "3. Organizator nie zapewnia Uczestnikom indywidualnego ubezpieczenia następstw nieszczęśliwych wypadków ani ubezpieczenia odpowiedzialności cywilnej, chyba że informacja organizacyjna stanowi inaczej.",
+          "4. Uczestnik może we własnym zakresie zawrzeć dodatkowe ubezpieczenie NNW lub OC na czas udziału w Wydarzeniu.",
+          "5. Organizator zastrzega sobie prawo do zmian w programie Wydarzenia, jeżeli jest to uzasadnione względami organizacyjnymi, bezpieczeństwa, pogodowymi, technicznymi albo innymi okolicznościami niezależnymi od Organizatora."
         ],
-        commentary: "Wydalenie z wyjazdu to w języku prawnym 'rozwiązanie umowy ze skutkiem natychmiastowym z powodu rażącego naruszenia postanowień'. Odniesienie wprost do 'ustawy o przeciwdziałaniu narkomanii' eliminuje dyskusję, czy dana substancja jest nielegalna. Wyrażenie 'wyłączny koszt i ryzyko' oznacza, że Organizator nie jest zobowiązany do organizowania powrotu wydalanemu uczestnikowi."
+        commentary: [
+          "Ten paragraf służy doprecyzowaniu treści zobowiązania Organizatora. W świetle Kodeksu cywilnego strony powinny wiedzieć, jakie świadczenia są objęte umową, a jakie nie. Dlatego wskazano przykładowo zakwaterowanie, wyżywienie, program, transport i opiekę organizacyjną.",
+          "Zapis o ubezpieczeniu jest istotny, ponieważ brak takiej informacji mógłby prowadzić do błędnego przekonania, że udział w wydarzeniu automatycznie obejmuje NNW albo OC. Jeżeli Organizator nie zapewnia ubezpieczenia, powinno być to wskazane wprost, żeby uczestnik mógł samodzielnie podjąć decyzję o ewentualnym ubezpieczeniu.",
+          "Ustęp dotyczący zmian programu wynika z potrzeby zabezpieczenia wykonania umowy w sytuacjach organizacyjnych, technicznych, pogodowych albo bezpieczeństwa. Zmiana programu nie powinna jednak prowadzić do całkowitej zmiany charakteru wydarzenia, bo wtedy mogłaby być traktowana jako istotna zmiana warunków udziału."
+        ]
       },
       {
         id: "sec-5",
-        title: "§ 5. Reżim odpowiedzialności odszkodowawczej",
+        title: "§ 5. Obowiązki Uczestnika",
         content: [
-          "1. Uczestnik ponosi pełną i wyłączną odpowiedzialność odszkodowawczą (na zasadzie winy) za wszelkie szkody majątkowe i niemajątkowe wyrządzone Organizatorowi oraz podmiotom trzecim (w tym właścicielowi obiektu) w związku ze swoim uczestnictwem w Wydarzeniu.",
-          "2. W przypadku wyrządzenia szkody w infrastrukturze noclegowej przez grupę Uczestników zajmujących wspólne pomieszczenie, przy jednoczesnym braku możliwości indywidualizacji winy, Uczestnicy ci ponoszą odpowiedzialność solidarną w rozumieniu art. 366 Kodeksu cywilnego.",
-          "3. Odpowiedzialność Organizatora z tytułu niewykonania lub nienależytego wykonania zobowiązania ogranicza się wyłącznie do szkód wyrządzonych z winy umyślnej. Uczestnik podejmuje aktywności fizyczne przewidziane w programie Wydarzenia na własne ryzyko."
+          "1. Uczestnik zobowiązuje się do:",
+          "a) przestrzegania Regulaminu;",
+          "b) stosowania się do uzasadnionych poleceń Kadry Organizacyjnej związanych z bezpieczeństwem, porządkiem i prawidłową realizacją Wydarzenia;",
+          "c) przestrzegania regulaminu obiektu, w którym odbywa się Wydarzenie;",
+          "d) punktualnego uczestnictwa w obowiązkowych elementach programu;",
+          "e) poszanowania mienia Organizatora, Uczelni, obiektu, innych Uczestników oraz osób trzecich;",
+          "f) zachowania zgodnego z zasadami współżycia społecznego, kultury osobistej i poszanowania godności innych osób;",
+          "g) niezwłocznego informowania Kadry Organizacyjnej o sytuacjach mogących zagrażać bezpieczeństwu, zdrowiu, mieniu lub prawidłowej realizacji Wydarzenia.",
+          "2. Uczestnik ponosi odpowiedzialność za rzeczy osobiste zabrane na Wydarzenie, chyba że szkoda powstała z przyczyn, za które odpowiedzialność ponosi Organizator lub inny podmiot.",
+          "3. Uczestnik zobowiązany jest posiadać przy sobie dokument tożsamości oraz, w miarę potrzeby, dokument potwierdzający status studenta.",
+          "4. Uczestnik, który przyjmuje na stałe leki, ma szczególne potrzeby zdrowotne lub posiada informacje istotne dla bezpieczeństwa jego udziału w Wydarzeniu, powinien rozważyć przekazanie Organizatorowi niezbędnych informacji w zakresie koniecznym do zapewnienia bezpieczeństwa. Podanie takich informacji jest dobrowolne."
         ],
-        commentary: "'Odpowiedzialność solidarna' (ust. 2) to najsilniejszy instrument prawa cywilnego: Organizator może żądać pełnej kwoty za zniszczony pokój od jednego wybranego uczestnika, a to on potem dochodzi zwrotu od współlokatorów (roszczenie regresowe). 'Klauzula egzoneracyjna' (ust. 3) maksymalnie zawęża odpowiedzialność Uczelni — ale tylko za zdarzenia bez winy umyślnej po stronie Organizatora."
+        commentary: [
+          "Ten paragraf określa obowiązki uczestnika jako strony stosunku cywilnoprawnego. Skoro uczestnik korzysta ze świadczeń Organizatora i przebywa na wydarzeniu organizowanym przez Uczelnię/SSUEW, powinien przestrzegać Regulaminu, zasad obiektu oraz poleceń organizacyjnych związanych z bezpieczeństwem i porządkiem.",
+          "Sformułowanie „uzasadnione polecenia Kadry Organizacyjnej” jest celowe. Nie chodzi o dowolne podporządkowanie uczestnika organizatorom, tylko o polecenia związane z prawidłową realizacją wydarzenia, bezpieczeństwem, ochroną mienia i porządkiem. Taki zapis jest bardziej proporcjonalny i mniej narażony na zarzut arbitralności.",
+          "Ustęp dotyczący informacji zdrowotnych musi być ostrożny z punktu widzenia RODO. Dane o zdrowiu, lekach, alergiach czy szczególnych potrzebach mogą stanowić szczególne kategorie danych osobowych. Ich przetwarzanie wymaga odrębnej podstawy, co do zasady wyraźnej zgody osoby, której dane dotyczą. Dlatego nie należy wpisywać bezwzględnego obowiązku podania takich informacji, lecz wskazać dobrowolność ich przekazania w zakresie niezbędnym dla bezpieczeństwa uczestnika."
+        ]
       },
       {
         id: "sec-6",
-        title: "§ 6. Zasady przetwarzania danych osobowych",
+        title: "§ 6. Zakazy porządkowe",
         content: [
-          "1. Zgodnie z art. 13 ust. 1 i 2 Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO), administratorem danych osobowych Uczestników jest Uniwersytet Ekonomiczny we Wrocławiu.",
-          "2. Dane osobowe (w tym dane identyfikacyjne oraz informacje o osobie do kontaktu w nagłych wypadkach — tzw. ICE) przetwarzane są wyłącznie w celu zawarcia i wykonania umowy o udział w Wydarzeniu (art. 6 ust. 1 lit. b RODO) oraz realizacji prawnie uzasadnionych interesów Administratora (art. 6 ust. 1 lit. f RODO).",
-          "3. Dane osobowe ulegają trwałemu usunięciu lub procesowi anonimizacji niezwłocznie po wygaśnięciu roszczeń cywilnoprawnych wynikających z organizacji Wydarzenia, nie później jednak niż w terminie [Liczba] dni od daty jego zakończenia."
+          "1. W czasie Wydarzenia zakazuje się:",
+          "a) posiadania, zażywania, udostępniania lub dystrybucji środków odurzających, substancji psychotropowych, nowych substancji psychoaktywnych lub innych substancji zabronionych przez prawo;",
+          "b) wnoszenia, posiadania lub używania broni, amunicji, materiałów wybuchowych, pirotechnicznych albo innych przedmiotów lub substancji mogących stwarzać zagrożenie;",
+          "c) stosowania przemocy fizycznej, psychicznej, słownej, seksualnej albo jakichkolwiek form nękania, dyskryminacji lub poniżania;",
+          "d) niszczenia, uszkadzania lub przywłaszczania mienia;",
+          "e) zakłócania ciszy nocnej, porządku publicznego lub zasad obowiązujących w obiekcie;",
+          "f) samowolnego oddalania się z Terenu Wydarzenia w sposób uniemożliwiający kontakt z Kadrą Organizacyjną, jeżeli może to zakłócić realizację programu albo bezpieczeństwo Uczestnika;",
+          "g) podejmowania zachowań narażających siebie lub inne osoby na niebezpieczeństwo.",
+          "2. Spożywanie alkoholu, jeżeli nie jest zakazane przez przepisy prawa, regulamin obiektu albo decyzję Organizatora, może odbywać się wyłącznie w sposób nienaruszający bezpieczeństwa, porządku i godności innych osób.",
+          "3. Organizator może wprowadzić całkowity zakaz spożywania alkoholu podczas całości albo części Wydarzenia, jeżeli uzasadnia to charakter Wydarzenia, względy bezpieczeństwa albo regulamin obiektu."
         ],
-        commentary: "Administratorem danych jest zawsze UEW — nie SSUEW (brak osobowości prawnej). Zamiast ogólnikowych sformułowań wskazujemy konkretne artykuły RODO. Retencja danych powiązana z 'wygaśnięciem roszczeń cywilnoprawnych' jest jedynym w pełni uzasadnionym powodem przechowywania dokumentów po wyjeździe — np. w przypadku roszczenia o szkodę w ośrodku."
+        commentary: [
+          "Ten paragraf wynika z obowiązku zapewnienia bezpieczeństwa uczestników oraz ochrony mienia Organizatora, Uczelni, obiektu i osób trzecich. Zakazy dotyczą zachowań, które mogą prowadzić do odpowiedzialności cywilnej, karnej, dyscyplinarnej albo organizacyjnej.",
+          "Zakaz dotyczący środków odurzających, substancji psychotropowych i nowych substancji psychoaktywnych jest uzasadniony nie tylko organizacyjnie, ale także prawnie, ponieważ obrót i posiadanie takich substancji może być objęte odpowiedzialnością na podstawie przepisów powszechnie obowiązujących.",
+          "Zakaz przemocy, nękania, dyskryminacji i naruszania godności innych osób wiąże się z ochroną dóbr osobistych, o której mowa w Kodeksie cywilnym. W kontekście uczelni ma to także znaczenie z punktu widzenia wartości wspólnoty akademickiej i bezpieczeństwa uczestników.",
+          "Zapis o alkoholu jest sformułowany elastycznie. Nie wprowadza automatycznie całkowitego zakazu w każdym przypadku, ale pozwala Organizatorowi taki zakaz ustanowić, jeżeli wymaga tego charakter wydarzenia, regulamin obiektu albo względy bezpieczeństwa."
+        ]
       },
       {
         id: "sec-7",
-        title: "§ 7. Przepisy końcowe",
+        title: "§ 7. Naruszenie Regulaminu i środki porządkowe",
         content: [
-          "1. Oświadczenie o akceptacji niniejszego Regulaminu stanowi wymóg sine qua non (warunek konieczny) dopuszczenia Uczestnika do udziału w Wydarzeniu.",
-          "2. Organizator zastrzega sobie uprawnienie do jednostronnej zmiany postanowień niniejszego Regulaminu w przypadku wystąpienia obiektywnych przesłanek natury prawnej lub organizacyjnej. Zmieniony Regulamin wiąże Uczestnika, o ile nie wypowie on umowy w terminie 3 dni od daty doręczenia powiadomienia o zmianie.",
-          "3. W sprawach nieuregulowanych zastosowanie znajdują odpowiednie przepisy powszechnie obowiązującego prawa polskiego, ze szczególnym uwzględnieniem przepisów ustawy – Kodeks cywilny."
+          "1. W przypadku naruszenia Regulaminu Organizator może zastosować środki porządkowe adekwatne do rodzaju i skali naruszenia, w szczególności:",
+          "a) upomnienie;",
+          "b) zobowiązanie Uczestnika do zaprzestania naruszeń;",
+          "c) wyłączenie Uczestnika z określonej części programu;",
+          "d) powiadomienie właściwych organów SSUEW lub Uczelni;",
+          "e) rozwiązanie umowy udziału w Wydarzeniu ze skutkiem natychmiastowym i zobowiązanie Uczestnika do opuszczenia Wydarzenia.",
+          "2. Rozwiązanie umowy udziału w Wydarzeniu ze skutkiem natychmiastowym może nastąpić w szczególności w przypadku:",
+          "a) naruszenia zakazów, o których mowa w § 6 ust. 1;",
+          "b) zachowania zagrażającego życiu, zdrowiu, bezpieczeństwu lub mieniu;",
+          "c) rażącego naruszenia regulaminu obiektu;",
+          "d) uporczywego niestosowania się do uzasadnionych poleceń Kadry Organizacyjnej;",
+          "e) podania nieprawdziwych danych w formularzu zgłoszeniowym;",
+          "f) zachowania naruszającego godność, nietykalność, prywatność lub dobra osobiste innych osób.",
+          "3. Uczestnik, wobec którego rozwiązano umowę udziału w Wydarzeniu ze skutkiem natychmiastowym, opuszcza Wydarzenie na własny koszt, chyba że Organizator postanowi inaczej albo szczególne okoliczności wymagają innego działania.",
+          "4. W przypadku zagrożenia życia, zdrowia lub bezpieczeństwa Organizator może wezwać odpowiednie służby, w szczególności pogotowie ratunkowe, Policję, straż pożarową lub obsługę obiektu.",
+          "5. Zastosowanie środka porządkowego nie wyłącza możliwości dochodzenia roszczeń odszkodowawczych na zasadach określonych w przepisach prawa."
         ],
-        commentary: "Łacińska paremia 'sine qua non' podkreśla absolutny charakter wymogu. Ust. 2 rozwiązuje problem zmiany regulaminu w trakcie — można, ale uczestnik musi mieć prawo do rezygnacji, jeśli nowe warunki mu nie odpowiadają. Ust. 3 to standardowe odesłanie do KC jako prawa ogólnego — bez niego każda luka w regulaminie byłaby źródłem sporu."
+        commentary: [
+          "Ten paragraf wskazuje konsekwencje naruszenia Regulaminu. Jest potrzebny, ponieważ same obowiązki i zakazy byłyby niewystarczające, gdyby Regulamin nie przewidywał możliwych reakcji Organizatora.",
+          "Katalog środków porządkowych jest stopniowany: od upomnienia, przez wyłączenie z części programu, aż po rozwiązanie umowy udziału ze skutkiem natychmiastowym. Takie rozwiązanie jest bardziej proporcjonalne niż automatyczne usuwanie uczestnika za każde naruszenie.",
+          "Rozwiązanie umowy ze skutkiem natychmiastowym powinno być zarezerwowane dla naruszeń poważnych, np. przemocy, zagrożenia bezpieczeństwa, środków odurzających, poważnego naruszenia regulaminu obiektu albo uporczywego ignorowania poleceń organizacyjnych. Jest to cywilnoprawny odpowiednik zakończenia udziału uczestnika z powodu rażącego naruszenia warunków wydarzenia.",
+          "Zapis o opuszczeniu wydarzenia na koszt uczestnika został złagodzony przez dodanie wyjątku dla szczególnych okoliczności. Jest to ważne, bo Organizator nie powinien tworzyć sytuacji zagrożenia, np. wyrzucając uczestnika w nocy bez możliwości bezpiecznego powrotu. Taki wyjątek wzmacnia zgodność zapisu z zasadami współżycia społecznego."
+        ]
+      },
+      {
+        id: "sec-8",
+        title: "§ 8. Odpowiedzialność za szkody",
+        content: [
+          "1. Uczestnik ponosi odpowiedzialność za szkody wyrządzone z własnej winy Organizatorowi, Uczelni, obiektowi, innym Uczestnikom lub osobom trzecim, na zasadach określonych w przepisach prawa powszechnie obowiązującego.",
+          "2. Uczestnik zobowiązuje się do niezwłocznego poinformowania Kadry Organizacyjnej o wyrządzonej albo zauważonej szkodzie.",
+          "3. W przypadku szkody powstałej w pokoju, domku, autokarze albo innej przestrzeni wspólnie użytkowanej przez kilku Uczestników, Organizator może ustalać okoliczności powstania szkody z udziałem wszystkich osób korzystających z tej przestrzeni.",
+          "4. Jeżeli nie jest możliwe ustalenie osoby bezpośrednio odpowiedzialnej za szkodę, Organizator może dochodzić roszczeń od osób odpowiedzialnych za jej powstanie wyłącznie na zasadach wynikających z przepisów prawa.",
+          "5. Organizator ponosi odpowiedzialność za niewykonanie lub nienależyte wykonanie swoich zobowiązań na zasadach określonych w przepisach prawa.",
+          "6. Organizator nie ponosi odpowiedzialności za szkody wynikające z:",
+          "a) działania siły wyższej;",
+          "b) wyłącznej winy Uczestnika;",
+          "c) wyłącznej winy osoby trzeciej, za którą Organizator nie ponosi odpowiedzialności;",
+          "d) naruszenia przez Uczestnika Regulaminu, regulaminu obiektu lub uzasadnionych poleceń Kadry Organizacyjnej."
+        ],
+        commentary: [
+          "Ten paragraf opiera się na ogólnych zasadach odpowiedzialności cywilnej. W przypadku szkód wyrządzonych czynem niedozwolonym podstawowe znaczenie ma art. 415 Kodeksu cywilnego, zgodnie z którym kto z winy swojej wyrządził drugiemu szkodę, zobowiązany jest do jej naprawienia. W przypadku niewykonania albo nienależytego wykonania zobowiązania zastosowanie mogą mieć także przepisy o odpowiedzialności kontraktowej, w szczególności art. 471 KC.",
+          "Celowo nie wpisano automatycznej odpowiedzialności solidarnej wszystkich osób z pokoju. Odpowiedzialność solidarna w prawie cywilnym musi wynikać z ustawy albo z czynności prawnej, ale jej zastosowanie wobec uczestników powinno być ostrożne. Automatyczne obciążanie wszystkich osób z pokoju za szkodę, bez ustalenia sprawcy i okoliczności, mogłoby być kwestionowane jako nieproporcjonalne.",
+          "Zapis pozostawia Organizatorowi możliwość ustalania okoliczności szkody z udziałem osób korzystających z danej przestrzeni, ale dochodzenie roszczeń powinno następować na zasadach wynikających z prawa. To bezpieczniejsze niż tworzenie regulaminowej odpowiedzialności zbiorowej.",
+          "Ustęp dotyczący odpowiedzialności Organizatora również jest celowo umiarkowany. Nie należy wpisywać, że Organizator odpowiada wyłącznie za winę umyślną, bo takie ograniczenie mogłoby być oceniane jako zbyt daleko idące. Bezpieczniejsze jest odesłanie do zasad ogólnych i wskazanie typowych wyłączeń, takich jak siła wyższa, wyłączna wina uczestnika albo wyłączna wina osoby trzeciej."
+        ]
+      },
+      {
+        id: "sec-9",
+        title: "§ 9. Bezpieczeństwo i sytuacje nadzwyczajne",
+        content: [
+          "1. Uczestnik zobowiązany jest do zachowania ostrożności i rozsądku podczas udziału w Wydarzeniu, w szczególności podczas aktywności fizycznych, integracyjnych, transportu i przebywania poza obiektem.",
+          "2. Uczestnik bierze udział w aktywnościach dodatkowych, sportowych lub rekreacyjnych dobrowolnie, z uwzględnieniem swojego stanu zdrowia, kondycji i indywidualnych ograniczeń.",
+          "3. Organizator może odmówić Uczestnikowi udziału w określonej aktywności, jeżeli udział ten mógłby stwarzać zagrożenie dla Uczestnika albo innych osób.",
+          "4. W razie wypadku, nagłego zachorowania, zaginięcia Uczestnika, poważnego naruszenia porządku albo innej sytuacji nadzwyczajnej Kadra Organizacyjna podejmuje działania adekwatne do sytuacji, w szczególności:",
+          "a) udziela podstawowej pomocy organizacyjnej;",
+          "b) wzywa odpowiednie służby;",
+          "c) kontaktuje się z osobą wskazaną przez Uczestnika jako kontakt alarmowy, jeżeli jest to uzasadnione sytuacją;",
+          "d) informuje właściwe osoby po stronie SSUEW albo Uczelni.",
+          "5. Uczestnik zobowiązany jest niezwłocznie zgłaszać Kadrze Organizacyjnej wszelkie sytuacje mogące wymagać interwencji."
+        ],
+        commentary: [
+          "Ten paragraf wynika z potrzeby zapewnienia należytej staranności przy organizacji wydarzenia. Organizator, przygotowując wyjazd, powinien mieć procedurę reagowania na sytuacje nadzwyczajne: wypadek, nagłe zachorowanie, zaginięcie uczestnika, konflikt, zagrożenie bezpieczeństwa albo konieczność wezwania służb.",
+          "Z punktu widzenia Kodeksu cywilnego istotne jest ograniczenie ryzyka zarzutu nienależytego wykonania zobowiązania. Jeżeli Organizator określa, jakie działania podejmuje w sytuacjach nadzwyczajnych, łatwiej wykazać, że działał racjonalnie, adekwatnie i z należytą starannością.",
+          "Zapis o dobrowolnym udziale w aktywnościach sportowych albo rekreacyjnych nie zwalnia Organizatora ze wszystkich obowiązków, ale porządkuje odpowiedzialność uczestnika za ocenę własnego stanu zdrowia i możliwości. Organizator może odmówić udziału w aktywności, jeżeli widzi realne zagrożenie dla uczestnika albo innych osób."
+        ]
+      },
+      {
+        id: "sec-10",
+        title: "§ 10. Dane osobowe",
+        content: [
+          "1. Administratorem danych osobowych Uczestników jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą przy ul. Komandorskiej 118/120, 53-345 Wrocław.",
+          "2. Kontakt z Inspektorem Ochrony Danych możliwy jest pod adresem: iod@ue.wroc.pl.",
+          "3. Dane osobowe Uczestników są przetwarzane w celu:",
+          "a) przeprowadzenia rekrutacji i kwalifikacji do udziału w Wydarzeniu;",
+          "b) zawarcia i wykonania umowy udziału w Wydarzeniu;",
+          "c) organizacji zakwaterowania, wyżywienia, transportu i programu Wydarzenia;",
+          "d) zapewnienia bezpieczeństwa organizacyjnego Wydarzenia;",
+          "e) dochodzenia lub obrony przed ewentualnymi roszczeniami;",
+          "f) realizacji obowiązków dokumentacyjnych, finansowych, księgowych lub archiwalnych, jeżeli mają zastosowanie.",
+          "4. Podstawą prawną przetwarzania danych jest:",
+          "a) art. 6 ust. 1 lit. b RODO – w zakresie niezbędnym do zawarcia i wykonania umowy udziału w Wydarzeniu;",
+          "b) art. 6 ust. 1 lit. c RODO – w zakresie realizacji obowiązków prawnych ciążących na Administratorze;",
+          "c) art. 6 ust. 1 lit. f RODO – w zakresie prawnie uzasadnionego interesu Administratora, polegającego w szczególności na zapewnieniu bezpieczeństwa organizacyjnego oraz dochodzeniu lub obronie przed roszczeniami;",
+          "d) art. 6 ust. 1 lit. a RODO – w zakresie danych podawanych dobrowolnie na podstawie zgody, jeżeli formularz lub odrębne oświadczenie przewiduje taką zgodę.",
+          "5. Jeżeli Uczestnik dobrowolnie przekaże dane dotyczące zdrowia, alergii, szczególnych potrzeb żywieniowych lub innych szczególnych potrzeb organizacyjnych, dane te są przetwarzane wyłącznie w zakresie niezbędnym do prawidłowej i bezpiecznej organizacji Wydarzenia, na podstawie wyraźnej zgody Uczestnika, zgodnie z art. 9 ust. 2 lit. a RODO.",
+          "6. Zakres przetwarzanych danych może obejmować w szczególności: imię, nazwisko, adres e-mail, numer telefonu, status studenta, kierunek lub rok studiów, przynależność do komisji lub jednostki SSUEW, dane niezbędne do zakwaterowania, informacje dotyczące płatności, dane osoby do kontaktu w nagłych wypadkach oraz inne dane podane przez Uczestnika w formularzu zgłoszeniowym.",
+          "7. Odbiorcami danych mogą być podmioty zaangażowane w organizację Wydarzenia, w szczególności obiekt noclegowy, przewoźnik, dostawcy usług żywieniowych, podmioty obsługujące systemy informatyczne, a także osoby upoważnione do przetwarzania danych w ramach Uczelni lub SSUEW.",
+          "8. Dane osobowe będą przechowywane przez okres niezbędny do organizacji i rozliczenia Wydarzenia, a następnie przez okres wynikający z przepisów prawa, obowiązków dokumentacyjnych, księgowych, archiwalnych albo do czasu przedawnienia ewentualnych roszczeń.",
+          "9. Dane osoby wskazanej jako kontakt alarmowy będą wykorzystywane wyłącznie w przypadku zaistnienia sytuacji uzasadniającej kontakt, w szczególności zagrożenia życia, zdrowia lub bezpieczeństwa Uczestnika.",
+          "10. Uczestnikowi przysługuje prawo dostępu do danych, sprostowania danych, usunięcia danych, ograniczenia przetwarzania, wniesienia sprzeciwu wobec przetwarzania, przenoszenia danych w przypadkach przewidzianych prawem oraz cofnięcia zgody w zakresie, w jakim przetwarzanie odbywa się na podstawie zgody.",
+          "11. Uczestnik ma prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych.",
+          "12. Podanie danych jest dobrowolne, ale niezbędne do udziału w Wydarzeniu w zakresie danych koniecznych do jego organizacji. Niepodanie danych może uniemożliwić udział w Wydarzeniu."
+        ],
+        commentary: [
+          "Ten paragraf wynika bezpośrednio z art. 13 RODO, który nakłada na administratora obowiązek poinformowania osoby, od której zbierane są dane, m.in. o tożsamości administratora, danych kontaktowych IOD, celach i podstawach przetwarzania, odbiorcach danych oraz okresie przechowywania.",
+          "Podstawy przetwarzania danych rozdzielono celowo. Dane potrzebne do zgłoszenia, kwalifikacji i organizacji wyjazdu mogą być przetwarzane na podstawie art. 6 ust. 1 lit. b RODO, czyli w celu zawarcia i wykonania umowy. Dane potrzebne do rozliczeń, dokumentacji albo obowiązków prawnych mogą opierać się na art. 6 ust. 1 lit. c RODO. Dane dotyczące bezpieczeństwa organizacyjnego i ewentualnych roszczeń mogą być uzasadnione art. 6 ust. 1 lit. f RODO.",
+          "Dane dotyczące zdrowia, alergii, leków albo szczególnych potrzeb żywieniowych mogą stanowić szczególne kategorie danych osobowych. Dlatego wymagają osobnego potraktowania i co do zasady wyraźnej zgody z art. 9 ust. 2 lit. a RODO. Nie powinny być zbierane na zapas, tylko w zakresie niezbędnym do organizacji wydarzenia i bezpieczeństwa uczestnika.",
+          "Zapis o prawach uczestnika wynika z RODO, które wymaga przejrzystego informowania o prawach osoby, której dane dotyczą. RODO podkreśla, że informacje powinny być przekazywane w zwięzłej, przejrzystej, zrozumiałej i łatwo dostępnej formie, jasnym i prostym językiem."
+        ]
+      },
+      {
+        id: "sec-11",
+        title: "§ 11. Wizerunek",
+        content: [
+          "1. Podczas Wydarzenia mogą być wykonywane zdjęcia lub nagrania dokumentujące jego przebieg.",
+          "2. Utrwalanie i rozpowszechnianie wizerunku Uczestnika w celach promocyjnych, informacyjnych lub sprawozdawczych wymaga odrębnej podstawy prawnej, w szczególności zgody Uczestnika, chyba że przepisy prawa dopuszczają rozpowszechnienie wizerunku bez takiej zgody.",
+          "3. Odmowa wyrażenia zgody na rozpowszechnianie wizerunku nie wpływa na możliwość udziału w Wydarzeniu.",
+          "4. Szczegółowe zasady wykorzystania wizerunku mogą zostać określone w odrębnym oświadczeniu lub klauzuli zgody."
+        ],
+        commentary: [
+          "Ten paragraf oddziela akceptację Regulaminu od zgody na wykorzystanie wizerunku. To ważne, ponieważ udział w wydarzeniu i zgoda na publikację zdjęć lub nagrań to dwie różne kwestie.",
+          "Wizerunek może być chroniony zarówno na gruncie przepisów o dobrach osobistych w Kodeksie cywilnym, jak i na gruncie przepisów o prawie autorskim i prawach pokrewnych. Jeżeli zdjęcie lub nagranie pozwala zidentyfikować osobę, może także stanowić dane osobowe w rozumieniu RODO.",
+          "Dlatego zgoda na rozpowszechnianie wizerunku powinna być odrębna, dobrowolna i możliwa do wykazania. Odmowa zgody na publikację wizerunku nie powinna blokować udziału w wydarzeniu, chyba że utrwalanie wizerunku jest absolutnie konieczne dla charakteru wydarzenia — co przy zwykłych wyjazdach szkoleniowo-integracyjnych raczej nie zachodzi."
+        ]
+      },
+      {
+        id: "sec-12",
+        title: "§ 12. Zmiana Regulaminu",
+        content: [
+          "1. Organizator może zmienić Regulamin przed rozpoczęciem Wydarzenia, jeżeli jest to uzasadnione względami prawnymi, organizacyjnymi, bezpieczeństwa albo zmianą warunków realizacji Wydarzenia.",
+          "2. O zmianie Regulaminu Uczestnicy zostaną poinformowani w formie dokumentowej, w szczególności za pośrednictwem wiadomości e-mail.",
+          "3. Jeżeli zmiana Regulaminu istotnie wpływa na prawa lub obowiązki Uczestnika, Uczestnik może zrezygnować z udziału w Wydarzeniu w terminie [np. 3] dni od otrzymania informacji o zmianie, zachowując prawo do zwrotu opłaty udziałowej w zakresie, w jakim nie została ona jeszcze wydatkowana albo w jakim Organizator może odzyskać poniesione koszty.",
+          "4. Zmiany porządkowe, redakcyjne lub doprecyzowujące, które nie pogarszają sytuacji Uczestnika, nie wymagają przyznania prawa rezygnacji, o którym mowa w ust. 3."
+        ],
+        commentary: [
+          "Ten paragraf wynika z cywilnoprawnego charakteru Regulaminu jako wzorca umownego. Skoro Regulamin kształtuje prawa i obowiązki uczestnika, jego zmiana nie powinna następować dowolnie i jednostronnie bez poinformowania uczestnika.",
+          "Art. 384 Kodeksu cywilnego wskazuje znaczenie doręczenia lub udostępnienia wzorca przed związaniem nim drugiej strony. Z tego powodu zmiana Regulaminu powinna być zakomunikowana uczestnikom w sposób pozwalający im zapoznać się z nową treścią.",
+          "Zapis rozróżnia zmiany istotne i nieistotne. Jeżeli zmiana realnie pogarsza sytuację uczestnika albo wpływa na jego prawa i obowiązki, powinien mieć możliwość rezygnacji. Jeżeli zmiana ma charakter redakcyjny, porządkowy albo doprecyzowujący, nie ma potrzeby uruchamiania pełnej procedury rezygnacji."
+        ]
+      },
+      {
+        id: "sec-13",
+        title: "§ 13. Postanowienia końcowe",
+        content: [
+          "1. Akceptacja Regulaminu jest warunkiem udziału w Wydarzeniu.",
+          "2. W sprawach nieuregulowanych Regulaminem stosuje się przepisy prawa powszechnie obowiązującego, regulacje wewnętrzne Uniwersytetu Ekonomicznego we Wrocławiu oraz regulacje SSUEW.",
+          "3. Regulamin wchodzi w życie z dniem jego udostępnienia kandydatom na uczestników Wydarzenia.",
+          "4. Wszelkie pytania organizacyjne dotyczące Wydarzenia należy kierować na adres: [adres e-mail]."
+        ],
+        commentary: [
+          "Ten paragraf pełni funkcję porządkującą. Potwierdza, że akceptacja Regulaminu jest warunkiem udziału w wydarzeniu, co jest istotne z punktu widzenia art. 384 Kodeksu cywilnego i związania uczestnika wzorcem umownym.",
+          "Odesłanie do prawa powszechnie obowiązującego obejmuje przede wszystkim Kodeks cywilny, RODO, ustawę Prawo o szkolnictwie wyższym i nauce oraz inne przepisy, które mogą mieć zastosowanie w zależności od charakteru wydarzenia. Odesłanie do regulacji UEW i SSUEW jest potrzebne, ponieważ wydarzenie jest organizowane w środowisku uczelnianym i samorządowym, a samorząd studencki działa na podstawie PSWiN jako reprezentacja studentów uczelni.",
+          "Zapis o wejściu Regulaminu w życie z dniem udostępnienia kandydatom ma znaczenie dowodowe i organizacyjne. Chodzi o to, aby nie było wątpliwości, że uczestnik znał warunki przed zgłoszeniem i przed potwierdzeniem udziału."
+        ]
       }
     ]
   }
@@ -560,7 +744,7 @@ export default function LegalHubPage() {
               <div>
                 <h4 className="font-bold text-amber-900 text-sm mb-1">Wzorce robocze — wymagają weryfikacji prawnej</h4>
                 <p className="text-amber-800/80 text-xs leading-relaxed font-medium">
-                  Poniższe dokumenty to <strong>wewnętrzne wzorce organizacyjne SSUEW</strong> — nie zostały poddane formalnej weryfikacji przez Dział Radców Prawnych Uczelni. Przed użyciem w oficjalnym obiegu każdy regulamin należy skonsultować z właściwym radcą prawnym UEW lub IOD. Struktura i klauzule oparte na ogólnych zasadach prawa cywilnego.
+                  Poniższe dokumenty to <strong>wewnętrzne wzorce organizacyjne SSUEW</strong> — nie zostały poddane formalnej weryfikacji przez Radców Prawnych Uczelni. Przed użyciem w oficjalnym obiegu każdy regulamin należy skonsultować z właściwym radcą prawnym UEW lub IOD. Struktura i klauzule oparte na ogólnych zasadach prawa cywilnego.
                 </p>
               </div>
             </div>
@@ -656,9 +840,13 @@ export default function LegalHubPage() {
               </div>
 
               <div className="p-8 pb-4 text-center border-b border-slate-100 bg-slate-50">
+                <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">WZÓR</p>
                 <h1 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-wide">
                   {TEMPLATES_DATA[selectedTemplate].title}
                 </h1>
+                {TEMPLATES_DATA[selectedTemplate].subtitle && (
+                  <p className="text-base font-bold text-slate-500 mt-1">{TEMPLATES_DATA[selectedTemplate].subtitle}</p>
+                )}
               </div>
 
               <div className="p-8 md:p-12 pt-6">
@@ -683,10 +871,13 @@ export default function LegalHubPage() {
                       </button>
 
                       {expandedComments[index] && (
-                        <div className="mt-3 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-xl p-5 shadow-sm animate-fadeIn">
-                          <p className="text-slate-700 text-[13px] font-medium leading-relaxed italic">
-                            {section.commentary}
-                          </p>
+                        <div className="mt-3 bg-indigo-50/50 border-l-4 border-indigo-400 rounded-r-xl p-5 shadow-sm animate-fadeIn space-y-3">
+                          {Array.isArray(section.commentary)
+                            ? section.commentary.map((p, i) => (
+                                <p key={i} className="text-slate-700 text-[13px] font-medium leading-relaxed italic">{p}</p>
+                              ))
+                            : <p className="text-slate-700 text-[13px] font-medium leading-relaxed italic">{section.commentary}</p>
+                          }
                         </div>
                       )}
                     </div>
@@ -709,7 +900,7 @@ export default function LegalHubPage() {
             <div>
               <h4 className="font-bold text-amber-900 text-sm mb-1">Dwa typy wpisów — zweryfikowane i robocze</h4>
               <p className="text-amber-800/80 text-xs leading-relaxed font-medium">
-                Pozycje oznaczone <strong className="text-emerald-700">✓ Zweryfikowane</strong> posiadają potwierdzony numer zarządzenia i treść zgodną z dokumentem źródłowym UEW. Pozycje oznaczone <strong>[Nr do uzupełnienia]</strong> opisują procedury obowiązujące na UEW, których numer wymaga weryfikacji w Biurze Prawnym lub Sekretariacie Rektora / BIP UEW.
+                Pozycje oznaczone <strong className="text-emerald-700">✓ Zweryfikowane</strong> posiadają potwierdzony numer zarządzenia i treść zgodną z dokumentem źródłowym UEW. Pozycje oznaczone <strong>[Nr do uzupełnienia]</strong> opisują procedury obowiązujące na UEW, których numer wymaga weryfikacji.
               </p>
             </div>
           </div>

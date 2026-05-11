@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(python fix_quotes.py)",
+      "Bash(del \"c:\\\\Users\\\\Mikołaj\\\\Downloads\\\\stand-dashboard-main\\\\fix_quotes.py\")"
+    ]
+  }
+}
