@@ -18,7 +18,11 @@
       "Bash(cp /tmp/verification.md \".planning/phases/04-kompendium-ksi-ga-inwentarzowa/04-VERIFICATION.md\")",
       "Bash(wc -l /c/Users/Mikołaj/Downloads/stand-dashboard-main/src/pages/*.jsx)",
       "Bash(xargs wc:*)",
-      "Bash(ls -lah /c/Users/Mikołaj/Downloads/stand-dashboard-main/.env*)"
+      "Bash(ls -lah /c/Users/Mikołaj/Downloads/stand-dashboard-main/.env*)",
+      "Bash(Remove-Item \"c:\\\\Users\\\\Mikołaj\\\\Downloads\\\\stand-dashboard-main\\\\patch_tedx.py\" -Force)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Miko�aj\\Downloads\\stand-dashboard-main"
     ]
   }
 }

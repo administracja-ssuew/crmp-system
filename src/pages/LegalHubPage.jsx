@@ -139,7 +139,8 @@ const EVENT_REGULATIONS = {
     {
       title: "TEDxUEW",
       desc: "Regulamin konferencji licencjonowanej przez TED. Obejmuje umowy z prelegentami (dzieło + prawa autorskie do nagrań), zasady biletowania, regulamin uczestnika i obowiązki związane z licencją TEDx.",
-      tags: ["Licencja TEDx", "Umowa o dzieło", "Prawa autorskie", "Ticketing", "Patronat Rektora"]
+      tags: ["Licencja TEDx", "Umowa o dzieło", "Prawa autorskie", "Ticketing", "Patronat Rektora"],
+      templateId: 'TEDX_TEMPLATE'
     },
     {
       title: "Animalia",
@@ -564,6 +565,234 @@ const TEMPLATES_DATA = {
           "Ten paragraf pełni funkcję porządkującą. Potwierdza, że akceptacja Regulaminu jest warunkiem udziału w wydarzeniu, co jest istotne z punktu widzenia art. 384 Kodeksu cywilnego i związania uczestnika wzorcem umownym.",
           "Odesłanie do prawa powszechnie obowiązującego obejmuje przede wszystkim Kodeks cywilny, RODO, ustawę Prawo o szkolnictwie wyższym i nauce oraz inne przepisy, które mogą mieć zastosowanie w zależności od charakteru wydarzenia. Odesłanie do regulacji UEW i SSUEW jest potrzebne, ponieważ wydarzenie jest organizowane w środowisku uczelnianym i samorządowym, a samorząd studencki działa na podstawie PSWiN jako reprezentacja studentów uczelni.",
           "Zapis o wejściu Regulaminu w życie z dniem udostępnienia kandydatom ma znaczenie dowodowe i organizacyjne. Chodzi o to, aby nie było wątpliwości, że uczestnik znał warunki przed zgłoszeniem i przed potwierdzeniem udziału."
+        ]
+      }
+    ]
+  },
+  TEDX_TEMPLATE: {
+    title: "REGULAMIN UCZESTNICTWA W KONFERENCJI TEDXUEW 2026",
+    intro: "Niżej znajdziesz kompletny regulamin TEDxUEW 2026 wraz z komentarzami prawno-organizacyjnymi przy każdym paragrafie. Przed każdą edycją uzupełnij pola oznaczone nawiasami kwadratowymi.",
+    sections: [
+      {
+        id: "tedx-1",
+        title: "§ 1. Przepisy ogólne i słowniczek pojęć",
+        content: [
+          "1. Niniejszy Regulamin stanowi wzorzec umowny w rozumieniu art. 384 ustawy z dnia 23 kwietnia 1964 r. – Kodeks cywilny i określa warunki udziału, prawa i obowiązki Uczestników oraz zasady odpowiedzialności w ramach Wydarzenia.",
+          "2. Konferencja TEDxUEW jest organizowana na podstawie licencji udzielonej przez TED Conferences, LLC. Organizator realizuje Wydarzenie zgodnie z zasadami licencji TEDx, w tym wytycznymi dotyczącymi marki, treści i charakteru wydarzenia. Postanowienia niniejszego Regulaminu interpretuje się w sposób zgodny z wymaganiami licencji TEDx, o ile nie narusza to bezwzględnie obowiązujących przepisów prawa ani praw Uczestnika.",
+          "3. TED Conferences, LLC nie jest Organizatorem Wydarzenia ani stroną stosunku prawnego pomiędzy Organizatorem a Uczestnikiem.",
+          "4. Kontakt z Organizatorem: tedxuew@samorzad.ue.wroc.pl.",
+          "5. Ilekroć w treści niniejszego Regulaminu używa się poniższych pojęć pisanych wielką literą, należy przez nie rozumieć:",
+          "a) Regulamin – niniejszy dokument stanowiący wzorzec umowny w rozumieniu art. 384 Kodeksu cywilnego;",
+          "b) Wydarzenie / Konferencja – konferencję pod nazwą „TEDxUEW 2026”, realizowaną w dniu 12.06.2026 r. na terenie Miejsca wydarzenia;",
+          "c) Organizator – Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław, NIP: 896-000-69-97, REGON: 000001497, w imieniu i na rzecz którego czynności operacyjne podejmuje Samorząd Studentów UEW;",
+          "d) Miejsce wydarzenia – budynek Centrum Kształcenia Ustawicznego Uniwersytetu Ekonomicznego we Wrocławiu przy ul. Komandorskiej 118/120 we Wrocławiu;",
+          "e) Grupa Projektowa – zespół organizacyjny TEDxUEW 2026 działający z upoważnienia Organizatora i odpowiedzialny za bieżącą organizację oraz prawidłowy przebieg Wydarzenia;",
+          "f) Uczestnik – pełnoletnią osobę fizyczną przebywającą na terenie Wydarzenia, z wyłączeniem pracowników obiektu oraz członków Grupy Projektowej, która spełniła warunki określone w § 2 niniejszego Regulaminu i została wpisana na listę uczestników przez Organizatora;",
+          "g) Impreza – wydarzenie towarzyszące pod nazwą „Cocktail Party”, odbywające się na terenie budynku CKU UEW w ramach Konferencji;",
+          "h) Siła wyższa – zdarzenie zewnętrzne, niemożliwe do przewidzenia i zapobiegnięcia, niezależne od woli Stron, w szczególności: klęski żywiołowe, epidemie, pandemie, działania wojenne, akty terroryzmu, decyzje organów administracji publicznej uniemożliwiające zorganizowanie Wydarzenia, katastrofy budowlane uniemożliwiające korzystanie z Miejsca wydarzenia."
+        ],
+        commentary: [
+          "Zostawiono konstrukię wzorca umownego, bo art. 384 Kodeksu cywilnego wprost obejmuje regulaminy jako wzorce umowne. Aktualny tekst jednolity KC jest publikowany w ISAP, a sam Kodeks reguluje stosunki cywilnoprawne między osobami fizycznymi i prawnymi.",
+          "Doprecyzowano, że TED nie jest Organizatorem ani stroną umowy z uczestnikiem. To ważne, bo TEDx jest wydarzeniem licencyjnym, ale odpowiedzialność za organizację ponosi lokalny Organizator.",
+          "UEW występuje jako Organizator, bo Statut UEW wskazuje, że Uniwersytet ma osobowość prawną i może występować jako strona stosunków cywilnoprawnych. Samorząd działa w strukturze Uczelni i na podstawie regulacji uczelnianych.",
+          "Zmieniono „akt o charakterze wewnętrznym” na „dokument stanowiący wzorzec umowny”, bo wobec Uczestnika to nie jest typowy akt wewnętrzny, tylko regulamin udziału."
+        ]
+      },
+      {
+        id: "tedx-2",
+        title: "§ 2. Uczestnictwo w TEDxUEW 2026",
+        content: [
+          "1. Konferencja TEDxUEW 2026 jest wydarzeniem zamkniętym. Wejście na Miejsce wydarzenia jest możliwe wyłącznie po okazaniu ważnego biletu oraz ważnego dokumentu tożsamości ze zdjęciem, w szczególności dowodu osobistego albo paszportu.",
+          "2. W Wydarzeniu mogą wziąć udział wyłącznie osoby, które:",
+          "a) ukończyły 18 lat najpóźniej w dniu odbywania się Konferencji;",
+          "b) poprawnie przeszły proces rejestracji zgodnie z § 3 niniejszego Regulaminu;",
+          "c) otrzymały potwierdzenie uczestnictwa od Organizatora drogą elektroniczną z adresu tedxuew@samorzad.ue.wroc.pl albo innego adresu wskazanego przez Organizatora.",
+          "3. Za weryfikację biletów i dokumentów tożsamości odpowiedzialni są członkowie Grupy Projektowej lub inne osoby upoważnione przez Organizatora.",
+          "4. Weryfikacja dokumentu tożsamości odbywa się wyłącznie w zakresie niezbędnym do potwierdzenia tożsamości i pełnoletności Uczestnika. Organizator nie kopiuje ani nie utrwala dokumentów tożsamości, chyba że obowiązek taki wynika z przepisów prawa.",
+          "5. Organizator, działając przez członków Grupy Projektowej lub osoby upoważnione, może odmówić wstępu na Wydarzenie albo zobowiązać do opuszczenia Wydarzenia osoby:",
+          "a) znajdujące się pod widocznym wpływem alkoholu, środków odurzających lub innych substancji wpływających na zachowanie w sposób zagrażający bezpieczeństwu lub porządkowi Wydarzenia;",
+          "b) zachowujące się agresywnie, prowokacyjnie albo w inny sposób zagrażające bezpieczeństwu Uczestników, Organizatora, Grupy Projektowej, prelegentów, gości lub porządkowi Konferencji;",
+          "c) nieposiadające ważnego biletu lub dokumentu tożsamości;",
+          "d) naruszające niniejszy Regulamin, regulamin obiektu albo uzasadnione polecenia porządkowe Organizatora;",
+          "e) w innych uzasadnionych przypadkach, jeżeli ich obecność mogłaby zagrażać sprawnemu lub bezpiecznemu przebiegowi Konferencji.",
+          "6. Na teren Wydarzenia zakazuje się wnoszenia i posiadania broni, amunicji, materiałów wybuchowych, materiałów pożarowo niebezpiecznych, środków odurzających, substancji psychotropowych, nowych substancji psychoaktywnych oraz innych przedmiotów lub substancji zabronionych przez prawo albo mogących stwarzać zagrożenie dla osób lub mienia.",
+          "7. Osobom posiadającym przy sobie przedmioty lub substancje, o których mowa w ust. 6, Organizator może odmówić wstępu albo nakazać opuszczenie terenu Wydarzenia."
+        ],
+        commentary: [
+          "Weryfikacja dokumentu tożsamości ma służyć wyłącznie potwierdzeniu tożsamości i pełnoletności. To jest zgodne z zasadą minimalizacji danych z RODO — sprawdzamy, ale nie kopiujemy dokumentów.",
+          "Dodano „ważny bilet” już w ust. 1, bo samo okazanie dowodu osobistego nie powinno uprawniać do wejścia.",
+          "Zamiast „wyproszenia” w każdym przypadku użyto bardziej formalnego „zobowiązać do opuszczenia Wydarzenia”. Brzmi lepiej i jest bezpieczniejsze dowodowo.",
+          "Zakazy porządkowe doprecyzowano terminologią ustawową, bo „narkotyki” to określenie potoczne."
+        ]
+      },
+      {
+        id: "tedx-3",
+        title: "§ 3. Bilety wstępu na Konferencję TEDxUEW 2026 oraz Imprezę",
+        content: [
+          "1. Warunkiem skutecznego ubiegania się o bilet jest łączne spełnienie następujących czynności: dokonanie rejestracji za pośrednictwem formularza dostępnego na stronie internetowej www.tedxuew.com, uiśczenie opłaty za udział w Wydarzeniu przelewem bankowym na rachunek Organizatora oraz przesłanie potwierdzenia płatności za pośrednictwem formularza rejestracyjnego lub w inny sposób wskazany przez Organizatora.",
+          "2. Formularz rejestracyjny zostanie udostępniony nie wcześniej niż [data otwarcia puli I] r. i będzie aktywny do momentu wyczerpania dostępnej puli biletów albo do wcześniejszego zakończenia sprzedaży przez Organizatora.",
+          "3. Ceny biletów, jako kwoty brutto, wynoszą:",
+          "Pula I – bilet na całe Wydarzenie z Imprezą, od [data]: [cena] zł",
+          "Pula II – bilet na całe Wydarzenie z Imprezą, od [data]: [cena] zł",
+          "Bilet ulgowy – studenci/doktoranci UEW lub posiadacze numeru IRK: [cena] zł",
+          "Bilet na samą Imprezę, Cocktail Party: [cena] zł",
+          "4. Organizator zastrzega sobie prawo do zmiany cen biletów w trakcie sprzedaży. Zmiana ceny nie dotyczy biletów już opłaconych.",
+          "Dane do przelewu:",
+          "Nazwa odbiorcy: Uniwersytet Ekonomiczny we Wrocławiu",
+          "Nr rachunku: 87 1240 3464 1111 0010 4316 2601",
+          "Tytuł przelewu: „TEDxUEW – imię i nazwisko Uczestnika”",
+          "5. Opłatę uznaje się za uiśczoną z chwilą uznania rachunku bankowego Organizatora.",
+          "6. Cena biletu obejmuje świadczenia wskazane dla danego rodzaju biletu, w szczególności:",
+          "a) 3 panele 18-minutowych prelekcji — dla biletów obejmujących udział w Konferencji;",
+          "b) udział w Imprezie, Cocktail Party — dla biletów obejmujących Imprezę;",
+          "c) strefę okołoeventową ze standami kreatywnymi i warsztatami;",
+          "d) lunch podczas Konferencji oraz poczęstunek podczas Imprezy, odpowiednio do rodzaju biletu;",
+          "e) personalizowany giftpack, jeżeli został przewidziany dla danego rodzaju biletu;",
+          "f) sesję Q&A z prelegentami, jeżeli została przewidziana w programie Wydarzenia.",
+          "7. Bilet na Wydarzenie zostanie przesłany Uczestnikowi na adres e-mail podany w formularzu w ciągu 7 dni roboczych od zaksięgowania płatności, pod warunkiem dostępności miejsc oraz kompletności zgłoszenia.",
+          "8. O kolejności przy wyczerpaniu puli biletów decyduje data i godzina zaksięgowania płatności na rachunku Organizatora oraz kompletność zgłoszenia.",
+          "9. Wypełnienie formularza, dokonanie płatności i przesłanie potwierdzenia przelewu nie są równoznaczne z gwarancją otrzymania biletu. W przypadku wątpliwości Organizator weryfikuje kolejność zgłoszeń na podstawie daty i godziny zaksięgowania płatności oraz kompletności zgłoszenia.",
+          "10. W przypadku braku dostępnych miejsc pomimo dokonania płatności Organizator niezwłocznie, nie później niż w terminie 7 dni roboczych, zwróci Uczestnikowi wpłaconą kwotę w całości na rachunek, z którego dokonano płatności, chyba że Uczestnik wskaże inny rachunek do zwrotu. Uczestnikowi nie przyslugują z tego tytułu dodatkowe roszczenia, z zastrzeżeniem bezwzględnie obowiązujących przepisów prawa.",
+          "11. Na podstawie art. 38 ust. 1 pkt 12 ustawy z dnia 30 maja 2014 r. o prawach konsumenta prawo do odstąpienia od umowy zawartej na odległość nie przysługuje, ponieważ umowa dotyczy świadczeń związanych z wydarzeniem kulturalnym lub rozrywkowym, w którym oznaczono dzień i miejsce świadczenia usługi. Aktualny tekst ustawy o prawach konsumenta jest publikowany w ISAP.",
+          "12. W przypadku rezygnacji z udziału z przyczyn leżących po stronie Uczestnika, niebędących następstwem przyczyn po stronie Organizatora ani Siły wyższej, zakupiony bilet nie podlega zwrotowi, chyba że Organizator postanowi inaczej w szczególnie uzasadnionym przypadku.",
+          "13. Bilet na Wydarzenie jest imienny i nie może być odsprzedany ani przekazany innej osobie bez uprzedniej zgody Organizatora wyrażonej co najmniej w formie dokumentowej, w szczególności za pośrednictwem wiadomości e-mail.",
+          "14. Warunkiem dokonania rejestracji i zakupu biletu jest złożenie przez Uczestnika oświadczenia o zapoznaniu się z Regulaminem oraz jego akceptacji.",
+          "15. Pod uwagę nie będą brane zgłoszenia wygenerowane przez boty, automatyczne oprogramowanie, agencje lub pośredników sprzedaży biletów, chyba że Organizator wyraził uprzednią zgodę na taki sposób dystrybucji."
+        ],
+        commentary: [
+          "Doprecyzowano, że płatność i formularz to jeszcze nie gwarancja biletu, dopóki są limity miejsc i kolejność księgowania.",
+          "Brak prawa odstąpienia z ustawy konsumenckiej nie oznacza, że Organizator może zatrzymać pieniądze w każdym przypadku. Jeśli Uczestnik się rozmyśli — co do zasady brak zwrotu. Jeśli wydarzenie odwoła Organizator — wchodzi § 8 i zwrot.",
+          "Dodano wyjątek „z zastrzeżeniem bezwzględnie obowiązujących przepisów prawa”, żeby regulamin nie wyglądał jak próba wyłączenia wszystkiego absolutnie."
+        ]
+      },
+      {
+        id: "tedx-4",
+        title: "§ 4. Cocktail Party",
+        content: [
+          "1. Impreza stanowi część towarzyszącą Konferencji TEDxUEW 2026.",
+          "2. Na teren Imprezy wejść mogą wyłącznie osoby posiadające ważny bilet obejmujący Imprezę, które nie opuściły Wydarzenia w sposób definitywny i nie zostały wykluczone z udziału w Wydarzeniu.",
+          "3. Na terenie Imprezy obowiązują odpowiednio wszystkie postanowienia niniejszego Regulaminu.",
+          "4. Bilet obejmujący wyłącznie Imprezę uprawnia do uczestnictwa w Cocktail Party, poczęstunku, sesji Q&A z prelegentami oraz oprawy muzycznej, o ile elementy te zostały przewidziane w programie Imprezy.",
+          "5. Bilet na Imprezę jest imienny i nie może być odsprzedany ani przekazany innej osobie bez uprzedniej zgody Organizatora wyrażonej co najmniej w formie dokumentowej.",
+          "6. W zakresie zwrotu opłaty za bilet na Imprezę stosuje się odpowiednio § 3 ust. 10–12 oraz § 8 niniejszego Regulaminu."
+        ],
+        commentary: [
+          "Zmieniono „integralną część” na „część towarzyszącą”, bo skoro można kupić bilet tylko na Imprezę, to lepiej nie tworzyć wrażenia, że każdy uczestnik Konferencji automatycznie ma dostęp do Cocktail Party.",
+          "Poprawiono odesłanie do zwrotów. Wcześniej było zbyt wąskie — obejmowało brak miejsc i brak prawa odstąpienia, ale nie obejmowało jasno sytuacji odwołania albo siły wyższej. Teraz § 4 spina się z § 3 i § 8."
+        ]
+      },
+      {
+        id: "tedx-5",
+        title: "§ 5. Odpowiedzialność Uczestnika",
+        content: [
+          "1. Uczestnik zobowiązany jest do przestrzegania niniejszego Regulaminu, regulaminu obiektu, ogólnie przyjętych norm zachowania oraz uzasadnionych poleceń Organizatora, Grupy Projektowej lub osób upoważnionych, związanych z bezpieczeństwem, porządkiem lub prawidłowym przebiegiem Wydarzenia.",
+          "2. Uczestnik, który zakłóca przebieg Konferencji, nie stosuje się do uzasadnionych poleceń Organizatora lub Grupy Projektowej, zachowuje się agresywnie, niszczy mienie lub w inny sposób rażąco albo uporczywie narusza niniejszy Regulamin, może zostać zobowiązany do opuszczenia terenu Wydarzenia. Zobowiązanie do opuszczenia Wydarzenia z przyczyn leżących po stronie Uczestnika nie uprawnia do zwrotu ceny biletu.",
+          "3. Każdy Uczestnik odpowiada za naprawienie szkód wyrządzonych przez niego w trakcie lub w związku z uczestnictwem w Wydarzeniu, na zasadach ogólnych wynikających z przepisów Kodeksu cywilnego.",
+          "4. Organizator nie ponosi odpowiedzialności za rzeczy zgubione, porzucone lub pozostawione przez Uczestników na terenie Wydarzenia poza miejscami przeznaczonymi do ich przechowania.",
+          "5. Organizator zapewnia obsługę szatni w celu przechowania odzieży wierzchniej. Za rzeczy przyjęte do szatni Organizator ponosi odpowiedzialność na zasadach określonych w Kodeksie cywilnym, w szczególności przepisach o przechowaniu. Zaleca się niepozostawianie w szatni przedmiotów o wysokiej wartości, w szczególności biżuterii, gotówki, dokumentów, sprzętu elektronicznego oraz innych wartościowych przedmiotów, ponieważ szatnia nie pełni funkcji depozytu wartościowego.",
+          "6. Organizator ponosi odpowiedzialność na zasadach określonych w powszechnie obowiązujących przepisach prawa. Żadne postanowienie Regulaminu nie wyłącza ani nie ogranicza odpowiedzialności Organizatora w zakresie, w jakim wyłączenie lub ograniczenie byłoby niedopuszczalne na podstawie bezwzględnie obowiązujących przepisów prawa."
+        ],
+        commentary: [
+          "Zmieniono automatyzm „zostanie niezwłocznie wyproszony” na „może zostać zobowiązany do opuszczenia”. To brzmi mniej agresywnie i daje Organizatorowi możliwość stopniowania reakcji.",
+          "Zostawiono odpowiedzialność za szkody na zasadach ogólnych, bo to jest najbezpieczniejsze. KC obejmuje zarówno odpowiedzialność deliktową, jak i kontraktową.",
+          "Szatnia została dobrze ujęta — nie można napisać po prostu „nie odpowiadamy za rzeczy w szatni”, jeśli Organizator faktycznie przyjmuje rzeczy do przechowania. Dlatego zostaje odpowiedzialność na zasadach KC, ale z zaznaczeniem, że szatnia nie jest depozytem wartościowym.",
+          "Dodano klauzulę bezwzględnie obowiązujących przepisów prawa w odniesieniu do odpowiedzialności Organizatora."
+        ]
+      },
+      {
+        id: "tedx-6",
+        title: "§ 6. Rejestracja audiowizualna i prawa do wizerunku",
+        content: [
+          "1. Wydarzenie może być filmowane i fotografowane przez Organizatora lub podmioty działające na jego zlecenie, na potrzeby dokumentacyjne, informacyjne, promocyjne i sprawozdawcze.",
+          "2. Uczestnik przyjmuje do wiadomości, że jego wizerunek może zostać utrwalony jako element większej całości, jaką stanowi publiczne wydarzenie, publiczność, zgromadzenie lub scena wydarzenia. W takim przypadku rozpowszechnianie wizerunku może nastąpić na podstawie art. 81 ust. 2 pkt 2 ustawy o prawie autorskim i prawach pokrewnych, bez konieczności uzyskiwania odrębnego zezwolenia, jeżeli Uczestnik stanowi jedynie szczegół całości.",
+          "3. Jeżeli Uczestnik dobrowolnie udziela wywiadu, wypowiedzi przed kamerą, pozuje do zdjęcia albo w inny sposób świadomie uczestniczy w indywidualnym materiale fotograficznym lub audiowizualnym, może zostać poproszony o udzielenie odrębnego zezwolenia na rozpowszechnianie wizerunku, określającego zakres, cele i pola wykorzystania materiału.",
+          "4. Zezwolenie, o którym mowa w ust. 3, może obejmować nieodpłatne wykorzystanie wizerunku przez Organizatora w materiałach informacyjnych, promocyjnych, reklamowych, sprawozdawczych, prasowych, na stronie internetowej oraz w mediach społecznościowych Organizatora, zgodnie z treścią odrębnego oświadczenia Uczestnika.",
+          "5. Jeżeli podstawą przetwarzania danych osobowych w postaci wizerunku jest zgoda Uczestnika, Uczestnik ma prawo cofnąć zgodę w dowolnym momencie, przy czym cofnięcie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem. W odniesieniu do materiałów już opublikowanych cofnięcie zgody może wymagać oceny technicznych, organizacyjnych i prawnych możliwości ich usunięcia lub ograniczenia dalszego rozpowszechniania.",
+          "6. Fotografowanie i filmowanie Konferencji przez Uczestników jest dozwolone wyłącznie na użytek prywatny, z zastrzeżeniem ust. 7.",
+          "7. Podczas trwania prelekcji obowiązuje zakaz filmowania i fotografowania przez Uczestników, chyba że Organizator wyraźnie i publicznie zezwoli na taką aktywność. Naruszenie tego zakazu może skutkować zobowiązaniem Uczestnika do zaprzestania naruszeń, usunięcia nagrania lub zdjęcia, a w przypadku naruszeń rażących albo uporczywych — zobowiązaniem do opuszczenia Wydarzenia.",
+          "8. Komercyjne wykorzystanie lub publiczne udostępnianie nagrań lub zdjęć z prelekcji przez Uczestników jest zabronione bez uprzedniej zgody Organizatora wyrażonej co najmniej w formie dokumentowej, chyba że bezwzględnie obowiązujące przepisy prawa stanowią inaczej."
+        ],
+        commentary: [
+          "Ten paragraf poprawiono najmocniej. Prawo autorskie przewiduje wyjątek dla osoby stanowiącej szczegół większej całości, np. publiczności lub wydarzenia, ale ten wyjątek nie działa na każde zdjęcie.",
+          "Jeśli robione są z kimś wywiady albo prosi się go o pozowanie — to już nie jest tylko „szczegół całości”. Dlatego dodano osobne zezwolenie wizerunkowe.",
+          "Usunięto twarde „bezterminowo i nieodwołalnie w praktyce”, bo przy RODO zgoda musi być możliwa do cofnięcia.",
+          "Zakaz filmowania prelekcji to kluczowy element umowy licencyjnej TEDx — nagrania prelekcji są prawnie chronione i mogą być publikowane wyłącznie przez TED lub za zgodą Organizatora."
+        ]
+      },
+      {
+        id: "tedx-7",
+        title: "§ 7. Zasady przetwarzania danych osobowych",
+        content: [
+          "1. Administratorem danych osobowych Uczestników jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław.",
+          "2. Administrator wyznaczył Inspektora Ochrony Danych, z którym można kontaktować się pisemnie na adres siedziby Administratora lub pod adresem e-mail: iod@ue.wroc.pl.",
+          "3. Czynności operacyjne związane z organizacją Wydarzenia, w tym obsługę formularzy rejestracyjnych i bieżącą obsługę danych Uczestników, wykonują osoby działające z upoważnienia Administratora, w szczególności członkowie Grupy Projektowej TEDxUEW 2026 oraz osoby wspierające organizację Wydarzenia, wyłącznie w zakresie niezbędnym do realizacji powierzonych im zadań.",
+          "4. W formularzu rejestracyjnym Administrator może zbierać dane osobowe obejmujące w szczególności: imię, nazwisko, adres e-mail, numer telefonu, status studenta, doktoranta lub kandydata, numer IRK, informacje niezbędne do zastosowania biletu ulgowego, informacje dotyczące płatności, dane niezbędne do wystawienia biletu oraz inne dane niezbędne do organizacji Wydarzenia.",
+          "5. Administrator może zbierać dane szczególnych kategorii oraz dane osób trzecich wyłącznie w zakresie niezbędnym do organizacji Wydarzenia, w szczególności:",
+          "a) dane dotyczące zdrowia, takie jak alergie pokarmowe, inne alergie lub stany zdrowotne istotne dla bezpieczeństwa Uczestnika podczas Wydarzenia — na podstawie wyraźnej zgody Uczestnika, zgodnie z art. 9 ust. 2 lit. a RODO; podanie tych danych jest dobrowolne i służy wyłącznie zapewnieniu bezpieczeństwa Uczestnika, w szczególności dostosowaniu menu lub umożliwieniu szybkiej reakcji w sytuacji zagrożenia;",
+          "b) dane kontaktowe osoby do kontaktu w nagłych wypadkach (ICE), obejmujące imię, nazwisko i numer telefonu osoby wskazanej przez Uczestnika — na podstawie prawnie uzasadnionego interesu Administratora, art. 6 ust. 1 lit. f RODO, polegającego na zapewnieniu bezpieczeństwa Uczestników i możliwości reakcji w sytuacjach nagłych.",
+          "6. Uczestnik, podając dane osoby ICE, powinien poinformować tę osobę o przekazaniu jej danych Organizatorowi oraz o możliwości zapoznania się z informacją o przetwarzaniu danych dostępną na stronie internetowej Wydarzenia lub przekazaną przez Organizatora.",
+          "7. Dane zdrowotne oraz dane ICE przetwarzane są wyłącznie na potrzeby danej edycji Konferencji i są usuwane nie później niż 30 dni po zakończeniu Wydarzenia, chyba że ich dalsze przechowywanie jest wymagane przepisami prawa lub uzasadnione zgłoszonym wypadkiem, incydentem, roszczeniem albo koniecznością obrony przed roszczeniami.",
+          "8. Dane osobowe Uczestników przetwarzane są w następujących celach i na następujących podstawach prawnych:",
+          "a) zawarcie i wykonanie umowy o udział w Wydarzeniu — art. 6 ust. 1 lit. b RODO;",
+          "b) obsługa rejestracji, płatności, wydania biletu i komunikacji organizacyjnej — art. 6 ust. 1 lit. b RODO;",
+          "c) realizacja obowiązków prawnych ciążących na Administratorze, w szczególności obowiązków rachunkowych, podatkowych, dokumentacyjnych lub archiwalnych — art. 6 ust. 1 lit. c RODO;",
+          "d) realizacja prawnie uzasadnionych interesów Administratora, w tym zapewnienie bezpieczeństwa i porządku Wydarzenia, dochodzenie roszczeń lub obrona przed roszczeniami — art. 6 ust. 1 lit. f RODO;",
+          "e) ubezpieczenie Uczestników, jeżeli Organizator zapewnia takie ubezpieczenie — art. 6 ust. 1 lit. b RODO lub art. 6 ust. 1 lit. f RODO, w zakresie niezbędnym do objęcia Uczestnika ubezpieczeniem;",
+          "f) przetwarzanie numeru PESEL — wyłącznie wtedy, gdy jest niezbędny do objęcia Uczestnika ubezpieczeniem zapewnianym przez Organizatora lub wymagany przez ubezpieczyciela;",
+          "g) dokumentacja i promocja Organizatora, w zakresie indywidualnego wykorzystania wizerunku Uczestnika, jeżeli wymagana jest zgoda — art. 6 ust. 1 lit. a RODO.",
+          "9. Dane osobowe Uczestników mogą być udostępniane:",
+          "a) podmiotom przetwarzającym dane w imieniu Administratora, w szczególności dostawcom usług IT, operatorom formularzy, podmiotom obsługującym komunikację, ubezpieczycielom, podmiotom świadczącym usługi organizacyjne lub techniczne — wyłącznie w zakresie niezbędnym i na podstawie właściwych podstaw prawnych;",
+          "b) organom publicznym — wyłącznie na podstawie bezwzględnie obowiązujących przepisów prawa;",
+          "c) innym podmiotom zaangażowanym w organizację Wydarzenia — wyłącznie wtedy, gdy jest to niezbędne do realizacji Wydarzenia i istnieje właściwa podstawa prawna.",
+          "10. Dane osobowe przechowywane są przez następujące okresy:",
+          "a) dane związane z wykonaniem umowy — przez czas trwania umowy, a następnie przez okres przedawnienia ewentualnych roszczeń;",
+          "b) dane rozliczeniowe, rachunkowe, podatkowe i finansowe — przez okres wymagany przepisami prawa;",
+          "c) dane dla celów ubezpieczeniowych — przez okres niezbędny do realizacji ochrony ubezpieczeniowej oraz ewentualnych roszczeń związanych z ubezpieczeniem;",
+          "d) dane do celów archiwalnych — zgodnie z obowiązującymi przepisami prawa i regulacjami wewnętrznymi Administratora;",
+          "e) dane przetwarzane na podstawie zgody — do czasu cofnięcia zgody, chyba że istnieje inna podstawa dalszego przetwarzania.",
+          "11. Uczestnikowi przysługują następujące prawa w zakresie ochrony danych osobowych: prawo dostępu do danych, prawo do sprostowania danych, prawo do usunięcia danych w zakresie dopuszczonym przepisami RODO, prawo do ograniczenia przetwarzania, prawo do przenoszenia danych, prawo do sprzeciwu, jeżeli przetwarzanie odbywa się na podstawie prawnie uzasadnionego interesu, oraz prawo do cofnięcia zgody w dowolnym momencie bez wpływu na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem.",
+          "12. W przypadku naruszenia przepisów o ochronie danych osobowych Uczestnik ma prawo wniesienia skargi do organu nadzorczego — Prezesa Urzędu Ochrony Danych Osobowych.",
+          "13. Podanie danych osobowych jest dobrowolne, lecz niezbędne do nabycia biletu i uczestnictwa w Wydarzeniu w zakresie danych koniecznych do organizacji Wydarzenia. Odmowa podania tych danych uniemożliwia nabycie biletu lub uczestnictwo. Podanie danych zdrowotnych jest dobrowolne, a ich niepodanie nie wyklucza uczestnictwa, lecz może ograniczyć możliwość dostosowania świadczeń lub reakcji Organizatora na szczególne potrzeby Uczestnika.",
+          "14. Dane osobowe Uczestników nie będą przekazywane do państw trzecich ani organizacji międzynarodowych, chyba że Uczestnik zostanie o tym odrębnie poinformowany zgodnie z RODO.",
+          "15. Dane osobowe Uczestników nie będą przetwarzane w sposób zautomatyzowany ani nie będą podlegały profilowaniu."
+        ],
+        commentary: [
+          "Ten paragraf poprawiono tak, żeby nie było automatycznego wrzucania PESEL-u pod obowiązek prawny. Jeżeli ubezpieczyciel rzeczywiście wymaga PESEL-u, można go zebrać, ale trzeba to opisać jako dane niezbędne do ubezpieczenia, a nie jako ogólny wymóg.",
+          "Dane zdrowotne zostają na wyraźnej zgodzie z art. 9 ust. 2 lit. a RODO. Dane ICE zostają na uzasadnionym interesie.",
+          "Dodano bardziej realną retencję danych: nie wszystko 3 lata, bo księgowość, archiwizacja, ubezpieczenia i roszczenia mogą mieć inne okresy.",
+          "Dane ICE są przetwarzane na podstawie uzasadnionego interesu, a nie zgody — bo w nagłej sytuacji Organizator musi móc skontaktować się z osobą wskazaną bez konieczności ponownego pytania o zgodę."
+        ]
+      },
+      {
+        id: "tedx-8",
+        title: "§ 8. Siła wyższa",
+        content: [
+          "1. W przypadku niemożności przeprowadzenia Konferencji lub Imprezy z powodu Siły wyższej Organizator niezwłocznie powiadomi Uczestników drogą elektroniczną, wskazując znane mu okoliczności.",
+          "2. W przypadku odwołania lub przeniesienia Konferencji na inny termin z powodu Siły wyższej Organizator dołoży starań, aby zaproponować Uczestnikom uczestnictwo w zamiennym terminie. Uczestnik, który nie wyrazi zgody na uczestnictwo w zamiennym terminie, otrzyma zwrot uiścionej opłaty w ciągu 30 dni od poinformowania Organizatora o rezygnacji w formie dokumentowej, w szczególności za pośrednictwem wiadomości e-mail.",
+          "3. W przypadku odwołania Konferencji z przyczyn leżących wyłącznie po stronie Organizatora, niebędących Siłą wyższą, Uczestnikowi przysługuje pełny zwrot uiścionej opłaty w ciągu 14 dni od oficjalnego ogłoszenia odwołania.",
+          "4. Organizator nie ponosi odpowiedzialności odszkodowawczej za szkody poniesione przez Uczestników wskutek zaistnienia Siły wyższej, w szczególności za koszty podróży, zakwaterowania czy utracone korzyści, z zastrzeżeniem bezwzględnie obowiązujących przepisów prawa."
+        ],
+        commentary: [
+          "Paragraf ten rozróżnia trzy scenariusze: siłę wyższą, odwołanie z winy Organizatora i brak zgody uczestnika na nowy termin. Takie rozróżnienie jest kluczowe dla jasności zasad zwrotu.",
+          "Można ograniczać odpowiedzialność za siłę wyższą, ale nie warto pisać tego w sposób absolutny. Dlatego dodano bezpiecznik „z zastrzeżeniem bezwzględnie obowiązujących przepisów prawa”."
+        ]
+      },
+      {
+        id: "tedx-9",
+        title: "§ 9. Przepisy końcowe",
+        content: [
+          "1. Oświadczenie o akceptacji niniejszego Regulaminu stanowi warunek konieczny uczestnictwa w Wydarzeniu.",
+          "2. Organizator zastrzega sobie prawo do zmiany postanowień niniejszego Regulaminu w przypadku wystąpienia obiektywnych przesłanek natury prawnej, organizacyjnej, technicznej, bezpieczeństwa lub wynikających z zasad licencji TEDx. O każdej zmianie Organizator powiadomi Uczestników drogą elektroniczną z wyprzedzeniem co najmniej 7 dni, chyba że zmiana musi zostać wprowadzona niezwłocznie ze względu na przepisy prawa, bezpieczeństwo albo decyzję właściwych organów.",
+          "3. Uczestnik, który nie akceptuje zmian Regulaminu istotnie wpływających na jego prawa lub obowiązki, może odstąpić od umowy. W takim przypadku przysługuje mu zwrot uiścionej opłaty.",
+          "4. Spory wynikające z niniejszego Regulaminu Strony będą starały się rozwiązać polubownie. W przypadku braku porozumienia spory podlegają rozstrzygnięciu przez sąd właściwy miejscowo i rzeczowo zgodnie z obowiązującymi przepisami prawa polskiego.",
+          "5. W sprawach nieuregulowanych zastosowanie mają przepisy prawa polskiego, w szczególności: Kodeks cywilny, ustawa z dnia 30 maja 2014 r. o prawach konsumenta, Rozporządzenie RODO oraz ustawa z dnia 4 lutego 1994 r. o prawie autorskim i prawach pokrewnych.",
+          "6. Niniejszy Regulamin wchodzi w życie z dniem jego opublikowania na stronie internetowej www.tedxuew.com."
+        ],
+        commentary: [
+          "Dodano licencję TEDx jako jedną z możliwych przyczyn zmiany regulaminu, bo to realnie może się zdarzyć.",
+          "Nie zostawiano prawa zmiany regulaminu bez ograniczeń. Dlatego Uczestnik może odstąpić, jeśli zmiana istotnie wpływa na jego prawa lub obowiązki.",
+          "Dodano ustawę o prawie autorskim do katalogu przepisów, bo przy tym regulaminie wizerunek, nagrania i prelekcje są bardzo istotne.",
+          "Termin 7-dniowego wyprzedzenia chroni uczestników przed arbitralnymi zmianami wprowadzanymi z dnia na dzień, jednocześnie dając elastyczność w naglinach prawnych lub związanych z licencją TEDx."
         ]
       }
     ]
