@@ -629,9 +629,6 @@ export default function KsiegaDokumentowPage() {
           .acc-collapsed { display: block !important; }
           .printing .acc-collapsed { display: block !important; }
 
-          /* Ukryj elementy nawigacyjne */
-          .print-sidebar { display: none !important; }
-
           /* Napraw sekcję hero: ciemne tło → białe, tekst → ciemny */
           .print-hero-section { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
           .print-hero-section * { color: #1a1a2e !important; }
@@ -691,7 +688,7 @@ export default function KsiegaDokumentowPage() {
           />
 
           {/* Main content */}
-          <main className="flex-1 min-w-0 mt-8 lg:mt-0">
+          <main id="printable-document" className="flex-1 min-w-0 mt-8 lg:mt-0">
             <KsiegaHero />
 
             {czesci.filter(c => ['czesc1', 'czesc2'].includes(c.id)).map(czesc => (
