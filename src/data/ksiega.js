@@ -45,7 +45,7 @@ export const czesci = [
           'Pełna nazwa Samorządu brzmi: **Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu**.',
           'Skrócona nazwa **SSUEW** jest dopuszczalna wyłącznie w treści dokumentów, po uprzednim użyciu pełnej nazwy.',
           'Oficjalna nazwa w języku angielskim: **Student Government of Wroclaw University of Economics and Business** — stosowana wyłącznie w dokumentach dwujęzycznych lub korespondencji zagranicznej.',
-          'Ogólny adres kontaktowy: **kontakt@samorzad.ue.wroc.pl**. Adres korespondencyjny: **ul. Komandorska 118/120, 53-345 Wrocław**.',
+          'Ogólny adres kontaktowy: **administracja@samorzad.ue.wroc.pl**. Adres korespondencyjny: **ul. Komandorska 118/120, 53-345 Wrocław**.',
           'W kwestiach dotyczących znaku graficznego dokumentem nadrzędnym jest **Księga Znaku SSUEW**. Niniejsza Księga określa wyłącznie zasady użycia znaku na dokumentach.',
         ],
       },
@@ -171,8 +171,8 @@ export const czesci = [
       {
         id: 'par14', numer: '§14', tytul: 'Procedura weryfikacji zgodności z Księgą',
         tresc: [
-          'Weryfikacja obejmuje: poprawność bloku tytułowego, zgodność typografii z §5, poprawność nagłówka i stopki, kompletność metryczki, obecność klauzuli, prawidłowość bloku podpisu, zgodność nazwy pliku (§12), zgodność z kartą dokumentu w Katalogu. **Procedura ta dotyczy wyłącznie dokumentów Działu A i C — dokumenty Działu B (Finanse) podlegają odrębnej weryfikacji wewnątrzfinansowej.**',
-          'Dokument Działu A lub C niespełniający wymagań **nie może zostać zarejestrowany w CRED ani skierowany do adresata**. Osoba rejestrująca zwraca go autorowi z pisemnym wskazaniem niezgodności.',
+          'Weryfikacja obejmuje: poprawność bloku tytułowego, zgodność typografii z §5, poprawność nagłówka i stopki, kompletność metryczki, obecność klauzuli, prawidłowość bloku podpisu, zgodność nazwy pliku (§12), zgodność z kartą dokumentu w Katalogu. **Procedura ta dotyczy wyłącznie dokumentów Działu A — dokumenty Działu B (Finanse) podlegają odrębnej weryfikacji wewnątrzfinansowej.**',
+          'Dokument Działu A niespełniający wymagań **nie może zostać zarejestrowany w CRED ani skierowany do adresata**. Osoba rejestrująca zwraca go autorowi z pisemnym wskazaniem niezgodności.',
           'Autor zobowiązany do usunięcia niezgodności i ponownego przedłożenia w terminie **3 dni roboczych** od daty zwrotu.',
           'W przypadku sporu co do zgodności rozstrzyga **Właściciel Księgi**. Jego decyzja jest ostateczna w pierwszej instancji.',
         ],
@@ -180,8 +180,8 @@ export const czesci = [
       {
         id: 'par15', numer: '§15', tytul: 'Procedura obiegu dokumentów',
         tresc: [
-          'Dokumenty zewnętrzne wpływające rejestrowane są w CRED niezwłocznie po otrzymaniu — nie później niż następnego dnia roboczego. Dotyczy wyłącznie dokumentów Działu A i C.',
-          'Dokumenty wychodzące Działu A i C rejestrowane są w CRED **przed** ich wysłaniem. Niedopuszczalne jest kierowanie dokumentu do adresata zewnętrznego bez uprzedniej rejestracji.',
+          'Dokumenty zewnętrzne wpływające rejestrowane są w CRED niezwłocznie po otrzymaniu — nie później niż następnego dnia roboczego. Dotyczy wyłącznie dokumentów Działu A.',
+          'Dokumenty wychodzące Działu A rejestrowane są w CRED **przed** ich wysłaniem. Niedopuszczalne jest kierowanie dokumentu do adresata zewnętrznego bez uprzedniej rejestracji.',
           'Korespondencja dotycząca jednej sprawy prowadzona w ramach tego samego wątku w CRED. Niedopuszczalne otwieranie nowego wątku dla już zarejestrowanej sprawy.',
           '**Dokumenty Działu B (Finanse) są wyłączone z systemu CRED.** Ich obieg, rejestracja i archiwizacja odbywa się wyłącznie w ramach wewnętrznych rejestrów finansowych (B.16, B.23), zgodnie z procedurami ustalonymi przez Członka Zarządu ds. Finansów SSUEW.',
         ],

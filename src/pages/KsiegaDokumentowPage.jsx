@@ -28,7 +28,7 @@ function ScrollProgress() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   return (
-    <div className="fixed top-0 left-0 right-0 z-[100] h-0.5" style={{ background: '#e2e8f0' }}>
+    <div className="fixed top-0 left-0 right-0 z-[100] h-0.5 print:hidden" style={{ background: '#e2e8f0' }}>
       <div
         className="h-full transition-all duration-75"
         style={{ width: `${progress}%`, background: ACCENT }}
@@ -48,7 +48,7 @@ function BackToTop() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      className={`fixed bottom-10 left-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 print:hidden ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
       style={{ background: TEXT_DARK, color: '#fff' }}
       aria-label="Wróć na górę"
     >
@@ -125,32 +125,30 @@ function DocumentCard({ doc, kolor }) {
         </svg>
       </button>
 
-      {open && (
-        <div className="px-5 pb-5 space-y-2 border-t border-slate-50 pt-4 animate-fadeIn">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cel i opis</p>
-            <p className="text-xs text-slate-700 leading-relaxed">{doc.cel}</p>
-          </div>
-          <div className="grid grid-cols-1 gap-2 pt-1">
-            {[
-              ['Tryb autoryzacji', doc.autoryzacja],
-              ['Adresat / obieg', doc.obieg],
-              ['Archiwizacja', doc.archiwizacja],
-              ['Szablon', doc.szablon],
-              ['Powiązane dokumenty', doc.powiazane],
-            ].map(([label, val]) => (
-              !val
-                ? <PlaceholderField key={label} label={label} />
-                : (
-                  <div key={label} className="flex gap-2 text-xs">
-                    <span className="font-bold text-slate-500 shrink-0 w-32">{label}:</span>
-                    <span className="text-slate-700 leading-relaxed">{val}</span>
-                  </div>
-                )
-            ))}
-          </div>
+      <div className={`px-5 pb-5 space-y-2 border-t border-slate-50 pt-4 animate-fadeIn doc-card-content${open ? '' : ' hidden'}`}>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cel i opis</p>
+          <p className="text-xs text-slate-700 leading-relaxed">{doc.cel}</p>
         </div>
-      )}
+        <div className="grid grid-cols-1 gap-2 pt-1">
+          {[
+            ['Tryb autoryzacji', doc.autoryzacja],
+            ['Adresat / obieg', doc.obieg],
+            ['Archiwizacja', doc.archiwizacja],
+            ['Szablon', doc.szablon],
+            ['Powiązane dokumenty', doc.powiazane],
+          ].map(([label, val]) => (
+            !val
+              ? <PlaceholderField key={label} label={label} />
+              : (
+                <div key={label} className="flex gap-2 text-xs">
+                  <span className="font-bold text-slate-500 shrink-0 w-32">{label}:</span>
+                  <span className="text-slate-700 leading-relaxed">{val}</span>
+                </div>
+              )
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -239,15 +237,13 @@ function KsiegaParagraph({ par }) {
         </svg>
       </button>
 
-      {open && (
-        <div className="px-6 pb-6 space-y-3 animate-fadeIn">
-          {par.tresc.map((item, i) => (
-            <p key={i} className="text-sm text-slate-700 leading-relaxed pl-2 border-l-2 border-slate-100">
-              {renderText(item)}
-            </p>
-          ))}
-        </div>
-      )}
+      <div className={`px-6 pb-6 space-y-3 animate-fadeIn para-content${open ? '' : ' hidden'}`}>
+        {par.tresc.map((item, i) => (
+          <p key={i} className="text-sm text-slate-700 leading-relaxed pl-2 border-l-2 border-slate-100">
+            {renderText(item)}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }
@@ -341,7 +337,7 @@ function KsiegaSidebar({ activeSection, onNav, mobileOpen, onClose }) {
       )}
 
       {/* Desktop — uczestniczy w layoutzie flex jako kolumna */}
-      <div className="hidden lg:block w-64 shrink-0">
+      <div className="hidden lg:block print-sidebar w-64 shrink-0">
         <div className="sticky top-20 bg-white rounded-2xl shadow-lg border border-slate-100 p-4">
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Spis Treści</h3>
           <SidebarNav activeSection={activeSection} onNav={onNav} />
@@ -604,17 +600,22 @@ export default function KsiegaDokumentowPage() {
   }, []);
 
   return (
-    <div className="min-h-screen pt-16 pb-20" style={{ background: BG_LIGHT, color: TEXT_DARK }}>
+    <div className="min-h-screen pt-16 pb-20 print:pt-4 print:pb-0" style={{ background: BG_LIGHT, color: TEXT_DARK }}>
       <ScrollProgress />
       <BackToTop />
 
       <style>{`
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeInUp 0.25s ease forwards; }
+        @media print {
+          * { animation: none !important; transition: none !important; }
+          .doc-card-content, .para-content { display: block !important; }
+          .print-sidebar { display: none !important; }
+        }
       `}</style>
 
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-16 left-0 right-0 z-20 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shadow-sm">
+      <div className="lg:hidden fixed top-16 left-0 right-0 z-20 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between shadow-sm print:hidden">
         <button
           onClick={() => setMobileMenuOpen(true)}
           className="flex items-center gap-2 text-xs font-black uppercase tracking-widest"
@@ -638,7 +639,7 @@ export default function KsiegaDokumentowPage() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back link + print button */}
-        <div className="pt-6 lg:pt-8 mb-8 flex items-center justify-between">
+        <div className="pt-6 lg:pt-8 mb-8 flex items-center justify-between print:hidden">
           <Link to="/dokumenty"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
             ← Wróć do Modułu Lex SSUEW
