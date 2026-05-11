@@ -48,7 +48,7 @@ function BackToTop() {
   return (
     <button
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-      className={`fixed bottom-10 left-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 print:hidden ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      className={`fixed bottom-24 left-6 z-50 w-11 h-11 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 print:hidden ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
       style={{ background: TEXT_DARK, color: '#fff' }}
       aria-label="Wróć na górę"
     >
@@ -125,7 +125,7 @@ function DocumentCard({ doc, kolor }) {
         </svg>
       </button>
 
-      <div className={`px-5 pb-5 space-y-2 border-t border-slate-50 pt-4 animate-fadeIn doc-card-content${open ? '' : ' hidden'}`}>
+      <div className={`px-5 pb-5 space-y-2 border-t border-slate-50 pt-4 animate-fadeIn doc-card-content${open ? '' : ' acc-collapsed'}`}>
         <div>
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Cel i opis</p>
           <p className="text-xs text-slate-700 leading-relaxed">{doc.cel}</p>
@@ -237,7 +237,7 @@ function KsiegaParagraph({ par }) {
         </svg>
       </button>
 
-      <div className={`px-6 pb-6 space-y-3 animate-fadeIn para-content${open ? '' : ' hidden'}`}>
+      <div className={`px-6 pb-6 space-y-3 animate-fadeIn para-content${open ? '' : ' acc-collapsed'}`}>
         {par.tresc.map((item, i) => (
           <p key={i} className="text-sm text-slate-700 leading-relaxed pl-2 border-l-2 border-slate-100">
             {renderText(item)}
@@ -377,7 +377,7 @@ function KsiegaHero() {
   return (
     <section id="preambuła" className="scroll-mt-28 mb-16">
       {/* Hero header */}
-      <div className="relative overflow-hidden rounded-3xl mb-8 p-10 md:p-14"
+      <div className="relative overflow-hidden rounded-3xl mb-8 p-10 md:p-14 print-hero-section"
         style={{ background: TEXT_DARK }}>
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
           <span className="font-black text-white tracking-[0.3em] uppercase"
@@ -599,6 +599,17 @@ export default function KsiegaDokumentowPage() {
     setActiveSection(id);
   }, []);
 
+  useEffect(() => {
+    const before = () => document.body.classList.add('printing');
+    const after = () => document.body.classList.remove('printing');
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => {
+      window.removeEventListener('beforeprint', before);
+      window.removeEventListener('afterprint', after);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen pt-16 pb-20 print:pt-4 print:pb-0" style={{ background: BG_LIGHT, color: TEXT_DARK }}>
       <ScrollProgress />
@@ -607,10 +618,25 @@ export default function KsiegaDokumentowPage() {
       <style>{`
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fadeIn { animation: fadeInUp 0.25s ease forwards; }
+
+        /* Własna klasa ukrycia dla akordeonów — bez !important, żeby print mógł ją łatwo nadpisać */
+        .acc-collapsed { display: none; }
+
         @media print {
-          * { animation: none !important; transition: none !important; }
-          .doc-card-content, .para-content { display: block !important; }
+          * { animation: none !important; transition: none !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+          /* Rozwiń wszystkie akordeoniki */
+          .acc-collapsed { display: block !important; }
+          .printing .acc-collapsed { display: block !important; }
+
+          /* Ukryj elementy nawigacyjne */
           .print-sidebar { display: none !important; }
+
+          /* Napraw sekcję hero: ciemne tło → białe, tekst → ciemny */
+          .print-hero-section { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+          .print-hero-section * { color: #1a1a2e !important; }
+          .print-hero-section .text-slate-400,
+          .print-hero-section .text-slate-500 { color: #64748b !important; }
         }
       `}</style>
 
