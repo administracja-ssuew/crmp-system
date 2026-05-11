@@ -97,7 +97,7 @@ function DocumentCard({ doc, kolor }) {
 
   return (
     <div
-      className="bg-white rounded-2xl border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-lg"
+      className="dc-item bg-white rounded-2xl border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-lg"
       style={{ borderLeft: `4px solid ${kolor}` }}
     >
       <button
@@ -210,7 +210,7 @@ function KsiegaParagraph({ par }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="relative border-b border-slate-100 last:border-0">
+    <div className="kp-item relative border-b border-slate-100 last:border-0">
       <div
         className="absolute right-4 top-2 font-black text-7xl select-none pointer-events-none leading-none"
         style={{ color: '#1a1a2e', opacity: 0.03 }}
@@ -459,7 +459,7 @@ function KatalogSection({ search, statusFilter, setSearch, setStatusFilter }) {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-3 mb-8 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+      <div className="print-filter-bar flex flex-wrap gap-3 mb-8 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 flex-1 min-w-[200px]">
           <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

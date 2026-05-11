@@ -114,4 +114,49 @@
   .print\:hidden {
     display: none !important;
   }
+
+  /* ── UKŁAD STRONY A4 ── */
+  @page {
+    size: A4 portrait;
+    margin: 22mm 18mm 20mm 22mm;
+  }
+
+  /* Każda główna sekcja od nowej strony */
+  #printable-document > section {
+    break-before: page;
+    padding-top: 8mm !important;
+    margin-bottom: 0 !important;
+  }
+  #printable-document > section:first-child {
+    break-before: auto;
+    padding-top: 0 !important;
+  }
+
+  /* Nie łam pojedynczych elementów (karty dokumentów, akapity) w połowie strony */
+  #printable-document .kp-item,
+  #printable-document .dc-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Ukryj strzałki chevron (artefakty UI) */
+  #printable-document button svg {
+    display: none !important;
+  }
+
+  /* Uproszczone wizualne styling dla druku */
+  #printable-document * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  #printable-document .rounded-3xl,
+  #printable-document .rounded-2xl,
+  #printable-document .rounded-xl {
+    border-radius: 4px !important;
+  }
+
+  /* Pasek filtrowania — nieużyteczny w druku */
+  #printable-document .print-filter-bar {
+    display: none !important;
+  }
 }
