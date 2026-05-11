@@ -20,7 +20,11 @@
       "Bash(xargs wc:*)",
       "Bash(ls -lah /c/Users/Mikołaj/Downloads/stand-dashboard-main/.env*)",
       "Bash(Remove-Item \"c:\\\\Users\\\\Mikołaj\\\\Downloads\\\\stand-dashboard-main\\\\patch_tedx.py\" -Force)",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(npx --yes acorn --ecma2020 --module src/pages/LegalHubPage.jsx)",
+      "Bash(npx --yes @babel/parser --help)",
+      "Bash(node -e ' *)",
+      "Bash(python fix_polish.py)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Miko�aj\\Downloads\\stand-dashboard-main"

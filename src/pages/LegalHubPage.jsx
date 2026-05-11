@@ -583,18 +583,18 @@ const TEMPLATES_DATA = {
           "4. Kontakt z Organizatorem: [adres e-mail Organizatora].",
           "5. Ilekroć w treści niniejszego Regulaminu używa się poniższych pojęć pisanych wielką literą, należy przez nie rozumieć:",
           "a) Regulamin – niniejszy dokument stanowiący wzorzec umowny w rozumieniu art. 384 Kodeksu cywilnego;",
-          "b) Wydarzenie / Konferencja – konferencję pod nazwą „TEDxUEW [rok]", realizowaną w dniu [data wydarzenia] na terenie Miejsca wydarzenia;",
-          "c) Organizator – Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław, NIP: 896-000-69-97, REGON: 000001497, w imieniu i na rzecz którego czynności operacyjne podejmuje [jednostka / grupa organizacyjna, np. Samorząd Studentów UEW / Grupa Projektowa TEDxUEW];",
+          "b) Wydarzenie / Konferencja – konferencję pod nazwą „TEDxUEW [rok]”, realizowaną w dniu [data wydarzenia] na terenie Miejsca wydarzenia;",
+          "c) Organizator – Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław, NIP: 896-000-69-97, REGON: 000001497, w imieniu i na rzecz którego czynności operacyjne podejmuje [jednostka / grupa organizacyjna, np. Samorząd Studentów UEW / Grupa Projektowa TEDxUEW],",
           "d) Miejsce wydarzenia – [pełna nazwa miejsca wydarzenia] przy [adres miejsca wydarzenia];",
           "e) Grupa Projektowa – zespół organizacyjny TEDxUEW [rok] działający z upoważnienia Organizatora i odpowiedzialny za bieżącą organizację oraz prawidłowy przebieg Wydarzenia;",
           "f) Uczestnik – pełnoletnią osobę fizyczną przebywającą na terenie Wydarzenia, z wyłączeniem pracowników obiektu oraz członków Grupy Projektowej, która spełniła warunki określone w § 2 niniejszego Regulaminu i została wpisana na listę uczestników przez Organizatora;",
-          "g) Impreza – wydarzenie towarzyszące pod nazwą „[nazwa wydarzenia towarzyszącego, np. Cocktail Party]", odbywające się na terenie [miejsce wydarzenia towarzyszącego] w ramach Konferencji;",
+          "g) Impreza – wydarzenie towarzyszące pod nazwą „[nazwa wydarzenia towarzyszącego, np. Cocktail Party]”, odbywające się na terenie [miejsce wydarzenia towarzyszącego] w ramach Konferencji;",
           "h) Siła wyższa – zdarzenie zewnętrzne, niemożliwe do przewidzenia i zapobieżenia, niezależne od woli Stron, w szczególności: klęski żywiołowe, epidemie, pandemie, działania wojenne, akty terroryzmu, decyzje organów administracji publicznej uniemożliwiające zorganizowanie Wydarzenia, katastrofy budowlane uniemożliwiające korzystanie z Miejsca wydarzenia."
         ],
         commentary: [
           "Ten paragraf opiera się na konstrukcji wzorca umownego z art. 384 Kodeksu cywilnego. Regulamin wydarzenia biletowanego działa jak wzorzec, ponieważ Organizator z góry określa warunki udziału, płatności, zachowania, odpowiedzialności i dostępu do Wydarzenia. Wzorzec wiąże uczestnika wtedy, gdy został mu doręczony albo udostępniony przed zawarciem umowy.",
           "Wskazanie TED Conferences, LLC jako licencjodawcy, a nie Organizatora, jest istotne, bo TEDx jest wydarzeniem realizowanym lokalnie na zasadach licencji TEDx. Oficjalne zasady TEDx przewidują m.in. możliwość pobierania opłat za uczestnictwo, ale środki z biletów powinny być przeznaczane na koszty wydarzenia i jego obsługi.",
-          "Definicje porządkują dokument i ograniczają ryzyko sporu, np. czy „Organizator" oznacza Uczelnię, Grupę Projektową, Samorząd czy TED. Przy wydarzeniu z częścią główną i wydarzeniem towarzyszącym takie rozróżnienie jest szczególnie ważne."
+          "Definicje porządkują dokument i ograniczają ryzyko sporu, np. czy „Organizator” oznacza Uczelnię, Grupę Projektową, Samorząd czy TED. Przy wydarzeniu z częścią główną i wydarzeniem towarzyszącym takie rozróżnienie jest szczególnie ważne."
         ]
       },
       {
@@ -620,7 +620,7 @@ const TEMPLATES_DATA = {
         commentary: [
           "Ten paragraf określa warunki dostępu do wydarzenia zamkniętego. Organizator może ograniczyć udział do osób pełnoletnich, zarejestrowanych, posiadających ważny bilet i możliwych do zweryfikowania na wejściu. Wymóg pełnoletności ogranicza ryzyka związane z zawieraniem umowy, odpowiedzialnością za szkody i udziałem w wydarzeniu towarzyszącym.",
           "Weryfikacja dokumentu tożsamości jest ujęta wąsko, zgodnie z zasadą minimalizacji danych z RODO. Organizator sprawdza tożsamość i wiek, ale nie kopiuje dokumentów. RODO wymaga, aby przetwarzanie danych miało podstawę prawną i było ograniczone do danych niezbędnych do określonego celu.",
-          "Przesłanki odmowy wstępu lub zobowiązania do opuszczenia Wydarzenia są związane z bezpieczeństwem, porządkiem oraz ochroną osób i mienia. W regulaminie lepiej używać formuły „może odmówić" albo „może zobowiązać", a nie automatycznego „zostanie wyproszony", ponieważ pozwala to zachować zasadę proporcjonalności."
+          "Przesłanki odmowy wstępu lub zobowiązania do opuszczenia Wydarzenia są związane z bezpieczeństwem, porządkiem oraz ochroną osób i mienia. W regulaminie lepiej używać formuły „może odmówić” albo „może zobowiązać”, a nie automatycznego „zostanie wyproszony”, ponieważ pozwala to zachować zasadę proporcjonalności."
         ]
       },
       {
@@ -639,7 +639,7 @@ const TEMPLATES_DATA = {
           "Dane do przelewu:",
           "Nazwa odbiorcy: [nazwa odbiorcy przelewu]",
           "Nr rachunku: [numer rachunku bankowego Organizatora]",
-          "Tytuł przelewu: „TEDxUEW [rok] – [imię i nazwisko Uczestnika / inny wymagany tytuł przelewu]"",
+          "Tytuł przelewu: „TEDxUEW [rok] – [imię i nazwisko Uczestnika / inny wymagany tytuł przelewu]”",
           "5. Opłatę uznaje się za uiszczoną z chwilą uznania rachunku bankowego Organizatora.",
           "6. Cena biletu obejmuje świadczenia wskazane dla danego rodzaju biletu, w szczególności:",
           "a) [liczba] paneli [czas trwania] prelekcji — dla biletów obejmujących udział w Konferencji;",
@@ -661,7 +661,7 @@ const TEMPLATES_DATA = {
         commentary: [
           "Ten paragraf opisuje mechanizm zawarcia umowy udziału w Wydarzeniu: rejestrację, płatność, potwierdzenie, dostępność miejsc i zakres świadczeń. Zapis o zaksięgowaniu płatności ogranicza spory, czy wystarczyło samo zlecenie przelewu.",
           "Brak prawa odstąpienia od umowy zawartej na odległość został oparty na art. 38 ust. 1 pkt 12 ustawy o prawach konsumenta, który dotyczy m.in. usług związanych z wydarzeniami kulturalnymi lub rozrywkowymi, jeżeli wskazano dzień lub okres świadczenia usługi.",
-          "Trzeba jednak odróżnić brak prawa odstąpienia z powodu „rozmyślenia się" Uczestnika od zwrotu w razie odwołania Wydarzenia przez Organizatora. Dlatego mechanizmy zwrotu przy braku miejsc i odwołaniu Wydarzenia są uregulowane osobno.",
+          "Trzeba jednak odróżnić brak prawa odstąpienia z powodu „rozmyślenia się” Uczestnika od zwrotu w razie odwołania Wydarzenia przez Organizatora. Dlatego mechanizmy zwrotu przy braku miejsc i odwołaniu Wydarzenia są uregulowane osobno.",
           "Wydarzenia TEDx mają także wymogi licencyjne dotyczące finansowania. Oficjalne zasady TEDx wskazują, że środki z biletów powinny być przeznaczane na koszty wydarzenia i jego obsługi."
         ]
       },
@@ -678,7 +678,7 @@ const TEMPLATES_DATA = {
         ],
         commentary: [
           "Ten paragraf jest potrzebny, jeżeli Wydarzenie obejmuje część towarzyszącą, do której dostęp może być objęty osobnym biletem albo dodatkowym uprawnieniem. Dzięki temu Uczestnik wie, czy kupuje dostęp do Konferencji, Imprezy, czy obu części.",
-          "Sformułowanie „część towarzysząca" jest bezpieczniejsze niż „integralna część" wtedy, gdy istnieje bilet wyłącznie na Imprezę. Odesłanie do pozostałych postanowień Regulaminu zapewnia, że zasady bezpieczeństwa, odpowiedzialności, wizerunku i danych osobowych obowiązują również podczas wydarzenia towarzyszącego.",
+          "Sformułowanie „część towarzysząca” jest bezpieczniejsze niż „integralna część” wtedy, gdy istnieje bilet wyłącznie na Imprezę. Odesłanie do pozostałych postanowień Regulaminu zapewnia, że zasady bezpieczeństwa, odpowiedzialności, wizerunku i danych osobowych obowiązują również podczas wydarzenia towarzyszącego.",
           "Odesłanie do § 8 jest ważne, ponieważ zwroty za bilet na Imprezę powinny obejmować także sytuację odwołania Wydarzenia albo działania Siły wyższej."
         ]
       },
@@ -696,7 +696,7 @@ const TEMPLATES_DATA = {
         commentary: [
           "Ten paragraf opiera się na ogólnych zasadach odpowiedzialności cywilnej. Kodeks cywilny reguluje stosunki cywilnoprawne między osobami fizycznymi i prawnymi, a w przypadku szkód zastosowanie mogą mieć m.in. przepisy o odpowiedzialności deliktowej lub kontraktowej.",
           "Zapis o możliwości zobowiązania do opuszczenia Wydarzenia jest celowo sformułowany jako uprawnienie Organizatora, a nie automatyczna sankcja. Dzięki temu reakcja może być proporcjonalna do naruszenia.",
-          "Szatnia została ujęta osobno, ponieważ przyjęcie rzeczy do przechowania może rodzić odpowiedzialność Organizatora na zasadach Kodeksu cywilnego. Nie należy więc pisać, że Organizator „nie odpowiada za rzeczy w szatni", jeżeli faktycznie organizuje i obsługuje szatnię."
+          "Szatnia została ujęta osobno, ponieważ przyjęcie rzeczy do przechowania może rodzić odpowiedzialność Organizatora na zasadach Kodeksu cywilnego. Nie należy więc pisać, że Organizator „nie odpowiada za rzeczy w szatni”, jeżeli faktycznie organizuje i obsługuje szatnię."
         ]
       },
       {
@@ -715,7 +715,7 @@ const TEMPLATES_DATA = {
         commentary: [
           "Ten paragraf rozdziela dwie sytuacje: utrwalenie uczestnika jako elementu publiczności oraz indywidualne wykorzystanie jego wizerunku. Art. 81 ustawy o prawie autorskim i prawach pokrewnych przewiduje zasadę, że rozpowszechnianie wizerunku wymaga zezwolenia osoby przedstawionej, ale przewiduje także wyjątki, m.in. gdy osoba stanowi szczegół całości, takiej jak zgromadzenie, krajobraz lub publiczna impreza.",
           "Jeżeli uczestnik udziela wywiadu, pozuje do zdjęcia albo jest głównym elementem materiału, bezpieczniej stosować odrębne zezwolenie wizerunkowe. Wizerunek może być jednocześnie daną osobową, dlatego jeżeli podstawą przetwarzania jest zgoda, należy zapewnić możliwość jej cofnięcia zgodnie z RODO.",
-          "Zakaz nagrywania prelekcji przez uczestników chroni prawa prelegentów, porządek wydarzenia oraz zgodność z zasadami TEDx. Sankcję ujęto jako „może skutkować", żeby Organizator mógł reagować proporcjonalnie."
+          "Zakaz nagrywania prelekcji przez uczestników chroni prawa prelegentów, porządek wydarzenia oraz zgodność z zasadami TEDx. Sankcję ujęto jako „może skutkować”, żeby Organizator mógł reagować proporcjonalnie."
         ]
       },
       {
@@ -773,7 +773,7 @@ const TEMPLATES_DATA = {
         commentary: [
           "Ten paragraf reguluje sytuacje nadzwyczajne, których Organizator nie może przewidzieć ani im zapobiec. Kodeks cywilny nie zawiera jednej ogólnej definicji siły wyższej, dlatego warto ją zdefiniować w § 1 Regulaminu.",
           "Rozróżnienie między siłą wyższą a odwołaniem z przyczyn po stronie Organizatora jest ważne. Jeżeli Wydarzenie nie może odbyć się z przyczyn niezależnych, Organizator powinien zaproponować nowy termin albo zwrot. Jeżeli Wydarzenie zostaje odwołane z przyczyn leżących po stronie Organizatora, pełny zwrot opłaty jest najbezpieczniejszym rozwiązaniem.",
-          "Zastrzeżenie „z uwzględnieniem bezwzględnie obowiązujących przepisów prawa" zabezpiecza przed zarzutem, że Regulamin próbuje całkowicie wyłączyć odpowiedzialność Organizatora także tam, gdzie byłoby to niedopuszczalne."
+          "Zastrzeżenie „z uwzględnieniem bezwzględnie obowiązujących przepisów prawa” zabezpiecza przed zarzutem, że Regulamin próbuje całkowicie wyłączyć odpowiedzialność Organizatora także tam, gdzie byłoby to niedopuszczalne."
         ]
       },
       {
