@@ -134,6 +134,12 @@ const EVENT_REGULATIONS = {
       desc: "Regulamin spotkania wigilijnego dla działaczy. Kwestie organizacyjne rezerwacji przestrzeni UEW, zasady cateringu oraz odpowiedzialność za stan pomieszczeń po zakończeniu.",
       tags: ["Rezerwacja sali UEW", "Catering", "BHP", "Organizacja imprezy"]
     },
+    {
+      title: "UEParty",
+      desc: "Wzorzec regulaminu konkursu SSUEW prowadzonego za pośrednictwem mediów społecznościowych. Obejmuje warunki uczestnictwa, zadanie konkursowe, kryteria oceny Jury, prawa autorskie do zgłoszeń, dane osobowe, tryb reklamacyjny oraz obowiązki wynikające z zasad platformy.",
+      tags: ["Regulamin konkursu", "Media społecznościowe", "Nagrody", "RODO", "Prawa autorskie", "Przyrzeczenie publiczne"],
+      templateId: 'KONKURS_TEMPLATE'
+    },
   ],
   external: [
     {
@@ -822,6 +828,322 @@ const TEMPLATES_DATA = {
           "Ta checklista ma charakter roboczy — powinna zostać usunięta z wersji Regulaminu udostępnianej Uczestnikom.",
           "Szczególnie ważne są pola dotyczące danych finansowych (numer rachunku, ceny), danych RODO (e-mail IOD, okresy retencji) oraz zakresu świadczeń. Błędy w tych polach mogą skutkować sporami z uczestnikami lub naruszeniami przepisów.",
           "Zanim opublikujesz Regulamin, upewnij się, że wersja do druku i wersja online są identyczne, a numer rachunku bankowego jest aktualny i zgodny z danymi używanymi do rozliczeń."
+        ]
+      }
+    ]
+  },
+  KONKURS_TEMPLATE: {
+    title: "WZÓR REGULAMINU KONKURSU „[NAZWA KONKURSU]”",
+    intro: "UWAGA DLA ORGANIZATORA: Pola oznaczone nawiasami kwadratowymi [tak] należy każdorazowo uzupełnić przed publikacją. Komentarze prawno-organizacyjne mają charakter pomocniczy i powinny zostać usunięte z wersji Regulaminu udostępnianej Uczestnikom.",
+    sections: [
+      {
+        id: "konkurs-1",
+        title: "§ 1. Postanowienia ogólne i definicje",
+        content: [
+          "1. Niniejszy Regulamin określa warunki i zasady uczestnictwa w konkursie pod nazwą „[nazwa konkursu]”, zwanym dalej „Konkursem”.",
+          "2. Konkurs jest organizowany na terytorium Rzeczypospolitej Polskiej i prowadzony za pośrednictwem [nazwa platformy / platform, np. Facebook, Instagram], na profilu [nazwa profilu] dostępnym pod adresem: [adres profilu / link do profilu].",
+          "3. Organizatorem Konkursu, jako przyrzekającym nagrodę w rozumieniu art. 919–921 Kodeksu cywilnego, jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław, NIP: 896-000-69-97, REGON: 000001497, w imieniu i na rzecz którego czynności operacyjne podejmuje [jednostka / grupa organizacyjna, np. Samorząd Studentów UEW / Grupa Projektowa / Komisja], zwany dalej „Organizatorem”.",
+          "4. Konkurs jest organizowany [samodzielnie przez Organizatora / we współpracy z: nazwa partnera, adres, dane identyfikacyjne], zwanym dalej „Partnerem”.",
+          "5. Partner, o którym mowa w ust. 4, nie jest Organizatorem Konkursu, chyba że wyraźnie wskazano inaczej w Regulaminie albo odrębnych uzgodnieniach pomiędzy Organizatorem a Partnerem.",
+          "6. Konkurs nie jest grą losową, loterią fantową, loterią promocyjną, zakładem wzajemnym ani inną grą hazardową w rozumieniu ustawy z dnia 19 listopada 2009 r. o grach hazardowych. Wynik Konkursu nie zależy od przypadku ani losowania, lecz od oceny zgłoszeń dokonanej według kryteriów określonych w Regulaminie.",
+          "7. Ilekroć w Regulaminie jest mowa o:",
+          "a) Regulaminie – należy przez to rozumieć niniejszy regulamin Konkursu;",
+          "b) Konkursie – należy przez to rozumieć konkurs pod nazwą „[nazwa konkursu]”;",
+          "c) Organizatorze – należy przez to rozumieć podmiot wskazany w ust. 3;",
+          "d) Partnerze – należy przez to rozumieć podmiot współpracujący przy realizacji Konkursu, wskazany w ust. 4, jeżeli dotyczy;",
+          "e) Platformie – należy przez to rozumieć serwis społecznościowy, za pośrednictwem którego prowadzony jest Konkurs, w szczególności [Facebook / Instagram / inna platforma];",
+          "f) Poście Konkursowym – należy przez to rozumieć post, relację, wpis albo inną publikację Organizatora, w której ogłoszono Konkurs;",
+          "g) Uczestniku – należy przez to rozumieć osobę fizyczną spełniającą warunki udziału w Konkursie określone w § 2 Regulaminu;",
+          "h) Zgłoszeniu Konkursowym – należy przez to rozumieć odpowiedź, komentarz, treść, zdjęcie, materiał lub inną aktywność konkursową Uczestnika, wykonaną zgodnie z § 3 Regulaminu;",
+          "i) Jury – należy przez to rozumieć zespół osób powołany przez Organizatora do oceny Zgłoszeń Konkursowych;",
+          "j) Laureacie – należy przez to rozumieć Uczestnika, którego Zgłoszenie Konkursowe zostało wybrane przez Jury jako zwycięskie;",
+          "k) Nagrodzie – należy przez to rozumieć świadczenie określone w § 5 Regulaminu."
+        ],
+        commentary: [
+          "Konstrukcja Konkursu została oparta na instytucji przyrzeczenia publicznego, uregulowanej w art. 919–921 Kodeksu cywilnego. Zgodnie z art. 919 § 1 KC podmiot, który przez ogłoszenie publiczne przyrzekł nagrodę za wykonanie oznaczonej czynności, jest zobowiązany przyrzeczenia dotrzymać. W konkursie prowadzonym za pośrednictwem mediów społecznościowych publiczne ogłoszenie zasad, zadania konkursowego, kryteriów oceny i nagrody pełni funkcję takiego przyrzeczenia.",
+          "Wskazanie Organizatora jako Uniwersytetu Ekonomicznego we Wrocławiu porządkuje odpowiedzialność formalną za Konkurs. Samorząd Studentów UEW może wykonywać czynności operacyjne, takie jak publikacja posta, kontakt z uczestnikami, obsługa zgłoszeń czy przekazanie nagrody, ale w relacji z uczestnikiem podmiotem organizującym Konkurs pozostaje Uczelnia.",
+          "Wyodrębnienie Partnera ma znaczenie dla rozróżnienia odpowiedzialności Organizatora i podmiotu współpracującego. Sam fakt, że nagroda jest realizowana przez zewnętrzny podmiot, nie musi oznaczać, że ten podmiot staje się współorganizatorem Konkursu.",
+          "Zapis, że Konkurs nie jest grą losową ani loterią, ma charakter kwalifikacyjny i ochronny. Gry losowe i loterie podlegają odrębnym rygorom administracyjnym. Dlatego należy wyraźnie utrzymać, że wybór Laureata nie następuje przez losowanie, lecz przez ocenę merytoryczną Jury według opisanych kryteriów.",
+          "Definicje legalne mają znaczenie interpretacyjne. W konkursach prowadzonych na platformach społecznościowych łatwo mieszać pojęcia: Organizator, Partner, Platforma, Post Konkursowy, Uczestnik, Laureat, Nagroda. Ich jednoznaczne zdefiniowanie ogranicza ryzyko sporów, zwłaszcza w zakresie tego, kto jest zobowiązany do wydania nagrody i jakie zgłoszenie jest prawidłowe."
+        ]
+      },
+      {
+        id: "konkurs-2",
+        title: "§ 2. Warunki uczestnictwa",
+        content: [
+          "1. Udział w Konkursie jest bezpłatny i dobrowolny.",
+          "2. Uczestnikiem Konkursu może być osoba fizyczna, która łącznie spełnia następujące warunki:",
+          "a) ukończyła 18 lat najpóźniej w dniu dokonania Zgłoszenia Konkursowego;",
+          "b) posiada pełną zdolność do czynności prawnych;",
+          "c) posiada miejsce zamieszkania na terytorium Rzeczypospolitej Polskiej;",
+          "d) występuje jako konsument, tj. udział w Konkursie nie jest bezpośrednio związany z jej działalnością gospodarczą lub zawodową;",
+          "e) posiada aktywne konto na Platformie, za pośrednictwem której dokonuje Zgłoszenia Konkursowego;",
+          "f) zapoznała się z Regulaminem i zaakceptowała jego postanowienia;",
+          "g) spełniła warunki udziału określone w § 3 Regulaminu.",
+          "3. W Konkursie nie mogą brać udziału członkowie Jury, członkowie zespołu organizacyjnego Konkursu, osoby bezpośrednio zaangażowane w przygotowanie lub przeprowadzenie Konkursu oraz osoby pozostające z nimi we wspólnym gospodarstwie domowym.",
+          "4. Organizator może wykluczyć z udziału w Konkursie Uczestnika, który:",
+          "a) narusza Regulamin;",
+          "b) podaje nieprawdziwe dane;",
+          "c) dokonuje zgłoszenia z wykorzystaniem botów, automatycznego oprogramowania, fałszywych kont lub innych mechanizmów naruszających uczciwy przebieg Konkursu;",
+          "d) publikuje treści naruszające prawo, dobre obyczaje, prawa osób trzecich, zasady Platformy albo renomę Organizatora, Partnera lub Uczelni;",
+          "e) podejmuje działania o charakterze spamowym lub naruszające prywatność innych osób."
+        ],
+        commentary: [
+          "Paragraf określa podmiotowy zakres Konkursu. Organizator może określić krąg osób, do których kieruje przyrzeczenie, pod warunkiem że kryteria udziału są jasne, obiektywne i znane przed dokonaniem zgłoszenia.",
+          "Wymóg pełnoletności i pełnej zdolności do czynności prawnych ma znaczenie cywilnoprawne. Uczestnik akceptuje Regulamin, składa oświadczenia dotyczące autorstwa zgłoszenia, udziela licencji i może ponosić odpowiedzialność za naruszenie praw osób trzecich.",
+          "Warunek miejsca zamieszkania na terytorium RP ogranicza zakres terytorialny Konkursu i ułatwia stosowanie prawa polskiego, procedury reklamacyjnej oraz zasad podatkowych.",
+          "Wyłączenie z udziału członków Jury i osób organizujących Konkurs służy ochronie bezstronności. Przy konkursie ocenianym przez Jury ma to istotne znaczenie dowodowe w razie reklamacji.",
+          "Postanowienia dotyczące botów, fałszywych kont, spamu i naruszeń regulaminu Platformy dają Organizatorowi wyraźną podstawę do wykluczenia zgłoszeń, które nie są wynikiem rzeczywistej aktywności uczestnika albo zaburzają równość szans."
+        ]
+      },
+      {
+        id: "konkurs-3",
+        title: "§ 3. Czas trwania Konkursu i zadanie konkursowe",
+        content: [
+          "1. Konkurs rozpoczyna się w dniu [data rozpoczęcia Konkursu] o godzinie [godzina rozpoczęcia] i trwa do dnia [data zakończenia Konkursu] do godziny [godzina zakończenia].",
+          "2. Konkurs prowadzony jest za pośrednictwem Posta Konkursowego opublikowanego na Platformie: [nazwa platformy / platform] na profilu [nazwa profilu / link do profilu].",
+          "3. Aby wziąć udział w Konkursie, Uczestnik powinien w czasie trwania Konkursu wykonać zadanie konkursowe polegające na:",
+          "a) [warunek 1, np. opublikowaniu komentarza pod Postem Konkursowym];",
+          "b) [warunek 2, np. udzieleniu kreatywnej odpowiedzi na pytanie: „[treść pytania konkursowego]”];",
+          "c) [warunek 3, np. zaobserwowaniu profilu Organizatora na Platformie];",
+          "d) [warunek 4, jeżeli dotyczy, np. kliknięciu „Wezmę udział” w wydarzeniu];",
+          "e) [opcjonalnie: oznaczeniu osoby/osób, które mogą być zainteresowane Wydarzeniem, z zastrzeżeniem ust. 7].",
+          "4. Jeden Uczestnik może dokonać [jednego Zgłoszenia Konkursowego / dowolnej liczby Zgłoszeń Konkursowych], z zastrzeżeniem, że jeden Uczestnik może otrzymać maksymalnie jedną Nagrodę.",
+          "5. Zgłoszenie Konkursowe musi być autorskie, zgodne z tematem Konkursu, nienaruszające prawa, dobrych obyczajów, praw osób trzecich ani zasad Platformy.",
+          "6. Zakazane jest publikowanie Zgłoszeń Konkursowych zawierających w szczególności treści:",
+          "a) wulgarne, obraźliwe, agresywne, dyskryminujące lub nawołujące do nienawiści;",
+          "b) naruszające dobra osobiste, prywatność, wizerunek lub prawa autorskie osób trzecich;",
+          "c) sprzeczne z prawem, dobrymi obyczajami lub zasadami współżycia społecznego;",
+          "d) reklamowe, spamowe lub niezwiązane z tematem Konkursu;",
+          "e) naruszające zasady korzystania z Platformy.",
+          "7. Jeżeli zadanie konkursowe przewiduje oznaczenie innych osób, Uczestnik powinien oznaczać wyłącznie osoby, które zna lub co do których może racjonalnie zakładać, że mogą być zainteresowane Konkursem lub Wydarzeniem. Oznaczanie osób nie może mieć charakteru spamowego, masowego ani naruszającego prawa lub prywatność osób trzecich.",
+          "8. Organizator może usunąć, ukryć albo pominąć przy ocenie Zgłoszenie Konkursowe, które narusza Regulamin, przepisy prawa, prawa osób trzecich, zasady Platformy albo dobre obyczaje."
+        ],
+        commentary: [
+          "Ten paragraf konkretyzuje „oznaczoną czynność”, której wykonanie jest warunkiem ubiegania się o Nagrodę w ramach przyrzeczenia publicznego. Szczególnie ważne jest, aby uczestnik przed dokonaniem zgłoszenia wiedział, jaka czynność ma zostać wykonana, w jakim terminie, w jakim miejscu i według jakich reguł.",
+          "Wskazanie daty i godziny rozpoczęcia oraz zakończenia Konkursu ma znaczenie dowodowe i porządkowe. Konkretna godzina zakończenia pozwala jednoznacznie określić, które zgłoszenia podlegają ocenie.",
+          "Opis zadania konkursowego powinien być na tyle precyzyjny, aby odróżnić prawidłowe zgłoszenia od aktywności niewystarczających. Jeżeli warunkiem udziału jest komentarz, odpowiedź na pytanie, obserwowanie profilu albo kliknięcie udziału w wydarzeniu, każdy z tych warunków musi być wskazany jako konieczny lub opcjonalny.",
+          "W przypadku konkursów kreatywnych szczególne znaczenie ma wskazanie, że zgłoszenie musi być autorskie i zgodne z prawem. Odpowiedź konkursowa może być utworem w rozumieniu prawa autorskiego lub może naruszać dobra osobiste, prywatność, wizerunek albo prawa osób trzecich.",
+          "Postanowienie dotyczące oznaczania innych osób należy formułować ostrożnie. Obowiązkowe oznaczanie znajomych może prowadzić do działań spamowych i naruszenia prywatności osób trzecich. Bezpieczniejsza jest konstrukcja, w której oznaczenie osób jest opcjonalne lub ograniczone do osób, które uczestnik zna."
+        ]
+      },
+      {
+        id: "konkurs-4",
+        title: "§ 4. Jury, kryteria oceny i rozstrzygnięcie Konkursu",
+        content: [
+          "1. Nad prawidłowym przebiegiem Konkursu czuwa Jury powołane przez Organizatora.",
+          "2. Jury składa się z co najmniej [liczba] osób.",
+          "3. Jury dokona oceny prawidłowych Zgłoszeń Konkursowych na podstawie następujących kryteriów:",
+          "a) kreatywność Zgłoszenia Konkursowego;",
+          "b) oryginalność Zgłoszenia Konkursowego;",
+          "c) zgodność Zgłoszenia Konkursowego z tematem Konkursu;",
+          "d) [inne kryterium, jeżeli dotyczy].",
+          "4. Konkurs nie jest rozstrzygany w drodze losowania. O wyborze Laureata decyduje ocena Jury dokonana według kryteriów wskazanych w ust. 3.",
+          "5. W Konkursie zostanie wyłoniony [liczba] Laureat / Laureatów.",
+          "6. Wyniki Konkursu zostaną ogłoszone w terminie do [liczba] dni roboczych od zakończenia Konkursu, w formie [komentarza pod Postem Konkursowym / osobnego posta / relacji / wiadomości prywatnej / inny sposób].",
+          "7. Decyzja Jury w zakresie oceny kreatywności, oryginalności i zgodności Zgłoszeń Konkursowych z tematem Konkursu jest ostateczna, co nie wyłącza prawa Uczestnika do złożenia reklamacji w zakresie zgodności przeprowadzenia Konkursu z Regulaminem.",
+          "8. Organizator może nie przyznać Nagrody, jeżeli żadne Zgłoszenie Konkursowe nie spełnia wymogów Regulaminu albo poziom Zgłoszeń Konkursowych nie pozwala na wyłonienie Laureata zgodnie z kryteriami wskazanymi w ust. 3."
+        ],
+        commentary: [
+          "Ten paragraf ma kluczowe znaczenie dla prawidłowej kwalifikacji Konkursu jako konkursu umiejętności/kreatywności, a nie gry losowej. Jeżeli Laureat jest wybierany przez Jury na podstawie kryteriów jakościowych, wynik nie zależy od przypadku, co zmniejsza ryzyko uznania Konkursu za loterię albo grę losową.",
+          "Powołanie Jury oraz wskazanie minimalnej liczby jego członków wzmacnia transparentność i wiarygodność procedury. Regulamin nie musi szczegółowo wymieniać członków Jury z imienia i nazwiska, ale powinien wskazywać, że Jury jest powoływane przez Organizatora i odpowiada za ocenę zgłoszeń.",
+          "Kryteria oceny powinny być opisane przed rozpoczęciem Konkursu. Ich późniejsze doprecyzowywanie albo zmiana po napłynięciu zgłoszeń mogłaby zostać oceniona jako naruszenie równości uczestników.",
+          "Zastrzeżenie, że decyzja Jury jest ostateczna, można utrzymać wyłącznie w odniesieniu do oceny merytorycznej zgłoszeń. Nie powinno ono wyłączać prawa do reklamacji w zakresie naruszenia Regulaminu, błędów proceduralnych lub nieprawidłowego wydania Nagrody.",
+          "Możliwość nieprzyznania Nagrody w przypadku braku prawidłowych zgłoszeń jest uzasadniona charakterem konkursu ocenianego jakościowo. Organizator nie powinien być zmuszony do przyznania Nagrody zgłoszeniu wadliwemu."
+        ]
+      },
+      {
+        id: "konkurs-5",
+        title: "§ 5. Nagroda i jej odbiór",
+        content: [
+          "1. W Konkursie przewidziano następującą Nagrodę / następujące Nagrody:",
+          "a) [opis Nagrody, np. prawo dostępu do wydzielonej loży podczas wydarzenia [nazwa wydarzenia] w [miejsce wydarzenia]];",
+          "b) [liczba osób objętych Nagrodą, np. Nagroda obejmuje dostęp dla Laureata oraz maksymalnie [liczba] osób towarzyszących];",
+          "c) [termin i miejsce realizacji Nagrody];",
+          "d) [inne elementy Nagrody, jeżeli dotyczy].",
+          "2. Szacunkowa jednorazowa wartość Nagrody wynosi [kwota] zł brutto.",
+          "3. Nagroda nie podlega wymianie na gotówkę ani inne świadczenia rzeczowe.",
+          "4. Laureat nie może przenieść prawa do Nagrody na osobę trzecią bez uprzedniej zgody Organizatora wyrażonej co najmniej w formie dokumentowej.",
+          "5. Laureat zobowiązany jest skontaktować się z Organizatorem w terminie [liczba] godzin / dni od ogłoszenia wyników Konkursu, za pośrednictwem [sposób kontaktu, np. wiadomości prywatnej na Platformie / adresu e-mail], w celu przekazania danych niezbędnych do wydania lub realizacji Nagrody.",
+          "6. Brak kontaktu Laureata w terminie wskazanym w ust. 5, odmowa podania danych niezbędnych do realizacji Nagrody albo brak możliwości skontaktowania się z Laureatem może skutkować utratą prawa do Nagrody.",
+          "7. W przypadku utraty prawa do Nagrody przez Laureata Organizator może przyznać Nagrodę kolejnemu Uczestnikowi wybranemu przez Jury albo odstąpić od przyznania Nagrody.",
+          "8. Jeżeli wartość Nagrody oraz charakter Konkursu spełniają przesłanki zwolnienia określone w art. 21 ust. 1 pkt 68 ustawy o podatku dochodowym od osób fizycznych, Nagroda korzysta ze zwolnienia z podatku dochodowego od osób fizycznych do limitu wskazanego w tym przepisie. W przypadku braku możliwości zastosowania zwolnienia obowiązki podatkowe zostaną określone zgodnie z przepisami prawa powszechnie obowiązującego.",
+          "9. Organizator może uzależnić wydanie Nagrody od przekazania danych niezbędnych do realizacji obowiązków podatkowych, księgowych lub dokumentacyjnych, jeżeli obowiązek taki wynika z przepisów prawa."
+        ],
+        commentary: [
+          "Ten paragraf konkretyzuje świadczenie, którego dotyczy przyrzeczenie publiczne. Dla ważności i przejrzystości Konkursu konieczne jest opisanie Nagrody w sposób umożliwiający uczestnikom ocenę, o jakie świadczenie się ubiegają.",
+          "Wskazanie wartości Nagrody ma znaczenie podatkowe, księgowe i informacyjne. Art. 21 ust. 1 pkt 68 ustawy o PIT przewiduje zwolnienie dla określonych wygranych w konkursach do wskazanego limitu, ale zastosowanie zwolnienia zależy od wartości nagrody oraz spełnienia ustawowych przesłanek.",
+          "Zapis o braku możliwości wymiany Nagrody na gotówkę lub inne świadczenie zapobiega powstaniu roszczeń wykraczających poza treść przyrzeczenia publicznego. Organizator przyrzeka konkretną Nagrodę, a nie jej równowartość pieniężną.",
+          "Termin kontaktu Laureata z Organizatorem jest potrzebny, ponieważ bez przekazania danych identyfikacyjnych realizacja Nagrody może być niemożliwa. Utrata prawa do Nagrody powinna być opisana jako skutek uprzednio znany uczestnikowi.",
+          "Postanowienie o możliwości wyłonienia kolejnego Laureata zabezpiecza Organizatora przed sytuacją, w której zwycięzca nie odpowiada, odmawia przyjęcia Nagrody albo nie podaje danych niezbędnych do jej realizacji."
+        ]
+      },
+      {
+        id: "konkurs-6",
+        title: "§ 6. Prawa autorskie i korzystanie ze Zgłoszeń Konkursowych",
+        content: [
+          "1. Dokonując Zgłoszenia Konkursowego, Uczestnik oświadcza, że Zgłoszenie Konkursowe jest wynikiem jego własnej twórczości, przysługują mu prawa do Zgłoszenia Konkursowego w zakresie umożliwiającym udział w Konkursie oraz że Zgłoszenie Konkursowe nie narusza praw osób trzecich, w szczególności praw autorskich, dóbr osobistych, prawa do prywatności ani prawa do wizerunku.",
+          "2. Z chwilą dokonania Zgłoszenia Konkursowego Uczestnik udziela Organizatorowi niewyłącznej, nieodpłatnej licencji na korzystanie ze Zgłoszenia Konkursowego w zakresie niezbędnym do przeprowadzenia Konkursu, oceny zgłoszeń, ogłoszenia wyników oraz promocji Konkursu i działań Organizatora.",
+          "3. Licencja, o której mowa w ust. 2, obejmuje następujące pola eksploatacji:",
+          "a) utrwalanie i zwielokrotnianie Zgłoszenia Konkursowego techniką cyfrową;",
+          "b) publikowanie Zgłoszenia Konkursowego w mediach społecznościowych Organizatora;",
+          "c) publiczne udostępnianie Zgłoszenia Konkursowego w taki sposób, aby każdy mógł mieć do niego dostęp w miejscu i czasie przez siebie wybranym;",
+          "d) wykorzystanie Zgłoszenia Konkursowego w materiałach informacyjnych, promocyjnych i sprawozdawczych dotyczących Konkursu lub działalności Organizatora;",
+          "e) cytowanie, skracanie lub redakcyjne opracowanie Zgłoszenia Konkursowego w zakresie nienaruszającym jego sensu ani dóbr osobistych Uczestnika.",
+          "4. Licencja udzielana jest na okres [okres, np. 2 lat] od dnia zakończenia Konkursu i obejmuje terytorium [np. całego świata, ze względu na internetowy charakter publikacji].",
+          "5. Organizator może opublikować nazwę profilu, imię, nazwisko lub login Laureata w zakresie niezbędnym do ogłoszenia wyników Konkursu, realizacji Nagrody i promocji Konkursu, zgodnie z zasadami przetwarzania danych osobowych określonymi w § 7 Regulaminu.",
+          "6. Jeżeli Zgłoszenie Konkursowe zawiera wizerunek, dane osobowe lub treści dotyczące osób trzecich, Uczestnik oświadcza, że posiada odpowiednie zgody lub podstawy do ich wykorzystania w ramach Konkursu.",
+          "7. Uczestnik ponosi odpowiedzialność za roszczenia osób trzecich wynikające z naruszenia przez Zgłoszenie Konkursowe praw tych osób, w zakresie wynikającym z przepisów prawa."
+        ],
+        commentary: [
+          "Ten paragraf jest konieczny, ponieważ Zgłoszenie Konkursowe może mieć charakter twórczy. Komentarz, hasło, opis, zdjęcie, film lub inna odpowiedź mogą stanowić utwór, jeżeli mają indywidualny i twórczy charakter. Organizator, który chce opublikować lub wykorzystać zgłoszenie w materiałach promocyjnych, powinien posiadać odpowiedni tytuł prawny.",
+          "Oświadczenie uczestnika o autorstwie i nienaruszaniu praw osób trzecich ma znaczenie ochronne. Organizator nie ma możliwości pełnej weryfikacji, czy każde zgłoszenie jest oryginalne i czy nie narusza praw osób trzecich.",
+          "Licencja niewyłączna jest adekwatna do celu konkursu. Organizator nie potrzebuje przejmować autorskich praw majątkowych do zgłoszenia, aby przeprowadzić Konkurs i wykorzystać je promocyjnie. Wystarczające jest udzielenie ograniczonej licencji odpowiadającej celom Konkursu.",
+          "Wskazanie pól eksploatacji porządkuje zakres zgody uczestnika. Ma to znaczenie zwłaszcza przy publikacji w mediach społecznościowych, gdzie dochodzi do publicznego udostępniania treści w taki sposób, aby każdy mógł mieć do nich dostęp w miejscu i czasie przez siebie wybranym.",
+          "Czas trwania licencji i zakres terytorialny powinny być dostosowane do realnych potrzeb Organizatora. Przy publikacji internetowej zakres terytorialny zwykle ma charakter globalny. Nie oznacza to jednak, że licencja powinna być nieograniczona czasowo."
+        ]
+      },
+      {
+        id: "konkurs-7",
+        title: "§ 7. Dane osobowe",
+        content: [
+          "1. Administratorem danych osobowych Uczestników jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą we Wrocławiu przy ul. Komandorskiej 118/120, 53-345 Wrocław.",
+          "2. Administrator wyznaczył Inspektora Ochrony Danych, z którym można kontaktować się pisemnie na adres siedziby Administratora lub pod adresem e-mail: iod@ue.wroc.pl.",
+          "3. Czynności operacyjne związane z organizacją Konkursu, w tym obsługę Zgłoszeń Konkursowych, kontakt z Laureatem oraz realizację Nagrody, wykonują osoby działające z upoważnienia Administratora, w szczególności [jednostka / grupa organizacyjna].",
+          "4. Dane osobowe Uczestników mogą obejmować w szczególności: nazwę profilu, login, imię, nazwisko, treść Zgłoszenia Konkursowego, dane kontaktowe przekazane przez Laureata oraz inne dane niezbędne do przeprowadzenia Konkursu, rozpatrzenia reklamacji, wydania Nagrody lub realizacji obowiązków prawnych.",
+          "5. Dane osobowe Uczestników przetwarzane są w następujących celach i na następujących podstawach prawnych:",
+          "a) przeprowadzenie Konkursu, ocena Zgłoszeń Konkursowych, wyłonienie Laureata i wydanie Nagrody – art. 6 ust. 1 lit. b RODO, tj. wykonanie umowy / stosunku prawnego wynikającego z udziału w Konkursie;",
+          "b) publikacja wyników Konkursu i informacji o Laureacie w zakresie przewidzianym Regulaminem – art. 6 ust. 1 lit. f RODO, tj. prawnie uzasadniony interes Administratora polegający na ogłoszeniu wyników i transparentnym przeprowadzeniu Konkursu;",
+          "c) rozpatrywanie reklamacji, dochodzenie roszczeń lub obrona przed roszczeniami – art. 6 ust. 1 lit. f RODO;",
+          "d) realizacja obowiązków podatkowych, księgowych lub dokumentacyjnych, jeżeli mają zastosowanie – art. 6 ust. 1 lit. c RODO;",
+          "e) wykorzystanie Zgłoszenia Konkursowego w celach promocyjnych w zakresie wykraczającym poza przeprowadzenie Konkursu – art. 6 ust. 1 lit. a RODO, jeżeli wymagana jest zgoda, albo art. 6 ust. 1 lit. f RODO, jeżeli przetwarzanie opiera się na prawnie uzasadnionym interesie Administratora.",
+          "6. Dane osobowe mogą być udostępniane:",
+          "a) osobom działającym z upoważnienia Administratora;",
+          "b) podmiotom obsługującym narzędzia informatyczne, formularze, pocztę elektroniczną, media społecznościowe lub inne usługi techniczne wykorzystywane przy Konkursie;",
+          "c) Partnerowi, jeżeli jest to niezbędne do realizacji Nagrody;",
+          "d) organom publicznym, jeżeli obowiązek udostępnienia danych wynika z przepisów prawa.",
+          "7. Dane osobowe Uczestników będą przechowywane przez okres niezbędny do przeprowadzenia Konkursu, ogłoszenia wyników, wydania Nagrody oraz rozpatrzenia ewentualnych reklamacji, a następnie przez okres przedawnienia ewentualnych roszczeń lub okres wymagany przepisami prawa.",
+          "8. Dane osobowe Uczestników, którzy nie zostali Laureatami, mogą zostać usunięte lub zanonimizowane po upływie terminu na składanie i rozpatrywanie reklamacji, chyba że dalsze przechowywanie jest uzasadnione ochroną roszczeń, obowiązkami prawnymi lub archiwalnymi.",
+          "9. Uczestnikowi przysługują następujące prawa: prawo dostępu do danych, prawo do sprostowania danych, prawo do usunięcia danych, prawo do ograniczenia przetwarzania, prawo do przenoszenia danych, prawo sprzeciwu wobec przetwarzania danych na podstawie prawnie uzasadnionego interesu oraz prawo cofnięcia zgody w zakresie, w jakim przetwarzanie odbywa się na podstawie zgody.",
+          "10. Cofnięcie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem.",
+          "11. Uczestnik ma prawo wniesienia skargi do Prezesa Urzędu Ochrony Danych Osobowych.",
+          "12. Podanie danych osobowych jest dobrowolne, lecz niezbędne do udziału w Konkursie, wyłonienia Laureata, rozpatrzenia reklamacji lub wydania Nagrody. Odmowa podania danych może uniemożliwić udział w Konkursie albo wydanie Nagrody.",
+          "13. Dane osobowe Uczestników mogą być przetwarzane w ramach infrastruktury Platformy zgodnie z zasadami prywatności danej Platformy. Organizator nie ma pełnego wpływu na przetwarzanie danych przez właściciela Platformy.",
+          "14. Dane osobowe nie będą wykorzystywane przez Organizatora do zautomatyzowanego podejmowania decyzji ani profilowania."
+        ],
+        commentary: [
+          "Ten paragraf realizuje obowiązek informacyjny administratora danych wynikający z art. 13 RODO. Jeżeli dane osobowe są zbierane bezpośrednio od uczestnika, administrator powinien podać m.in. swoją tożsamość, cele i podstawy prawne przetwarzania, informacje o odbiorcach, okresie przechowywania, prawach osoby i prawie wniesienia skargi.",
+          "Wskazanie UEW jako administratora danych powinno odpowiadać konstrukcji przyjętej w § 1 Regulaminu. Jeżeli to UEW jest Organizatorem Konkursu, to co do zasady UEW powinien być także administratorem danych przetwarzanych w celu przeprowadzenia Konkursu.",
+          "Podstawy prawne przetwarzania należy rozdzielić według celów. Dane przetwarzane w celu udziału w Konkursie i wydania Nagrody mogą być oparte na art. 6 ust. 1 lit. b RODO. Dane dla celów reklamacyjnych i roszczeń opierają się na art. 6 ust. 1 lit. f RODO. Dane wymagane przez przepisy podatkowe lub księgowe opierają się na art. 6 ust. 1 lit. c RODO.",
+          "Szczególnej uwagi wymaga publikacja wyników Konkursu. Ujawnienie nazwy profilu, loginu, imienia lub nazwiska Laureata powinno być ograniczone do zakresu niezbędnego do transparentnego ogłoszenia wyników i realizacji Nagrody.",
+          "Dane przetwarzane w środowisku Facebooka lub Instagrama podlegają również zasadom prywatności danej platformy. Organizator nie powinien sugerować, że kontroluje całość przetwarzania realizowanego przez Platformę.",
+          "Okres przechowywania danych powinien być powiązany z celami przetwarzania. Dane uczestników, którzy nie zostali Laureatami, można usuwać lub anonimizować po zakończeniu okresu reklamacyjnego."
+        ]
+      },
+      {
+        id: "konkurs-8",
+        title: "§ 8. Reklamacje",
+        content: [
+          "1. Uczestnik może zgłosić reklamację dotyczącą sposobu przeprowadzenia Konkursu, w szczególności naruszenia Regulaminu, błędu organizacyjnego, pominięcia Zgłoszenia Konkursowego albo problemu z realizacją Nagrody.",
+          "2. Reklamację należy złożyć w terminie [liczba] dni od dnia ogłoszenia wyników Konkursu albo od dnia zaistnienia okoliczności stanowiącej podstawę reklamacji.",
+          "3. Reklamacje można składać drogą elektroniczną na adres: [adres e-mail do reklamacji].",
+          "4. Reklamacja powinna zawierać:",
+          "a) imię i nazwisko albo nazwę profilu Uczestnika;",
+          "b) dane kontaktowe umożliwiające udzielenie odpowiedzi;",
+          "c) opis problemu;",
+          "d) określenie żądania Uczestnika;",
+          "e) ewentualne dowody potwierdzające okoliczności wskazane w reklamacji.",
+          "5. Organizator rozpatruje reklamację w terminie [liczba] dni kalendarzowych od dnia jej otrzymania.",
+          "6. O sposobie rozpatrzenia reklamacji Organizator informuje Uczestnika w formie wiadomości zwrotnej przesłanej na adres e-mail albo za pośrednictwem Platformy, w zależności od sposobu złożenia reklamacji.",
+          "7. Procedura reklamacyjna nie wyłącza ani nie ogranicza uprawnień Uczestnika wynikających z powszechnie obowiązujących przepisów prawa."
+        ],
+        commentary: [
+          "Procedura reklamacyjna ma znaczenie gwarancyjne i dowodowe. Pozwala uczestnikowi zakwestionować sposób przeprowadzenia Konkursu, a Organizatorowi umożliwia uporządkowane rozpoznanie zarzutów bez konieczności natychmiastowego przenoszenia sporu na drogę zewnętrzną.",
+          "Zakres reklamacji powinien dotyczyć przede wszystkim zgodności przeprowadzenia Konkursu z Regulaminem: pominięcia zgłoszenia, naruszenia terminu, nieprawidłowego ogłoszenia wyników lub problemu z realizacją Nagrody. Reklamacja nie musi oznaczać ponownej oceny kreatywności zgłoszeń.",
+          "Termin na złożenie reklamacji oraz termin jej rozpatrzenia powinny być określone jednoznacznie. Zbyt krótki termin może zostać uznany za nieproporcjonalny, a brak terminu powoduje niepewność organizacyjną.",
+          "Zapis, że procedura reklamacyjna nie wyłącza uprawnień wynikających z przepisów prawa, jest istotny. Regulamin nie powinien zamykać uczestnikowi możliwości dochodzenia roszczeń na zasadach ogólnych."
+        ]
+      },
+      {
+        id: "konkurs-9",
+        title: "§ 9. Platformy społecznościowe",
+        content: [
+          "1. Konkurs nie jest sponsorowany, popierany, administrowany ani prowadzony przez [Meta Platforms, Inc. / Facebook / Instagram / nazwę innej Platformy].",
+          "2. Uczestnik przyjmuje do wiadomości, że przekazuje dane Organizatorowi, a nie [Meta Platforms, Inc. / Facebook / Instagram / nazwie innej Platformy], z zastrzeżeniem danych przetwarzanych przez Platformę zgodnie z jej własnymi zasadami.",
+          "3. Uczestnik zwalnia [Meta Platforms, Inc. / Facebook / Instagram / nazwę innej Platformy] z odpowiedzialności związanej z Konkursem w zakresie dopuszczalnym przez powszechnie obowiązujące przepisy prawa.",
+          "4. Uczestnik zobowiązany jest korzystać z Platformy zgodnie z jej regulaminem, zasadami społeczności oraz innymi zasadami obowiązującymi użytkowników Platformy.",
+          "5. Organizator nie ponosi odpowiedzialności za nieprawidłowości w działaniu Platformy, w szczególności awarie, błędy techniczne, ograniczenia dostępności, usunięcie treści przez Platformę albo blokadę konta Uczestnika, jeżeli okoliczności te są niezależne od Organizatora."
+        ],
+        commentary: [
+          "Ten paragraf wynika ze specyfiki konkursów prowadzonych na platformach społecznościowych. Konkurs jest organizowany przez Organizatora, ale technicznie odbywa się w środowisku platformy, która posiada własny regulamin, zasady społeczności i zasady dotyczące promocji.",
+          "Zapis o przekazywaniu danych Organizatorowi, a nie Platformie, porządkuje relację informacyjną. Uczestnik powinien wiedzieć, że bierze udział w Konkursie organizowanym przez Organizatora, a nie przez Facebooka, Instagrama czy Meta Platforms.",
+          "Zwolnienie Platformy z odpowiedzialności powinno być sformułowane „w zakresie dopuszczalnym przez prawo”. Organizator nie powinien tworzyć postanowień, które pozornie wyłączają odpowiedzialność podmiotów trzecich w sposób szerszy, niż dopuszcza to prawo.",
+          "Zapis o braku odpowiedzialności Organizatora za awarie Platformy jest uzasadniony. Organizator nie kontroluje działania Facebooka, Instagrama, algorytmów, widoczności komentarzy, blokad kont ani usunięcia treści przez Platformę."
+        ]
+      },
+      {
+        id: "konkurs-10",
+        title: "§ 10. Postanowienia końcowe",
+        content: [
+          "1. Pełna treść Regulaminu jest udostępniona [miejsce publikacji Regulaminu, np. w treści Posta Konkursowego / w opisie wydarzenia / pod linkiem: [link]].",
+          "2. Organizator zastrzega sobie prawo do zmiany Regulaminu w przypadku wystąpienia ważnych przyczyn prawnych, organizacyjnych, technicznych lub bezpieczeństwa, pod warunkiem że zmiana nie naruszy praw nabytych Uczestników ani nie pogorszy sytuacji Uczestników, którzy dokonali Zgłoszenia Konkursowego przed zmianą.",
+          "3. O zmianie Regulaminu Organizator poinformuje w taki sam sposób, w jaki opublikowano Regulamin albo Post Konkursowy.",
+          "4. W sprawach nieuregulowanych Regulaminem zastosowanie mają przepisy prawa polskiego, w szczególności Kodeksu cywilnego, RODO, ustawy o prawie autorskim i prawach pokrewnych, ustawy o podatku dochodowym od osób fizycznych oraz ustawy o grach hazardowych.",
+          "5. Regulamin wchodzi w życie z dniem [data wejścia w życie / data publikacji Posta Konkursowego].",
+          "6. Kontakt z Organizatorem w sprawach związanych z Konkursem możliwy jest pod adresem: [adres e-mail Organizatora]."
+        ],
+        commentary: [
+          "Ten paragraf ma znaczenie porządkujące i dowodowe. Wskazanie miejsca publikacji Regulaminu pozwala wykazać, że uczestnik miał możliwość zapoznania się z zasadami Konkursu przed dokonaniem zgłoszenia.",
+          "Zastrzeżenie prawa do zmiany Regulaminu powinno być ograniczone do ważnych przyczyn. Organizator nie powinien dowolnie zmieniać reguł po rozpoczęciu Konkursu, zwłaszcza w sposób pogarszający sytuację osób, które już dokonały zgłoszenia.",
+          "Odesłanie do prawa polskiego jest uzasadnione, ponieważ Konkurs jest organizowany na terytorium RP i adresowany do osób mających miejsce zamieszkania w Polsce.",
+          "Wskazanie konkretnych aktów prawnych — KC, RODO, ustawy o prawie autorskim, ustawy o PIT oraz ustawy o grach hazardowych — odpowiada rzeczywistym obszarom regulacyjnym Konkursu w mediach społecznościowych."
+        ]
+      },
+      {
+        id: "konkurs-11",
+        title: "Załącznik: Minimalny opis Posta Konkursowego",
+        content: [
+          "Do posta konkursowego możesz wkleić skróconą formułę — uzupełnij pola w nawiasach:",
+          "KONKURS „[nazwa konkursu]”",
+          "Czas trwania: od [data, godzina] do [data, godzina].",
+          "Zadanie: [krótki opis zadania].",
+          "Nagroda: [krótki opis nagrody].",
+          "Organizatorem Konkursu jest Uniwersytet Ekonomiczny we Wrocławiu, w imieniu którego czynności operacyjne wykonuje [jednostka/grupa].",
+          "Konkurs nie jest sponsorowany, popierany ani administrowany przez [Facebook/Instagram/Meta].",
+          "Pełny Regulamin: [link / informacja, gdzie jest dostępny]."
+        ],
+        commentary: [
+          "Ten załącznik ma charakter roboczy i służy wyłącznie jako wzorzec treści posta — nie jest częścią Regulaminu udostępnianą uczestnikom.",
+          "Skrócona formuła w poście powinna zawierać co najmniej: czas trwania, zadanie, nagrodę, Organizatora i link do pełnego Regulaminu.",
+          "Zapis o braku sponsorowania przez platformę (Facebook/Instagram/Meta) wynika z wymogów tych platform dla konkursów i promocji. Jego pominięcie może skutkować usunięciem posta przez platformę."
+        ]
+      },
+      {
+        id: "konkurs-12",
+        title: "Checklista przed publikacją",
+        content: [
+          "Uzupełnij koniecznie przed wrzuceniem Regulaminu na stronę — każde z poniższych pól musi mieć konkretną wartość dla danej edycji:",
+          "[nazwa konkursu] — pełna nazwa konkursu",
+          "[data rozpoczęcia] i [godzina rozpoczęcia] — dokładne dane startu",
+          "[data zakończenia] i [godzina zakończenia] — dokładne dane końca",
+          "[platforma / platformy] — na których prowadzony jest Konkurs",
+          "[link do profilu] i [link do posta / wydarzenia] — bezpośrednie adresy",
+          "[opis zadania konkursowego] — precyzyjny, zrozumiały dla uczestnika",
+          "[czy oznaczanie osób jest obowiązkowe czy opcjonalne] — szczegół ważny dla RODO",
+          "[liczba Laureatów] — ilu zwycięzców zostanie wyłonionych",
+          "[opis Nagrody] — pełny i jednoznaczny opis tego, co Laureat otrzymuje",
+          "[wartość Nagrody brutto] — potrzebna dla celów podatkowych",
+          "[termin kontaktu Laureata] — w godzinach lub dniach od ogłoszenia wyników",
+          "[termin rozpatrzenia reklamacji] — w dniach kalendarzowych",
+          "[adres e-mail Organizatora] — aktywny adres do kontaktu i reklamacji",
+          "[czy występuje Partner i czy ma dostęp do danych] — jeśli tak, wpisz dane Partnera w § 1 ust. 4",
+          "[okres licencji i zakres terytorialny] — uzupełnij § 6 ust. 4",
+          "[liczba członków Jury] — co najmniej ilu jest wymaganych"
+        ],
+        commentary: [
+          "Ta checklista ma charakter roboczy — powinna zostać usunięta z wersji Regulaminu udostępnianej Uczestnikom.",
+          "Szczególnie ważne jest pole dotyczące wartości Nagrody brutto (znaczenie podatkowe), opisu zadania (musi być jednoznaczny dla oceny prawidłowości zgłoszeń) oraz adresu e-mail do reklamacji.",
+          "Zanim opublikujesz Regulamin, upewnij się, że wersja w poście i wersja pod linkiem są identyczne oraz że wszystkie pola [tak] zostały uzupełnione."
         ]
       }
     ]
