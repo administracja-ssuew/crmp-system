@@ -64,11 +64,19 @@ export default function LoginPage() {
                 Zaloguj przez Google
               </button>
               
+              {/* INFO O WYMAGANIACH KONTA */}
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 text-left">
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-600 mb-1.5">Ważne — przed zalogowaniem</p>
+                <p className="text-xs text-amber-900 font-medium leading-relaxed">
+                  Logowanie możliwe wyłącznie przez konto <span className="font-black">Gmail</span> przypisane do organizacji studenckiej, samorządu studenckiego lub koła naukowego. Prywatne konta Google oraz konta spoza domeny Gmail nie uzyskają dostępu do systemu.
+                </p>
+              </div>
+
               {/* PRZYCISK WNIOSKU O DOSTĘP (widoczny przed logowaniem) */}
               <div className="flex flex-col items-center pt-2">
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Brak uprawnień?</p>
-                <a 
-                  href="/wniosek" 
+                <a
+                  href="/wniosek"
                   className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full border border-blue-100"
                 >
                   <span>📝</span> Złóż wniosek do administratora
