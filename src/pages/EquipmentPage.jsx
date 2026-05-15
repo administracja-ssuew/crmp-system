@@ -12,22 +12,17 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5
 // Konwertuje link Drive na URL obrazka.
 // lh3.googleusercontent.com/d/ID — Google CDN, nie wymaga sesji dla "anyone with link".
 // Fallback: drive.google.com/thumbnail (konwertuje HEIC, wymaga zalogowania w Google).
+// Proxy po stronie Vercel — omija restrykcje Google Drive dla <img> w przeglądarce
 const toDriveImg = (url) => {
   if (!url) return url;
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  if (match) return `/api/drive-img-proxy?id=${match[1]}`;
   if (/\.heic$/i.test(url)) return null;
   return url;
 };
 
 const handleImgError = (e) => {
   const img = e.currentTarget;
-  const idMatch = img.src.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch && !img.dataset.fallback) {
-    img.dataset.fallback = '1';
-    img.src = `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w400`;
-    return;
-  }
   img.style.display = 'none';
   if (img.nextElementSibling) img.nextElementSibling.style.display = 'flex';
 };
@@ -457,7 +452,7 @@ export default function EquipmentPage() {
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform overflow-hidden ${item.isFirstAid ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
                     {item.isRealImage ? (
                       <>
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={handleImgError} />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" onError={handleImgError} />
                         <span style={{display:'none'}} className="w-full h-full items-center justify-center text-3xl">{item.imageIcon}</span>
                       </>
                     ) : item.imageIcon}
@@ -610,7 +605,7 @@ export default function EquipmentPage() {
                <div className={`w-32 h-32 bg-white rounded-3xl flex items-center justify-center text-5xl border-4 shadow-2xl shrink-0 overflow-hidden mb-6 z-10 ${selectedItem.isFirstAid ? 'border-rose-700' : 'border-slate-700'}`}>
                 {selectedItem.isRealImage ? (
                   <>
-                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={handleImgError} />
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" onError={handleImgError} />
                     <span style={{display:'none'}} className="w-full h-full items-center justify-center text-5xl">{selectedItem.imageIcon}</span>
                   </>
                 ) : selectedItem.imageIcon}
