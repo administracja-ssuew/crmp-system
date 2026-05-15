@@ -9,23 +9,23 @@ const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5
 
 // Konwertuje link Google Drive na URL obrazka
 // lh3.googleusercontent.com/d/ nie wymaga sesji Google dla plików "anyone with link"
+// Konwertuje link Drive na URL obrazka.
+// lh3.googleusercontent.com/d/ID — Google CDN, nie wymaga sesji dla "anyone with link".
+// Fallback: drive.google.com/thumbnail (konwertuje HEIC, wymaga zalogowania w Google).
 const toDriveImg = (url) => {
   if (!url) return url;
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
   if (/\.heic$/i.test(url)) return null;
   return url;
 };
 
-// Kaskadowy fallback dla img.onError:
-// 1. lh3 nie załadował (np. HEIC) → próbuje thumbnail Drive (wymaga sesji Google)
-// 2. thumbnail też nie załadował → ukrywa img i pokazuje nextSibling (emoji)
 const handleImgError = (e) => {
   const img = e.currentTarget;
-  const driveId = img.src.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/)?.[1];
-  if (driveId && !img.dataset.fallback) {
+  const idMatch = img.src.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && !img.dataset.fallback) {
     img.dataset.fallback = '1';
-    img.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`;
+    img.src = `https://drive.google.com/thumbnail?id=${idMatch[1]}&sz=w400`;
     return;
   }
   img.style.display = 'none';
@@ -457,7 +457,7 @@ export default function EquipmentPage() {
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform overflow-hidden ${item.isFirstAid ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
                     {item.isRealImage ? (
                       <>
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={handleImgError} />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={handleImgError} />
                         <span style={{display:'none'}} className="w-full h-full items-center justify-center text-3xl">{item.imageIcon}</span>
                       </>
                     ) : item.imageIcon}
@@ -610,7 +610,7 @@ export default function EquipmentPage() {
                <div className={`w-32 h-32 bg-white rounded-3xl flex items-center justify-center text-5xl border-4 shadow-2xl shrink-0 overflow-hidden mb-6 z-10 ${selectedItem.isFirstAid ? 'border-rose-700' : 'border-slate-700'}`}>
                 {selectedItem.isRealImage ? (
                   <>
-                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" onError={handleImgError} />
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" onError={handleImgError} />
                     <span style={{display:'none'}} className="w-full h-full items-center justify-center text-5xl">{selectedItem.imageIcon}</span>
                   </>
                 ) : selectedItem.imageIcon}
