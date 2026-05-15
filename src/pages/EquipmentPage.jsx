@@ -112,9 +112,22 @@ export default function EquipmentPage() {
         description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
         value: item['WARTOŚĆ'] || item.WARTOSC || item['Wartość'] || item.WARTOSC_NETTO || null,
         warranty: item.GWARANCJA || item['Gwarancja'] || item['GWARANCJA_DO'] || null,
-        image: toDriveImg(item['ZDJĘCIE'] || item.ZDJECIE) || icon,
+        image: toDriveImg(
+          item['ZDJĘCIE'] || item['ZDJĘCIA'] ||
+          item.ZDJECIE  || item.ZDJECIA   ||
+          item.PHOTO    || item.FOTO       ||
+          item.ZDJEC    || item['zdjęcie'] ||
+          // fallback: dowolne pole wyglądające jak link Drive
+          Object.values(item).find(v => typeof v === 'string' && v.includes('drive.google.com'))
+        ) || icon,
         imageIcon: icon,
-        isRealImage: !!(item['ZDJĘCIE'] || item.ZDJECIE),
+        isRealImage: !!(
+          item['ZDJĘCIE'] || item['ZDJĘCIA'] ||
+          item.ZDJECIE  || item.ZDJECIA   ||
+          item.PHOTO    || item.FOTO       ||
+          item.ZDJEC    || item['zdjęcie'] ||
+          Object.values(item).find(v => typeof v === 'string' && v.includes('drive.google.com'))
+        ),
         link: item.LINK || null
       };
     });
