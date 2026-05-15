@@ -7,14 +7,29 @@ import { SkeletonGrid } from '../components/SkeletonLoader';
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-// Konwertuje link Google Drive na thumbnail JPEG (działa też dla HEIC)
+// Konwertuje link Google Drive na URL obrazka
+// lh3.googleusercontent.com/d/ nie wymaga sesji Google dla plików "anyone with link"
 const toDriveImg = (url) => {
   if (!url) return url;
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
-  // Nie-Drive URL z rozszerzeniem nieobsługiwanym przez przeglądarki → ukryj
+  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
   if (/\.heic$/i.test(url)) return null;
   return url;
+};
+
+// Kaskadowy fallback dla img.onError:
+// 1. lh3 nie załadował (np. HEIC) → próbuje thumbnail Drive (wymaga sesji Google)
+// 2. thumbnail też nie załadował → ukrywa img i pokazuje nextSibling (emoji)
+const handleImgError = (e) => {
+  const img = e.currentTarget;
+  const driveId = img.src.match(/lh3\.googleusercontent\.com\/d\/([a-zA-Z0-9_-]+)/)?.[1];
+  if (driveId && !img.dataset.fallback) {
+    img.dataset.fallback = '1';
+    img.src = `https://drive.google.com/thumbnail?id=${driveId}&sz=w400`;
+    return;
+  }
+  img.style.display = 'none';
+  if (img.nextElementSibling) img.nextElementSibling.style.display = 'flex';
 };
 
 const DIN_13169_ITEMS = [
@@ -442,7 +457,7 @@ export default function EquipmentPage() {
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl border shadow-inner group-hover:scale-110 transition-transform overflow-hidden ${item.isFirstAid ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
                     {item.isRealImage ? (
                       <>
-                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" onError={handleImgError} />
                         <span style={{display:'none'}} className="w-full h-full items-center justify-center text-3xl">{item.imageIcon}</span>
                       </>
                     ) : item.imageIcon}
@@ -595,7 +610,7 @@ export default function EquipmentPage() {
                <div className={`w-32 h-32 bg-white rounded-3xl flex items-center justify-center text-5xl border-4 shadow-2xl shrink-0 overflow-hidden mb-6 z-10 ${selectedItem.isFirstAid ? 'border-rose-700' : 'border-slate-700'}`}>
                 {selectedItem.isRealImage ? (
                   <>
-                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling.style.display = 'flex'; }} />
+                    <img src={selectedItem.image} alt={selectedItem.name} className="w-full h-full object-cover" onError={handleImgError} />
                     <span style={{display:'none'}} className="w-full h-full items-center justify-center text-5xl">{selectedItem.imageIcon}</span>
                   </>
                 ) : selectedItem.imageIcon}
