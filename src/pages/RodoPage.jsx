@@ -47,7 +47,7 @@ const NAV = [
     id: 'dokumenty', label: 'Dokumenty',
     children: [
       { id: 'doc-polityka',   label: 'Polityka ODO' },
-      { id: 'doc-instrukcja', label: 'Instrukcja IT' },
+      { id: 'doc-instrukcja', label: 'Instrukcja Przetwarzania' },
       { id: 'doc-rcp',        label: 'Rejestr RCP' },
       { id: 'doc-klauzule',   label: 'Klauzule informacyjne' },
     ],
@@ -182,7 +182,6 @@ const KLAUZULE = [
   id: 'wizerunek',
   tytul: 'Zgoda na wykorzystanie i rozpowszechnianie wizerunku',
   tresc: `Zgodnie z art. 13 RODO oraz art. 81 ustawy o prawie autorskim i prawach pokrewnych informujemy, że:
-
   1. Administratorem Pani/Pana danych osobowych jest Uniwersytet Ekonomiczny we Wrocławiu z siedzibą przy ul. Komandorskiej 118/120, 53-345 Wrocław. Obsługę organizacyjną wydarzenia / działania prowadzi Samorząd Studentów Uniwersytetu Ekonomicznego we Wrocławiu.
   2. Kontakt z Inspektorem Ochrony Danych UEW możliwy jest pod adresem: iod@ue.wroc.pl.
   3. Pani/Pana wizerunek może być utrwalany w formie zdjęć, nagrań wideo lub innych materiałów audiowizualnych podczas wydarzeń, projektów, spotkań lub działań organizowanych albo współorganizowanych przez Samorząd Studentów UEW.

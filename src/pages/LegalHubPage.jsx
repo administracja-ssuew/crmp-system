@@ -1353,7 +1353,7 @@ export default function LegalHubPage() {
                     <div className="border-t border-slate-100 pt-4">
                       {project.templateId ? (
                         <button
-                          onClick={() => { setSelectedTemplate(project.templateId); setExpandedComments({}); }}
+                          onClick={() => { setSelectedTemplate(project.templateId); setExpandedComments({}); window.scrollTo(0, 0); }}
                           className="w-full text-xs font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 border border-indigo-100 py-3 rounded-xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                         >
                           Otwórz Interaktywny Wzór

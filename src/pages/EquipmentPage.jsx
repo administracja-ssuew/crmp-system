@@ -7,11 +7,13 @@ import { SkeletonGrid } from '../components/SkeletonLoader';
 
 const API_URL = "https://script.google.com/macros/s/AKfycbyRZFBR-7Lo2I-hXnFykVV5Bose6Z4tv7Hp7Si5LGV9lsiVdx8pCIKXBy_Z5eytRHQzGg/exec";
 
-// Konwertuje link Google Drive (viewer) na bezpośredni URL obrazka
+// Konwertuje link Google Drive na thumbnail JPEG (działa też dla HEIC)
 const toDriveImg = (url) => {
   if (!url) return url;
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  if (match) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w400`;
+  // Nie-Drive URL z rozszerzeniem nieobsługiwanym przez przeglądarki → ukryj
+  if (/\.heic$/i.test(url)) return null;
   return url;
 };
 
