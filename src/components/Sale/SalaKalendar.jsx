@@ -212,8 +212,6 @@ export default function SalaKalendar() {
                   </div>
                   <div style={{ marginTop: 6, color: '#64748b' }}>
                     Format GAS: <strong>{schedule.week ? 'nowy (week)' : schedule.weeks ? 'stary (weeks[])' : 'nieznany'}</strong>
-                    {' | '}prevTyg: <strong>{prevTyg ?? '—'}</strong>
-                    {' | '}nextTyg: <strong>{nextTyg ?? '—'}</strong>
                   </div>
                   {slotStats && Object.values(slotStats).every(s => s.zajeta === 0 && s.rsa === 0) && (
                     <div style={{ marginTop: 8, color: '#dc2626', fontWeight: 700 }}>
