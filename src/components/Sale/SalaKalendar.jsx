@@ -1,7 +1,3 @@
-// src/components/Sale/SalaKalendar.jsx
-// Komponent: Kalendarz sal UEW — widok tygodniowy planu zajęć
-// z oznaczeniem wolnych/zajętych slotów i RSA.
-
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 const AS_URL = import.meta.env.VITE_AS_SALA_URL || import.meta.env.VITE_AS_URL;
@@ -12,20 +8,18 @@ const HOURS = [
 ];
 const DAY_NAMES = ['Pon','Wt','Śr','Cz','Pi','So','Nd'];
 
-// Status → styl kafelka
 const SLOT_STYLE = {
   wolna:  { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46', label: 'Wolna'  },
   zajeta: { bg: '#eff6ff', border: '#93c5fd', text: '#1e3a5f', label: 'Zajęta' },
   rsa:    { bg: '#fffbeb', border: '#fbbf24', text: '#92400e', label: 'RSA — rezerwacja adm.' },
 };
 
-// ————————————————————————————————————————
 export default function SalaKalendar() {
   const [rooms, setRooms]           = useState([]);
   const [search, setSearch]         = useState('');
   const [selectedRoom, setSelected] = useState(null);
+  const [tyg, setTyg]               = useState(null); // null = bieżący tydzień, string = numer tygodnia z planu
   const [schedule, setSchedule]     = useState(null);
-  const [weekIdx, setWeekIdx]       = useState(0);
   const [loading, setLoading]       = useState({ rooms: false, schedule: false });
   const [error, setError]           = useState(null);
   const [tooltip, setTooltip]       = useState(null);
@@ -35,15 +29,15 @@ export default function SalaKalendar() {
     const r = await fetch(url);
     const text = await r.text();
     if (text.trimStart().startsWith('<')) {
-      throw new Error('Backend sali nie jest jeszcze skonfigurowany (brak VITE_AS_SALA_URL lub Apps Script nie jest wdrożony).');
+      throw new Error('Backend nie odpowiada poprawnie — sprawdź konfigurację Apps Script.');
     }
     return JSON.parse(text);
   };
 
-  // ——— Pobierz listę sal ———
+  // Pobierz listę sal
   useEffect(() => {
     if (!AS_URL) {
-      setError('Brak adresu URL backendu sal (VITE_AS_SALA_URL). Skonfiguruj zmienną środowiskową na Vercelu.');
+      setError('Brak adresu URL backendu sal (VITE_AS_SALA_URL). Skonfiguruj zmienną środowiskową.');
       return;
     }
     setLoading(l => ({ ...l, rooms: true }));
@@ -53,19 +47,25 @@ export default function SalaKalendar() {
       .finally(() => setLoading(l => ({ ...l, rooms: false })));
   }, []);
 
-  // ——— Pobierz plan wybranej sali ———
+  // Pobierz plan wybranej sali (lub innego tygodnia)
   useEffect(() => {
     if (!selectedRoom || !AS_URL) return;
     setLoading(l => ({ ...l, schedule: true }));
-    setSchedule(null);
-    setWeekIdx(0);
-    gasJson(`${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}`)
+    setError(null);
+    const url = `${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}${tyg ? `&tyg=${tyg}` : ''}`;
+    gasJson(url)
       .then(j => { if (j.success) setSchedule(j.data); else setError(j.error); })
       .catch(e => setError(e.message))
       .finally(() => setLoading(l => ({ ...l, schedule: false })));
-  }, [selectedRoom]);
+  }, [selectedRoom, tyg]);
 
-  // ——— Filtruj sale wg wyszukiwania ———
+  const handleRoomSelect = (room) => {
+    if (selectedRoom?.id === room.id) return;
+    setSelected(room);
+    setTyg(null);
+    setSchedule(null);
+  };
+
   const filteredRooms = useMemo(() => {
     const q = search.toLowerCase();
     return rooms.filter(r =>
@@ -73,7 +73,6 @@ export default function SalaKalendar() {
     );
   }, [rooms, search]);
 
-  // ——— Pogrupuj sale wg budynku ———
   const roomsByBuilding = useMemo(() => {
     const map = {};
     filteredRooms.forEach(r => {
@@ -83,25 +82,21 @@ export default function SalaKalendar() {
     return map;
   }, [filteredRooms]);
 
-  const currentWeek = schedule?.weeks?.[weekIdx];
-  const totalWeeks  = schedule?.weeks?.length ?? 0;
-
-  // ——— Tooltip hide on outside click ———
   useEffect(() => {
     const handler = () => setTooltip(null);
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, []);
 
+  const currentWeek = schedule?.week;
+
   return (
     <div style={styles.root}>
-      {/* ——— NAGŁÓWEK ——— */}
+      {/* NAGŁÓWEK */}
       <div style={styles.header}>
         <div>
           <h2 style={styles.title}>Kalendarz sal UEW</h2>
-          <p style={styles.subtitle}>
-            Sprawdź dostępność sal dydaktycznych na podstawie planu zajęć
-          </p>
+          <p style={styles.subtitle}>Sprawdź dostępność sal dydaktycznych na podstawie planu zajęć</p>
         </div>
         <a
           href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
@@ -114,12 +109,11 @@ export default function SalaKalendar() {
       </div>
 
       <div style={styles.layout}>
-
-        {/* ——— PANEL BOCZNY: LISTA SAL ——— */}
+        {/* PANEL BOCZNY */}
         <aside style={styles.sidebar}>
           <input
             style={styles.searchInput}
-            placeholder="Szukaj sali…  (np. E101, CKU)"
+            placeholder="Szukaj sali… (np. E101, CKU)"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -131,11 +125,8 @@ export default function SalaKalendar() {
                 {roomsInBuilding.map(room => (
                   <button
                     key={room.id}
-                    style={{
-                      ...styles.roomBtn,
-                      ...(selectedRoom?.id === room.id ? styles.roomBtnActive : {})
-                    }}
-                    onClick={() => setSelected(room)}
+                    style={{ ...styles.roomBtn, ...(selectedRoom?.id === room.id ? styles.roomBtnActive : {}) }}
+                    onClick={() => handleRoomSelect(room)}
                   >
                     {room.name}
                   </button>
@@ -148,7 +139,7 @@ export default function SalaKalendar() {
           </div>
         </aside>
 
-        {/* ——— GŁÓWNY PANEL: PLAN ——— */}
+        {/* GŁÓWNA ZAWARTOŚĆ */}
         <main style={styles.main}>
           {!selectedRoom && (
             <div style={styles.emptyState}>
@@ -173,18 +164,19 @@ export default function SalaKalendar() {
                 {/* Nawigacja tygodniami */}
                 <div style={styles.weekNav}>
                   <button
-                    style={styles.navBtn}
-                    disabled={weekIdx === 0}
-                    onClick={() => setWeekIdx(i => i - 1)}
+                    style={{ ...styles.navBtn, opacity: schedule.prevTyg ? 1 : 0.35 }}
+                    disabled={!schedule.prevTyg}
+                    onClick={() => setTyg(schedule.prevTyg)}
+                    title="Poprzedni tydzień"
                   >‹</button>
                   <span style={styles.weekLabel}>
                     {currentWeek?.label ?? 'Brak danych'}
-                    {' '}({weekIdx + 1}/{totalWeeks})
                   </span>
                   <button
-                    style={styles.navBtn}
-                    disabled={weekIdx >= totalWeeks - 1}
-                    onClick={() => setWeekIdx(i => i + 1)}
+                    style={{ ...styles.navBtn, opacity: schedule.nextTyg ? 1 : 0.35 }}
+                    disabled={!schedule.nextTyg}
+                    onClick={() => setTyg(schedule.nextTyg)}
+                    title="Następny tydzień"
                   >›</button>
                 </div>
               </div>
@@ -213,13 +205,12 @@ export default function SalaKalendar() {
                 <p style={styles.info}>Brak danych dla tego tygodnia</p>
               )}
 
-              {/* Link do oficjalnego planu */}
               <p style={styles.source}>
                 Dane pobierane z{' '}
                 <a href={`https://plan.ue.wroc.pl/l_plan_sali.php?id=${selectedRoom.id}`} target="_blank" rel="noreferrer" style={{ color: '#1d4ed8' }}>
                   plan.ue.wroc.pl
                 </a>
-                . Odświeżane co 30 minut. Aby zarezerwować wolną salę, złóż podanie do Prorektora ds. Studenckich i Kształcenia.
+                . Aby zarezerwować wolną salę, złóż podanie do Prorektora ds. Studenckich i Kształcenia.
               </p>
             </>
           )}
@@ -245,7 +236,6 @@ export default function SalaKalendar() {
   );
 }
 
-// ————————————————————————————————————————
 function TimetableWeek({ week, onSlotClick }) {
   const days = DAY_NAMES.filter(d => week.days?.[d]);
 
@@ -287,7 +277,6 @@ function TimetableWeek({ week, onSlotClick }) {
   );
 }
 
-// ————————————————————————————————————————
 function DaySlots({ slots, onSlotClick }) {
   const grid = [];
   let hourIdx = 0;
@@ -302,7 +291,7 @@ function DaySlots({ slots, onSlotClick }) {
   }
 
   while (hourIdx < HOURS.length) {
-    grid.push({ hour: HOURS[hourIdx], endHour: HOURS[hourIdx+1]||'22:00', status: 'brak', content: null, colspan: 1, _idx: hourIdx });
+    grid.push({ status: 'brak', content: null, colspan: 1, _idx: hourIdx });
     hourIdx++;
   }
 
@@ -311,7 +300,6 @@ function DaySlots({ slots, onSlotClick }) {
       {grid.map((slot, idx) => {
         if (slot === null) return null;
         const s = SLOT_STYLE[slot.status] || { bg: '#f9fafb', border: '#e5e7eb', text: '#6b7280' };
-
         return (
           <td
             key={idx}
@@ -326,8 +314,8 @@ function DaySlots({ slots, onSlotClick }) {
             title={slot.content || (slot.status === 'wolna' ? 'Wolna' : '')}
             onClick={e => slot.content && onSlotClick(slot.content, e)}
           >
-            {slot.status === 'wolna' && <span style={styles.dotFree}>●</span>}
-            {slot.status === 'rsa'   && <span style={{ fontSize: 10 }}>RSA</span>}
+            {slot.status === 'wolna'  && <span style={styles.dotFree}>●</span>}
+            {slot.status === 'rsa'    && <span style={{ fontSize: 10 }}>RSA</span>}
             {slot.status === 'zajeta' && slot.content && (
               <span style={styles.slotText}>{truncate(slot.content, slot.colspan)}</span>
             )}
@@ -382,10 +370,10 @@ const styles = {
   weekNav:    { display: 'flex', alignItems: 'center', gap: 10 },
   navBtn: {
     background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6,
-    width: 30, height: 30, cursor: 'pointer', fontSize: 18, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
+    width: 32, height: 32, cursor: 'pointer', fontSize: 20, lineHeight: 1,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 0.15s'
   },
-  weekLabel:  { fontSize: 13, fontWeight: 600, minWidth: 160, textAlign: 'center' },
+  weekLabel:  { fontSize: 13, fontWeight: 600, minWidth: 180, textAlign: 'center' },
   legend:     { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 },
   legendItem: { fontSize: 11, padding: '3px 10px', borderRadius: 999, border: '1px solid', fontWeight: 600 },
   table:      { borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 700 },
