@@ -14,17 +14,25 @@ const SLOT_STYLE = {
   rsa:    { bg: '#fffbeb', border: '#fbbf24', text: '#92400e', label: 'RSA — rezerwacja adm.' },
 };
 
+function localISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function thisMonday() {
   const today = new Date();
   const mon = new Date(today);
   mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  return mon.toISOString().slice(0, 10);
+  return localISO(mon);
 }
 
 function shiftWeek(isoDate, delta) {
-  const d = new Date(isoDate + 'T00:00:00');
-  d.setDate(d.getDate() + delta * 7);
-  return d.toISOString().slice(0, 10);
+  const [y, m, d] = isoDate.split('-').map(Number);
+  const date = new Date(y, m - 1, d); // konstruktor lokalny — bez UTC
+  date.setDate(date.getDate() + delta * 7);
+  return localISO(date);
 }
 
 export default function SalaKalendar() {
