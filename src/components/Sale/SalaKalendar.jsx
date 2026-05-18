@@ -18,26 +18,26 @@ export default function SalaKalendar() {
   const [rooms, setRooms]           = useState([]);
   const [search, setSearch]         = useState('');
   const [selectedRoom, setSelected] = useState(null);
-  const [tyg, setTyg]               = useState(null); // null = bieżący tydzień, string = numer tygodnia z planu
+  const [tyg, setTyg]               = useState(null);
   const [schedule, setSchedule]     = useState(null);
   const [loading, setLoading]       = useState({ rooms: false, schedule: false });
   const [error, setError]           = useState(null);
   const [tooltip, setTooltip]       = useState(null);
+  const [showDebug, setShowDebug]   = useState(false);
   const tooltipRef = useRef();
 
   const gasJson = async (url) => {
     const r = await fetch(url);
     const text = await r.text();
     if (text.trimStart().startsWith('<')) {
-      throw new Error('Backend nie odpowiada poprawnie — sprawdź konfigurację Apps Script.');
+      throw new Error('Backend zwrócił HTML zamiast JSON — sprawdź czy Apps Script jest wdrożony i URL poprawny.');
     }
     return JSON.parse(text);
   };
 
-  // Pobierz listę sal
   useEffect(() => {
     if (!AS_URL) {
-      setError('Brak adresu URL backendu sal (VITE_AS_SALA_URL). Skonfiguruj zmienną środowiskową.');
+      setError('Brak VITE_AS_SALA_URL. Skonfiguruj zmienną środowiskową i wdróż Apps Script.');
       return;
     }
     setLoading(l => ({ ...l, rooms: true }));
@@ -47,7 +47,6 @@ export default function SalaKalendar() {
       .finally(() => setLoading(l => ({ ...l, rooms: false })));
   }, []);
 
-  // Pobierz plan wybranej sali (lub innego tygodnia)
   useEffect(() => {
     if (!selectedRoom || !AS_URL) return;
     setLoading(l => ({ ...l, schedule: true }));
@@ -64,6 +63,7 @@ export default function SalaKalendar() {
     setSelected(room);
     setTyg(null);
     setSchedule(null);
+    setShowDebug(false);
   };
 
   const filteredRooms = useMemo(() => {
@@ -88,7 +88,26 @@ export default function SalaKalendar() {
     return () => document.removeEventListener('click', handler);
   }, []);
 
-  const currentWeek = schedule?.week;
+  // Obsługa obu formatów GAS: nowy ({ week }) i stary ({ weeks: [...] })
+  const currentWeek = schedule?.week ?? schedule?.weeks?.[0];
+  const prevTyg = schedule?.prevTyg ?? null;
+  const nextTyg = schedule?.nextTyg ?? null;
+
+  // Statystyki slotów do debugowania
+  const slotStats = useMemo(() => {
+    if (!currentWeek?.days) return null;
+    const stats = {};
+    for (const [day, data] of Object.entries(currentWeek.days)) {
+      const slots = data.slots || [];
+      stats[day] = {
+        wolna:  slots.filter(s => s.status === 'wolna').length,
+        zajeta: slots.filter(s => s.status === 'zajeta').length,
+        rsa:    slots.filter(s => s.status === 'rsa').length,
+        total:  slots.length,
+      };
+    }
+    return stats;
+  }, [currentWeek]);
 
   return (
     <div style={styles.root}>
@@ -157,25 +176,28 @@ export default function SalaKalendar() {
 
           {selectedRoom && !loading.schedule && schedule && (
             <>
-              {/* Nagłówek planu */}
+              {/* Nagłówek */}
               <div style={styles.planHeader}>
-                <h3 style={styles.planTitle}>Sala {schedule.roomName || selectedRoom.name}</h3>
-
-                {/* Nawigacja tygodniami */}
+                <h3 style={styles.planTitle}>
+                  Sala {schedule.roomName || selectedRoom.name}
+                  <span style={{ fontSize: 11, fontWeight: 400, color: '#9ca3af', marginLeft: 8 }}>
+                    ID: {selectedRoom.id}
+                  </span>
+                </h3>
                 <div style={styles.weekNav}>
                   <button
-                    style={{ ...styles.navBtn, opacity: schedule.prevTyg ? 1 : 0.35 }}
-                    disabled={!schedule.prevTyg}
-                    onClick={() => setTyg(schedule.prevTyg)}
+                    style={{ ...styles.navBtn, opacity: prevTyg ? 1 : 0.35 }}
+                    disabled={!prevTyg}
+                    onClick={() => setTyg(prevTyg)}
                     title="Poprzedni tydzień"
                   >‹</button>
                   <span style={styles.weekLabel}>
                     {currentWeek?.label ?? 'Brak danych'}
                   </span>
                   <button
-                    style={{ ...styles.navBtn, opacity: schedule.nextTyg ? 1 : 0.35 }}
-                    disabled={!schedule.nextTyg}
-                    onClick={() => setTyg(schedule.nextTyg)}
+                    style={{ ...styles.navBtn, opacity: nextTyg ? 1 : 0.35 }}
+                    disabled={!nextTyg}
+                    onClick={() => setTyg(nextTyg)}
                     title="Następny tydzień"
                   >›</button>
                 </div>
@@ -188,7 +210,38 @@ export default function SalaKalendar() {
                     {s.label}
                   </span>
                 ))}
+                <button
+                  onClick={() => setShowDebug(v => !v)}
+                  style={{ marginLeft: 'auto', fontSize: 10, color: '#9ca3af', background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}
+                >
+                  {showDebug ? 'Ukryj diagnostykę' : 'Diagnostyka'}
+                </button>
               </div>
+
+              {/* Panel diagnostyczny */}
+              {showDebug && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 11 }}>
+                  <strong style={{ color: '#475569' }}>Diagnostyka parsowania</strong>
+                  <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {slotStats ? Object.entries(slotStats).map(([day, s]) => (
+                      <span key={day} style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '3px 8px' }}>
+                        <strong>{day}</strong>: {s.wolna}W {s.zajeta}Z {s.rsa}R (razem {s.total})
+                      </span>
+                    )) : <span style={{ color: '#94a3b8' }}>Brak danych do wyświetlenia</span>}
+                  </div>
+                  <div style={{ marginTop: 6, color: '#64748b' }}>
+                    Format GAS: <strong>{schedule.week ? 'nowy (week)' : schedule.weeks ? 'stary (weeks[])' : 'nieznany'}</strong>
+                    {' | '}prevTyg: <strong>{prevTyg ?? '—'}</strong>
+                    {' | '}nextTyg: <strong>{nextTyg ?? '—'}</strong>
+                  </div>
+                  {slotStats && Object.values(slotStats).every(s => s.zajeta === 0 && s.rsa === 0) && (
+                    <div style={{ marginTop: 8, color: '#dc2626', fontWeight: 700 }}>
+                      ⚠ Wszystkie sloty są wolne — sprawdź czy GAS jest zaktualizowany i ponownie wdrożony (Deploy).
+                      Możliwe że parsowanie HTML planu nie wykrywa klas CSS zajęć.
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Tabela tygodniowa */}
               {currentWeek ? (
@@ -206,16 +259,21 @@ export default function SalaKalendar() {
               )}
 
               <p style={styles.source}>
-                Dane pobierane z{' '}
+                Dane z{' '}
                 <a href={`https://plan.ue.wroc.pl/l_plan_sali.php?id=${selectedRoom.id}`} target="_blank" rel="noreferrer" style={{ color: '#1d4ed8' }}>
                   plan.ue.wroc.pl
                 </a>
-                . Aby zarezerwować wolną salę, złóż podanie do Prorektora ds. Studenckich i Kształcenia.
+                {' '}(ID sali: {selectedRoom.id}).{' '}
+                Aby zarezerwować wolną salę, złóż podanie do Prorektora ds. Studenckich i Kształcenia.
               </p>
             </>
           )}
 
-          {error && <p style={{ color: '#dc2626', padding: 16 }}>Błąd: {error}</p>}
+          {error && (
+            <div style={{ color: '#dc2626', padding: 16, background: '#fef2f2', borderRadius: 8, margin: 16, fontSize: 13 }}>
+              <strong>Błąd:</strong> {error}
+            </div>
+          )}
         </main>
       </div>
 
@@ -240,7 +298,7 @@ function TimetableWeek({ week, onSlotClick }) {
   const days = DAY_NAMES.filter(d => week.days?.[d]);
 
   if (days.length === 0) {
-    return <p style={styles.info}>Brak danych o zajęciach w tym tygodniu</p>;
+    return <p style={styles.info}>Brak danych o zajęciach w tym tygodniu (dni: {Object.keys(week.days || {}).join(', ') || 'brak'})</p>;
   }
 
   return (
@@ -281,7 +339,7 @@ function DaySlots({ slots, onSlotClick }) {
   const grid = [];
   let hourIdx = 0;
 
-  for (const slot of slots) {
+  for (const slot of (slots || [])) {
     if (hourIdx >= HOURS.length) break;
     grid.push({ ...slot, _idx: hourIdx });
     for (let k = 1; k < slot.colspan; k++) {
@@ -374,7 +432,7 @@ const styles = {
     display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 0.15s'
   },
   weekLabel:  { fontSize: 13, fontWeight: 600, minWidth: 180, textAlign: 'center' },
-  legend:     { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 },
+  legend:     { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 },
   legendItem: { fontSize: 11, padding: '3px 10px', borderRadius: 999, border: '1px solid', fontWeight: 600 },
   table:      { borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 700 },
   thDay:      { padding: '6px 8px', background: '#f9fafb', border: '1px solid #e5e7eb', width: 68, textAlign: 'left', fontSize: 11, fontWeight: 700 },
