@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 
-const AS_URL = import.meta.env.VITE_AS_URL; // ten sam URL co reszta CRA
+const AS_URL = import.meta.env.VITE_AS_SALA_URL || import.meta.env.VITE_AS_URL;
 
 const HOURS = [
   '8:00','9:00','10:00','11:00','12:00','13:00',
@@ -31,11 +31,23 @@ export default function SalaKalendar() {
   const [tooltip, setTooltip]       = useState(null);
   const tooltipRef = useRef();
 
+  const gasJson = async (url) => {
+    const r = await fetch(url);
+    const text = await r.text();
+    if (text.trimStart().startsWith('<')) {
+      throw new Error('Backend sali nie jest jeszcze skonfigurowany (brak VITE_AS_SALA_URL lub Apps Script nie jest wdrożony).');
+    }
+    return JSON.parse(text);
+  };
+
   // ——— Pobierz listę sal ———
   useEffect(() => {
+    if (!AS_URL) {
+      setError('Brak adresu URL backendu sal (VITE_AS_SALA_URL). Skonfiguruj zmienną środowiskową na Vercelu.');
+      return;
+    }
     setLoading(l => ({ ...l, rooms: true }));
-    fetch(`${AS_URL}?action=getSalaList`)
-      .then(r => r.json())
+    gasJson(`${AS_URL}?action=getSalaList`)
       .then(j => { if (j.success) setRooms(j.data); else setError(j.error); })
       .catch(e => setError(e.message))
       .finally(() => setLoading(l => ({ ...l, rooms: false })));
@@ -43,12 +55,11 @@ export default function SalaKalendar() {
 
   // ——— Pobierz plan wybranej sali ———
   useEffect(() => {
-    if (!selectedRoom) return;
+    if (!selectedRoom || !AS_URL) return;
     setLoading(l => ({ ...l, schedule: true }));
     setSchedule(null);
     setWeekIdx(0);
-    fetch(`${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}`)
-      .then(r => r.json())
+    gasJson(`${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}`)
       .then(j => { if (j.success) setSchedule(j.data); else setError(j.error); })
       .catch(e => setError(e.message))
       .finally(() => setLoading(l => ({ ...l, schedule: false })));
