@@ -6,7 +6,7 @@ const HOURS = [
   '8:00','9:00','10:00','11:00','12:00','13:00',
   '14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'
 ];
-const DAY_NAMES = ['Pon','Wt','Śr','Cz','Pi','So','Nd'];
+const DAY_NAMES = ['Pon','Wt','Śr','Cz','Pi','So','Ni'];
 
 const SLOT_STYLE = {
   wolna:  { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46', label: 'Wolna'  },
