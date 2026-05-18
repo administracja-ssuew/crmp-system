@@ -18,7 +18,6 @@ export default function SalaKalendar() {
   const [rooms, setRooms]           = useState([]);
   const [search, setSearch]         = useState('');
   const [selectedRoom, setSelected] = useState(null);
-  const [tyg, setTyg]               = useState(null);
   const [schedule, setSchedule]     = useState(null);
   const [loading, setLoading]       = useState({ rooms: false, schedule: false });
   const [error, setError]           = useState(null);
@@ -51,17 +50,16 @@ export default function SalaKalendar() {
     if (!selectedRoom || !AS_URL) return;
     setLoading(l => ({ ...l, schedule: true }));
     setError(null);
-    const url = `${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}${tyg ? `&tyg=${tyg}` : ''}`;
+    const url = `${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}`;
     gasJson(url)
       .then(j => { if (j.success) setSchedule(j.data); else setError(j.error); })
       .catch(e => setError(e.message))
       .finally(() => setLoading(l => ({ ...l, schedule: false })));
-  }, [selectedRoom, tyg]);
+  }, [selectedRoom]);
 
   const handleRoomSelect = (room) => {
     if (selectedRoom?.id === room.id) return;
     setSelected(room);
-    setTyg(null);
     setSchedule(null);
     setShowDebug(false);
   };
@@ -88,10 +86,7 @@ export default function SalaKalendar() {
     return () => document.removeEventListener('click', handler);
   }, []);
 
-  // Obsługa obu formatów GAS: nowy ({ week }) i stary ({ weeks: [...] })
   const currentWeek = schedule?.week ?? schedule?.weeks?.[0];
-  const prevTyg = schedule?.prevTyg ?? null;
-  const nextTyg = schedule?.nextTyg ?? null;
 
   // Statystyki slotów do debugowania
   const slotStats = useMemo(() => {
@@ -184,23 +179,9 @@ export default function SalaKalendar() {
                     ID: {selectedRoom.id}
                   </span>
                 </h3>
-                <div style={styles.weekNav}>
-                  <button
-                    style={{ ...styles.navBtn, opacity: prevTyg ? 1 : 0.35 }}
-                    disabled={!prevTyg}
-                    onClick={() => setTyg(prevTyg)}
-                    title="Poprzedni tydzień"
-                  >‹</button>
-                  <span style={styles.weekLabel}>
-                    {currentWeek?.label ?? 'Brak danych'}
-                  </span>
-                  <button
-                    style={{ ...styles.navBtn, opacity: nextTyg ? 1 : 0.35 }}
-                    disabled={!nextTyg}
-                    onClick={() => setTyg(nextTyg)}
-                    title="Następny tydzień"
-                  >›</button>
-                </div>
+                <span style={styles.weekLabel}>
+                  {currentWeek?.label ?? ''}
+                </span>
               </div>
 
               {/* Legenda */}
@@ -425,13 +406,7 @@ const styles = {
   emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, minHeight: 300, color: '#9ca3af', textAlign: 'center' },
   planHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 },
   planTitle:  { margin: 0, fontSize: 18, fontWeight: 800 },
-  weekNav:    { display: 'flex', alignItems: 'center', gap: 10 },
-  navBtn: {
-    background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6,
-    width: 32, height: 32, cursor: 'pointer', fontSize: 20, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'opacity 0.15s'
-  },
-  weekLabel:  { fontSize: 13, fontWeight: 600, minWidth: 180, textAlign: 'center' },
+  weekLabel:  { fontSize: 13, fontWeight: 600, color: '#6b7280' },
   legend:     { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 },
   legendItem: { fontSize: 11, padding: '3px 10px', borderRadius: 999, border: '1px solid', fontWeight: 600 },
   table:      { borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 700 },
