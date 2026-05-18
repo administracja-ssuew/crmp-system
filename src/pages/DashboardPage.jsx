@@ -398,7 +398,7 @@ export default function DashboardPage() {
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] opacity-50">Powered by Samorząd Studentów UEW</p>
           {/* Przycisk zgłoszenia dla zwykłych użytkowników */}
           {!isAdmin && (
-            <button onClick={() => { setHelpdeskTab('submit'); setShowHelpdesk(true); }}
+            <button onClick={() => setShowHelpdesk(true)}
               className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-teal-600 transition-colors uppercase tracking-widest">
               <span>🎫</span> Zgłoś problem lub sugestię
             </button>
