@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-const AS_URL = import.meta.env.VITE_AS_URL;
+const AS_URL = import.meta.env.VITE_AS_URL || import.meta.env.VITE_AS_SALA_URL;
 
 // ————————————————————————————————————————
 // KONFIGURACJA
