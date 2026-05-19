@@ -232,7 +232,7 @@ const ts = {
 };
 
 /* ── Main ── */
-export default function SalaKalendar() {
+export default function SalaKalendar({ onBack }) {
   const [rooms, setRooms]         = useState([]);
   const [selectedRoom, setSelected] = useState(null);
   const [weekMonday, setWeekMonday] = useState(thisMonday);
@@ -241,7 +241,8 @@ export default function SalaKalendar() {
   const [loading, setLoading]     = useState({ rooms: false, schedule: false });
   const [error, setError]         = useState(null);
   const [tooltip, setTooltip]     = useState(null);
-  const tooltipRef = useRef();
+  const tooltipRef    = useRef();
+  const datePickerRef = useRef();
 
   const gasJson = async url => {
     const r = await fetch(url), text = await r.text();
@@ -291,10 +292,19 @@ export default function SalaKalendar() {
     <div className="min-h-screen bg-slate-50 flex flex-col">
 
       {/* ── Header ── */}
-      <div className="bg-white border-b border-slate-100 px-4 pt-6 pb-5">
+      <div className="bg-white border-b border-slate-100 px-4 pt-4 pb-3">
         <div className="max-w-3xl mx-auto">
-          <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-1">Plan zajęć UEW</p>
-          <h2 className="text-2xl font-black text-slate-900 mb-4">Sprawdź dostępność sali</h2>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black uppercase tracking-widest text-violet-500">Plan zajęć UEW</p>
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors flex items-center gap-1"
+              >
+                ← Wróć do wyboru kalendarza
+              </button>
+            )}
+          </div>
           <RoomCombobox rooms={rooms} selected={selectedRoom} loadingRooms={loading.rooms} onSelect={handleRoomSelect} />
         </div>
       </div>
@@ -304,32 +314,53 @@ export default function SalaKalendar() {
         <div className="bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
           <div className="max-w-3xl mx-auto">
             {/* Week nav */}
-            <div className="flex items-center justify-between px-4 py-3 gap-3">
+            <div className="flex items-center justify-between px-4 py-2 gap-2">
               <button
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
                 onClick={() => setWeekMonday(w => shiftWeek(w, -1))}
                 disabled={loading.schedule}
                 title="Poprzedni tydzień"
               >‹</button>
-              <div className="text-center flex-1">
-                <div className="text-sm font-bold text-slate-800 leading-snug">
+
+              <div className="text-center flex-1 min-w-0">
+                <div className="text-sm font-bold text-slate-800 leading-snug truncate">
                   {currentWeek?.label ?? weekMonday.replace(/-/g,'.')}
                 </div>
                 {!isCurrentWeek && (
                   <button
-                    className="text-[11px] text-violet-500 hover:text-violet-700 transition-colors mt-0.5"
+                    className="text-[11px] text-violet-500 hover:text-violet-700 transition-colors"
                     onClick={() => setWeekMonday(thisMonday())}
                   >
                     ↩ bieżący tydzień
                   </button>
                 )}
               </div>
+
               <button
-                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
                 onClick={() => setWeekMonday(w => shiftWeek(w, 1))}
                 disabled={loading.schedule}
                 title="Następny tydzień"
               >›</button>
+
+              {/* Skok do konkretnej daty */}
+              <label
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer text-base"
+                title="Skocz do tygodnia"
+              >
+                📅
+                <input
+                  ref={datePickerRef}
+                  type="date"
+                  className="sr-only"
+                  onChange={e => {
+                    if (!e.target.value) return;
+                    const [y,m,d] = e.target.value.split('-').map(Number);
+                    const dt = new Date(y, m-1, d);
+                    setWeekMonday(localISO(new Date(y, m-1, d - ((dt.getDay()+6)%7))));
+                  }}
+                />
+              </label>
             </div>
 
             {/* Day tabs */}
@@ -429,33 +460,22 @@ export default function SalaKalendar() {
       </div>
 
       {/* ── CTA Card ── */}
-      <div className="max-w-3xl mx-auto w-full px-4 pb-8">
-        <div className="rounded-3xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-          <div className="flex items-start gap-4">
-            <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
-              📋
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-black text-lg mb-1">Chcesz zarezerwować salę?</h3>
-              <p className="text-white/75 text-sm mb-4 leading-relaxed">
-                Organizacje studenckie i samorząd mogą rezerwować wolne sale dydaktyczne. Wymagane jest złożenie podania do Prorektora ds. Studenckich i Kształcenia.
-              </p>
-              <a
-                href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 bg-white font-black text-sm px-5 py-2.5 rounded-2xl hover:bg-slate-50 transition-colors shadow-lg"
-                style={{ color: '#6d28d9' }}
-              >
-                Złóż podanie do Prorektora →
-              </a>
-            </div>
+      <div className="max-w-3xl mx-auto w-full px-4 pb-4">
+        <div className="rounded-2xl p-4 text-white flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+          <span className="text-2xl shrink-0">📋</span>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm mb-0.5">Chcesz zarezerwować wolną salę?</p>
+            <p className="text-white/70 text-xs leading-relaxed">Złóż podanie do Prorektora ds. Studenckich i Kształcenia.</p>
           </div>
-          {selectedRoom && (
-            <p className="text-white/40 text-xs mt-5 pt-4 border-t border-white/10">
-              Sala {schedule?.roomName || selectedRoom.name} · ID: {selectedRoom.id} · plan.ue.wroc.pl
-            </p>
-          )}
+          <a
+            href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 bg-white font-black text-xs px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors shadow"
+            style={{ color: '#6d28d9' }}
+          >
+            Złóż podanie →
+          </a>
         </div>
       </div>
 

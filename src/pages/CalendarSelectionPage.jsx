@@ -54,14 +54,8 @@ export default function CalendarSelectionPage() {
         </div>
       ) : (
         <div className="relative z-10 w-full max-w-7xl">
-          <button
-            onClick={() => setShowSalaKalendar(false)}
-            className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            ← Wróć do wyboru kalendarza
-          </button>
           <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
-            <SalaKalendar />
+            <SalaKalendar onBack={() => setShowSalaKalendar(false)} />
           </div>
         </div>
       )}
