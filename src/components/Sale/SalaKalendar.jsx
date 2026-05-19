@@ -264,11 +264,12 @@ function ReservationModal({ room, selectedDay, dayDates, onClose }) {
 `Wrocław, ${todayFmt} r.
 
 [Twoje imię i nazwisko]
-[Twój adres e-mail]
+[Twój adres e-mail z domeny @samorzad.ue.wroc.pl]
 [Twój numer telefonu]
 
 Dr hab. inż. Andrzej Okruszek, prof. UEW
 Prorektor ds. Studenckich i Kształcenia
+Uniwersytet Ekonomiczny we Wrocławiu
 
 
 PODANIE
@@ -289,7 +290,9 @@ Z wyrazami szacunku,
 Uniwersytetu Ekonomicznego we Wrocławiu`;
 
   const mailSubject = `Podanie o rezerwację sali ${room.name} – ${dateFmt}`;
-  const mailHref    = `mailto:prorektor@samorzad.ue.wroc.pl?subject=${encodeURIComponent(mailSubject)}`;
+  const mailBody    = `Dzień dobry,\n\nZwracam się z prośbą o rejestrację w systemie CRED podania o bezpłatne udostępnienie sali ${room.name} w budynku ${room.building} w dniu ${dateFmt}, w godzinach ${startFmt} – ${endFmt}.\n\nW załączniku przesyłam podanie.\n\nZ wyrazami szacunku,\n[Twoje imię i nazwisko]`;
+  // Krok 1: wysyłamy na administracja@samorzad.ue.wroc.pl (rejestracja CRED)
+  const mailHref    = `mailto:administracja@samorzad.ue.wroc.pl?subject=${encodeURIComponent(mailSubject)}&body=${encodeURIComponent(mailBody)}`;
 
   const copy = async () => {
     try { await navigator.clipboard.writeText(template); }
@@ -341,9 +344,10 @@ Uniwersytetu Ekonomicznego we Wrocławiu`;
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Jak złożyć podanie</p>
             <div className="space-y-2.5">
               {[
-                ['Skopiuj wzór poniżej', 'Uzupełnij pola w nawiasach kwadratowych własnymi danymi'],
-                ['Sformatuj na papierze firmowym SSUEW', 'Użyj szablonu Word/PDF dostępnego w chmurze organizacji'],
-                ['Wyślij do Prorektora', 'Dołącz podpisany plik PDF na adres prorektor@samorzad.ue.wroc.pl'],
+                ['Skopiuj wzór i przygotuj dokument', 'Uzupełnij pola [w nawiasach], wklej do Worda / Google Docs, sformatuj na papierze firmowym SSUEW i zapisz jako PDF'],
+                ['Wyślij do administracja@samorzad.ue.wroc.pl', 'Rejestracja w systemie CRED — dołącz podpisany PDF jako załącznik'],
+                ['Poczekaj na opinię Zarządu ds. Administracji', 'Członek Zarządu ds. Administracji SSUEW rozpatruje wniosek i wydaje opinię'],
+                ['Wyślij do Prorektora (po pozytywnej opinii)', 'prorektor@ue.wroc.pl · DW: administracja@samorzad.ue.wroc.pl'],
               ].map(([title, desc], i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i+1}</div>
@@ -383,9 +387,10 @@ Uniwersytetu Ekonomicznego we Wrocławiu`;
             className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-sm text-white transition-opacity hover:opacity-90"
             style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
           >
-            ✉ Wyślij podanie e-mailem →
+            ✉ Krok 1 — Wyślij do Administracji SSUEW →
           </a>
-          <p className="text-center text-[11px] text-slate-400 mt-2">prorektor@samorzad.ue.wroc.pl</p>
+          <p className="text-center text-[11px] text-slate-400 mt-2">administracja@samorzad.ue.wroc.pl · rejestracja CRED</p>
+          <p className="text-center text-[11px] text-slate-300 mt-0.5">Po pozytywnej opinii → prorektor@ue.wroc.pl (DW: administracja@samorzad.ue.wroc.pl)</p>
         </div>
       </div>
     </div>
