@@ -151,7 +151,7 @@ function DayTimeline({ dayData, dayName, dayDate }) {
 }
 
 /* ── WeekTable ── */
-function WeekTable({ week, onSlotClick }) {
+function WeekTable({ week, onSlotClick, hours = HOURS }) {
   const days = DAY_NAMES.filter(d => week.days?.[d]);
   if (!days.length) return (
     <div className="py-12 flex flex-col items-center gap-2 text-slate-400">
@@ -162,11 +162,11 @@ function WeekTable({ week, onSlotClick }) {
 
   return (
     <div className="overflow-x-auto">
-      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 660 }}>
+      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11, tableLayout: 'fixed' }}>
         <thead>
           <tr>
             <th style={ts.thDay}>Dzień</th>
-            {HOURS.map(h => <th key={h} style={ts.thHour}>{h}</th>)}
+            {hours.map(h => <th key={h} style={ts.thHour}>{h}</th>)}
           </tr>
         </thead>
         <tbody>
@@ -178,7 +178,7 @@ function WeekTable({ week, onSlotClick }) {
                   <div style={{ fontWeight: 700 }}>{dayName}</div>
                   {dd.date && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{fmtShortDate(dd.date)}</div>}
                 </td>
-                <DaySlots slots={dd.slots} onSlotClick={onSlotClick} />
+                <DaySlots slots={dd.slots} onSlotClick={onSlotClick} hours={hours} />
               </tr>
             );
           })}
@@ -188,15 +188,15 @@ function WeekTable({ week, onSlotClick }) {
   );
 }
 
-function DaySlots({ slots, onSlotClick }) {
+function DaySlots({ slots, onSlotClick, hours = HOURS }) {
   const grid = []; let hIdx = 0;
   for (const s of (slots||[])) {
-    if (hIdx >= HOURS.length) break;
+    if (hIdx >= hours.length) break;
     grid.push({...s});
     for (let k=1; k<s.colspan; k++) grid.push(null);
     hIdx += s.colspan;
   }
-  while (hIdx < HOURS.length) { grid.push({ status:'brak', content:null, colspan:1 }); hIdx++; }
+  while (hIdx < hours.length) { grid.push({ status:'brak', content:null, colspan:1 }); hIdx++; }
 
   return (
     <>
@@ -226,10 +226,171 @@ function DaySlots({ slots, onSlotClick }) {
 }
 
 const ts = {
-  thDay:  { padding:'6px 8px', background:'#f9fafb', border:'1px solid #e5e7eb', width:68, textAlign:'left', fontSize:11, fontWeight:700 },
-  thHour: { padding:'6px 4px', background:'#f9fafb', border:'1px solid #e5e7eb', minWidth:52, textAlign:'center', fontWeight:600 },
-  tdDay:  { padding:'6px 8px', border:'1px solid #e5e7eb', background:'#f9fafb', fontWeight:600, fontSize:12, verticalAlign:'middle', width:68 },
+  thDay:  { padding:'5px 6px', background:'#f9fafb', border:'1px solid #e5e7eb', width:54, textAlign:'left', fontSize:10, fontWeight:700 },
+  thHour: { padding:'5px 2px', background:'#f9fafb', border:'1px solid #e5e7eb', width:42, textAlign:'center', fontWeight:600, fontSize:10 },
+  tdDay:  { padding:'5px 6px', border:'1px solid #e5e7eb', background:'#f9fafb', fontWeight:600, fontSize:11, verticalAlign:'middle', width:54 },
 };
+
+/* ── helpers ── */
+function fmtPolishDate(iso) {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function roomLabel(room) {
+  // "205A" + building "A" → "205 w budynku A"; "102CKU" → "102 w budynku CKU"
+  const stripped = room.name.replace(new RegExp(room.building.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i'), '').trim();
+  return `${stripped || room.name} w budynku ${room.building}`;
+}
+
+/* ── ReservationModal ── */
+function ReservationModal({ room, selectedDay, dayDates, onClose }) {
+  const today  = new Date();
+  const todayFmt = `${String(today.getDate()).padStart(2,'0')}.${String(today.getMonth()+1).padStart(2,'0')}.${today.getFullYear()}`;
+  const preDate  = selectedDay && dayDates[selectedDay] ? dayDates[selectedDay] : '';
+  const [eventDate, setEventDate] = useState(preDate);
+  const [startTime, setStartTime] = useState('');
+  const [endTime,   setEndTime]   = useState('');
+  const [copied,    setCopied]    = useState(false);
+  const textRef = useRef();
+
+  const dateFmt  = eventDate ? fmtPolishDate(eventDate) : '[DD.MM.YYYY]';
+  const startFmt = startTime || '__:__';
+  const endFmt   = endTime   || '__:__';
+  const rLabel   = roomLabel(room);
+
+  const template =
+`Wrocław, ${todayFmt} r.
+
+[Twoje imię i nazwisko]
+[Twój adres e-mail]
+[Twój numer telefonu]
+
+Dr hab. inż. Andrzej Okruszek, prof. UEW
+Prorektor ds. Studenckich i Kształcenia
+
+
+PODANIE
+
+\tW imieniu Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu zwracam się z uprzejmą prośbą o bezpłatne udostępnienie nam sali ${rLabel} w dniu ${dateFmt} r., w godzinach ${startFmt} – ${endFmt}.
+
+\t[Opis celu rezerwacji — czemu potrzebujesz tej sali i co będzie się odbywać]
+
+\tKoordynatorem spotkania i osobą odpowiedzialną za klucz i salę jest [Imię i Nazwisko] (nr indeksu: [XXXXXX], tel. [XXX XXX XXX]).
+
+Uprzejmie proszę o pozytywne rozpatrzenie niniejszego podania.
+
+Z wyrazami szacunku,
+
+
+[Twoje imię i nazwisko]
+[Twoja funkcja] Samorządu Studentów
+Uniwersytetu Ekonomicznego we Wrocławiu`;
+
+  const mailSubject = `Podanie o rezerwację sali ${room.name} – ${dateFmt}`;
+  const mailHref    = `mailto:prorektor@samorzad.ue.wroc.pl?subject=${encodeURIComponent(mailSubject)}`;
+
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(template); }
+    catch { textRef.current?.select(); document.execCommand('copy'); }
+    setCopied(true); setTimeout(() => setCopied(false), 2200);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-3 sm:p-6" onClick={onClose}>
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-slate-100">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-0.5">Rezerwacja sali</p>
+            <h3 className="text-lg font-black text-slate-900">{room.name} · budynek {room.building}</h3>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 text-xl font-bold transition-colors shrink-0">×</button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+
+          {/* Warning */}
+          <div className="flex items-start gap-2.5 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
+            <span className="text-base mt-0.5 shrink-0">⏰</span>
+            <p className="text-xs text-amber-900"><strong>Złóż podanie min. 4 dni robocze wcześniej.</strong> Adresat to Prorektor ds. Studenckich i Kształcenia — nie Dziekanat.</p>
+          </div>
+
+          {/* Date + time */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Data i godziny rezerwacji</p>
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={eventDate}
+                onChange={e => setEventDate(e.target.value)}
+                className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-violet-400"
+              />
+              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+                className="w-24 px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-violet-400" placeholder="od" />
+              <span className="text-slate-400 font-bold text-sm">–</span>
+              <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+                className="w-24 px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-violet-400" placeholder="do" />
+            </div>
+          </div>
+
+          {/* Steps */}
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Jak złożyć podanie</p>
+            <div className="space-y-2.5">
+              {[
+                ['Skopiuj wzór poniżej', 'Uzupełnij pola w nawiasach kwadratowych własnymi danymi'],
+                ['Sformatuj na papierze firmowym SSUEW', 'Użyj szablonu Word/PDF dostępnego w chmurze organizacji'],
+                ['Wyślij do Prorektora', 'Dołącz podpisany plik PDF na adres prorektor@samorzad.ue.wroc.pl'],
+              ].map(([title, desc], i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-violet-100 text-violet-700 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i+1}</div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">{title}</p>
+                    <p className="text-xs text-slate-500">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Template */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Wzór treści podania</p>
+              <button
+                onClick={copy}
+                className={`text-xs font-bold px-3 py-1.5 rounded-xl transition-all ${copied ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+              >
+                {copied ? '✓ Skopiowano!' : '📋 Kopiuj'}
+              </button>
+            </div>
+            <textarea
+              ref={textRef}
+              readOnly
+              value={template}
+              className="w-full h-44 text-[11px] text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-3 resize-none outline-none font-mono leading-relaxed"
+            />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 pb-5">
+          <a
+            href={mailHref}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-black text-sm text-white transition-opacity hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}
+          >
+            ✉ Wyślij podanie e-mailem →
+          </a>
+          <p className="text-center text-[11px] text-slate-400 mt-2">prorektor@samorzad.ue.wroc.pl</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* ── Main ── */
 export default function SalaKalendar({ onBack }) {
@@ -240,9 +401,9 @@ export default function SalaKalendar({ onBack }) {
   const [schedule, setSchedule]   = useState(null);
   const [loading, setLoading]     = useState({ rooms: false, schedule: false });
   const [error, setError]         = useState(null);
-  const [tooltip, setTooltip]     = useState(null);
-  const tooltipRef    = useRef();
-  const datePickerRef = useRef();
+  const [tooltip, setTooltip]               = useState(null);
+  const [showReservationModal, setShowModal] = useState(false);
+  const tooltipRef = useRef();
 
   const gasJson = async url => {
     const r = await fetch(url), text = await r.text();
@@ -279,9 +440,22 @@ export default function SalaKalendar({ onBack }) {
     return () => document.removeEventListener('click', fn);
   }, []);
 
-  const currentWeek  = schedule?.week ?? schedule?.weeks?.[0];
+  const currentWeek   = schedule?.week ?? schedule?.weeks?.[0];
   const isCurrentWeek = weekMonday === thisMonday();
   const availableDays = DAY_NAMES.filter(d => currentWeek?.days?.[d]);
+
+  // Przycinaj kolumny do faktycznego zakresu godzin w danych (bez pustych na końcu)
+  const effectiveHours = useMemo(() => {
+    if (!currentWeek?.days) return HOURS;
+    let maxEndH = 9; // minimum: show at least to 9:00
+    for (const dayData of Object.values(currentWeek.days)) {
+      for (const item of buildTimeline(dayData.slots || [])) {
+        maxEndH = Math.max(maxEndH, item.endH);
+      }
+    }
+    const cap = Math.min(22, maxEndH + 1);
+    return Array.from({ length: cap - 8 }, (_, i) => `${8 + i}:00`);
+  }, [currentWeek]);
   const dayDates = useMemo(() => {
     const map = {};
     if (currentWeek?.days) for (const [d, v] of Object.entries(currentWeek.days)) map[d] = v.date;
@@ -343,24 +517,21 @@ export default function SalaKalendar({ onBack }) {
                 title="Następny tydzień"
               >›</button>
 
-              {/* Skok do konkretnej daty */}
-              <label
-                className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer text-base"
-                title="Skocz do tygodnia"
-              >
-                📅
+              {/* Skok do konkretnej daty — opacity-0 overlay działa na iOS/Safari */}
+              <div className="relative w-8 h-8 shrink-0" title="Skocz do tygodnia">
+                <div className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-base select-none pointer-events-none">📅</div>
                 <input
-                  ref={datePickerRef}
                   type="date"
-                  className="sr-only"
+                  className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   onChange={e => {
                     if (!e.target.value) return;
                     const [y,m,d] = e.target.value.split('-').map(Number);
                     const dt = new Date(y, m-1, d);
                     setWeekMonday(localISO(new Date(y, m-1, d - ((dt.getDay()+6)%7))));
+                    e.target.value = '';
                   }}
                 />
-              </label>
+              </div>
             </div>
 
             {/* Day tabs */}
@@ -440,7 +611,7 @@ export default function SalaKalendar({ onBack }) {
                   <DayTimeline dayData={currentWeek.days[selectedDay]} dayName={selectedDay} dayDate={dayDates[selectedDay]} />
                 </div>
               ) : (
-                <WeekTable week={currentWeek} onSlotClick={(content, e) => {
+                <WeekTable week={currentWeek} hours={effectiveHours} onSlotClick={(content, e) => {
                   e.stopPropagation();
                   if (!content) return;
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -460,24 +631,24 @@ export default function SalaKalendar({ onBack }) {
       </div>
 
       {/* ── CTA Card ── */}
-      <div className="max-w-3xl mx-auto w-full px-4 pb-4">
-        <div className="rounded-2xl p-4 text-white flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-          <span className="text-2xl shrink-0">📋</span>
-          <div className="flex-1 min-w-0">
-            <p className="font-black text-sm mb-0.5">Chcesz zarezerwować wolną salę?</p>
-            <p className="text-white/70 text-xs leading-relaxed">Złóż podanie do Prorektora ds. Studenckich i Kształcenia.</p>
+      {selectedRoom && (
+        <div className="max-w-3xl mx-auto w-full px-4 pb-4">
+          <div className="rounded-2xl p-4 text-white flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+            <span className="text-2xl shrink-0">📋</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-black text-sm mb-0.5">Chcesz zarezerwować wolną salę?</p>
+              <p className="text-white/70 text-xs">Sala {selectedRoom.name} · złóż podanie do Prorektora</p>
+            </div>
+            <button
+              onClick={() => setShowModal(true)}
+              className="shrink-0 bg-white font-black text-xs px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors shadow"
+              style={{ color: '#6d28d9' }}
+            >
+              Złóż podanie →
+            </button>
           </div>
-          <a
-            href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 bg-white font-black text-xs px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors shadow"
-            style={{ color: '#6d28d9' }}
-          >
-            Złóż podanie →
-          </a>
         </div>
-      </div>
+      )}
 
       {/* Tooltip */}
       {tooltip && (
@@ -498,6 +669,16 @@ export default function SalaKalendar({ onBack }) {
             {tooltip.content}
           </pre>
         </div>
+      )}
+
+      {/* Reservation Modal */}
+      {showReservationModal && selectedRoom && (
+        <ReservationModal
+          room={selectedRoom}
+          selectedDay={selectedDay}
+          dayDates={dayDates}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );
