@@ -1,351 +1,184 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 
 const AS_URL = import.meta.env.VITE_AS_SALA_URL || import.meta.env.VITE_AS_URL;
-
-const HOURS = [
-  '8:00','9:00','10:00','11:00','12:00','13:00',
-  '14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'
-];
+const HOURS     = ['8:00','9:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00'];
 const DAY_NAMES = ['Pon','Wt','Śr','Cz','Pi','So','Ni'];
 
-const SLOT_STYLE = {
-  wolna:  { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46', label: 'Wolna'  },
+const STATUS = {
+  wolna:  { bg: '#ecfdf5', border: '#6ee7b7', text: '#065f46', label: 'Wolna' },
   zajeta: { bg: '#eff6ff', border: '#93c5fd', text: '#1e3a5f', label: 'Zajęta' },
-  rsa:    { bg: '#fffbeb', border: '#fbbf24', text: '#92400e', label: 'RSA — rezerwacja adm.' },
+  rsa:    { bg: '#fffbeb', border: '#fcd34d', text: '#92400e', label: 'RSA' },
 };
 
-function localISO(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+/* ── helpers ── */
+function localISO(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
 function thisMonday() {
-  const today = new Date();
-  const mon = new Date(today);
-  mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  return localISO(mon);
+  const t = new Date(); const m = new Date(t);
+  m.setDate(t.getDate() - ((t.getDay()+6)%7));
+  return localISO(m);
+}
+function shiftWeek(iso, delta) {
+  const [y,mo,d] = iso.split('-').map(Number);
+  const dt = new Date(y, mo-1, d); dt.setDate(dt.getDate() + delta*7);
+  return localISO(dt);
+}
+function fmtShortDate(iso) {
+  if (!iso) return '';
+  const [,m,d] = iso.split('-'); return `${d}.${m}`;
+}
+function buildTimeline(slots) {
+  let h = 8;
+  return (slots||[]).map(s => { const r = {...s, startH: h, endH: h+s.colspan}; h += s.colspan; return r; });
 }
 
-function shiftWeek(isoDate, delta) {
-  const [y, m, d] = isoDate.split('-').map(Number);
-  const date = new Date(y, m - 1, d); // konstruktor lokalny — bez UTC
-  date.setDate(date.getDate() + delta * 7);
-  return localISO(date);
-}
-
-export default function SalaKalendar() {
-  const [rooms, setRooms]           = useState([]);
-  const [search, setSearch]         = useState('');
-  const [selectedRoom, setSelected] = useState(null);
-  const [weekMonday, setWeekMonday] = useState(thisMonday);
-  const [schedule, setSchedule]     = useState(null);
-  const [loading, setLoading]       = useState({ rooms: false, schedule: false });
-  const [error, setError]           = useState(null);
-  const [tooltip, setTooltip]       = useState(null);
-  const [showDebug, setShowDebug]   = useState(false);
-  const tooltipRef = useRef();
-
-  const gasJson = async (url) => {
-    const r = await fetch(url);
-    const text = await r.text();
-    if (text.trimStart().startsWith('<')) {
-      throw new Error('Backend zwrócił HTML zamiast JSON — sprawdź czy Apps Script jest wdrożony.');
-    }
-    return JSON.parse(text);
-  };
+/* ── RoomCombobox ── */
+function RoomCombobox({ rooms, selected, loadingRooms, onSelect }) {
+  const [open, setOpen]     = useState(false);
+  const [q, setQ]           = useState('');
+  const wrapRef = useRef(); const inputRef = useRef();
 
   useEffect(() => {
-    if (!AS_URL) {
-      setError('Brak VITE_AS_SALA_URL. Skonfiguruj zmienną środowiskową i wdróż Apps Script.');
-      return;
-    }
-    setLoading(l => ({ ...l, rooms: true }));
-    gasJson(`${AS_URL}?action=getSalaList`)
-      .then(j => { if (j.success) setRooms(j.data); else setError(j.error); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(l => ({ ...l, rooms: false })));
+    const fn = e => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', fn);
+    return () => document.removeEventListener('mousedown', fn);
   }, []);
+  useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
 
-  useEffect(() => {
-    if (!selectedRoom || !AS_URL) return;
-    setLoading(l => ({ ...l, schedule: true }));
-    setError(null);
-    const url = `${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}&mon=${weekMonday}`;
-    gasJson(url)
-      .then(j => { if (j.success) setSchedule(j.data); else setError(j.error); })
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(l => ({ ...l, schedule: false })));
-  }, [selectedRoom, weekMonday]);
-
-  const handleRoomSelect = (room) => {
-    if (selectedRoom?.id === room.id) return;
-    setSelected(room);
-    setSchedule(null);
-    setShowDebug(false);
-    setWeekMonday(thisMonday());
-  };
-
-  const filteredRooms = useMemo(() => {
-    const q = search.toLowerCase();
-    return rooms.filter(r =>
-      r.name.toLowerCase().includes(q) || r.building.toLowerCase().includes(q)
-    );
-  }, [rooms, search]);
-
-  const roomsByBuilding = useMemo(() => {
+  const byBuilding = useMemo(() => {
+    const lq = q.toLowerCase();
+    const filtered = rooms.filter(r => r.name.toLowerCase().includes(lq) || r.building.toLowerCase().includes(lq));
     const map = {};
-    filteredRooms.forEach(r => {
-      if (!map[r.building]) map[r.building] = [];
-      map[r.building].push(r);
-    });
-    return map;
-  }, [filteredRooms]);
-
-  useEffect(() => {
-    const handler = () => setTooltip(null);
-    document.addEventListener('click', handler);
-    return () => document.removeEventListener('click', handler);
-  }, []);
-
-  const currentWeek = schedule?.week ?? schedule?.weeks?.[0];
-
-  const slotStats = useMemo(() => {
-    if (!currentWeek?.days) return null;
-    const stats = {};
-    for (const [day, data] of Object.entries(currentWeek.days)) {
-      const slots = data.slots || [];
-      stats[day] = {
-        wolna:  slots.filter(s => s.status === 'wolna').length,
-        zajeta: slots.filter(s => s.status === 'zajeta').length,
-        rsa:    slots.filter(s => s.status === 'rsa').length,
-        total:  slots.length,
-      };
-    }
-    return stats;
-  }, [currentWeek]);
-
-  const isCurrentWeek = weekMonday === thisMonday();
+    filtered.forEach(r => { (map[r.building] ??= []).push(r); });
+    return Object.entries(map).sort();
+  }, [rooms, q]);
 
   return (
-    <div style={styles.root}>
-      {/* NAGŁÓWEK */}
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.title}>Kalendarz sal UEW</h2>
-          <p style={styles.subtitle}>Sprawdź dostępność sal dydaktycznych na podstawie planu zajęć</p>
-        </div>
-        <a
-          href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
-          target="_blank"
-          rel="noreferrer"
-          style={styles.ctaBtn}
-        >
-          Złóż podanie do Prorektora →
-        </a>
-      </div>
+    <div ref={wrapRef} className="relative w-full">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between gap-3 px-4 py-3.5 bg-white border-2 border-slate-200 rounded-2xl hover:border-violet-400 transition-colors text-left shadow-sm"
+      >
+        <span className={`text-sm font-semibold truncate ${selected ? 'text-slate-900' : 'text-slate-400'}`}>
+          {loadingRooms ? 'Ładowanie sal…' : selected ? `🏛 ${selected.name}` : 'Wybierz salę dydaktyczną…'}
+        </span>
+        <svg className={`w-4 h-4 shrink-0 text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
 
-      <div style={styles.layout}>
-        {/* PANEL BOCZNY */}
-        <aside style={styles.sidebar}>
-          <input
-            style={styles.searchInput}
-            placeholder="Szukaj sali… (np. E101, CKU)"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          {loading.rooms && <p style={styles.info}>Ładowanie sal…</p>}
-          <div style={styles.roomList}>
-            {Object.entries(roomsByBuilding).sort().map(([building, roomsInBuilding]) => (
+      {open && (
+        <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+          <div className="p-2.5 border-b border-slate-100">
+            <input
+              ref={inputRef}
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 outline-none focus:border-violet-400 bg-slate-50"
+              placeholder="Szukaj po nazwie lub budynku…"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+            />
+          </div>
+          <div className="overflow-y-auto" style={{ maxHeight: 280 }}>
+            {byBuilding.map(([building, bRooms]) => (
               <div key={building}>
-                <div style={styles.buildingLabel}>Budynek {building}</div>
-                {roomsInBuilding.map(room => (
+                <div className="px-3 pt-2 pb-1 text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/80 sticky top-0">
+                  Budynek {building}
+                </div>
+                {bRooms.map(room => (
                   <button
                     key={room.id}
-                    style={{ ...styles.roomBtn, ...(selectedRoom?.id === room.id ? styles.roomBtnActive : {}) }}
-                    onClick={() => handleRoomSelect(room)}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between ${
+                      selected?.id === room.id ? 'bg-violet-50 text-violet-700 font-bold' : 'text-slate-700 hover:bg-slate-50'
+                    }`}
+                    onClick={() => { onSelect(room); setOpen(false); setQ(''); }}
                   >
                     {room.name}
+                    {selected?.id === room.id && <span className="text-violet-400 text-xs">✓</span>}
                   </button>
                 ))}
               </div>
             ))}
-            {filteredRooms.length === 0 && !loading.rooms && (
-              <p style={styles.info}>Brak wyników</p>
+            {byBuilding.length === 0 && (
+              <p className="text-center text-slate-400 text-sm py-6">Brak wyników dla „{q}"</p>
             )}
           </div>
-        </aside>
-
-        {/* GŁÓWNA ZAWARTOŚĆ */}
-        <main style={styles.main}>
-          {!selectedRoom && (
-            <div style={styles.emptyState}>
-              <span style={{ fontSize: 48 }}>🏛️</span>
-              <p>Wybierz salę z listy po lewej, aby zobaczyć jej plan zajęć</p>
-            </div>
-          )}
-
-          {selectedRoom && loading.schedule && (
-            <div style={styles.emptyState}>
-              <span style={{ fontSize: 48 }}>⏳</span>
-              <p>Pobieranie planu sali <strong>{selectedRoom.name}</strong>…</p>
-            </div>
-          )}
-
-          {selectedRoom && !loading.schedule && schedule && (
-            <>
-              {/* Nagłówek z nawigacją tygodniową */}
-              <div style={styles.planHeader}>
-                <h3 style={styles.planTitle}>
-                  Sala {schedule.roomName || selectedRoom.name}
-                  <span style={{ fontSize: 11, fontWeight: 400, color: '#9ca3af', marginLeft: 8 }}>
-                    ID: {selectedRoom.id}
-                  </span>
-                </h3>
-                <div style={styles.weekNav}>
-                  <button
-                    style={styles.navBtn}
-                    onClick={() => setWeekMonday(w => shiftWeek(w, -1))}
-                    disabled={loading.schedule}
-                    title="Poprzedni tydzień"
-                  >‹</button>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={styles.weekLabel}>{currentWeek?.label ?? weekMonday}</div>
-                    {!isCurrentWeek && (
-                      <button
-                        style={styles.todayBtn}
-                        onClick={() => setWeekMonday(thisMonday())}
-                      >
-                        ↩ Bieżący tydzień
-                      </button>
-                    )}
-                  </div>
-                  <button
-                    style={styles.navBtn}
-                    onClick={() => setWeekMonday(w => shiftWeek(w, 1))}
-                    disabled={loading.schedule}
-                    title="Następny tydzień"
-                  >›</button>
-                </div>
-              </div>
-
-              {/* Legenda */}
-              <div style={styles.legend}>
-                {Object.entries(SLOT_STYLE).map(([key, s]) => (
-                  <span key={key} style={{ ...styles.legendItem, background: s.bg, borderColor: s.border, color: s.text }}>
-                    {s.label}
-                  </span>
-                ))}
-                <button
-                  onClick={() => setShowDebug(v => !v)}
-                  style={{ marginLeft: 'auto', fontSize: 10, color: '#9ca3af', background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '2px 8px', cursor: 'pointer' }}
-                >
-                  {showDebug ? 'Ukryj diagnostykę' : 'Diagnostyka'}
-                </button>
-              </div>
-
-              {/* Panel diagnostyczny */}
-              {showDebug && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 12, fontSize: 11 }}>
-                  <strong style={{ color: '#475569' }}>Diagnostyka parsowania</strong>
-                  <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {slotStats ? Object.entries(slotStats).map(([day, s]) => (
-                      <span key={day} style={{ background: '#fff', border: '1px solid #cbd5e1', borderRadius: 6, padding: '3px 8px' }}>
-                        <strong>{day}</strong>: {s.wolna}W {s.zajeta}Z {s.rsa}R (razem {s.total})
-                      </span>
-                    )) : <span style={{ color: '#94a3b8' }}>Brak danych</span>}
-                  </div>
-                  <div style={{ marginTop: 6, color: '#64748b' }}>
-                    Sem GAS: <strong>{schedule.sem ?? '—'}</strong>
-                    {' | '}mon: <strong>{weekMonday}</strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Tabela tygodniowa */}
-              {currentWeek ? (
-                <TimetableWeek
-                  week={currentWeek}
-                  onSlotClick={(content, e) => {
-                    e.stopPropagation();
-                    if (!content) return;
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    setTooltip({ content, x: rect.left, y: rect.bottom + 8 });
-                  }}
-                />
-              ) : (
-                <p style={styles.info}>Brak danych dla tego tygodnia</p>
-              )}
-
-              <p style={styles.source}>
-                Dane z{' '}
-                <a href={`https://plan.ue.wroc.pl/l_plan_sali.php?id=${selectedRoom.id}`} target="_blank" rel="noreferrer" style={{ color: '#1d4ed8' }}>
-                  plan.ue.wroc.pl
-                </a>
-                {' '}(ID sali: {selectedRoom.id}).{' '}
-                Aby zarezerwować wolną salę, złóż podanie do Prorektora ds. Studenckich i Kształcenia.
-              </p>
-            </>
-          )}
-
-          {error && (
-            <div style={{ color: '#dc2626', padding: 16, background: '#fef2f2', borderRadius: 8, margin: 16, fontSize: 13 }}>
-              <strong>Błąd:</strong> {error}
-            </div>
-          )}
-        </main>
-      </div>
-
-      {/* Tooltip */}
-      {tooltip && (
-        <div
-          ref={tooltipRef}
-          style={{ ...styles.tooltip, top: tooltip.y, left: Math.min(tooltip.x, window.innerWidth - 320) }}
-          onClick={e => e.stopPropagation()}
-        >
-          <strong>Szczegóły zajęć:</strong>
-          <pre style={{ margin: '4px 0 0', fontSize: 12, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
-            {tooltip.content}
-          </pre>
         </div>
       )}
     </div>
   );
 }
 
-function TimetableWeek({ week, onSlotClick }) {
-  const days = DAY_NAMES.filter(d => week.days?.[d]);
-
-  if (days.length === 0) {
-    return <p style={styles.info}>Brak zajęć w tym tygodniu</p>;
-  }
+/* ── DayTimeline ── */
+function DayTimeline({ dayData, dayName, dayDate }) {
+  const timeline = buildTimeline(dayData.slots);
+  if (!timeline.length) return <p className="text-slate-400 text-sm py-6 text-center">Brak danych</p>;
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <table style={styles.table}>
+    <div className="space-y-2">
+      {timeline.map((item, idx) => {
+        const s = STATUS[item.status] || { bg: '#f9fafb', border: '#e5e7eb', text: '#6b7280' };
+        const isFree = item.status === 'wolna';
+        return (
+          <div key={idx}
+            className={`flex items-start gap-3 px-4 py-3 rounded-2xl border transition-all ${isFree ? 'opacity-50' : ''}`}
+            style={{ background: s.bg, borderColor: s.border }}
+          >
+            <div className="text-xs text-slate-500 w-16 shrink-0 font-mono leading-relaxed pt-0.5">
+              {item.startH}:00<br /><span className="text-slate-400">–{item.endH}:00</span>
+            </div>
+            <div className="flex-1 min-w-0 pt-0.5">
+              {isFree ? (
+                <span className="text-sm font-semibold" style={{ color: s.text }}>● Wolna</span>
+              ) : item.status === 'rsa' ? (
+                <span className="text-sm font-semibold" style={{ color: s.text }}>RSA — rezerwacja administracyjna</span>
+              ) : (
+                <>
+                  <span className="text-sm font-bold leading-tight block break-words" style={{ color: s.text }}>
+                    {item.content || '(zajęcia)'}
+                  </span>
+                  <span className="text-xs opacity-60 mt-0.5 block" style={{ color: s.text }}>
+                    {item.colspan} {item.colspan === 1 ? 'godz.' : 'godz.'}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── WeekTable ── */
+function WeekTable({ week, onSlotClick }) {
+  const days = DAY_NAMES.filter(d => week.days?.[d]);
+  if (!days.length) return (
+    <div className="py-12 flex flex-col items-center gap-2 text-slate-400">
+      <span className="text-3xl">📅</span>
+      <p className="text-sm">Brak zajęć w tym tygodniu</p>
+    </div>
+  );
+
+  return (
+    <div className="overflow-x-auto">
+      <table style={{ borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 660 }}>
         <thead>
           <tr>
-            <th style={styles.thDay}>Dzień</th>
-            {HOURS.map(h => (
-              <th key={h} style={styles.thHour}>{h}</th>
-            ))}
+            <th style={ts.thDay}>Dzień</th>
+            {HOURS.map(h => <th key={h} style={ts.thHour}>{h}</th>)}
           </tr>
         </thead>
         <tbody>
           {days.map(dayName => {
-            const dayData = week.days[dayName];
+            const dd = week.days[dayName];
             return (
               <tr key={dayName}>
-                <td style={styles.tdDay}>
+                <td style={ts.tdDay}>
                   <div style={{ fontWeight: 700 }}>{dayName}</div>
-                  {dayData.date && (
-                    <div style={{ fontSize: 10, color: '#6b7280', marginTop: 2 }}>
-                      {dayData.date.slice(5).replace('-', '.')}
-                    </div>
-                  )}
+                  {dd.date && <div style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>{fmtShortDate(dd.date)}</div>}
                 </td>
-                <DaySlots slots={dayData.slots} onSlotClick={onSlotClick} />
+                <DaySlots slots={dd.slots} onSlotClick={onSlotClick} />
               </tr>
             );
           })}
@@ -356,44 +189,34 @@ function TimetableWeek({ week, onSlotClick }) {
 }
 
 function DaySlots({ slots, onSlotClick }) {
-  const grid = [];
-  let hourIdx = 0;
-
-  for (const slot of (slots || [])) {
-    if (hourIdx >= HOURS.length) break;
-    grid.push({ ...slot, _idx: hourIdx });
-    for (let k = 1; k < slot.colspan; k++) grid.push(null);
-    hourIdx += slot.colspan;
+  const grid = []; let hIdx = 0;
+  for (const s of (slots||[])) {
+    if (hIdx >= HOURS.length) break;
+    grid.push({...s});
+    for (let k=1; k<s.colspan; k++) grid.push(null);
+    hIdx += s.colspan;
   }
-
-  while (hourIdx < HOURS.length) {
-    grid.push({ status: 'brak', content: null, colspan: 1, _idx: hourIdx });
-    hourIdx++;
-  }
+  while (hIdx < HOURS.length) { grid.push({ status:'brak', content:null, colspan:1 }); hIdx++; }
 
   return (
     <>
       {grid.map((slot, idx) => {
-        if (slot === null) return null;
-        const s = SLOT_STYLE[slot.status] || { bg: '#f9fafb', border: '#e5e7eb', text: '#6b7280' };
+        if (!slot) return null;
+        const s = STATUS[slot.status] || { bg:'#f9fafb', border:'#e5e7eb', text:'#6b7280' };
+        const lim = slot.colspan<=1?12:slot.colspan<=2?28:60;
         return (
-          <td
-            key={idx}
-            colSpan={slot.colspan}
-            style={{
-              ...styles.tdSlot,
-              background: s.bg,
-              borderColor: s.border,
-              color: s.text,
-              cursor: slot.content ? 'pointer' : 'default',
-            }}
-            title={slot.content || (slot.status === 'wolna' ? 'Wolna' : '')}
+          <td key={idx} colSpan={slot.colspan}
+            style={{ padding:'4px 3px', border:'1px solid', verticalAlign:'middle', textAlign:'center', height:44,
+              background:s.bg, borderColor:s.border, color:s.text, cursor: slot.content?'pointer':'default' }}
+            title={slot.content||(slot.status==='wolna'?'Wolna':'')}
             onClick={e => slot.content && onSlotClick(slot.content, e)}
           >
-            {slot.status === 'wolna'  && <span style={styles.dotFree}>●</span>}
-            {slot.status === 'rsa'    && <span style={{ fontSize: 10 }}>RSA</span>}
-            {slot.status === 'zajeta' && slot.content && (
-              <span style={styles.slotText}>{truncate(slot.content, slot.colspan)}</span>
+            {slot.status==='wolna'  && <span style={{color:'#6ee7b7',fontSize:14}}>●</span>}
+            {slot.status==='rsa'    && <span style={{fontSize:10}}>RSA</span>}
+            {slot.status==='zajeta' && slot.content && (
+              <span style={{display:'block',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:10}}>
+                {slot.content.length>lim ? slot.content.slice(0,lim)+'…' : slot.content}
+              </span>
             )}
           </td>
         );
@@ -402,75 +225,260 @@ function DaySlots({ slots, onSlotClick }) {
   );
 }
 
-function truncate(text, colspan) {
-  const limit = colspan <= 1 ? 12 : colspan <= 2 ? 28 : 60;
-  return text.length > limit ? text.slice(0, limit) + '…' : text;
-}
-
-const styles = {
-  root: { fontFamily: "'Lato', sans-serif", color: '#111827', minHeight: '100vh', padding: '0 0 48px' },
-  header: {
-    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-    flexWrap: 'wrap', gap: 12, padding: '24px 24px 16px', borderBottom: '1px solid #e5e7eb',
-    background: '#fff'
-  },
-  title:    { margin: 0, fontSize: 22, fontWeight: 800 },
-  subtitle: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  ctaBtn: {
-    display: 'inline-block', background: '#1d4ed8', color: '#fff',
-    padding: '10px 18px', borderRadius: 8, textDecoration: 'none',
-    fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap', alignSelf: 'center'
-  },
-  layout:  { display: 'flex', gap: 0, minHeight: 'calc(100vh - 100px)' },
-  sidebar: {
-    width: 200, minWidth: 180, maxWidth: 220, flexShrink: 0,
-    borderRight: '1px solid #e5e7eb', padding: 12,
-    background: '#fafafa', display: 'flex', flexDirection: 'column', gap: 8
-  },
-  searchInput: {
-    width: '100%', padding: '7px 10px', borderRadius: 7, border: '1px solid #d1d5db',
-    fontSize: 12, boxSizing: 'border-box', outline: 'none'
-  },
-  roomList:      { overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 2 },
-  buildingLabel: { fontSize: 10, fontWeight: 700, color: '#9ca3af', textTransform: 'uppercase', padding: '8px 4px 2px', letterSpacing: '0.05em' },
-  roomBtn: {
-    display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px',
-    border: 'none', borderRadius: 6, background: 'transparent', cursor: 'pointer',
-    fontSize: 12, color: '#374151', transition: 'background 0.15s'
-  },
-  roomBtnActive: { background: '#dbeafe', color: '#1d4ed8', fontWeight: 700 },
-  main:       { flex: 1, padding: 24, overflow: 'auto' },
-  emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, minHeight: 300, color: '#9ca3af', textAlign: 'center' },
-  planHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 12 },
-  planTitle:  { margin: 0, fontSize: 18, fontWeight: 800 },
-  weekNav:    { display: 'flex', alignItems: 'center', gap: 10 },
-  navBtn: {
-    background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: 6,
-    width: 32, height: 32, cursor: 'pointer', fontSize: 20, lineHeight: 1,
-    display: 'flex', alignItems: 'center', justifyContent: 'center'
-  },
-  weekLabel:  { fontSize: 13, fontWeight: 600, minWidth: 170, textAlign: 'center' },
-  todayBtn:   { fontSize: 10, color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', padding: '2px 0', display: 'block', margin: '2px auto 0' },
-  legend:     { display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 },
-  legendItem: { fontSize: 11, padding: '3px 10px', borderRadius: 999, border: '1px solid', fontWeight: 600 },
-  table:      { borderCollapse: 'collapse', width: '100%', fontSize: 11, minWidth: 700 },
-  thDay:      { padding: '6px 8px', background: '#f9fafb', border: '1px solid #e5e7eb', width: 68, textAlign: 'left', fontSize: 11, fontWeight: 700 },
-  thHour:     { padding: '6px 4px', background: '#f9fafb', border: '1px solid #e5e7eb', minWidth: 52, textAlign: 'center', fontWeight: 600 },
-  tdDay: {
-    padding: '6px 8px', border: '1px solid #e5e7eb', background: '#f9fafb',
-    fontWeight: 600, fontSize: 12, verticalAlign: 'middle', width: 68
-  },
-  tdSlot: {
-    padding: '4px 3px', border: '1px solid', verticalAlign: 'middle',
-    textAlign: 'center', transition: 'filter 0.1s', minHeight: 40, height: 44,
-  },
-  dotFree:  { color: '#6ee7b7', fontSize: 14 },
-  slotText: { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 10 },
-  info:     { color: '#6b7280', fontSize: 13, padding: '8px 0' },
-  source:   { marginTop: 16, fontSize: 11, color: '#9ca3af', lineHeight: 1.5 },
-  tooltip: {
-    position: 'fixed', zIndex: 9999, background: '#1f2937', color: '#f9fafb',
-    padding: '10px 14px', borderRadius: 8, fontSize: 12, maxWidth: 300,
-    boxShadow: '0 4px 20px rgba(0,0,0,0.25)', lineHeight: 1.5, pointerEvents: 'auto'
-  }
+const ts = {
+  thDay:  { padding:'6px 8px', background:'#f9fafb', border:'1px solid #e5e7eb', width:68, textAlign:'left', fontSize:11, fontWeight:700 },
+  thHour: { padding:'6px 4px', background:'#f9fafb', border:'1px solid #e5e7eb', minWidth:52, textAlign:'center', fontWeight:600 },
+  tdDay:  { padding:'6px 8px', border:'1px solid #e5e7eb', background:'#f9fafb', fontWeight:600, fontSize:12, verticalAlign:'middle', width:68 },
 };
+
+/* ── Main ── */
+export default function SalaKalendar() {
+  const [rooms, setRooms]         = useState([]);
+  const [selectedRoom, setSelected] = useState(null);
+  const [weekMonday, setWeekMonday] = useState(thisMonday);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [schedule, setSchedule]   = useState(null);
+  const [loading, setLoading]     = useState({ rooms: false, schedule: false });
+  const [error, setError]         = useState(null);
+  const [tooltip, setTooltip]     = useState(null);
+  const tooltipRef = useRef();
+
+  const gasJson = async url => {
+    const r = await fetch(url), text = await r.text();
+    if (text.trimStart().startsWith('<')) throw new Error('Backend zwrócił HTML — sprawdź wdrożenie Apps Script.');
+    return JSON.parse(text);
+  };
+
+  useEffect(() => {
+    if (!AS_URL) { setError('Brak VITE_AS_SALA_URL.'); return; }
+    setLoading(l => ({...l, rooms:true}));
+    gasJson(`${AS_URL}?action=getSalaList`)
+      .then(j => { if (j.success) setRooms(j.data); else setError(j.error); })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(l => ({...l, rooms:false})));
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRoom || !AS_URL) return;
+    setLoading(l => ({...l, schedule:true})); setError(null);
+    gasJson(`${AS_URL}?action=getSalaSchedule&id=${selectedRoom.id}&mon=${weekMonday}`)
+      .then(j => { if (j.success) setSchedule(j.data); else setError(j.error); })
+      .catch(e => setError(e.message))
+      .finally(() => setLoading(l => ({...l, schedule:false})));
+  }, [selectedRoom, weekMonday]);
+
+  const handleRoomSelect = room => {
+    if (selectedRoom?.id === room.id) return;
+    setSelected(room); setSchedule(null); setSelectedDay(null); setWeekMonday(thisMonday());
+  };
+
+  useEffect(() => {
+    const fn = () => setTooltip(null);
+    document.addEventListener('click', fn);
+    return () => document.removeEventListener('click', fn);
+  }, []);
+
+  const currentWeek  = schedule?.week ?? schedule?.weeks?.[0];
+  const isCurrentWeek = weekMonday === thisMonday();
+  const availableDays = DAY_NAMES.filter(d => currentWeek?.days?.[d]);
+  const dayDates = useMemo(() => {
+    const map = {};
+    if (currentWeek?.days) for (const [d, v] of Object.entries(currentWeek.days)) map[d] = v.date;
+    return map;
+  }, [currentWeek]);
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+
+      {/* ── Header ── */}
+      <div className="bg-white border-b border-slate-100 px-4 pt-6 pb-5">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-[10px] font-black uppercase tracking-widest text-violet-500 mb-1">Plan zajęć UEW</p>
+          <h2 className="text-2xl font-black text-slate-900 mb-4">Sprawdź dostępność sali</h2>
+          <RoomCombobox rooms={rooms} selected={selectedRoom} loadingRooms={loading.rooms} onSelect={handleRoomSelect} />
+        </div>
+      </div>
+
+      {/* ── Sticky week + day nav (only when room selected) ── */}
+      {selectedRoom && (
+        <div className="bg-white border-b border-slate-100 sticky top-0 z-20 shadow-sm">
+          <div className="max-w-3xl mx-auto">
+            {/* Week nav */}
+            <div className="flex items-center justify-between px-4 py-3 gap-3">
+              <button
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
+                onClick={() => setWeekMonday(w => shiftWeek(w, -1))}
+                disabled={loading.schedule}
+                title="Poprzedni tydzień"
+              >‹</button>
+              <div className="text-center flex-1">
+                <div className="text-sm font-bold text-slate-800 leading-snug">
+                  {currentWeek?.label ?? weekMonday.replace(/-/g,'.')}
+                </div>
+                {!isCurrentWeek && (
+                  <button
+                    className="text-[11px] text-violet-500 hover:text-violet-700 transition-colors mt-0.5"
+                    onClick={() => setWeekMonday(thisMonday())}
+                  >
+                    ↩ bieżący tydzień
+                  </button>
+                )}
+              </div>
+              <button
+                className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-lg transition-colors disabled:opacity-30"
+                onClick={() => setWeekMonday(w => shiftWeek(w, 1))}
+                disabled={loading.schedule}
+                title="Następny tydzień"
+              >›</button>
+            </div>
+
+            {/* Day tabs */}
+            {availableDays.length > 0 && (
+              <div className="flex gap-1.5 overflow-x-auto px-4 pb-3" style={{ scrollbarWidth: 'none' }}>
+                <button
+                  onClick={() => setSelectedDay(null)}
+                  className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    !selectedDay ? 'bg-slate-900 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  Cały tydzień
+                </button>
+                {availableDays.map(day => (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDay(selectedDay === day ? null : day)}
+                    className={`shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      selectedDay === day ? 'bg-violet-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {day}
+                    {dayDates[day] && <span className="ml-1 opacity-60 font-normal">{fmtShortDate(dayDates[day])}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Content ── */}
+      <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-4 space-y-4">
+
+        {/* Empty state */}
+        {!selectedRoom && !loading.rooms && (
+          <div className="flex flex-col items-center justify-center gap-3 py-20 text-slate-400">
+            <span className="text-5xl">🏛️</span>
+            <p className="text-sm font-medium text-center max-w-xs">Wybierz salę dydaktyczną powyżej, aby sprawdzić jej plan zajęć</p>
+          </div>
+        )}
+
+        {/* Loading */}
+        {selectedRoom && loading.schedule && (
+          <div className="flex flex-col items-center justify-center gap-3 py-20 text-slate-400">
+            <div className="w-8 h-8 border-[3px] border-violet-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm">Ładowanie planu <strong className="text-slate-600">{selectedRoom.name}</strong>…</p>
+          </div>
+        )}
+
+        {/* Error */}
+        {error && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm">
+            <strong>Błąd:</strong> {error}
+          </div>
+        )}
+
+        {/* Schedule */}
+        {selectedRoom && !loading.schedule && currentWeek && (
+          <>
+            {/* Legend */}
+            <div className="flex gap-2 flex-wrap">
+              {Object.entries(STATUS).map(([k, s]) => (
+                <span key={k} className="text-xs px-3 py-1 rounded-full border font-semibold" style={{ background:s.bg, borderColor:s.border, color:s.text }}>
+                  {k==='wolna'?'● ':''}{s.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Main card */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+              {selectedDay && currentWeek.days[selectedDay] ? (
+                <div className="p-4">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">
+                    {selectedDay} {dayDates[selectedDay] ? `· ${fmtShortDate(dayDates[selectedDay])}` : ''}
+                  </p>
+                  <DayTimeline dayData={currentWeek.days[selectedDay]} dayName={selectedDay} dayDate={dayDates[selectedDay]} />
+                </div>
+              ) : (
+                <WeekTable week={currentWeek} onSlotClick={(content, e) => {
+                  e.stopPropagation();
+                  if (!content) return;
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setTooltip({ content, x: rect.left, y: rect.bottom + 8 });
+                }} />
+              )}
+            </div>
+          </>
+        )}
+
+        {selectedRoom && !loading.schedule && schedule && !currentWeek && (
+          <div className="bg-white rounded-2xl border border-slate-100 py-12 flex flex-col items-center gap-2 text-slate-400">
+            <span className="text-3xl">📅</span>
+            <p className="text-sm">Brak danych dla tego tygodnia</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── CTA Card ── */}
+      <div className="max-w-3xl mx-auto w-full px-4 pb-8">
+        <div className="rounded-3xl p-6 text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl shrink-0" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              📋
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-black text-lg mb-1">Chcesz zarezerwować salę?</h3>
+              <p className="text-white/75 text-sm mb-4 leading-relaxed">
+                Organizacje studenckie i samorząd mogą rezerwować wolne sale dydaktyczne. Wymagane jest złożenie podania do Prorektora ds. Studenckich i Kształcenia.
+              </p>
+              <a
+                href="https://www.ue.wroc.pl/studenci/3044/rezerwacja_sal.html"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 bg-white font-black text-sm px-5 py-2.5 rounded-2xl hover:bg-slate-50 transition-colors shadow-lg"
+                style={{ color: '#6d28d9' }}
+              >
+                Złóż podanie do Prorektora →
+              </a>
+            </div>
+          </div>
+          {selectedRoom && (
+            <p className="text-white/40 text-xs mt-5 pt-4 border-t border-white/10">
+              Sala {schedule?.roomName || selectedRoom.name} · ID: {selectedRoom.id} · plan.ue.wroc.pl
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Tooltip */}
+      {tooltip && (
+        <div
+          ref={tooltipRef}
+          onClick={e => e.stopPropagation()}
+          style={{
+            position: 'fixed', zIndex: 9999,
+            top: Math.min(tooltip.y, window.innerHeight - 160),
+            left: Math.min(tooltip.x, window.innerWidth - 320),
+            background: '#1f2937', color: '#f9fafb',
+            padding: '12px 16px', borderRadius: 12, fontSize: 12, maxWidth: 300,
+            boxShadow: '0 8px 30px rgba(0,0,0,0.3)', lineHeight: 1.5,
+          }}
+        >
+          <strong>Szczegóły zajęć:</strong>
+          <pre style={{ margin: '4px 0 0', fontSize: 12, whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+            {tooltip.content}
+          </pre>
+        </div>
+      )}
+    </div>
+  );
+}
