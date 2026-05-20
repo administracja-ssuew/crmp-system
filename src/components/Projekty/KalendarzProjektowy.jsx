@@ -86,12 +86,15 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
   }, [year, month, filteredEvents]);
 
   // ——— Zapis eventu ———
+  // GAS web apps redirect POST→GET i gubią body; przekazujemy dane jako param URL
   const handleSave = async (formData) => {
     setSaving(true);
     try {
-      const url  = `${AS_URL}?action=${formData.id ? 'updateProjekt' : 'addProjekt'}`;
-      const res  = await fetch(url, { method: 'POST', body: JSON.stringify(formData) });
-      const j    = await res.json();
+      const action  = formData.id ? 'updateProjekt' : 'addProjekt';
+      const encoded = encodeURIComponent(JSON.stringify(formData));
+      const url     = `${AS_URL}?action=${action}&body=${encoded}`;
+      const res     = await fetch(url);
+      const j       = await res.json();
       if (!j.success) throw new Error(j.error);
       setShowForm(false);
       setEditEvent(null);

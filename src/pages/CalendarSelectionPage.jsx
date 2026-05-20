@@ -5,8 +5,8 @@ import SalaKalendar from '../components/Sale/SalaKalendar';
 import KalendarzProjektowy from '../components/Projekty/KalendarzProjektowy';
 
 export default function CalendarSelectionPage() {
-  const { user, userData } = useAuth();
-  const isAdmin = userData?.role === 'admin';
+  const { userRole } = useAuth();
+  const isAdmin = userRole === 'admin';
 
   // null | 'sala' | 'projektowy'
   const [activeView, setActiveView] = useState(null);
