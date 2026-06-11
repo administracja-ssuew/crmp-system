@@ -1037,7 +1037,7 @@ export default function AdminEquipmentPanel() {
                   <textarea rows="2" placeholder="Szczegółowy opis uszkodzeń..." value={summonsData.description} onChange={e => setSummonsData({...summonsData, description: e.target.value})} className="w-full bg-white border border-red-200 p-3 rounded-lg text-sm font-medium resize-none"></textarea>
                 </div>
               </div>
-              <button onClick={() => setShowSummonsDocument(true)} disabled={!summonsData.perpetrator || !summonsData.equipmentName} className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Generuj Protokół (PDF)</button>
+              <button onClick={() => { setSigSummonsAdmin(null); setSigSummonsPerp(null); setShowSummonsDocument(true); }} disabled={!summonsData.perpetrator || !summonsData.equipmentName} className="w-full bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Generuj Protokół (PDF)</button>
             </div>
           ) : (
             <div id="printable-document" className="text-black font-serif text-[12px] leading-relaxed">
@@ -1112,7 +1112,7 @@ export default function AdminEquipmentPanel() {
               </div>
 
               <div className="mt-16 flex flex-wrap gap-4 print:hidden border-t border-slate-200 pt-6">
-                <button onClick={() => setShowSummonsDocument(false)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">Wróć</button>
+                <button onClick={() => { setSigSummonsAdmin(null); setSigSummonsPerp(null); setShowSummonsDocument(false); }} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">Wróć</button>
                 <button onClick={() => { if (sigSummonsAdminRef.current) sigSummonsAdminRef.current.clear(); if (sigSummonsPerpRef.current) sigSummonsPerpRef.current.clear(); }} className="bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 px-6 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpisy</button>
                 <button onClick={() => window.print()} className="bg-white border border-slate-300 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">🖨️ Drukuj</button>
                 <button onClick={finalizeSummons} disabled={!sigSummonsAdmin || !sigSummonsPerp || isVerifying} className="bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 px-6 rounded-xl font-black uppercase text-xs flex-1">{isVerifying ? 'Zapisywanie...' : 'Podpisz i Zapisz (PDF)'}</button>
