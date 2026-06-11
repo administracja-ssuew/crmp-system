@@ -350,6 +350,49 @@ export default function AdminEquipmentPanel() {
     }
   };
 
+  const finalizeSummons = async () => {
+    if (!sigSummonsAdmin || !sigSummonsPerp) { alert("Protokół musi podpisać Dysponent oraz Sprawca!"); return; }
+    setIsVerifying(true);
+    try {
+      const el = document.getElementById('printable-document');
+      const shot = await html2canvas(el, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        ignoreElements: (node) => node.classList && node.classList.contains('print:hidden'),
+      });
+      const imgData = shot.toDataURL('image/png');
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      let renderW = pageWidth;
+      let renderH = (shot.height * renderW) / shot.width;
+      if (renderH > pageHeight) { renderH = pageHeight; renderW = (shot.width * renderH) / shot.height; }
+      pdf.addImage(imgData, 'PNG', (pageWidth - renderW) / 2, 0, renderW, renderH);
+      const pdfBase64 = pdf.output('datauristring').split(',')[1];
+      const filename = `SZKODA-${today.replace(/\./g, '-')}-${(summonsData.perpetrator || 'X').replace(/\s+/g, '_')}.pdf`;
+      const payload = {
+        action: "zapiszProtokolSzkody",
+        filename,
+        pdfBase64,
+        perpetrator: summonsData.perpetrator,
+        albumId: summonsData.albumId,
+        equipmentName: summonsData.equipmentName,
+        damageType: summonsData.damageType,
+      };
+      const response = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      const resData = await response.json().catch(() => ({}));
+      if (resData.success) {
+        alert(`Protokół Szkody zapisany!\nPDF: ${resData.link || 'Zapisano na Dysku'}`);
+      } else {
+        alert(`Błąd serwera: ${resData.message || 'Nieznany błąd'}. Możesz użyć „Drukuj" jako zapasu.`);
+      }
+    } catch (err) {
+      alert(`Nie udało się wygenerować/zapisać PDF. Użyj przycisku „Drukuj" jako zapasu.`);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   // Zwraca liczbę dni opóźnienia zwrotu (0 = nie przeterminowany lub brak daty)
   const getDaysPastDue = (wyd) => {
     const rawTo = wyd['Data_Do'] || wyd['dateTo'] || wyd['DataDo'] || wyd['Termin_Zwrotu'] || null;
@@ -1055,22 +1098,24 @@ export default function AdminEquipmentPanel() {
               
               <div className="flex justify-between items-end pt-4 gap-6 mt-16 page-break-inside-avoid">
                 <div className="w-1/2 flex flex-col items-center">
-                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent">
-                    {/* Miejsce na fizyczny lub cyfrowy podpis Admina */}
+                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Dysponenta">
+                    <SignaturePad ref={sigSummonsAdminRef} label="PODPIS DYSPONENTA" onChange={setSigSummonsAdmin} />
                   </div>
                   <p className="mt-3 font-bold text-[10px] uppercase">(Podpis DYSPONENTA - SSUEW)</p>
                 </div>
                 <div className="w-1/2 flex flex-col items-center">
-                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent">
-                    {/* Miejsce na podpis Sprawcy */}
+                  <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Sprawcy">
+                    <SignaturePad ref={sigSummonsPerpRef} label="PODPIS SPRAWCY" onChange={setSigSummonsPerp} />
                   </div>
                   <p className="mt-3 font-bold text-[10px] uppercase">(Podpis SPRAWCY - UZNANIE DŁUGU)</p>
                 </div>
               </div>
 
-              <div className="mt-16 flex gap-4 print:hidden border-t border-slate-200 pt-6">
+              <div className="mt-16 flex flex-wrap gap-4 print:hidden border-t border-slate-200 pt-6">
                 <button onClick={() => setShowSummonsDocument(false)} className="bg-slate-100 hover:bg-slate-200 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">Wróć</button>
-                <button onClick={() => window.print()} className="bg-red-600 text-white py-4 px-6 rounded-xl font-black uppercase text-xs flex-1">🖨️ Podpisz i Zapisz (PDF)</button>
+                <button onClick={() => { if (sigSummonsAdminRef.current) sigSummonsAdminRef.current.clear(); if (sigSummonsPerpRef.current) sigSummonsPerpRef.current.clear(); }} className="bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 px-6 rounded-xl font-bold uppercase text-[10px]">Wyczyść Podpisy</button>
+                <button onClick={() => window.print()} className="bg-white border border-slate-300 text-slate-700 py-4 px-6 rounded-xl font-black uppercase text-xs">🖨️ Drukuj</button>
+                <button onClick={finalizeSummons} disabled={!sigSummonsAdmin || !sigSummonsPerp || isVerifying} className="bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white py-4 px-6 rounded-xl font-black uppercase text-xs flex-1">{isVerifying ? 'Zapisywanie...' : 'Podpisz i Zapisz (PDF)'}</button>
               </div>
             </div>
           )}
