@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import SignaturePad from '../components/SignaturePad';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 export default function AdminEquipmentPanel() {
   const { user, userRole } = useAuth();
@@ -28,12 +31,14 @@ export default function AdminEquipmentPanel() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState(null);
 
-  const canvasBorrowerRef = useRef(null);
-  const canvasAdminRef = useRef(null);
-  const [isDrawingBorrower, setIsDrawingBorrower] = useState(false);
-  const [isDrawingAdmin, setIsDrawingAdmin] = useState(false);
+  const sigBorrowerRef = useRef(null);
+  const sigAdminRef = useRef(null);
   const [sigBorrowerData, setSigBorrowerData] = useState(null);
   const [sigAdminData, setSigAdminData] = useState(null);
+  const sigSummonsAdminRef = useRef(null);
+  const sigSummonsPerpRef = useRef(null);
+  const [sigSummonsAdmin, setSigSummonsAdmin] = useState(null);
+  const [sigSummonsPerp, setSigSummonsPerp] = useState(null);
 
   const [docNumber, setDocNumber] = useState('POBIERANIE...');
   
@@ -279,28 +284,9 @@ export default function AdminEquipmentPanel() {
     setTimeout(() => { setStep(3); setIsVerifying(false); }, 400);
   };
 
-  const handleStartDraw = (e, ref, setDrawingState) => {
-    const c = ref.current; if (!c) return;
-    const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    const scaleX = c.width / rect.width; const scaleY = c.height / rect.height;
-    ctx.beginPath(); ctx.moveTo(x * scaleX, y * scaleY); setDrawingState(true);
-  };
-
-  const handleDraw = (e, ref, isDrawingState) => {
-    if (!isDrawingState) return; e.preventDefault();
-    const c = ref.current; const ctx = c.getContext('2d'); const rect = c.getBoundingClientRect();
-    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-    const y = (e.clientY || e.touches[0].clientY) - rect.top;
-    const scaleX = c.width / rect.width; const scaleY = c.height / rect.height;
-    ctx.lineTo(x * scaleX, y * scaleY); 
-    ctx.strokeStyle = '#000080'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
-  };
-
-  const clearSignatures = () => { 
-    if (canvasBorrowerRef.current) { const ctx = canvasBorrowerRef.current.getContext('2d'); ctx.clearRect(0, 0, canvasBorrowerRef.current.width, canvasBorrowerRef.current.height); setSigBorrowerData(null); }
-    if (canvasAdminRef.current) { const ctx = canvasAdminRef.current.getContext('2d'); ctx.clearRect(0, 0, canvasAdminRef.current.width, canvasAdminRef.current.height); setSigAdminData(null); }
+  const clearSignatures = () => {
+    if (sigAdminRef.current) sigAdminRef.current.clear();
+    if (sigBorrowerRef.current) sigBorrowerRef.current.clear();
   };
 
   const finalizeProtocol = async () => {
@@ -759,16 +745,14 @@ export default function AdminEquipmentPanel() {
                   <div className="flex justify-between items-end gap-6 mt-16 page-break-inside-avoid">
                     <div className="w-1/2 flex flex-col items-center">
                       <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Admina">
-                        <canvas ref={canvasAdminRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onMouseMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onMouseUp={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onTouchMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onTouchEnd={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}}/>
-                        {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS WYDAJĄCEGO</div>}
+                        <SignaturePad ref={sigAdminRef} label="PODPIS WYDAJĄCEGO" onChange={setSigAdminData} />
                       </div>
                       <p className="mt-2 font-bold text-[10px] uppercase text-center">(Podpis WYDAJĄCEGO SSUEW)</p>
                     </div>
                     
                     <div className="w-1/2 flex flex-col items-center">
                       <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Studenta">
-                        <canvas ref={canvasBorrowerRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onMouseMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onMouseUp={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onTouchMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onTouchEnd={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}}/>
-                        {!sigBorrowerData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs">PODPIS KORZYSTAJĄCEGO</div>}
+                        <SignaturePad ref={sigBorrowerRef} label="PODPIS KORZYSTAJĄCEGO" onChange={setSigBorrowerData} />
                       </div>
                       <p className="mt-2 font-bold text-[10px] uppercase text-center">(Podpis KORZYSTAJĄCEGO - Akceptacja Umowy, Protokołu A i RODO)</p>
                     </div>
@@ -952,16 +936,14 @@ export default function AdminEquipmentPanel() {
                   <div className="mt-12 flex justify-between items-end pt-4 gap-6 page-break-inside-avoid">
                     <div className="w-1/2 flex flex-col items-center">
                       <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Przyjmującego">
-                        <canvas ref={canvasAdminRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onMouseMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onMouseUp={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasAdminRef, setIsDrawingAdmin)} onTouchMove={e => handleDraw(e, canvasAdminRef, isDrawingAdmin)} onTouchEnd={() => {setIsDrawingAdmin(false); setSigAdminData(canvasAdminRef.current.toDataURL());}}/>
-                        {!sigAdminData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs text-center">PRZYJMUJĄCY<br/>(SSUEW)</div>}
+                        <SignaturePad ref={sigAdminRef} label="PRZYJMUJĄCY (SSUEW)" onChange={setSigAdminData} />
                       </div>
                       <p className="mt-3 font-bold text-[10px] uppercase">(Podpis PRZYJMUJĄCEGO SSUEW)</p>
                     </div>
 
                     <div className="w-1/2 flex flex-col items-center">
                       <div className="w-full h-24 border border-black relative touch-none bg-gray-50 print:bg-transparent" title="Podpis Zwracającego">
-                        <canvas ref={canvasBorrowerRef} width={600} height={200} className="w-full h-full cursor-crosshair absolute top-0 left-0" onMouseDown={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onMouseMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onMouseUp={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}} onTouchStart={e => handleStartDraw(e, canvasBorrowerRef, setIsDrawingBorrower)} onTouchMove={e => handleDraw(e, canvasBorrowerRef, isDrawingBorrower)} onTouchEnd={() => {setIsDrawingBorrower(false); setSigBorrowerData(canvasBorrowerRef.current.toDataURL());}}/>
-                        {!sigBorrowerData && <div className="absolute inset-0 flex items-center justify-center opacity-30 font-bold tracking-widest pointer-events-none print:hidden text-xs text-center">ZWRACAJĄCY<br/>(STUDENT)</div>}
+                        <SignaturePad ref={sigBorrowerRef} label="ZWRACAJĄCY (STUDENT)" onChange={setSigBorrowerData} />
                       </div>
                       <p className="mt-3 font-bold text-[10px] uppercase">(Podpis ZWRACAJĄCEGO)</p>
                     </div>
