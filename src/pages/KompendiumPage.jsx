@@ -799,7 +799,7 @@ export default function KompendiumPage() {
                       [
                         'Notatka nieformalna',
                         '"PRZEKAZANO GORĄCE ZAPROSZENIE NA INTEGRACJĘ!"',
-                        '"Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych Magdalena Skoczylas zaprosiła obecnych na spotkanie integracyjne w budynku B/J."',
+                        '"Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych Magdalena Skoczylas zaprosiła obecnych na spotkanie integracyjne w budynku B/L."',
                       ],
                       [
                         'Informacja prywatna',

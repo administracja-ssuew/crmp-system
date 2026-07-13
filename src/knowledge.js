@@ -32,7 +32,7 @@ Samorząd działa na podstawie Ustawy Prawo o szkolnictwie wyższym (2018), Stat
 Misja: aktywna pomoc studentom, wspieranie rozwoju, inspirowanie do działalności studenckiej.
 Samorząd stanowią WSZYSCY Studenci UEW --> tylko oni mogą być w organach i pełnić funkcje jednoosobowe.
 Nazwa angielska: "Student Government of Wroclaw University of Economics and Business". Skrót: SSUEW.
-Biuro: pokój 9J, ul. Komandorska 43/45, 53-307 Wrocław.
+Biuro: pokój 110 L, ul. Komandorska 43/45, 53-307 Wrocław.
 
 §3-4. STRUKTURA ORGANÓW
 Organy jednoosobowe (wykonawcze): Przewodniczący, Wiceprzewodniczący (2-3 osoby)
@@ -116,7 +116,7 @@ Inicjatywa: Rada lub min. 500 studentów.
 Wiążące gdy uczestniczy >10% studentów UEW.
 
 §68. MIENIE I FINANSE
-Biuro: pokój 9J, ul. Komandorska 43/45.
+Biuro: pokój 110 L, ul. Komandorska 43/45.
 Dochody: subwencja Rektora + środki sponsorskie.
 
 §76-78. DOSTĘP DO INFORMACJI
@@ -161,10 +161,10 @@ Rezerwacja w kalendarzu to wyłącznie wstępna deklaracja zamiaru. Finalizacja 
 
 PROCEDURA REZERWACJI POMIESZCZEŃ:
 1. Zarezerwuj termin w systemie CRA (Kalendarz Przestrzeni) --> to krok wstępny, nie ostateczny.
-2. Dla pomieszczeń samorządowych (9J, 16J, 28J): rezerwacja w CRA zazwyczaj wystarcza dla standardowych spotkań w godzinach pracy.
+2. Dla pomieszczeń samorządowych (110 L, 106 L, 101 L): rezerwacja w CRA zazwyczaj wystarcza dla standardowych spotkań w godzinach pracy.
 3. Dla pomieszczeń uczelnianych (bud. A, Z, B) lub korzystania poza standardowymi godzinami: wymagany jest osobny wniosek do Komisji ds. Administracji lub właściwego Członka Zarządu.
-4. Przedłużone korzystanie z pomieszczeń w bud. B/J (np. po 22:00, w weekendy) wymaga pisemnego wniosku z wyprzedzeniem --> sama rezerwacja w kalendarzu NIE gwarantuje dostępu.
-5. Organizacje studenckie rezerwują 28J oraz wyznaczone sale dydaktyczne (bud. A i Z) tylko w godzinach wieczornych, przez zakładkę "Dla Organizacji Studenckich" w kalendarzu.
+4. Przedłużone korzystanie z pomieszczeń w bud. B/L (np. po 22:00, w weekendy) wymaga pisemnego wniosku z wyprzedzeniem --> sama rezerwacja w kalendarzu NIE gwarantuje dostępu.
+5. Kalendarz Organizacji Studenckich został wygaszony — rezerwacje przez zakładkę "Dla Organizacji Studenckich" są nieaktywne.
 
 DOSTĘP DO CRA (SYSTEM):
 - Nowi użytkownicy: wypełnij wniosek dostępowy pod adresem /wniosek w systemie CRA.
