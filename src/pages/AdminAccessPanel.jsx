@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
+import { ACCESS_PDF_ORDER, SPECIAL_ROOM } from '../data/rooms'
 
 // TODO: zmień na właściwy link do wzoru listy dostępowej na Google Drive
 const DRIVE_TEMPLATE_URL = 'https://docs.google.com/document/d/1yx9s2TrSeHSnM8OsuygWhdqAmx8uc88C/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true'
@@ -30,24 +31,24 @@ const CORE_MEMBERS = [
 ]
 
 const PERMANENT = {
-  '9 J':  CORE_MEMBERS,
-  '16 J': CORE_MEMBERS,
-  '28 J': CORE_MEMBERS,
-  '11 J': [
+  '110 L': CORE_MEMBERS,
+  '106 L': CORE_MEMBERS,
+  '101 L': CORE_MEMBERS,
+  '13 L': [
     { name: 'Emilia Ćwiklińska', index: '188086' },
     { name: 'Daria Szewczyk',    index: '194192' },
     { name: 'Mikołaj Radliński', index: '193471' },
     { name: 'Karol Vogel',       index: '194535' },
   ],
-  '24 J': [
+  '108 L': [
     { name: 'Emilia Ćwiklińska', index: '188086' },
     { name: 'Daria Szewczyk',    index: '194192' },
     { name: 'Mikołaj Radliński', index: '193471' },
   ],
 }
 
-// Sale w kolejności dla PDF (24J jest tylko stała — brak rekrutacji)
-const ROOMS_PDF_ORDER = ['9 J', '16 J', '28 J', '11 J', '24 J']
+// Sale w kolejności dla PDF (108 L jest tylko stała — brak rekrutacji)
+const ROOMS_PDF_ORDER = ACCESS_PDF_ORDER
 
 export default function AdminAccessPanel() {
   const { user } = useAuth()
@@ -181,7 +182,7 @@ export default function AdminAccessPanel() {
               const statusStyle = STATUS_LABELS[s.status] ?? STATUS_LABELS.pending
               const busy = isUpdating.has(s.id)
               const rooms = s.rooms ?? (s.room ? [s.room] : [])
-              const has11J = rooms.includes('11 J')
+              const has11J = rooms.includes(SPECIAL_ROOM)
 
               return (
                 <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -194,7 +195,7 @@ export default function AdminAccessPanel() {
                         </span>
                         {has11J && (
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            11J ⚠️
+                            13 L ⚠️
                           </span>
                         )}
                       </div>
