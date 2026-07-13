@@ -12,6 +12,7 @@ import { collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import AdminAccessPanel from './AdminAccessPanel'
+import { RECRUITMENT_ROOMS, SPECIAL_ROOM } from '../data/rooms'
 
 // --- Window helpers (ACC-03) ---
 export const isWindowOpen = () => {
@@ -28,8 +29,8 @@ export const daysUntilNextWindow = () => {
 // --- Email validator (ACC-01) ---
 export const isValidEmail = (email) => /^[^@]+@samorzad\.ue\.wroc\.pl$/i.test(email)
 
-// --- Rooms available in form (24J is permanent-only — no recruitment) ---
-export const ROOMS = ['9 J', '16 J', '28 J', '11 J']
+// --- Rooms available in form (108 L is permanent-only — no recruitment) ---
+export const ROOMS = RECRUITMENT_ROOMS
 
 // --- Month helper ---
 export const currentMonth = () => new Date().toISOString().slice(0, 7)
@@ -67,7 +68,7 @@ export default function AccessListPage() {
   const [isLoadingApproved, setIsLoadingApproved] = useState(false)
   const [fetchError, setFetchError] = useState('')
 
-  const needs11J = form.rooms.includes('11 J')
+  const needs11J = form.rooms.includes(SPECIAL_ROOM)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -96,9 +97,9 @@ export default function AccessListPage() {
     if (form.rooms.length === 0) { setError('Wybierz co najmniej jedno pomieszczenie.'); return }
     if (!form.justification.trim()) { setError('Uzasadnienie jest wymagane.'); return }
     if (needs11J) {
-      if (!form.projectName.trim()) { setError('Podaj nazwę projektu (wymagane dla sali 11J).'); return }
-      if (!form.projectRole.trim()) { setError('Podaj swoją rolę w projekcie (wymagane dla sali 11J).'); return }
-      if (!form.justification11J.trim()) { setError('Podaj uzasadnienie dostępu do sali 11J.'); return }
+      if (!form.projectName.trim()) { setError('Podaj nazwę projektu (wymagane dla sali 13 L).'); return }
+      if (!form.projectRole.trim()) { setError('Podaj swoją rolę w projekcie (wymagane dla sali 13 L).'); return }
+      if (!form.justification11J.trim()) { setError('Podaj uzasadnienie dostępu do sali 13 L.'); return }
     }
     if (!form.rodoAccepted) { setError('Wymagana akceptacja klauzuli informacyjnej RODO.'); return }
 
@@ -281,7 +282,7 @@ export default function AccessListPage() {
                         {form.rooms.includes(room) && <span className="text-white text-[10px]">✓</span>}
                       </span>
                       Sala {room}
-                      {room === '11 J' && <span className="ml-auto text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">SPECJALNA</span>}
+                      {room === SPECIAL_ROOM && <span className="ml-auto text-[9px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full">SPECJALNA</span>}
                     </button>
                   ))}
                 </div>
@@ -297,14 +298,14 @@ export default function AccessListPage() {
                 />
               </div>
 
-              {/* Dodatkowe pytania dla sali 11J */}
+              {/* Dodatkowe pytania dla sali 13 L */}
               {needs11J && (
                 <div className="border border-amber-200 bg-amber-50 rounded-2xl p-5 space-y-4">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-amber-600 text-lg">⚠️</span>
-                    <p className="text-sm font-black text-amber-800">Sala 11J — dodatkowe informacje</p>
+                    <p className="text-sm font-black text-amber-800">Sala 13 L — dodatkowe informacje</p>
                   </div>
-                  <p className="text-xs text-amber-700">Dostęp do sali 11J wymaga podania dodatkowych informacji o projekcie.</p>
+                  <p className="text-xs text-amber-700">Dostęp do sali 13 L wymaga podania dodatkowych informacji o projekcie.</p>
 
                   <div>
                     <label className="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">Nazwa projektu *</label>
@@ -325,10 +326,10 @@ export default function AccessListPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">Uzasadnienie dostępu do sali 11J *</label>
+                    <label className="block text-xs font-bold text-amber-700 uppercase tracking-widest mb-2">Uzasadnienie dostępu do sali 13 L *</label>
                     <textarea
                       name="justification11J" value={form.justification11J} onChange={handleChange} rows={3}
-                      placeholder="Opisz szczegółowo, dlaczego Twój projekt wymaga dostępu do sali 11J..."
+                      placeholder="Opisz szczegółowo, dlaczego Twój projekt wymaga dostępu do sali 13 L..."
                       className="w-full bg-white border border-amber-200 p-3 rounded-xl text-slate-700 outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all resize-none"
                     />
                   </div>
