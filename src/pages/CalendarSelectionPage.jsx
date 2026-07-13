@@ -63,19 +63,19 @@ export default function CalendarSelectionPage() {
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">👑</div>
             <h2 className="text-xl font-black text-slate-800 mb-2">Dla Samorządu Studentów</h2>
             <p className="text-sm text-slate-500 mb-5">
-              Dostęp do wszystkich przestrzeni samorządowych (9J,&nbsp;16J,&nbsp;28J) i&nbsp;wyznaczonych sal uczelnianych (bud.&nbsp;A,&nbsp;Z).
+              Dostęp do wszystkich przestrzeni samorządowych (110&nbsp;L,&nbsp;106&nbsp;L,&nbsp;101&nbsp;L).
             </p>
             <span className="text-emerald-600 font-bold uppercase text-xs tracking-widest group-hover:translate-x-2 transition-transform">Otwórz pełny kalendarz →</span>
           </Link>
 
-          {/* OPCJA 2: ORGANIZACJE */}
-          <Link to="/kalendarz/organizacje" className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:border-blue-400 transition-all text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">🎓</div>
-            <h2 className="text-xl font-black text-slate-800 mb-2">Dla Organizacji Studenckich</h2>
-            <p className="text-sm text-slate-500 mb-5">
-              Rezerwacja sali 28J oraz wyznaczonych sal dydaktycznych w&nbsp;budynkach A&nbsp;i&nbsp;Z (w&nbsp;godzinach wieczornych).
+          {/* OPCJA 2: ORGANIZACJE — WYGASZONY */}
+          <Link to="/kalendarz/organizacje" className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-md opacity-60 grayscale transition-all text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center text-3xl mb-5">🎓</div>
+            <h2 className="text-xl font-black text-slate-500 mb-2">Dla Organizacji Studenckich</h2>
+            <p className="text-sm text-slate-400 mb-5">
+              Kalendarz został wygaszony — rezerwacje są nieaktywne.
             </p>
-            <span className="text-blue-600 font-bold uppercase text-xs tracking-widest group-hover:translate-x-2 transition-transform">Otwórz kalendarz →</span>
+            <span className="text-slate-400 font-bold uppercase text-xs tracking-widest">Wygaszony</span>
           </Link>
 
           {/* OPCJA 3: PLAN SAL UEW */}

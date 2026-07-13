@@ -4,15 +4,12 @@ import { Link } from 'react-router-dom';
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i); 
 
-const CAMPUS_ROOMS = {
-  '10 A': { days: [2, 3], start: 18, end: 22 }, 
-  '213 Z': { days: [4, 5], start: 18, end: 22 }, 
-  '214 Z': { days: [1, 5], start: 18, end: 22 }
-};
+// Kalendarz Organizacji Studenckich wygaszony — brak sal campusowych.
+const CAMPUS_ROOMS = {};
 
 const EMPTY_FORM = {
   applicantName: '', email: '', orgType: 'Organizacja Studencka / Koło Naukowe', org: '', title: '',
-  date: '', room: '28J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
+  date: '', room: '101 L', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
 const formatTime = (timeStr) => {
@@ -129,6 +126,9 @@ export default function UniversalCalendarPage() {
 
     if (checkCollision(bookingForm)) return setBookingError('KOLIZJA! Sala jest już zajęta w tym terminie (lub wniosek oczekuje).');
 
+    // Kalendarz Organizacji Studenckich wygaszony — blokada składania rezerwacji.
+    return setBookingError('Kalendarz Organizacji Studenckich został wygaszony — rezerwacje są nieaktywne.');
+
     setIsSubmitting(true);
     try {
       await fetch(GOOGLE_SHEETS_URL, {
@@ -148,26 +148,22 @@ export default function UniversalCalendarPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 pb-20 pt-24 relative overflow-x-hidden">
+      <div className="max-w-7xl mx-auto mb-6 bg-amber-50 border border-amber-300 rounded-2xl p-4 text-center">
+        <p className="text-sm font-black text-amber-800 uppercase tracking-widest">Kalendarz nieaktywny (wygaszony)</p>
+        <p className="text-xs font-medium text-amber-700 mt-1">Kalendarz Organizacji Studenckich został wygaszony. Składanie rezerwacji jest niemożliwe.</p>
+      </div>
       <div className="max-w-7xl mx-auto mb-6 flex flex-col md:flex-row justify-between items-end gap-4 animate-fadeIn">
         <div>
           <Link to="/kalendarz-wybor" className="text-xs font-bold text-slate-400 hover:text-indigo-600 mb-2 block">← Wróć do wyboru</Link>
           <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             Kalendarz <span className="text-blue-600">Organizacji</span>
           </h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">Rezerwacja sali 28J oraz wyznaczonych sal uczelnianych.</p>
+          <p className="text-sm font-medium text-slate-500 mt-1">Kalendarz wygaszony — tryb tylko do podglądu.</p>
         </div>
 
         <div className="flex gap-4 items-center">
-            <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
-                <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
-                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>28J</button>
-                <button onClick={() => setFilterRoom('10 A')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '10 A' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>10 A</button>
-                <button onClick={() => setFilterRoom('213 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '213 Z' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>213 Z</button>
-                <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
-            </div>
-            
-            <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
-                <span>+</span> Złóż Wniosek
+            <button disabled className="bg-slate-200 text-slate-400 px-5 py-2 rounded-xl font-bold shadow-inner cursor-not-allowed flex items-center gap-2">
+                <span>🚫</span> Rezerwacje nieaktywne
             </button>
         </div>
       </div>
@@ -208,7 +204,7 @@ export default function UniversalCalendarPage() {
             
             const extension = calendarData.przedluzenia?.find(e => e.date?.substring(0, 10) === dayDate);
 
-            let dailyRooms = ['28J'];
+            let dailyRooms = ['101 L'];
             Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
             const roomsToRender = dailyRooms.filter(r => filterRoom === 'ALL' || filterRoom === r);
             const allEvents = [...(calendarData.sale || []), ...(calendarData.pending || [])];
@@ -382,7 +378,7 @@ export default function UniversalCalendarPage() {
                   <div>
                     <label className="text-xs font-black text-indigo-800 ml-1 uppercase">Sala *</label>
                     <select value={bookingForm.room} onChange={e => setBookingForm({...bookingForm, room: e.target.value})} className="w-full bg-white border border-indigo-200 p-3 rounded-xl font-bold mt-1">
-                      <option value="28J">Sala 28J</option>
+                      <option value="101 L">Sala 101 L</option>
                       {Object.keys(CAMPUS_ROOMS).map(r => <option key={r} value={r}>Sala {r}</option>)}
                     </select>
                   </div>
