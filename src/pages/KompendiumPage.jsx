@@ -803,7 +803,7 @@ export default function KompendiumPage() {
                       ],
                       [
                         'Informacja prywatna',
-                        '"Karlos → był w sushi HUB, pół godziny w Jotce"',
+                        '"Karlos → był w sushi HUB, pół godziny w Elce"',
                         '[w protokole projektowym: "Karol Szewczuk — omówił postęp kontaktów z partnerami zewnętrznymi (Sushi Hub)"]',
                       ],
                     ].map(([sytuacja, zle, dobrze], i) => (
