@@ -21,10 +21,11 @@ wpisami sal `213 Z` / `214 Z` (usunąć lub zarchiwizować). Bez migracji stare
 rezerwacje pod starymi nazwami nie pokażą się w siatce (siatka renderuje tylko
 110 L / 106 L / 101 L).
 
-## 2. Lista sal „Plan sal UEW" (SalaKalendar)
-Backend `VITE_AS_SALA_URL`, akcja `getSalaList`. Jeśli lista zawiera sale budynku J
-— zaktualizuj nazwy na L i usuń skasowane sale. Te dane są w całości po stronie
-backendu (nie w repo).
+## 2. „Plan sal UEW" (SalaKalendar) — POZA MIGRACJĄ, NIE RUSZAĆ
+Backend `VITE_AS_SALA_URL`, akcja `getSalaList`. To ogólnouczelniana lista sal z
+systemu planów zajęć UEW (nie należy do Samorządu) — **niczego tu nie usuwamy ani
+nie zmieniamy**. Sale 10 A / 213 Z / 214 Z to realne sale uczelni; znikają wyłącznie
+z kalendarzy rezerwacyjnych Samorządu, a nie z ogólnego podglądu zajętości sal.
 
 ## 3. Zgłoszenia dostępu (AccessList / AdminAccessPanel)
 Jeśli w bazie zgłoszeń (Firestore) istnieją rekordy z salami `9 J`/`16 J`/`28 J`/
