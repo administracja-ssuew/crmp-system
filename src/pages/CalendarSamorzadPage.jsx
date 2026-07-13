@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { SAMORZAD_ROOMS, ROOMS } from '../data/rooms';
 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
-const HOURS = Array.from({ length: 24 }, (_, i) => i); 
-
-const CAMPUS_ROOMS = {
-  '10 A': { days: [2, 3], start: 18, end: 22 }, 
-  '213 Z': { days: [4, 5], start: 18, end: 22 }, 
-  '214 Z': { days: [1, 5], start: 18, end: 22 }
-};
+const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 
 const PALETTE = [
@@ -21,7 +16,7 @@ const PALETTE = [
 
 const EMPTY_FORM = {
   applicantName: '', email: '', orgType: 'Samorząd Studentów UEW', org: 'Samorząd Studentów', title: '',
-  date: '', room: '9J', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
+  date: '', room: '110 L', start: '18:00', end: '20:00', justification: '', notes: '', rodo: false
 };
 
 const formatTime = (timeStr) => {
@@ -131,21 +126,6 @@ export default function CalendarSamorzadPage({ userEmail }) {
           const windowStr = windowOpen.toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
           return setBookingError(`Rezerwacje na ${monthName} można składać dopiero od ${windowStr}.`);
         }
-      }
-    }
-
-    const campusRules = CAMPUS_ROOMS[bookingForm.room];
-    if (campusRules) {
-      const selectedDate = new Date(bookingForm.date + 'T12:00:00');
-      const dayOfWeek = selectedDate.getDay();
-      if (!campusRules.days.includes(dayOfWeek)) {
-        return setBookingError(`Sala ${bookingForm.room} nie jest dostępna w wybranym dniu tygodnia.`);
-      }
-      const toFloat = (timeStr) => parseFloat(timeStr.split(':')[0]) + parseFloat(timeStr.split(':')[1] || 0)/60;
-      const reqStart = toFloat(bookingForm.start);
-      const reqEnd = toFloat(bookingForm.end);
-      if (reqStart < campusRules.start || reqEnd > campusRules.end) {
-        return setBookingError(`Sala ${bookingForm.room} jest dostępna tylko w godzinach ${campusRules.start}:00 - ${campusRules.end}:00.`);
       }
     }
 
@@ -261,12 +241,9 @@ export default function CalendarSamorzadPage({ userEmail }) {
         <div className="flex flex-wrap gap-4 items-center">
             <div className="hidden lg:flex gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto max-w-md scrollbar-hide">
                 <button onClick={() => setFilterRoom('ALL')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === 'ALL' ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>ALL</button>
-                <button onClick={() => setFilterRoom('9J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '9J' ? 'bg-emerald-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>9J</button>
-                <button onClick={() => setFilterRoom('16J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '16J' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>16J</button>
-                <button onClick={() => setFilterRoom('28J')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '28J' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>28J</button>
-                <button onClick={() => setFilterRoom('10 A')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '10 A' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>10 A</button>
-                <button onClick={() => setFilterRoom('213 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '213 Z' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>213 Z</button>
-                <button onClick={() => setFilterRoom('214 Z')} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === '214 Z' ? 'bg-fuchsia-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>214 Z</button>
+                {SAMORZAD_ROOMS.map(r => (
+                  <button key={r} onClick={() => setFilterRoom(r)} className={`px-3 py-2 rounded-lg text-[10px] font-bold transition whitespace-nowrap ${filterRoom === r ? `${ROOMS[r].activeColor} text-white` : 'text-slate-500 hover:bg-slate-100'}`}>{r}</button>
+                ))}
             </div>
 
             {isAdmin && (
@@ -325,8 +302,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
             
             const extension = calendarData.przedluzenia?.find(e => e.date?.substring(0, 10) === dayDate);
 
-            let dailyRooms = ['9J', '16J', '28J'];
-            Object.keys(CAMPUS_ROOMS).forEach(room => { if (CAMPUS_ROOMS[room].days.includes(dayOfWeek)) dailyRooms.push(room); });
+            let dailyRooms = [...SAMORZAD_ROOMS];
             const roomsToRender = dailyRooms.filter(r => filterRoom === 'ALL' || filterRoom === r);
             const allEvents = [...(calendarData.sale || []), ...(calendarData.pending || [])];
 
@@ -356,25 +332,13 @@ export default function CalendarSamorzadPage({ userEmail }) {
                     <div className="flex mb-2 pl-14">{HOURS.map(h => <div key={h} className="flex-1 text-center text-[9px] font-bold text-slate-300 border-l">{String(h).padStart(2, '0')}:00</div>)}</div>
                     
                     {roomsToRender.map(room => {
-                        const campusRules = CAMPUS_ROOMS[room];
-
                         return (
                         <div key={room} className="flex items-center mb-2 relative h-12">
                           <div className="w-14 shrink-0 flex items-center justify-center font-black text-slate-500 bg-slate-50 rounded-l-xl border h-full text-xs sticky left-0 z-20">{room}</div>
                           <div className="flex-grow bg-slate-50/30 rounded-r-xl border h-full relative flex overflow-hidden">
                             {HOURS.map(h => <div key={h} className="flex-1 border-l"></div>)}
-                            
-                            {campusRules && (
-                              <>
-                                <div className="absolute top-0 bottom-0 left-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${(campusRules.start / 24) * 100}%`}}>
-                                  <span className="text-[10px] font-bold text-slate-400 opacity-50 px-2 truncate">SALA ZABLOKOWANA</span>
-                                </div>
-                                <div className="absolute top-0 bottom-0 right-0 bg-slate-200/60 z-0 flex items-center justify-center" style={{width: `${((24 - campusRules.end) / 24) * 100}%`}}>
-                                </div>
-                              </>
-                            )}
 
-                            {room === '9J' && isWorkingDay && (
+                            {room === '110 L' && isWorkingDay && (
                               <div className="absolute top-1 bottom-1 bg-emerald-50 border-2 border-dashed border-emerald-300 rounded-lg z-0 flex items-center justify-center pointer-events-none" 
                                    style={{ left: `${(8 / 24) * 100}%`, width: `${((16-8) / 24) * 100}%` }}>
                                 <span className="text-[10px] font-black text-emerald-600/70 tracking-widest uppercase px-2 bg-emerald-50 rounded-full truncate">Wolny Dostęp</span>
@@ -490,8 +454,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
              <div className="space-y-4">
                 <input type="date" value={bookingForm.date} onChange={e => setBookingForm({...bookingForm, date: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
                 <select value={bookingForm.room} onChange={e => setBookingForm({...bookingForm, room: e.target.value})} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                  <option value="9J">Sala 9J</option><option value="16J">Sala 16J</option><option value="28J">Sala 28J</option>
-                  {Object.keys(CAMPUS_ROOMS).map(r => <option key={r} value={r}>Sala {r}</option>)}
+                  {SAMORZAD_ROOMS.map(r => <option key={r} value={r}>Sala {r}</option>)}
                 </select>
                 <div className="flex gap-4">
                    <input type="time" value={bookingForm.start} onChange={e => setBookingForm({...bookingForm, start: e.target.value})} className="w-1/2 bg-slate-50 border p-3 rounded-xl font-bold" />
