@@ -1,10 +1,10 @@
-# Migracja sal J → L — kroki po stronie backendu (poza repo)
+# Migracja sal J → L — strona backendu (poza repo)
 
-Front zmienił nazwy sal na budynek L. Dane historyczne i listy sal żyją w
-backendzie (Google Sheets / Apps Script) — trzeba je zmigrować ręcznie, tymi
-samymi stringami (spacja przed literą): `110 L`, `106 L`, `101 L`, `13 L`, `108 L`.
+**Podsumowanie: backend NIE wymaga zmian kodu, a danych historycznych NIE
+migrujemy** (decyzja: było, minęło). Nowe rezerwacje automatycznie zapisują się
+pod nowymi nazwami sal L (front je wysyła). Ta notatka to tylko zapis stanu.
 
-## Mapowanie
+## Mapowanie (dla odniesienia)
 | Stara | Nowa |
 |---|---|
 | 9J  | 110 L |
@@ -12,14 +12,17 @@ samymi stringami (spacja przed literą): `110 L`, `106 L`, `101 L`, `13 L`, `108
 | 28J | 101 L |
 | 11J | 13 L |
 | 24J | 108 L |
-Usuwane: 10 A, 213 Z, 214 Z.
+Sale 10 A / 213 Z / 214 Z zniknęły z kalendarzy rezerwacyjnych Samorządu.
 
-## 1. Arkusz rezerwacji Kalendarza Samorządu
-Backend `GOOGLE_SHEETS_URL` (z `CalendarSamorzadPage.jsx`). W arkuszu rezerwacji w
-kolumnie sali (`room`) podmień wartości wg mapowania. Zdecyduj, co ze starymi
-wpisami sal `213 Z` / `214 Z` (usunąć lub zarchiwizować). Bez migracji stare
-rezerwacje pod starymi nazwami nie pokażą się w siatce (siatka renderuje tylko
-110 L / 106 L / 101 L).
+## 1. Kalendarz Samorządu (Apps Script + arkusz „Sale")
+Backend `GOOGLE_SHEETS_URL` (skrypt `doGet`/`doPost`). W kodzie skryptu **nie ma
+żadnych nazw sal na sztywno** — sale są przekazywane z frontu i zapisywane jako
+zwykły tekst w kolumnie `room` (`submitBooking`, `approveBooking`). Dlatego skrypt
+zostaje bez zmian.
+- **Dane historyczne: bez migracji.** Stare rezerwacje pod nazwami 9J / 16J / 28J /
+  213 Z / 214 Z zostają w arkuszu, ale nie pojawią się w nowej siatce (renderuje ona
+  tylko 110 L / 106 L / 101 L) — świadomie zaakceptowane.
+- Nowe rezerwacje zapisują się już pod nazwami L.
 
 ## 2. „Plan sal UEW" (SalaKalendar) — POZA MIGRACJĄ, NIE RUSZAĆ
 Backend `VITE_AS_SALA_URL`, akcja `getSalaList`. To ogólnouczelniana lista sal z
@@ -27,11 +30,6 @@ systemu planów zajęć UEW (nie należy do Samorządu) — **niczego tu nie usu
 nie zmieniamy**. Sale 10 A / 213 Z / 214 Z to realne sale uczelni; znikają wyłącznie
 z kalendarzy rezerwacyjnych Samorządu, a nie z ogólnego podglądu zajętości sal.
 
-## 3. Zgłoszenia dostępu (AccessList / AdminAccessPanel)
-Jeśli w bazie zgłoszeń (Firestore) istnieją rekordy z salami `9 J`/`16 J`/`28 J`/
-`11 J`/`24 J`, ich pole `rooms` nadal będzie miało stare wartości. Panel dopasowuje
-stałych członków po nowych id — stare rekordy pokażą stare nazwy w liście, ale nie
-zepsują UI. Migracja opcjonalna.
-
-## Ważne
-Stringi w backendzie MUSZĄ być identyczne z front (`110 L` itd., ze spacją).
+## 3. Zgłoszenia dostępu (Firestore) — bez migracji
+Stare zgłoszenia mogą mieć w polu `rooms` nazwy J. Zostawiamy — panel działa i pokaże
+po prostu starą nazwę przy historycznym rekordzie. Nowe zgłoszenia używają nazw L.
