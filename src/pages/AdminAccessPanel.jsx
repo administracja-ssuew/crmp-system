@@ -206,7 +206,7 @@ export default function AdminAccessPanel() {
                         <p className="text-xs text-slate-400 mt-1 italic">"{s.justification}"</p>
                       )}
 
-                      {/* Dodatkowe pola 11J */}
+                      {/* Dodatkowe pola sali specjalnej (13 L) */}
                       {has11J && (s.projectName || s.projectRole || s.justification11J) && (
                         <div className="mt-2 p-2 bg-amber-50 rounded-lg border border-amber-100 space-y-0.5">
                           {s.projectName && <p className="text-xs text-amber-800"><span className="font-bold">Projekt:</span> {s.projectName}</p>}
