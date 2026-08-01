@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp }
 import { db } from '../firebase'
 import { useAuth } from '../context/AuthContext'
 import { ACCESS_PDF_ORDER, SPECIAL_ROOM } from '../data/rooms'
+import { CZLONKOWIE, osoba } from '../data/zarzad'
 
 // TODO: zmień na właściwy link do wzoru listy dostępowej na Google Drive
 const DRIVE_TEMPLATE_URL = 'https://docs.google.com/document/d/1yx9s2TrSeHSnM8OsuygWhdqAmx8uc88C/edit?usp=sharing&ouid=110583282577275893044&rtpof=true&sd=true'
@@ -16,35 +17,18 @@ const STATUS_LABELS = {
   rejected: { label: 'Odrzucone',   bg: 'bg-red-50',     text: 'text-red-700',     border: 'border-red-200'    },
 }
 
-// Stałe wpisy — nie wymagają zgłoszenia
-const CORE_MEMBERS = [
-  { name: 'Emilia Ćwiklińska',    index: '188086' },
-  { name: 'Magdalena Skoczylas',  index: '187691' },
-  { name: 'Jakub Panas',          index: '187103' },
-  { name: 'Daria Szewczyk',       index: '194192' },
-  { name: 'Mikołaj Radliński',    index: '193471' },
-  { name: 'Hubert Stachowski',    index: '194609' },
-  { name: 'Karolina Smereczniak', index: '187608' },
-  { name: 'Karol Vogel',          index: '194535' },
-  { name: 'Marcel Tyrakowski',    index: '193563' },
-  { name: 'Julia Pytel',          index: '194174' },
-]
+// Stały skład Zarządu (nie wymaga zgłoszenia) — z centralnego pliku kadry
+const CORE_MEMBERS = CZLONKOWIE
+
+// Dostęp do sal specjalnych — wskazane osoby z Zarządu
+const DOSTEP_SPECJALNY = [osoba('Vogel'), osoba('Radliński'), osoba('Pytel'), osoba('Porębska')]
 
 const PERMANENT = {
   '110 L': CORE_MEMBERS,
   '106 L': CORE_MEMBERS,
   '101 L': CORE_MEMBERS,
-  '13 L': [
-    { name: 'Emilia Ćwiklińska', index: '188086' },
-    { name: 'Daria Szewczyk',    index: '194192' },
-    { name: 'Mikołaj Radliński', index: '193471' },
-    { name: 'Karol Vogel',       index: '194535' },
-  ],
-  '108 L': [
-    { name: 'Emilia Ćwiklińska', index: '188086' },
-    { name: 'Daria Szewczyk',    index: '194192' },
-    { name: 'Mikołaj Radliński', index: '193471' },
-  ],
+  '13 L': DOSTEP_SPECJALNY,
+  '108 L': DOSTEP_SPECJALNY,
 }
 
 // Sale w kolejności dla PDF (108 L jest tylko stała — brak rekrutacji)
