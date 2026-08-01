@@ -219,7 +219,7 @@ const ERRORS = [
   {
     n: 11,
     title: 'Niespójność formalna w obrębie dokumentu',
-    desc: 'Raz "Przewodnicząca SSUEW", raz "Ćwikła", raz "Pani Przewodnicząca" — w odniesieniu do tej samej osoby w tym samym protokole.',
+    desc: 'Raz "Przewodniczący SSUEW", raz "Vogel", raz "Pan Przewodniczący" — w odniesieniu do tej samej osoby w tym samym protokole.',
     fix: 'Wybierz jeden sposób i stosuj go konsekwentnie. Standard: pełna funkcja + imię i nazwisko przy pierwszym użyciu, sama funkcja przy kolejnych.',
   },
 ];
@@ -871,7 +871,7 @@ export default function KompendiumPage() {
               {[
                 ['Charakter', 'informacyjno-roboczy, nie uchwałodawczy'],
                 ['Częstotliwość', 'comiesięcznie'],
-                ['Prowadzi', 'Przewodnicząca SSUEW'],
+                ['Prowadzi', 'Przewodniczący SSUEW'],
                 ['Quorum', 'nie wymagane formalnie'],
                 ['Termin oddania', '7 dni od spotkania'],
               ].map(([k, v]) => (
@@ -906,7 +906,7 @@ export default function KompendiumPage() {
             <div className="grid md:grid-cols-3 gap-3 text-xs mb-4">
               {[
                 ['Charakter', 'uchwałodawczy — najważniejszy organ SSUEW'],
-                ['Prowadzi', 'Przewodnicząca SSUEW lub wyznaczony Przewodniczący obrad'],
+                ['Prowadzi', 'Przewodniczący SSUEW lub wyznaczony Przewodniczący obrad'],
                 ['Quorum', 'OBOWIĄZKOWE — minimum 8 Radnych'],
                 ['Termin oddania', 'do 14 dni od posiedzenia'],
               ].map(([k, v]) => (
