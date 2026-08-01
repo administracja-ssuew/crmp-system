@@ -3,6 +3,7 @@ import {
   BookOpen, CheckSquare, Square, ChevronRight, ArrowUp,
   Clock, AlertTriangle, CheckCircle, XCircle, Users, FileText
 } from 'lucide-react';
+import { ZARZAD, pelneImie } from '../data/zarzad'
 
 // ===================== DANE NAWIGACJI =====================
 const NAV_ITEMS = [
@@ -182,7 +183,7 @@ const ERRORS = [
   {
     n: 5,
     title: 'Nieformalny ton językowy',
-    desc: '"Ćwikła stwierdziła że to nie ma sensu" zamiast "Przewodnicząca SSUEW Emilia Ćwiklińska wyraziła sprzeciw wobec proponowanego rozwiązania". Protokół jest dokumentem urzędowym — zdrobnienia, pseudonimy i wykrzykniki go dyskwalifikują.',
+    desc: '"Karol stwierdził że to nie ma sensu" zamiast "Przewodniczący SSUEW Karol Vogel wyraził sprzeciw wobec proponowanego rozwiązania". Protokół jest dokumentem urzędowym — zdrobnienia, pseudonimy i wykrzykniki go dyskwalifikują.',
     fix: 'Przed oddaniem przeczytaj protokół i zamień każde imiesłowo, zdrobnienie i potoczne określenie na formę urzędową.',
   },
   {
@@ -633,21 +634,10 @@ export default function KompendiumPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {[
-                        ['Emilia Ćwiklińska', 'Przewodnicząca Samorządu Studentów Uniwersytetu Ekonomicznego we Wrocławiu'],
-                        ['Magdalena Skoczylas', 'Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych'],
-                        ['Daria Szewczyk', 'Wiceprzewodnicząca ds. Projektów'],
-                        ['Jakub Panas', 'Wiceprzewodniczący ds. Public Relations'],
-                        ['Marcel Tyrakowski', 'Członek Zarządu ds. Human Resources'],
-                        ['Hubert Stachowski', 'Członek Zarządu ds. Finansów'],
-                        ['Karol Vogel', 'Członek Zarządu ds. Kontaktów Zewnętrznych'],
-                        ['Julia Pytel', 'Członek Zarządu ds. Promocji'],
-                        ['Karolina Smereczniak', 'Członek Zarządu ds. Dydaktyki i Jakości Kształcenia'],
-                        ['Mikołaj Radliński', 'Członek Zarządu ds. Administracji'],
-                      ].map(([name, func], i) => (
+                      {ZARZAD.map((m, i) => (
                         <tr key={i} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-5 py-3 font-semibold text-slate-800">{name}</td>
-                          <td className="px-5 py-3 text-slate-600">{func}</td>
+                          <td className="px-5 py-3 font-semibold text-slate-800">{pelneImie(m)}</td>
+                          <td className="px-5 py-3 text-slate-600">{m.funkcja}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -789,17 +779,17 @@ export default function KompendiumPage() {
                       [
                         'Zobowiązanie',
                         '"Przewo powiedziała że trzeba to zrobić"',
-                        '"Przewodnicząca SSUEW Emilia Ćwiklińska zobowiązała się do przygotowania projektu uchwały do dnia 15.11.2025 r."',
+                        '"Przewodniczący SSUEW Karol Vogel zobowiązał się do przygotowania projektu uchwały do dnia 15.11.2025 r."',
                       ],
                       [
                         'Omówienie punktu',
                         '"Omówiono sprawy finansowe"',
-                        '"Członek Zarządu ds. Finansów Hubert Stachowski przedstawił stan realizacji budżetu SSUEW za III kwartał 2025 r. Saldo wynosi X zł. Wskazano na konieczność zwiększenia kontroli wydatków w projektach."',
+                        '"Członek Zarządu ds. Finansów Katarzyna Krzepkowska przedstawiła stan realizacji budżetu SSUEW za III kwartał 2025 r. Saldo wynosi X zł. Wskazano na konieczność zwiększenia kontroli wydatków w projektach."',
                       ],
                       [
                         'Notatka nieformalna',
                         '"PRZEKAZANO GORĄCE ZAPROSZENIE NA INTEGRACJĘ!"',
-                        '"Wiceprzewodnicząca ds. Strategii i Działań Operacyjnych Magdalena Skoczylas zaprosiła obecnych na spotkanie integracyjne w budynku B/L."',
+                        '"Wiceprzewodniczący ds. Strategii i Działań Operacyjnych Mikołaj Radliński zaprosił obecnych na spotkanie integracyjne w budynku B/L."',
                       ],
                       [
                         'Informacja prywatna',
