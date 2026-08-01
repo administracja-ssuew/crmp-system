@@ -34,6 +34,11 @@ describe('zarzad — nowa kadencja', () => {
     expect(osoba('Porębska').index).toBe('198336');
     expect(osoba('Vogel').name).toBe('Karol Vogel');
   });
+  it('osoba() dopasowuje po dokładnym nazwisku (nie po fragmencie)', () => {
+    expect(osoba('Radliński')).toEqual({ name: 'Mikołaj Radliński', index: '193471' });
+    expect(osoba('Radl')).toBeUndefined();          // fragment nie łapie
+    expect(osoba('Kowalski')).toBeUndefined();       // brak takiej osoby
+  });
   it('TWORCA_SYSTEMU to Mikołaj Radliński', () => {
     expect(TWORCA_SYSTEMU).toBe('Mikołaj Radliński');
   });

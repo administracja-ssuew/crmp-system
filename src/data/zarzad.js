@@ -22,8 +22,12 @@ export const KONTAKT_ADMINISTRACJA = znajdzPoFunkcji('Administracji');
 // Format {name, index} dla panelu dostępów (AdminAccessPanel):
 export const CZLONKOWIE = ZARZAD.map(m => ({ name: pelneImie(m), index: m.nrIndeksu }));
 
-// Wybór członka po nazwisku (do budowy list dostępu do sal specjalnych):
-export const osoba = (nazwisko) => CZLONKOWIE.find(m => m.name.includes(nazwisko));
+// Wybór członka po DOKŁADNYM nazwisku (do budowy list dostępu do sal specjalnych).
+// Dokładne dopasowanie — chroni przed pomyłką przy przyszłej edycji składu.
+export const osoba = (nazwisko) => {
+  const m = ZARZAD.find(z => z.nazwisko === nazwisko);
+  return m ? { name: pelneImie(m), index: m.nrIndeksu } : undefined;
+};
 
 // Twórca systemu — NIEZALEŻNY od kadencji (atrybucja techniczna):
 export const TWORCA_SYSTEMU = 'Mikołaj Radliński';
