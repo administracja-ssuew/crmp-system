@@ -9,6 +9,7 @@ import {
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useAuth } from '../context/AuthContext';
+import { KONTAKT_ADMINISTRACJA, pelneImie } from '../data/zarzad';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
@@ -950,9 +951,8 @@ export default function RodoPage() {
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">IOD UEW</p>
             <p className="text-xs text-slate-600 mb-4">iod@ue.wroc.pl</p>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Czł. Zarządu ds. Administracji</p>
-            <p className="text-xs font-bold text-slate-700 mb-0.5">Mikołaj Radliński</p>
-            <p className="text-[11px] text-slate-500 mb-0.5">+48 514 174 791</p>
-            <p className="text-[11px] text-slate-500 break-all">mikolaj.radlinski@samorzad.ue.wroc.pl</p>
+            <p className="text-xs font-bold text-slate-700 mb-0.5">{pelneImie(KONTAKT_ADMINISTRACJA)}</p>
+            <p className="text-[11px] text-slate-500 mb-0.5">{KONTAKT_ADMINISTRACJA.telefon}</p>
             <p className="text-[11px] text-slate-500 break-all">administracja@samorzad.ue.wroc.pl</p>
           </div>
         </aside>
@@ -997,7 +997,7 @@ export default function RodoPage() {
                   Żaden formularz organizowany przez SSUEW nie może tych danych zbierać — pod żadnym pozorem.
                 </p>
                 <p className="text-xs text-red-800 font-semibold">
-                  W razie wątpliwości — przed uruchomieniem formularza skontaktuj się z <strong>Członkiem Zarządu ds. Administracji SSUEW</strong>: Mikołaj Radliński, +48 514 174 791.
+                  W razie wątpliwości — przed uruchomieniem formularza skontaktuj się z <strong>Członkiem Zarządu ds. Administracji SSUEW</strong>: {pelneImie(KONTAKT_ADMINISTRACJA)}, {KONTAKT_ADMINISTRACJA.telefon}.
                 </p>
               </div>
             </div>
