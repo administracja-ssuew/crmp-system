@@ -70,7 +70,7 @@ export const TWORCA_SYSTEMU = 'Mikołaj Radliński';
   - **13 L** (było: Ćwiklińska, Szewczyk, Radliński, Vogel) → **Vogel, Radliński,
     Pytel, Porębska** (Radliński i Vogel zostają; Szewczyk→Pytel jako Wiceprz. ds.
     Projektów; Ćwiklińska→Porębska).
-  - **108 L** (było: Ćwiklińska, Szewczyk, Radliński) → **Vogel, Radliński, Porębska**
+  - **108 L** (było: Ćwiklińska, Szewczyk, Radliński) → **Vogel, Pytel, Radliński, Porębska**
     (Radliński zostaje; odeszłe zastąpione).
   - Te dwie listy budowane z modułu (helper wybierający po nazwisku/funkcji). **Do
     potwierdzenia w review** — jeśli inny podział, to jedna linijka w `zarzad.js`.
