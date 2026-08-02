@@ -18,8 +18,11 @@ export function buildCalGrid(year, month, events) {
   const daysInPrev  = new Date(year, month, 0).getDate();
   const cells = [];
 
+  const prevMonth = (month + 11) % 12;
+  const prevYear  = month === 0 ? year - 1 : year;
+
   for (let i = startDow - 1; i >= 0; i--) {
-    cells.push({ day: daysInPrev - i, month: month - 1, year, events: [], isToday: false });
+    cells.push({ day: daysInPrev - i, month: prevMonth, year: prevYear, events: [], isToday: false });
   }
   for (let d = 1; d <= daysInMonth; d++) {
     const isToday = (
@@ -34,9 +37,12 @@ export function buildCalGrid(year, month, events) {
     });
     cells.push({ day: d, month, year, events: dayEvents, isToday });
   }
+  const nextMonth = (month + 1) % 12;
+  const nextYear  = month === 11 ? year + 1 : year;
+
   let day = 1;
   while (cells.length % 7 !== 0) {
-    cells.push({ day: day++, month: month + 1, year, events: [], isToday: false });
+    cells.push({ day: day++, month: nextMonth, year: nextYear, events: [], isToday: false });
   }
   return cells;
 }

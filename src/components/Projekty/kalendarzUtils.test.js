@@ -18,10 +18,11 @@ describe('buildCalGrid', () => {
     expect(cell.events).toHaveLength(1);
     expect(cell.events[0].id).toBe('x');
   });
-  it('komórki wiodące pochodzą z poprzedniego miesiąca', () => {
+  it('komórki wiodące pochodzą z poprzedniego miesiąca (znormalizowane)', () => {
     const grid = buildCalGrid(2026, 0, []);
-    // 1 stycznia 2026 to czwartek → 3 komórki wiodące z grudnia (month === -1)
-    expect(grid[0].month).toBe(-1);
+    // 1 stycznia 2026 = czwartek → 3 komórki wiodące z grudnia 2025
+    expect(grid[0].month).toBe(11);
+    expect(grid[0].year).toBe(2025);
   });
 });
 
