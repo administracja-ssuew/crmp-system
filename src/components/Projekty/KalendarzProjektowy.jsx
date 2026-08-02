@@ -2,7 +2,7 @@
 // Kalendarz projektowy SSUEW — widoki Miesiąc / Lista, z edycją przez admina CRA.
 // Styl: Tailwind CSS (spójny z resztą panelu — karty rounded-2xl, paleta slate).
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   ChevronLeft, ChevronRight, Plus, X, Pencil, Trash2, Save,
   CalendarDays, List, AlertTriangle, RotateCw, CalendarClock,
@@ -56,10 +56,13 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
 
   // Feedback (toast/banner zamiast alert)
   const [toast, setToast] = useState(null); // { type: 'success'|'error', msg }
+  const toastTimer = useRef(null);
   const flash = (type, msg) => {
     setToast({ type, msg });
-    setTimeout(() => setToast(null), 3500);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 3500);
   };
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
 
   // ——— Pobierz eventy ———
   const loadEvents = () => {
