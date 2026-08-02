@@ -15,11 +15,11 @@ const AS_URL = import.meta.env.VITE_AS_URL || import.meta.env.VITE_AS_SALA_URL;
 // KONFIGURACJA — statusy (5) i typy (3). Zachowana tożsamość wizualna.
 // ————————————————————————————————————————
 const STATUS_CONFIG = {
-  'Planowany':   { icon: '📅', dot: 'bg-blue-500',   pill: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',       badge: 'bg-blue-50 text-blue-700 border-blue-200' },
-  'W toku':      { icon: '⚡', dot: 'bg-amber-500',  pill: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',    badge: 'bg-amber-50 text-amber-700 border-amber-200' },
-  'Finalizacja': { icon: '🔧', dot: 'bg-violet-500', pill: 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100', badge: 'bg-violet-50 text-violet-700 border-violet-200' },
-  'Zakończony':  { icon: '✅', dot: 'bg-emerald-500', pill: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-  'Odwołany':    { icon: '❌', dot: 'bg-red-500',    pill: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',           badge: 'bg-red-50 text-red-700 border-red-200' },
+  'Planowany':   { icon: '📅', pill: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',       badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+  'W toku':      { icon: '⚡', pill: 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100',    badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+  'Finalizacja': { icon: '🔧', pill: 'bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100', badge: 'bg-violet-50 text-violet-700 border-violet-200' },
+  'Zakończony':  { icon: '✅', pill: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+  'Odwołany':    { icon: '❌', pill: 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100',           badge: 'bg-red-50 text-red-700 border-red-200' },
 };
 
 const TYP_CONFIG = {
@@ -104,6 +104,7 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
 
   // ——— Zapis eventu (GET z body w param — backend obsługuje) ———
   const handleSave = async (formData) => {
+    if (!isAdmin) return; // tylko admin może dodawać/edytować
     setSaving(true);
     try {
       const action  = formData.id ? 'updateProjekt' : 'addProjekt';
@@ -124,6 +125,7 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
 
   // ——— Usuń event (potwierdzenie w aplikacji, nie window.confirm) ———
   const handleDelete = async (id) => {
+    if (!isAdmin) return; // tylko admin może usuwać
     setSaving(true);
     try {
       const res = await fetch(`${AS_URL}?action=deleteProjekt&id=${id}`);
@@ -188,6 +190,7 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
           {/* Filtry */}
           <div className="flex flex-wrap items-center gap-3 lg:ml-auto w-full lg:w-auto">
             <select
+              aria-label="Filtruj po statusie"
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
               className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 font-medium outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
@@ -196,6 +199,7 @@ export default function KalendarzProjektowy({ isAdmin = false }) {
               {Object.keys(STATUS_CONFIG).map(k => <option key={k} value={k}>{k}</option>)}
             </select>
             <select
+              aria-label="Filtruj po typie"
               value={filterTyp}
               onChange={e => setFilterTyp(e.target.value)}
               className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 font-medium outline-none focus:ring-2 focus:ring-indigo-200 cursor-pointer"
@@ -565,6 +569,11 @@ function Field({ label, required, error, children }) {
 // Modal wrapper
 // ————————————————————————————————————————
 function Modal({ children, title, onClose }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" onClick={e => e.stopPropagation()}>
