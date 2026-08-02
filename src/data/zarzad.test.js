@@ -19,7 +19,7 @@ describe('zarzad — nowa kadencja', () => {
   it('kontakt administracyjny/RODO to Martyna Porębska z telefonem', () => {
     expect(KONTAKT_ADMINISTRACJA).toBeTruthy();
     expect(pelneImie(KONTAKT_ADMINISTRACJA)).toBe('Martyna Porębska');
-    expect(KONTAKT_ADMINISTRACJA.telefon).toBe('500 214 385');
+    expect(KONTAKT_ADMINISTRACJA.telefon).toBe('+48 500 214 385');
   });
   it('CZLONKOWIE: 10 wpisów {name, index}', () => {
     expect(CZLONKOWIE).toHaveLength(10);
