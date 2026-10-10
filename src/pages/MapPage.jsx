@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { canManage } from '../data/roles';
 import { MapPin, Flag, Search, Map, List } from 'lucide-react';
 
 // Proxy przez Vercel API route — omija CORS Google Apps Script
@@ -21,7 +22,7 @@ const noWidows = (text) => {
 
 export default function MapPage() {
   const { user, userRole } = useAuth();
-  const isAdmin = userRole === 'logitech' || userRole === 'admin';
+  const isAdmin = canManage(userRole, 'map');
 
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);

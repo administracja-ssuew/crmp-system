@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { canManage } from '../data/roles';
 import { useGASFetch } from '../hooks/useGASFetch';
 import { useDebounce } from '../hooks/useDebounce';
 import { SkeletonCard } from '../components/SkeletonLoader';
@@ -21,7 +22,7 @@ const BUILDING_INFO = {
 
 export default function StandsPage() {
   const { user, userRole } = useAuth();
-  const isAdmin = userRole === 'admin';
+  const isAdmin = canManage(userRole, 'stands');
 
   const { data: rawData, loading, error, refresh } = useGASFetch(DATA_URL);
   const data = useMemo(() => rawData?.bookings || (Array.isArray(rawData) ? rawData : []), [rawData]);

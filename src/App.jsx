@@ -2,6 +2,7 @@
 
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from "./context/AuthContext";
+import { canManage } from "./data/roles";
 import LoginPage from "./pages/LoginPage";
 import { logout, db } from "./firebase";
 import { doc, setDoc, increment } from 'firebase/firestore';
@@ -122,7 +123,7 @@ const LogitechRoute = ({ children }) => {
   const { user, userRole, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" />;
-  if (userRole !== 'admin' && userRole !== 'logitech') return <Navigate to="/" />;
+  if (!canManage(userRole, 'equipment')) return <Navigate to="/" />;
   return children;
 };
 

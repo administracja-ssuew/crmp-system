@@ -5,6 +5,7 @@ import {
   Users, Clock, BookOpen, Copy, Check, Filter, ExternalLink,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { canManage } from '../data/roles';
 
 function nb(text) {
   return text.replace(/ (i|w|z|o|a|u|do|we|ze|że|bo|na|po|od|ku|by) /g, ' $1\u00A0');
@@ -989,7 +990,7 @@ function PlanArchiwizacji({ isAdmin }) {
 
 export default function ArchiwizacjaPage() {
   const { userRole } = useAuth();
-  const isAdmin = userRole === 'logitech' || userRole === 'admin';
+  const isAdmin = canManage(userRole, 'archive');
   const [view, setView] = useState('przewodnik');
 
   const [activeSection, setActiveSection] = useState('wstep');

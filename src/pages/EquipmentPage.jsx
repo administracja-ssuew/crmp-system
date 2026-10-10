@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { canManage } from '../data/roles';
 import { useGASFetch } from '../hooks/useGASFetch';
 import { useDebounce } from '../hooks/useDebounce';
 import { SkeletonGrid } from '../components/SkeletonLoader';
@@ -45,7 +46,7 @@ const DIN_13169_ITEMS = [
 
 export default function EquipmentPage() {
   const { user, userRole } = useAuth();
-  const isAdmin = userRole === 'logitech' || userRole === 'admin';
+  const isAdmin = canManage(userRole, 'equipment');
 
   const { data: rawGASData, loading: isLoading, error, refresh } = useGASFetch(API_URL);
 

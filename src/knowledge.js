@@ -170,7 +170,7 @@ DOSTĘP DO CRA (SYSTEM):
 - Nowi użytkownicy: wypełnij wniosek dostępowy pod adresem /wniosek w systemie CRA.
 - Wniosek rozpatruje administrator systemu (administracja@samorzad.ue.wroc.pl).
 - Po zatwierdzeniu wniosku otrzymasz maila z potwierdzeniem dostępu.
-- Role w systemie: member (standardowy dostęp), logitech (wydawanie sprzętu), admin (pełen dostęp).
+- Role w systemie: member (standardowy dostęp), logitech (baza sprzętu i wydawanie sprzętu), promocja (zarządzanie mapą kampusu i rejestrem standów), admin (pełen dostęp).
 
 WYPOŻYCZANIE SPRZĘTU:
 1. Skontaktuj się z osobą odpowiedzialną za Logitech lub wejdź do modułu "Baza Sprzętu" w CRA.
