@@ -119,7 +119,7 @@ const PRAWA_KOLUMNY = [
     tytul: 'Uwagi',
     opis: 'Tutaj wpisujesz wszystko, czego nie zmieściłeś w poprzednich kolumnach: lokalizację przedmiotu, informację o nadanym kodzie wewnętrznym, źródło wyceny przy inwentaryzacji, datę i podpis przy korekcie.',
     wskazowka: 'Błędnych wpisów nie wolno wymazywać ani zaklejać korektorem. Należy je przekreślić jedną linią tak, żeby treść pozostała czytelna, a w kolumnie 15 wpisać datę korekty i czytelny podpis osoby korygującej.',
-    przyklad: 'Lokalizacja: Magazyn SSUEW (pom. 16b B/J), A-105. Wycena rynkowa z dn. 10.04.2026.',
+    przyklad: 'Lokalizacja: Magazyn SSUEW (pom. 11B/L), A-105. Wycena rynkowa z dn. 10.04.2026.',
   },
 ];
 
@@ -147,7 +147,7 @@ const FAQ_ITEMS = [
   { id: 'f1', q: 'Brak numeru seryjnego (S/N) — co wpisać?', a: 'Dla przedmiotów, które z natury nie mają S/N (meble, wieszaki, akcesoria) — kol. 5 zostawiasz pustą. Gwiazdka w nagłówku tej kolumny to sygnalizuje. Dla sprzętu elektronicznego brak S/N jest sytuacją wyjątkową — sprawdź spód urządzenia, opakowanie i dokumenty gwarancyjne.' },
   { id: 'f2', q: 'Błędny wpis — jak poprawić?', a: 'Przekreśl błędną wartość jedną linią (musi pozostać czytelna), wpisz obok prawidłową i złóż parafkę z datą. W kol. 15 odnotuj: „korekta [data], podpis". Nie używaj korektora — każde zamazanie podważa wiarygodność dokumentu i stanowi błąd formalny.' },
   { id: 'f3', q: 'Kiedy wypełniam kol. 2 (Nr kolejny Rozchód)?', a: 'Wyłącznie przy trwałym wykreśleniu przedmiotu z ewidencji: kasacja, kradzież, zniszczenie lub przekazanie na zewnątrz. Przy standardowym przyjęciu przedmiotu kol. 2 zostawiasz pustą.' },
-  { id: 'f4', q: 'Co wpisać w kol. 15 (Uwagi)?', a: 'Lokalizację przedmiotu (np. Magazyn SSUEW (16b B/J), A-105"), nadany kod wewnętrzny SSUEW, źródło wyceny jeśli brak faktury (np. „Wycena rynkowa z dn. 10.04.2026"), datę i parafkę przy każdej korekcie.' },
+  { id: 'f4', q: 'Co wpisać w kol. 15 (Uwagi)?', a: 'Lokalizację przedmiotu (np. Magazyn SSUEW (11B/L), A-105"), nadany kod wewnętrzny SSUEW, źródło wyceny jeśli brak faktury (np. „Wycena rynkowa z dn. 10.04.2026"), datę i parafkę przy każdej korekcie.' },
   { id: 'f5', q: 'Sprzęt skradziony lub zniszczony — co z wpisem?', a: 'Nie usuwaj wpisu. Wypełnij kol. 2 (Nr Rozchód) i odnotuj w kol. 15 numer protokołu policyjnego lub kasacyjnego. Wpis możesz przekreślić jedną linią — musi pozostać czytelny.' },
   { id: 'f6', q: 'Jeden wpis na kilka sztuk czy osobne wiersze?', a: 'Technicznie możesz wpisać ilość np. 3 w kol. 8. W praktyce zalecamy jeden wpis = jedna sztuka — grupowe wpisy utrudniają późniejsze wykreślenie jednego egzemplarza i komplikują inwentaryzację.' },
 ];

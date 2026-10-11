@@ -109,7 +109,7 @@ export default function EquipmentPage() {
         isFirstAid: String(item.RODZAJ || '').trim().toUpperCase() === 'APT',
         status: (item.UWAGI && item.UWAGI.toLowerCase().includes('uszkodz')) ? 'maintenance' : 'available',
         condition: item.UWAGI || 'Brak zastrzeżeń',
-        locationPath: item.LOKALIZACJA || 'Magazyn Sprzętowy SSUEW (16b)',
+        locationPath: item.LOKALIZACJA || 'Magazyn Sprzętowy SSUEW (11B/L)',
         description: item.INTERAKCJA ? `Wymagane akcesoria: ${item.INTERAKCJA}` : 'Brak powiązanych akcesoriów.',
         value: item['WARTOŚĆ'] || item.WARTOSC || item['Wartość'] || item.WARTOSC_NETTO || null,
         warranty: item.GWARANCJA || item['Gwarancja'] || item['GWARANCJA_DO'] || null,
@@ -227,7 +227,9 @@ export default function EquipmentPage() {
     setIsSubmitting(true);
     const itemsCodes = cart.map(item => item.id).join(', ');
     const formattedContact = `${reservationData.contactName} | Tel: ${reservationData.contactPhone} | Email: ${reservationData.contactEmail}`;
-    const payload = { action: "nowaRezerwacja", sprzetKody: itemsCodes, dataOd: reservationData.dateFrom, dataDo: reservationData.dateTo, cel: reservationData.purpose, kontakt: formattedContact };
+    // sprzetNazwy — czytelna lista do maila-powiadomienia dla logistyki (backend: nowaRezerwacja)
+    const itemsNames = cart.map(item => `${item.name} (${item.id})`).join(', ');
+    const payload = { action: "nowaRezerwacja", sprzetKody: itemsCodes, sprzetNazwy: itemsNames, dataOd: reservationData.dateFrom, dataDo: reservationData.dateTo, cel: reservationData.purpose, kontakt: formattedContact };
     try {
       const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const result = await response.json();

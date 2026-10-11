@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SignaturePad from '../components/SignaturePad';
+import { RETURN_DECISIONS, toggleDecision, validateReturnItems, buildReturnRowsHTML } from '../components/zwrotUtils';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -44,6 +45,22 @@ export default function AdminEquipmentPanel() {
   
   const [selectedReturn, setSelectedReturn] = useState(null);
   const [returnStep, setReturnStep] = useState(1);
+  // Adnotacje zwrotu per pozycja (indeks = kolejność kodów w porozumieniu)
+  const [returnNotes, setReturnNotes] = useState([]);
+  // E-mail zwracającego — na niego backend wysyła podpisany PDF zwrotu
+  const [returnEmail, setReturnEmail] = useState('');
+
+  const returnCodes = selectedReturn
+    ? String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)'] || '').split(',').map(c => c.trim()).filter(Boolean)
+    : [];
+
+  useEffect(() => {
+    setReturnNotes(returnCodes.map(() => ({ stan: '', decyzje: [] })));
+    setReturnEmail(String(selectedReturn?.['Email'] || selectedReturn?.['EMAIL'] || '').trim());
+  }, [selectedReturn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const updateReturnNote = (idx, patch) =>
+    setReturnNotes(prev => prev.map((n, i) => (i === idx ? { ...n, ...patch } : n)));
 
   const [summonsData, setSummonsData] = useState({
     perpetrator: '', albumId: '', organization: '', address: '', protocolNumber: '', equipmentName: '', brand: '', model: '', damageType: 'Mechaniczne', description: ''
@@ -317,18 +334,23 @@ export default function AdminEquipmentPanel() {
 
   const processReturn = async () => {
     if(!sigBorrowerData || !sigAdminData) { alert("Podpisz protokół zwrotu!"); return; }
+    const pozycje = returnCodes.map((code, idx) => ({
+      code,
+      name: equipmentData.find(e => e.id === code)?.name || code,
+      stan: returnNotes[idx]?.stan || '',
+      decyzje: returnNotes[idx]?.decyzje || [],
+    }));
+    const validationError = validateReturnItems(pozycje);
+    if (validationError) { alert(validationError); return; }
     setIsVerifying(true);
     const targetId = getAgreementNumber(selectedReturn);
     const sprzet = String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)'] || '');
     const osoba = String(selectedReturn['Kto_wypozyczyl'] || selectedReturn['KTO_WYPOZYCZYL'] || selectedReturn['Osoba'] || '');
     const organizacja = String(selectedReturn['Organizacja'] || selectedReturn['ORGANIZACJA'] || '');
-    const sprzetTabelaHTML = sprzet.split(',').map((id, idx) =>
-      `<tr>
-        <td style="border: 1px solid black; padding: 5px; text-align: center;">${idx + 1}</td>
-        <td style="border: 1px solid black; padding: 5px; font-family: monospace;">${id.trim()}</td>
-      </tr>`
-    ).join('');
+    const sprzetTabelaHTML = buildReturnRowsHTML(pozycje);
     const payload = {
+      pozycje,
+      email: returnEmail.trim(),
       action: "zapiszZwrot",
       nrPorozumienia: targetId,
       sprzet,
@@ -343,7 +365,7 @@ export default function AdminEquipmentPanel() {
     try {
       const response = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
       const resData = await response.json().catch(() => ({}));
-      alert(`Sprzęt z porozumienia ${targetId} został poprawnie zwrócony na stan!${resData.link ? `\nPDF: ${resData.link}` : ''}`);
+      alert(`Sprzęt z porozumienia ${targetId} został poprawnie zwrócony na stan!${resData.link ? `\nPDF: ${resData.link}` : ''}${resData.message ? `\n${resData.message}` : ''}`);
     } catch (err) { alert("Zakończono proces zwrotu."); } finally {
       setSelectedReturn(null); setReturnStep(1); clearSignatures(); setBorrower({...borrower, adminName: ''});
       setTimeout(() => fetchAllData(), 500); setIsVerifying(false);
@@ -918,6 +940,11 @@ export default function AdminEquipmentPanel() {
                       <input type="text" placeholder="Imię i Nazwisko Przyjmującego (Admin)" value={borrower.adminName} onChange={e => setBorrower({...borrower, adminName: e.target.value})} className="bg-white border border-indigo-200 p-4 rounded-xl text-sm font-bold w-full" />
                     </div>
                   </div>
+                  <div className="bg-emerald-50 border border-emerald-100 p-5 rounded-2xl mb-8">
+                    <h3 className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-3">E-mail zwracającego (wyślemy podpisany PDF)</h3>
+                    <input type="email" placeholder="imie.nazwisko@…" value={returnEmail} onChange={e => setReturnEmail(e.target.value)} className="bg-white border border-emerald-200 p-4 rounded-xl text-sm font-bold w-full" />
+                    <p className="text-[10px] text-emerald-700 mt-2">Puste = PDF tylko na Dysku (bez maila).</p>
+                  </div>
                   <div className="flex gap-4">
                     <button onClick={() => setSelectedReturn(null)} className="bg-slate-100 text-slate-700 py-4 px-6 rounded-xl font-black uppercase tracking-widest w-1/3">Anuluj</button>
                     <button onClick={() => { if(borrower.adminName.length < 3) alert("Wpisz swoje dane!"); else setReturnStep(2); }} className="bg-slate-900 text-white py-4 px-6 rounded-xl font-black uppercase tracking-widest flex-1">Przejdź do protokołu</button>
@@ -951,18 +978,37 @@ export default function AdminEquipmentPanel() {
                     <table className="w-full border-collapse border border-black text-left text-[10px]">
                       <thead><tr className="bg-gray-100"><th className="border border-black p-2 w-8 text-center">Lp.</th><th className="border border-black p-2 w-1/3">NAZWA SPRZĘTU</th><th className="border border-black p-2 w-1/3">STAN PRZY ZWROCIE (OPIS)</th><th className="border border-black p-2">DECYZJA WYDAJĄCEGO</th></tr></thead>
                       <tbody>
-                        {String(selectedReturn['SPRZĘT'] || selectedReturn['Sprzęt (Kody QR)'] || '').split(',').filter(Boolean).map((itemCode, idx) => {
-                          const code = itemCode.trim();
+                        {returnCodes.map((code, idx) => {
                           const resolvedName = equipmentData.find(e => e.id === code)?.name;
+                          const note = returnNotes[idx] || { stan: '', decyzje: [] };
                           return (
                           <tr key={idx}>
                             <td className="border border-black p-2 text-center font-bold">{idx + 1}</td>
                             <td className="border border-black p-2">{resolvedName || code}</td>
-                            <td className="border border-black p-2">.....................................</td>
+                            <td className="border border-black p-1 align-top">
+                              <textarea
+                                value={note.stan}
+                                onChange={e => updateReturnNote(idx, { stan: e.target.value })}
+                                placeholder="np. rysa na obudowie, brak ładowarki… (puste = bez uwag)"
+                                rows={3}
+                                className="w-full h-full min-h-[3.5rem] p-1 bg-amber-50/60 print:bg-transparent border-0 outline-none focus:ring-1 focus:ring-indigo-400 resize-none font-serif text-[10px]"
+                              />
+                            </td>
                             <td className="border border-black p-2 leading-tight">
-                              ☐ PRZYJĘTO BEZ ZASTRZEŻEŃ<br/>
-                              ☐ BRUDNY (DO CZYSZCZENIA)<br/>
-                              ☐ USZKODZONY (PROTOKÓŁ SZKODY)
+                              {RETURN_DECISIONS.map(d => {
+                                const checked = note.decyzje.includes(d.key);
+                                return (
+                                  <button
+                                    key={d.key}
+                                    type="button"
+                                    onClick={() => updateReturnNote(idx, { decyzje: toggleDecision(note.decyzje, d.key) })}
+                                    className={`flex items-center gap-1.5 w-full text-left py-0.5 hover:bg-indigo-50 rounded ${checked ? 'font-bold' : ''}`}
+                                  >
+                                    <span className="inline-flex items-center justify-center w-3.5 h-3.5 border border-black text-[10px] leading-none shrink-0">{checked ? '✕' : ''}</span>
+                                    {d.label}
+                                  </button>
+                                );
+                              })}
                             </td>
                           </tr>
                         ); })}
