@@ -20,6 +20,9 @@ export const MODULE_MANAGERS = {
   archive: [ADMIN, LOGITECH],
   map: [ADMIN, PROMOCJA],
   stands: [ADMIN, PROMOCJA],
+  sale: [ADMIN],
 };
 
-export const canManage = (role, module) => (MODULE_MANAGERS[module] ?? [ADMIN]).includes(role);
+export const rolesForModule = (module) => MODULE_MANAGERS[module] ?? [ADMIN];
+
+export const canManage = (role, module) => rolesForModule(module).includes(role);

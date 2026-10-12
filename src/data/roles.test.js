@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { canManage, ROLES } from './roles';
+import { canManage, ROLES, rolesForModule } from './roles';
 
 describe('roles — uprawnienia modułów', () => {
   it('admin zarządza wszystkim', () => {
@@ -27,5 +27,15 @@ describe('roles — uprawnienia modułów', () => {
   });
   it('nieznany moduł — tylko admin', () => {
     expect(canManage(ROLES.LOGITECH, 'nieznany')).toBe(false);
+  });
+  it('sale: tylko admin', () => {
+    expect(canManage(ROLES.ADMIN, 'sale')).toBe(true);
+    expect(canManage(ROLES.LOGITECH, 'sale')).toBe(false);
+    expect(canManage(ROLES.PROMOCJA, 'sale')).toBe(false);
+  });
+  it('rolesForModule zwraca role modułu, dla nieznanego tylko admin', () => {
+    expect(rolesForModule('sale')).toEqual(['admin']);
+    expect(rolesForModule('equipment')).toEqual(['admin', 'logitech']);
+    expect(rolesForModule('nieznany')).toEqual(['admin']);
   });
 });
