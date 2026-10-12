@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SAMORZAD_ROOMS, ROOMS } from '../data/rooms';
+import { postNotify } from '../notifications/client';
 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -26,9 +27,21 @@ const formatTime = (timeStr) => {
   return timeStr;
 };
 
+// Arkusz wniosków jest źródłem prawdy dla liczników powiadomień (zamyka/odtwarza sprawy bez pushy).
+const syncPendingNotifications = (pending) =>
+  postNotify({
+    event: 'sync',
+    module: 'sale',
+    items: pending.map((p) => ({
+      refId: String(p.id),
+      data: { room: p.room, org: p.org, title: p.title, date: p.date, start: p.start, end: p.end },
+    })),
+  }).catch((err) => console.warn('Synchronizacja powiadomień nie powiodła się:', err.message));
+
 export default function CalendarSamorzadPage({ userEmail }) {
   const { userRole } = useAuth();
   const isAdmin = userRole === 'admin';
+  const [searchParams] = useSearchParams();
 
   const [filterRoom, setFilterRoom] = useState('ALL');
   const [currentDate, setCurrentDate] = useState(new Date()); 
@@ -59,7 +72,10 @@ export default function CalendarSamorzadPage({ userEmail }) {
     try {
       const response = await fetch(GOOGLE_SHEETS_URL);
       const data = await response.json();
-      if (!data.error) setCalendarData(data);
+      if (!data.error) {
+        setCalendarData(data);
+        if (isAdmin) syncPendingNotifications(data.pending || []);
+      }
     } catch (error) {
       console.error("Błąd pobierania kalendarza:", error);
     } finally {
@@ -67,9 +83,13 @@ export default function CalendarSamorzadPage({ userEmail }) {
     }
   };
 
-  useEffect(() => { 
-    fetchData(); 
+  useEffect(() => {
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    if (isAdmin && searchParams.get('oczekujace')) setIsPendingModalOpen(true);
+  }, [isAdmin, searchParams]);
 
   const nextDay = () => { 
     const d = new Date(currentDate); 
@@ -165,7 +185,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor, applicantName: req.applicantName || "", email: req.email || "" })
+        body: JSON.stringify({ action: "approveBooking", rowId: req.id, date: req.date.substring(0,10), room: req.room, start: req.start, end: req.end, org: req.org, title: req.title, color: eventColor, applicantName: req.applicantName || "", email: req.email || "", actor: userEmail || "" })
       });
       alert('Zatwierdzono! Wniosek wpisany do oficjalnego kalendarza.');
       setExpandedReq(null); 
@@ -186,7 +206,7 @@ export default function CalendarSamorzadPage({ userEmail }) {
     try {
       await fetch(GOOGLE_SHEETS_URL, {
         method: 'POST',
-        body: JSON.stringify({ action: "rejectBooking", rowId: req.id })
+        body: JSON.stringify({ action: "rejectBooking", rowId: req.id, actor: userEmail || "" })
       });
       alert('Wniosek został odrzucony i usunięty z listy oczekujących.');
       fetchData(); 
