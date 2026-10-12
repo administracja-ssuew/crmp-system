@@ -9,6 +9,8 @@ import HelpdeskModal from '../components/HelpdeskModal';
 import { db } from '../firebase';
 import { collection, getDocs, addDoc, updateDoc, doc, query, where, orderBy, Timestamp } from 'firebase/firestore';
 import { TWORCA_SYSTEMU } from '../data/zarzad'
+import { useNotifications } from '../hooks/useNotifications';
+import NotificationBell from '../components/NotificationBell';
 const Icons = {
   Bell: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" /></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>,
@@ -38,6 +40,7 @@ export default function DashboardPage() {
   const { user, userRole } = useAuth();
   const firstName = user?.displayName ? user.displayName.split(' ')[0] : 'Użytkowniku';
   const isAdmin = userRole === 'admin';
+  const { enabled: notificationsEnabled, counts, total, recent } = useNotifications(userRole);
 
   // === STANY OGŁOSZEŃ ===
   const _noticesEnabled = NOTICES_API_URL !== "TUTAJ_WKLEJ_LINK_DO_OGLOSZEN_Z_APPS_SCRIPT";
@@ -175,8 +178,13 @@ export default function DashboardPage() {
     localStorage.setItem('cra_dismissed_notices', JSON.stringify(updated));
   };
 
-  const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText }) => (
+  const Card = ({ to, title, subtitle, icon, colorFrom, colorTo, buttonText, badge = 0 }) => (
     <Link to={to} className="group relative block h-64 md:h-72 rounded-[2.5rem] overflow-hidden shadow-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-900/20 isolate [transform:translateZ(0)] [-webkit-mask-image:-webkit-radial-gradient(white,black)]">
+      {badge > 0 && (
+        <span className="absolute top-5 right-5 z-20 min-w-[2rem] h-8 px-2 rounded-full bg-rose-500 text-white text-sm font-black flex items-center justify-center shadow-lg ring-4 ring-white/30" aria-label={`${badge} oczekujących`}>
+          {badge}
+        </span>
+      )}
       <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} group-hover:scale-110 transition-transform duration-700 -z-10`}></div>
       <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors -z-10"></div>
       <div className="relative h-full flex flex-col items-center justify-center p-6 text-center z-10">
@@ -194,6 +202,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-50">
+      {notificationsEnabled && <NotificationBell total={total} recent={recent} />}
 
       {/* TŁO */}
       <div className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: `url('/logo.png')`, backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: '80%', filter: 'grayscale(100%)' }}></div>
@@ -327,7 +336,7 @@ export default function DashboardPage() {
           <Card to="/sprzet" icon="📦" title="Baza Sprzętu" subtitle="Katalog i Rezerwacje" colorFrom="from-orange-500" colorTo="to-red-600" buttonText="Otwórz Magazyn" />
           <Card to="/mapa" icon="🗺️" title="Mapa Kampusu" subtitle="Banery i Plakaty" colorFrom="from-blue-500" colorTo="to-blue-700" buttonText="Otwórz Mapę" />
           <Card to="/rejestr" icon="📋" title="Rejestr Standów" subtitle="Harmonogram stoisk promocyjnych" colorFrom="from-indigo-600" colorTo="to-purple-800" buttonText="Sprawdź Terminy" />
-          <Card to="/kalendarz-wybor" icon="📅" title="Sale i Przestrzenie" subtitle="Rezerwacje samorządowe" colorFrom="from-emerald-500" colorTo="to-teal-700" buttonText="Wybierz Tryb" />
+          <Card to="/kalendarz-wybor" icon="📅" title="Sale i Przestrzenie" subtitle="Rezerwacje samorządowe" colorFrom="from-emerald-500" colorTo="to-teal-700" buttonText="Wybierz Tryb" badge={counts.sale || 0} />
           <Card to="/dokumenty" icon="📂" title="Moduł Lex SSUEW" subtitle="Uchwały i Studio Legislacyjne" colorFrom="from-slate-600" colorTo="to-slate-800" buttonText="Przeglądaj Pliki" />
           <Card to="/legal-hub" icon="⚖️" title="Zaplecze Prawne" subtitle="Wzory regulaminów i edukacja" colorFrom="from-amber-500" colorTo="to-orange-500" buttonText="Otwórz Akademię" />
           <Card to="/kompendium" icon="📖" title="Kompendium Wiedzy Protokolanta" subtitle="Przewodnik protokolanta — wzory, checklisty, słownik pojęć" colorFrom="from-violet-600" colorTo="to-indigo-800" buttonText="Otwórz Kompendium" />

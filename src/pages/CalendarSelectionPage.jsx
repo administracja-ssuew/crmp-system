@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SalaKalendar from '../components/Sale/SalaKalendar';
 import KalendarzProjektowy from '../components/Projekty/KalendarzProjektowy';
+import { useNotifications } from '../hooks/useNotifications';
 
 export default function CalendarSelectionPage() {
   const { userRole } = useAuth();
   const isAdmin = userRole === 'admin';
+  const { counts } = useNotifications(userRole);
 
   // null | 'sala' | 'projektowy'
   const [activeView, setActiveView] = useState(null);
@@ -59,7 +61,10 @@ export default function CalendarSelectionPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
 
           {/* OPCJA 1: SAMORZĄD */}
-          <Link to="/kalendarz/samorzad" className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all text-center flex flex-col items-center">
+          <Link to="/kalendarz/samorzad" className="group relative bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-xl hover:shadow-2xl hover:border-emerald-400 transition-all text-center flex flex-col items-center">
+            {counts.sale > 0 && (
+              <span className="absolute top-5 right-5 min-w-[2rem] h-8 px-2 rounded-full bg-rose-500 text-white text-sm font-black flex items-center justify-center shadow-lg">{counts.sale}</span>
+            )}
             <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center text-3xl mb-5 group-hover:scale-110 transition-transform">👑</div>
             <h2 className="text-xl font-black text-slate-800 mb-2">Dla Samorządu Studentów</h2>
             <p className="text-sm text-slate-500 mb-5">
