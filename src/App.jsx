@@ -159,7 +159,7 @@ function AppContent() {
         <div className="relative mb-8">
           <div className="absolute inset-0 bg-blue-500 rounded-full animate-ping opacity-20"></div>
           <div className="relative w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center border border-slate-100">
-            <img src="/logo.png" className="w-16 h-16 object-contain" onError={(e) => { e.target.src = "https://cdn-icons-png.flaticon.com/512/1087/1087815.png" }} />
+            <img src="/icons/cra-icon.svg" alt="CRA" className="w-20 h-20 object-contain rounded-2xl" />
           </div>
         </div>
         <h1 className="text-2xl font-black text-slate-800 italic">CRA <span className="text-blue-600 font-normal">SYSTEM</span></h1>

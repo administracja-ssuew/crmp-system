@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="112" fill="#0B1322"/>
+  <g fill="#FFFFFF">
+    <g><rect x="118" y="104" width="138" height="26"/><polygon points="228,104 256,104 256,306 243,306"/><polyline fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linejoin="miter" stroke-miterlimit="10" points="118,161 191.44,161 256,306"/><polyline fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linejoin="miter" stroke-miterlimit="10" points="118,205 139.81,205 256,306"/><rect x="118" y="236" width="138" height="26"/><rect x="118" y="280" width="138" height="26"/><rect x="118" y="324" width="138" height="26"/><rect x="118" y="368" width="138" height="26"/></g>
+    <g transform="translate(512,0) scale(-1,1)"><rect x="118" y="104" width="138" height="26"/><polygon points="228,104 256,104 256,306 243,306"/><polyline fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linejoin="miter" stroke-miterlimit="10" points="118,161 191.44,161 256,306"/><polyline fill="none" stroke="#FFFFFF" stroke-width="26" stroke-linejoin="miter" stroke-miterlimit="10" points="118,205 139.81,205 256,306"/><rect x="118" y="236" width="138" height="26"/><rect x="118" y="280" width="138" height="26"/><rect x="118" y="324" width="138" height="26"/><rect x="118" y="368" width="138" height="26"/></g>
+  </g>
+  <g fill="#0B1322"><circle cx="256" cy="306" r="104"/><rect x="152" y="306" width="208" height="98"/></g>
+    <g>
+      <circle cx="256" cy="328" r="60" fill="none" stroke="#2C4BFF" stroke-width="9"/>
+      <circle cx="256" cy="328" r="46" fill="#2C4BFF"/>
+      <polyline points="236,329 251,344 278,314" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+</svg>
