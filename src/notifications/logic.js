@@ -66,6 +66,20 @@ export function pushSupportState({ isIos, isStandalone, hasNotification, hasServ
   return 'default';
 }
 
+// Cykl życia tokenu urządzenia: odśwież przy starcie (FCM rotuje tokeny), wyrejestruj przy wylogowaniu,
+// zapomnij lokalny token, gdy użytkownik cofnął zgodę.
+export function pushLifecycle({ event, permission, storedToken }) {
+  if (!storedToken) return 'none';
+  if (event === 'logout') return 'unregister';
+  return permission === 'granted' ? 'refresh' : 'forget';
+}
+
+// Lista oczekujących do `sync` albo null, gdy odczyt arkusza wniosków się nie udał (nie wolno wtedy zamykać spraw).
+export function pendingForSync(data) {
+  if (!data || data.inboxError || !Array.isArray(data.pending)) return null;
+  return data.pending;
+}
+
 export function chunk(arr, size) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));

@@ -3,6 +3,7 @@ import { buildContent, buildReminder, formatDayMonth, formatHour } from './conte
 import {
   notificationId, validateEvent, shouldPushOnCreate, planSync, needsReminder,
   countOpenByModule, pickRecipientEmails, secretMatches, pushSupportState, chunk,
+  pushLifecycle, pendingForSync,
 } from './logic';
 
 const H = 3600 * 1000;
@@ -97,4 +98,23 @@ describe('logika zdarzeń', () => {
     expect(pushSupportState({ ...base, permission: 'granted' })).toBe('granted');
   });
   it('chunk', () => expect(chunk([1, 2, 3], 2)).toEqual([[1, 2], [3]]));
+});
+
+describe('poprawki po przeglądzie', () => {
+  it('pushLifecycle: przy starcie odświeża zarejestrowany token, przy wylogowaniu go wyrejestrowuje', () => {
+    expect(pushLifecycle({ event: 'load', permission: 'granted', storedToken: 'tok' })).toBe('refresh');
+    expect(pushLifecycle({ event: 'load', permission: 'granted', storedToken: null })).toBe('none');
+    expect(pushLifecycle({ event: 'load', permission: 'denied', storedToken: 'tok' })).toBe('forget');
+    expect(pushLifecycle({ event: 'logout', permission: 'granted', storedToken: 'tok' })).toBe('unregister');
+    expect(pushLifecycle({ event: 'logout', permission: 'granted', storedToken: null })).toBe('none');
+  });
+  it('pendingForSync: błąd odczytu arkusza wniosków nie zamyka spraw', () => {
+    const pending = [{ id: 1 }];
+    expect(pendingForSync({ pending })).toBe(pending);
+    expect(pendingForSync({ pending: [] })).toEqual([]);
+    expect(pendingForSync({ pending: [], inboxError: true })).toBeNull();
+    expect(pendingForSync({ pending: null })).toBeNull();
+    expect(pendingForSync({})).toBeNull();
+    expect(pendingForSync(null)).toBeNull();
+  });
 });

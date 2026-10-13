@@ -3,6 +3,7 @@
 import ErrorBoundary from './components/ErrorBoundary';
 import { useAuth } from "./context/AuthContext";
 import { canManage } from "./data/roles";
+import { ensurePushRegistration, unregisterPush } from "./notifications/client";
 import LoginPage from "./pages/LoginPage";
 import { logout, db } from "./firebase";
 import { doc, setDoc, increment } from 'firebase/firestore';
@@ -96,7 +97,7 @@ function UserProfile() {
       <img src={user.photoURL} className="w-10 h-10 rounded-full border-2 border-blue-500 shadow-sm" alt="Avatar" />
       <div className="hidden md:block">
         <p className="text-[10px] font-bold text-slate-800 leading-none mb-1 truncate max-w-[120px]">{user.displayName}</p>
-        <button onClick={logout} className="text-[9px] text-red-500 hover:text-red-700 font-black uppercase tracking-tighter transition-colors">
+        <button onClick={() => unregisterPush().catch(() => {}).finally(logout)} className="text-[9px] text-red-500 hover:text-red-700 font-black uppercase tracking-tighter transition-colors">
           Wyloguj się
         </button>
       </div>
@@ -146,6 +147,11 @@ function AppContent() {
       return () => clearTimeout(timer);
     }
   }, [authLoading, user]);
+
+  // FCM rotuje tokeny urządzeń — odśwież rejestrację przy każdym starcie aplikacji
+  useEffect(() => {
+    if (user?.uid) ensurePushRegistration().catch((err) => console.warn('Odświeżenie powiadomień:', err.message));
+  }, [user?.uid]);
 
   if (authLoading) return (
     <div className="h-screen w-full flex items-center justify-center bg-slate-900 text-white font-bold">

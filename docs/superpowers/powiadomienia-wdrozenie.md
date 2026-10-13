@@ -58,4 +58,6 @@ match /push_tokens/{id} {
 - [ ] Odrzucenie → licznik −1, wnioskodawca dostaje mail „nie została zatwierdzona”.
 - [ ] Wniosek usunięty ręcznie z arkusza → licznik spada po wejściu admina na stronę sal.
 - [ ] Konto `member` nie widzi dzwonka ani liczników.
+- [ ] Wylogowanie z CRA na telefonie → ten telefon przestaje dostawać pushe.
+- [ ] Przy otwartym CRA na komputerze push się nie wyświetla (to normalne) — nowy wniosek widać od razu na liczniku i w dzwonku.
 - [ ] Następnego dnia o 8:00 przy wniosku starszym niż 48 h → push przypomnienia (Vercel → projekt → Cron Jobs pokazuje wywołania).

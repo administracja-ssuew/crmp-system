@@ -3,7 +3,7 @@
 // Wdrożenie: edytor Apps Script → Ctrl+A → wklej → Ctrl+S → uruchom raz testPowiadomCRA
 // (zgoda na UrlFetch i MailApp) → Wdróż → Zarządzaj wdrożeniami → ołówek → „Nowa wersja”.
 // Zmiany 2026-10-11: powiadomienia CRA (powiadomCRA), maile do wnioskodawców
-// (mailDoWnioskodawcy), submitBooking zwraca rowId.
+// (mailDoWnioskodawcy), submitBooking zwraca rowId, doGet zwraca inboxError.
 // Sekret: Ustawienia projektu → Właściwości skryptu → NOTIFY_SECRET (ta sama wartość co w Vercelu).
 // =============================================================================
 
@@ -22,7 +22,8 @@ function doGet(e) {
   var dataPrzedluzenia = getSheetData(sheetPrzedluzenia);
   
   var pending = [];
-  var rejected = []; 
+  var rejected = [];
+  var inboxError = false; // CRA nie synchronizuje liczników, gdy odczyt wniosków się nie udał
     try {
     var inboxSS = SpreadsheetApp.openById(INBOX_SHEET_ID);
     var inboxSheet = inboxSS.getSheets()[0];
@@ -35,12 +36,14 @@ function doGet(e) {
 
   } catch(err) {
     console.error("Błąd: ", err);
+    inboxError = true;
   }
-  
+
   return ContentService.createTextOutput(JSON.stringify({
     sale: dataSale,
     przedluzenia: dataPrzedluzenia,
     pending: pending,
+    inboxError: inboxError,
     rejected: rejected,
     // 🔥 DODAJ TĘ LINIJKĘ W ZWRACANYM JSON-ie (Wysyła je do frontendu):
     approved_reqs: approved_reqs || [] 

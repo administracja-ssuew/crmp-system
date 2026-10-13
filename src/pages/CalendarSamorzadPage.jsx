@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SAMORZAD_ROOMS, ROOMS } from '../data/rooms';
 import { postNotify } from '../notifications/client';
+import { pendingForSync } from '../notifications/logic';
 
 const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwy2oHgy_tsWrrSQ39XRteKuxjRK46yiMvsYDqT-Z4xOUUhfkCAzGMLzXs-i8ckIIBxhg/exec';
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -74,7 +75,8 @@ export default function CalendarSamorzadPage({ userEmail }) {
       const data = await response.json();
       if (!data.error) {
         setCalendarData(data);
-        if (isAdmin) syncPendingNotifications(data.pending || []);
+        const pending = pendingForSync(data);
+        if (isAdmin && pending) syncPendingNotifications(pending);
       }
     } catch (error) {
       console.error("Błąd pobierania kalendarza:", error);
